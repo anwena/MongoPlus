@@ -1,5 +1,4 @@
 <p align="center">
-  <a href="#"><img src="https://maven-badges.herokuapp.com/maven-central/com.ejlchina/bean-searcher/badge.svg" alt="Maven Central"></a>
   <a href="https://gitee.com/anwena/mongo-plus/blob/master/LICENSE"><img src="https://img.shields.io/hexpm/l/plug.svg" alt="License"></a>
 </p>
 
