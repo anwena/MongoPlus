@@ -1,13 +1,9 @@
 package com.anwen.mongo.sql.query;
 
-import com.alibaba.fastjson.JSON;
 import com.anwen.mongo.sql.ServiceImpl;
 import com.anwen.mongo.sql.interfaces.Compare;
 import com.anwen.mongo.sql.interfaces.Order;
 import com.anwen.mongo.sql.support.SFunction;
-import com.anwen.mongo.utils.GenericSuperclassUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;

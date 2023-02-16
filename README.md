@@ -42,10 +42,7 @@ import com.mongodb.MongoClient;
 import org.apache.catalina.User;
 
 public class MongoServiceImpl extends ServiceImpl<User> implements MongoService {
-  //创建一个构造函数
-  public MongoServiceImpl(MongoClient mongoClient, MongoDBConnectProperty mongoDBConnectProperty) {
-        super(mongoClient,mongoDBConnectProperty);
-  }
+    
 }
 ```
 
