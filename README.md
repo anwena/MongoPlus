@@ -67,7 +67,7 @@ public class UserController {
 }
 ```
 
-这样一来，就可以直接启动运行了，是不是跟MyBatisPlus的操作方式一模一样，可以不用花太多的成本去学习
+这样一来，就可以直接启动运行了，是不是跟MyBatisPlus的操作方式一模一样，可以不用花太多的成本去学习，而且可以和MongoDBTemplate一起使用
 
 
 ### 🚀 快速开发
@@ -94,7 +94,7 @@ spring:
     mongodb:
       host: 127.0.0.1
       port: 27017
-      database: runoob
+      database: test
 ```
 
 ### ❤️ 参与贡献
