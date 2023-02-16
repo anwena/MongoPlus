@@ -8,7 +8,6 @@
 首先，你有一个实体类：
 
 ```java
-
 import com.anwen.mongo.sql.model.BaseModelID;
 
 public class User extends BaseModelID {
@@ -86,6 +85,16 @@ MyBatisPlus就是可以不用像MyBatis一样写过多的sql语句，Mongo-Plus�
   <artifactId>mongo-plus</artifactId>
   <version>1.0.0-SNAPSHOT</version>
 </dependency>
+```
+
+#### 配置文件配置：
+```yaml
+spring:
+  data:
+    mongodb:
+      host: 127.0.0.1
+      port: 27017
+      database: runoob
 ```
 
 ### ❤️ 参与贡献
