@@ -83,7 +83,7 @@ MyBatisPlus就是可以不用像MyBatis一样写过多的sql语句，Mongo-Plus�
 <dependency>
   <groupId>io.gitee.anwena</groupId>
   <artifactId>mongo-plus</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.0</version>
 </dependency>
 ```
 
