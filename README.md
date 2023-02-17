@@ -81,9 +81,9 @@ MyBatisPlus就是可以不用像MyBatis一样写过多的sql语句，Mongo-Plus�
 #### Spring Boot 项目，添加依赖即集成完毕：
 ```xml
 <dependency>
-  <groupId>io.gitee.anwena</groupId>
-  <artifactId>mongo-plus</artifactId>
-  <version>1.0.0</version>
+    <groupId>io.gitee.anwena</groupId>
+    <artifactId>mongo-plus-boot-starter</artifactId>
+    <version>1.0.0</version>
 </dependency>
 ```
 
