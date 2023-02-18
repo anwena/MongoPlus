@@ -12,7 +12,6 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * @author JiaChaoYang
@@ -98,7 +97,7 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
-    public Boolean removeByColumn(Function<T, Object> column, String value) {
+    public Boolean removeByColumn(SFunction<T, Object> column, String value) {
         sqlOperation.init(getEClass());
         return sqlOperation.doRemoveByColumn(column,value);
     }

@@ -9,7 +9,7 @@ import com.anwen.mongo.sql.support.SFunction;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Function;
+
 
 /**
  * @author JiaChaoYang
@@ -94,7 +94,7 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @since 2023/2/9 14:01
     */
-    Boolean removeByColumn(Function<T, Object> column,String value);
+    Boolean removeByColumn(SFunction<T, Object> column, String value);
 
     /**
      * 根据字段删除

@@ -1,11 +1,7 @@
 package com.anwen.mongo.utils;
 
-import java.lang.invoke.SerializedLambda;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,28 +30,6 @@ public class GenericSuperclassUtil {
         }
 
         return entitiClass;
-    }
-
-    public static <T> String getSerializedLambda(Function<T, ?> fn) {
-        // 从function取出序列化方法
-        Method writeReplaceMethod;
-        try {
-            writeReplaceMethod = fn.getClass().getDeclaredMethod("writeReplace");
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        }
-
-        // 从序列化方法取出序列化的lambda信息
-        boolean isAccessible = writeReplaceMethod.isAccessible();
-        writeReplaceMethod.setAccessible(true);
-        SerializedLambda serializedLambda;
-        try {
-            serializedLambda = (SerializedLambda) writeReplaceMethod.invoke(fn);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
-        }
-        writeReplaceMethod.setAccessible(isAccessible);
-        return GenericSuperclassUtil.humpToLowerLine(serializedLambda.getImplMethodName());
     }
 
     /**

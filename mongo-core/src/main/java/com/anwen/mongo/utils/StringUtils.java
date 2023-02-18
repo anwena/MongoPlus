@@ -552,8 +552,7 @@ public final class StringUtils {
      *
      * @param str        the String to check, may be null
      * @param suffix     the suffix to find, may be null
-     * @param ignoreCase inidicates whether the compare should ignore case (case
-     *                   insensitive) or not.
+     * @param ignoreCase inidicates whether the compare should ignore case (case-     *                   insensitive) or not.
      * @return <code>true</code> if the String starts with the prefix or both
      * <code>null</code>
      * @see String#endsWith(String)
@@ -728,8 +727,8 @@ public final class StringUtils {
      */
     public static String sqlInjectionReplaceBlank(String str) {
         if (SqlInjectionUtils.check(str)) {
-            /**
-             * 存在 SQL 注入，去除空白内容
+            /*
+              存在 SQL 注入，去除空白内容
              */
             Matcher matcher = REPLACE_BLANK.matcher(str);
             return matcher.replaceAll("");

@@ -11,7 +11,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>io.gitee.anwena</groupId>
+    <groupId>com.gitee.anwena</groupId>
     <artifactId>mongo-plus-boot-starter</artifactId>
     <name>mongo-plus-boot-starter</name>
     <packaging>jar</packaging>
@@ -57,7 +57,7 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.anwen.mongo</groupId>
+            <groupId>com.gitee.anwena</groupId>
             <artifactId>mongo-core</artifactId>
             <version>1.0.0</version>
         </dependency>

@@ -32,12 +32,12 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * @Description:
- * @BelongsProject: mongo
- * @BelongsPackage: com.anwen.mongo.sql
- * @Author: JiaChaoYang
- * @CreateTime: 2023-02-16 20:35
- * @Version: 1.0
+ * &#064;Description: sql执行
+ * &#064;BelongsProject:  mongo
+ * &#064;@BelongsPackage: com.anwen.mongo.sql
+ * &#064;@Author: JiaChaoYang
+ * &#064;@CreateTime: 2023-02-16 20:35
+ * &#064;@Version: 1.0
  */
 @Data
 public class SqlOperation {
@@ -170,8 +170,8 @@ public class SqlOperation {
     }
 
 
-    protected <T> Boolean doRemoveByColumn(Function<T, Object> column, String value) {
-        return collection.deleteOne(Filters.eq(GenericSuperclassUtil.getSerializedLambda(column),value)).getDeletedCount() != 0;
+    protected <T> Boolean doRemoveByColumn(SFunction<T, Object> column, String value) {
+        return collection.deleteOne(Filters.eq(column.getFieldNameLine(),value)).getDeletedCount() != 0;
     }
 
 

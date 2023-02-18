@@ -35,7 +35,7 @@ public interface SFunction<T,R> extends Function<T,R>, Serializable {
     /**
      * 获取实体类的字段名称(实体声明的字段名称)
      */
-    default <T> String getFieldNameLine() {
+    default String getFieldNameLine() {
         return getFieldName(this, defaultSplit);
     }
 
@@ -44,7 +44,7 @@ public interface SFunction<T,R> extends Function<T,R>, Serializable {
      *
      * @param split 分隔符，多个字母自定义分隔符
      */
-    default <T> String getFieldName(SFunction<T, ?> fn, String split) {
+    default String getFieldName(SFunction<T, ?> fn, String split) {
         return getFieldName(fn, split, defaultToType);
     }
 
@@ -54,7 +54,7 @@ public interface SFunction<T,R> extends Function<T,R>, Serializable {
      * @param split  分隔符，多个字母自定义分隔符
      * @param toType 转换方式，多个字母以大小写方式返回 0.不做转换 1.大写 2.小写
      */
-    default <T> String getFieldName(SFunction<T, ?> fn, String split, Integer toType) {
+    default String getFieldName(SFunction<T, ?> fn, String split, Integer toType) {
         SerializedLambda serializedLambda = getSerializedLambdaOne(fn);
 
         // 从lambda信息取出method、field、class等
@@ -104,7 +104,7 @@ public interface SFunction<T,R> extends Function<T,R>, Serializable {
         return (SerializedLambda) method.invoke(this);
     }
 
-    default <T> SerializedLambda getSerializedLambdaOne(SFunction<T, ?> fn) {
+    default SerializedLambda getSerializedLambdaOne(SFunction<T, ?> fn) {
         // 从function取出序列化方法
         Method writeReplaceMethod;
         try {
