@@ -7,9 +7,8 @@
     <groupId>com.anwen.mongo</groupId>
     <artifactId>mongo-core</artifactId>
     <packaging>jar</packaging>
-<!--    <version>1.1.2</version>-->
-    <version>1.0.0-SNAPSHOT</version>
-    <description>MongoPlus主程序</description>
+    <version>1.0.0</version>
+    <description>mongo-plus核心代码</description>
     <url>https://gitee.com/jia-chaoyang/mongo-plus</url>
     <inceptionYear>2023</inceptionYear>
 
@@ -53,11 +52,6 @@
             <artifactId>mongo-java-driver</artifactId>
             <version>3.12.12</version>
         </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.24</version>
-        </dependency>
         <!-- fastJson依赖 -->
         <dependency>
             <groupId>com.alibaba</groupId>
@@ -65,15 +59,15 @@
             <version>1.2.83</version>
         </dependency>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>2.0.5</version>
-        </dependency>
-        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
             <version>5.3.23</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.anwen.mongo</groupId>
+            <artifactId>mongo-annotation</artifactId>
+            <version>1.0.0</version>
         </dependency>
     </dependencies>
 

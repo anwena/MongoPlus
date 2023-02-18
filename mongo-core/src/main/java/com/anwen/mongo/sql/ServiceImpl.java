@@ -118,13 +118,13 @@ public class ServiceImpl<T> implements IService<T> {
     @Override
     public List<T> list() {
         sqlOperation.init(getEClass());
-        return sqlOperation.doList();
+        return (List<T>) sqlOperation.doList();
     }
 
     @Override
     public List<T> list(List<Compare> compareList, List<Order> orderList) {
         sqlOperation.init(getEClass());
-        return sqlOperation.doList(compareList,orderList);
+        return (List<T>) sqlOperation.doList(compareList,orderList);
     }
 
     @Override

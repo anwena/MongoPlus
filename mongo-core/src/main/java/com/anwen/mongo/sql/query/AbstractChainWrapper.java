@@ -134,7 +134,7 @@ public class AbstractChainWrapper<T> extends ServiceImpl<T> implements LambdaQue
 
     @Override
     public List<T> list() {
-        return serviceImpl.list(compareList,orderList);
+        return (List<T>) serviceImpl.list(compareList,orderList);
     }
 
     @Override
@@ -143,15 +143,13 @@ public class AbstractChainWrapper<T> extends ServiceImpl<T> implements LambdaQue
     }
 
     public LambdaQueryMongoWrapper<T> getBaseOrder(Integer type , SFunction<T, Object> column){
-        orderList.add(new Order(type,column.getFieldName()));
+        orderList.add(new Order(type,column.getFieldNameLine()));
         return this;
     }
 
 
     public LambdaQueryMongoWrapper<T> getBaseCondition(SFunction<T, Object> column, Object value){
-        //TODO 第二版本加上注解
-        Class<?> aClass = column.getFieldClass();
-        compareList.add(new Compare(new Throwable().getStackTrace()[1].getMethodName(), column.getFieldName(),value));
+        compareList.add(new Compare(new Throwable().getStackTrace()[1].getMethodName(), column.getFieldNameLine(),value));
         return this;
     }
 }

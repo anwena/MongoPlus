@@ -1,7 +1,7 @@
 package com.anwen.mongo.sql;
 
 import com.alibaba.fastjson.JSON;
-import com.anwen.mongo.annotation.ID;
+import com.anwen.mongo.annotation.table.TableName;
 import com.anwen.mongo.domain.MongoQueryException;
 import com.anwen.mongo.sql.comm.ConnectMongoDB;
 import com.anwen.mongo.sql.interfaces.Compare;
@@ -19,13 +19,12 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.result.UpdateResult;
 import lombok.Data;
 import org.bson.Document;
-import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -52,20 +51,22 @@ public class SqlOperation {
     private String database;
 
     public void init(Class<?> aClass){
-        this.collection = new ConnectMongoDB(mongoClient, database, aClass.getSimpleName().toLowerCase()).open();
+        String tableName = aClass.getSimpleName().toLowerCase();
+        if (aClass.isAnnotationPresent(TableName.class)){
+            tableName = aClass.getAnnotation(TableName.class).value();
+        }
+        this.collection = new ConnectMongoDB(mongoClient, database, tableName).open();
     }
 
     public <T> Boolean doSave(T entity) {
         try {
-            Map<String, Object> beanToMap = BeanMapUtilByReflect.beanToMap(entity);
-            collection.insertOne(new Document(beanToMap));
+            collection.insertOne(new Document(BeanMapUtilByReflect.checkTableField(entity)));
         }catch (Exception e){
             log.error("save fail , error info : {}",e.getMessage(),e);
             return false;
         }
         return true;
     }
-
 
     protected <T> Boolean doSaveBatch(Collection<T> entityList) {
         try {
@@ -80,23 +81,23 @@ public class SqlOperation {
 
     protected <T> Boolean doSaveOrUpdate(T entity) {
         try {
-            Method method = entity.getClass().getMethod("getId");
-            String id = (String) method.invoke(entity);
+            Class<?> entityClass = entity.getClass().getSuperclass();
+            Field field = entityClass.getFields()[0];
+            String id = String.valueOf(field.get(entity));
             if (doGetById(id) == null) return doSave(entity);
             return doUpdateById(entity);
-        } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+        } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
     }
 
 
     protected <T> Boolean doSaveOrUpdateBatch(Collection<T> entityList) {
-        collection.find(new BasicDBObject());
         List<T> insertList = new ArrayList<>();
         for (Document document : collection.find(
                 Filters.in("_id", entityList.stream().map(entity -> {
                     try {
-                        return (String) entity.getClass().getMethod("getId").invoke(entity);
+                        return (String) entity.getClass().getSuperclass().getMethod("getId").invoke(entity);
                     } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                         throw new RuntimeException(e);
                     }
@@ -112,17 +113,10 @@ public class SqlOperation {
 
 
     protected <T> Boolean doUpdateById(T entity) {
-        Class<?> entityClass = entity.getClass();
-        System.out.println(Arrays.toString(entityClass.getAnnotations()));
-        System.out.println(entityClass.getAnnotation(ID.class));
-        System.out.println(Arrays.toString(entityClass.getDeclaredAnnotations()));
         UpdateResult updateResult;
         try {
-            String id = entity.getClass().getMethod("get_id").invoke(entity).toString();
-            Document document = new Document();
-            document.putAll(BeanMapUtilByReflect.beanToMap(entity));
-            BasicDBObject filter = new BasicDBObject("_id",new ObjectId(id));
-            BasicDBObject update = new BasicDBObject("$set",new Document(BeanMapUtilByReflect.beanToMap(entity)));
+            BasicDBObject filter = new BasicDBObject("_id",entity.getClass().getSuperclass().getMethod("getId").invoke(entity).toString());
+            BasicDBObject update = new BasicDBObject("$set",new Document(BeanMapUtilByReflect.checkTableField(entity)));
             updateResult = collection.updateOne(filter,update);
         }catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e){
             log.error("update fail , fail info : {}",e.getMessage(),e);
@@ -136,7 +130,7 @@ public class SqlOperation {
         AtomicReference<UpdateResult> updateResult = new AtomicReference<>();
         entityList.forEach(entity -> {
             try {
-                updateResult.set(collection.updateMany(Filters.eq("_id", entity.getClass().getMethod("getId").invoke(entity)), new Document(BeanMapUtilByReflect.beanToMap(entity))));
+                updateResult.set(collection.updateMany(Filters.eq("_id", entity.getClass().getSuperclass().getMethod("getId").invoke(entity)), new Document(BeanMapUtilByReflect.checkTableField(entity))));
             } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                 log.error("update fail , fail info : {}",e.getMessage(),e);
             }
@@ -148,7 +142,7 @@ public class SqlOperation {
     protected <T> Boolean doUpdateByColumn(T entity, SFunction<T, Object> column) {
         UpdateResult updateResult;
         try {
-            updateResult = collection.updateOne(Filters.eq(column.getFieldName(), entity.getClass().getMethod("getId").invoke(entity)), new Document(BeanMapUtilByReflect.beanToMap(entity)));
+            updateResult = collection.updateOne(Filters.eq(column.getFieldName(), entity.getClass().getMethod("getId").invoke(entity)), new Document(BeanMapUtilByReflect.checkTableField(entity)));
         }catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e){
             log.error("update fail , fail info : {}",e.getMessage(),e);
             return false;
@@ -160,7 +154,7 @@ public class SqlOperation {
     protected <T> Boolean doUpdateByColumn(T entity, String column) {
         UpdateResult updateResult;
         try {
-            updateResult = collection.updateOne(Filters.eq(column, entity.getClass().getMethod("getId").invoke(entity)), new Document(BeanMapUtilByReflect.beanToMap(entity)));
+            updateResult = collection.updateOne(Filters.eq(column, entity.getClass().getMethod("getId").invoke(entity)), new Document(BeanMapUtilByReflect.checkTableField(entity)));
         }catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e){
             log.error("update fail , fail info : {}",e.getMessage(),e);
             return false;
@@ -171,9 +165,7 @@ public class SqlOperation {
 
     protected <T> Boolean doRemoveById(Serializable id) {
         T t = doGetById(id);
-        System.out.println(t);
         Document document = collection.findOneAndDelete(Filters.eq("_id", id));
-        log.info(JSON.toJSONString(document));
         return collection.deleteOne(Filters.eq("_id",id)).getDeletedCount() != 0;
     }
 
