@@ -18,4 +18,6 @@ import java.lang.annotation.*;
 @Documented
 public @interface TableName {
     String value();
+
+    String dataSource() default "";
 }

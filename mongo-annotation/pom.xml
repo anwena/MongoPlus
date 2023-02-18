@@ -9,7 +9,7 @@
     <artifactId>mongo-annotation</artifactId>
     <name>mongo-annotation</name>
     <packaging>jar</packaging>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <description>mongo-plus注解、枚举</description>
     <url>https://gitee.com/jia-chaoyang/mongo-plus</url>
     <inceptionYear>2023</inceptionYear>

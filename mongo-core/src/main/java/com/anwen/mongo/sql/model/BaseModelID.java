@@ -21,5 +21,5 @@ public class BaseModelID {
     */
     @ID(type = IdType.ASSIGN_ID)
     @TableField("_id")
-    private String id = UUID.randomUUID().toString().replaceAll("-","");
+    private String _id = UUID.randomUUID().toString().replaceAll("-","");
 }

@@ -5,12 +5,17 @@
 通过MyBatisPlus的方式，优雅的操作MongoDB
 
 
-首先，你有一个实体类：
+### 首先，你有一个实体类：
 
 ```java
 import com.anwen.mongo.sql.model.BaseModelID;
 
+/**
+ * @TableName：配置对应的表名，不配置默认使用小写类名，通过dataSource属性切换数据源
+ **/
+@TableName(value="对应的表名",dataSource="配置多数据源时的slaveName"/*不配置dataSource默认使用主数据源*/)
 public class User extends BaseModelID {
+    @TableField("user_name")//标识对应数据库中的字段
   private String username;
   private int status;
   private int age;
@@ -20,7 +25,7 @@ public class User extends BaseModelID {
   private String roleName;
 }
 ```
-将你的service接口继承IService
+### 将你的service接口继承IService
 
 ```java
 import com.anwen.mongo.sql.IService;
@@ -31,7 +36,7 @@ public interface MongoServiceImpl extends IService<User> {
 }
 ```
 
-再将你的service实现类继承ServiceImpl
+### 再将你的service实现类继承ServiceImpl
 
 ```java
 import com.anwen.mongo.config.MongoDBConnectProperty;
@@ -44,7 +49,7 @@ public class MongoServiceImpl extends ServiceImpl<User> implements MongoService 
 }
 ```
 
-然后你就可以使用MyBatisPlus一模一样的代码操作mongodb啦：
+### 然后你就可以使用MyBatisPlus一模一样的代码操作mongodb啦：
 
 ```java
 import org.apache.catalina.User;
@@ -67,7 +72,7 @@ public class UserController {
 }
 ```
 
-这样一来，就可以直接启动运行了，是不是跟MyBatisPlus的操作方式一模一样，可以不用花太多的成本去学习，而且可以和MongoDBTemplate一起使用
+这样一来，就可以直接启动运行了，是不是跟MyBatisPlus的操作方式一模一样，可以不用花太多的成本去学习
 
 
 ### 🚀 快速开发
@@ -83,19 +88,43 @@ MyBatisPlus就是可以不用像MyBatis一样写过多的sql语句，Mongo-Plus�
 <dependency>
     <groupId>com.gitee.anwena</groupId>
     <artifactId>mongo-plus-boot-starter</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 </dependency>
 ```
 
 #### 配置文件配置：
 ```yaml
-spring:
+mongo-plus:
   data:
     mongodb:
       host: 127.0.0.1
       port: 27017
       database: test
 ```
+
+#### 多数据源配置：
+```yaml
+mongo-plus:
+  data:
+    mongodb:
+      host: 127.0.0.1
+      port: 27017
+      database: test
+      slaveDataSource[0]:
+        slaveName: test1
+        host: 127.0.0.1
+        port: 27017
+        database: database1
+      slaveDataSource[1]:
+        slaveName: test2
+        host: 127.0.0.1
+        port: 27017
+        database: database2
+```
+
+### 📚   更新日志
+v1.0.0 基础增删改查方法
+v1.0.1 增加@TableName和TableField注解，可以指定列名和字段名，增加多数据源配置，修复已知BUG
 
 ### ❤️ 参与贡献
 

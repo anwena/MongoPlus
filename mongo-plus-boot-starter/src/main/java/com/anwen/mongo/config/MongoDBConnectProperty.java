@@ -1,13 +1,10 @@
 package com.anwen.mongo.config;
 
-import com.anwen.mongo.sql.IService;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.anwen.mongo.sql.model.SlaveDataSource;
+import lombok.*;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @author JiaChaoYang
@@ -18,7 +15,7 @@ import javax.annotation.Resource;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ConfigurationProperties(prefix = "spring.data.mongodb")
+@ConfigurationProperties(prefix = "mongo-plus.data.mongodb")
 public class MongoDBConnectProperty {
 
     /**
@@ -39,5 +36,12 @@ public class MongoDBConnectProperty {
      * @since 2023/2/10 13:45
     */
     private String database;
+
+    /**
+     * 从数据源
+     * @author: JiaChaoYang
+     * @date: 2023/2/18 15:03
+     **/
+    private List<SlaveDataSource> slaveDataSource;
 
 }

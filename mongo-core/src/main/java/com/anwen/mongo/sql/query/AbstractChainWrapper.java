@@ -134,7 +134,7 @@ public class AbstractChainWrapper<T> extends ServiceImpl<T> implements LambdaQue
 
     @Override
     public List<T> list() {
-        return (List<T>) serviceImpl.list(compareList,orderList);
+        return serviceImpl.list(compareList,orderList);
     }
 
     @Override

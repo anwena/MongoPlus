@@ -21,7 +21,7 @@ import java.util.List;
 public class ServiceImpl<T> implements IService<T> {
 
     @Resource
-    private SqlOperation sqlOperation;
+    private SqlOperation<T> sqlOperation;
 
     public <T> Class<T> getEClass() {
 
@@ -117,13 +117,13 @@ public class ServiceImpl<T> implements IService<T> {
     @Override
     public List<T> list() {
         sqlOperation.init(getEClass());
-        return (List<T>) sqlOperation.doList();
+        return sqlOperation.doList();
     }
 
     @Override
     public List<T> list(List<Compare> compareList, List<Order> orderList) {
         sqlOperation.init(getEClass());
-        return (List<T>) sqlOperation.doList(compareList,orderList);
+        return sqlOperation.doList(compareList,orderList);
     }
 
     @Override

@@ -8,7 +8,7 @@
     <artifactId>mongo-core</artifactId>
     <packaging>jar</packaging>
     <name>mongo-core</name>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <description>mongo-plus核心代码</description>
     <url>https://gitee.com/jia-chaoyang/mongo-plus</url>
     <inceptionYear>2023</inceptionYear>
@@ -51,6 +51,7 @@
             <groupId>org.mongodb</groupId>
             <artifactId>mongo-java-driver</artifactId>
             <version>3.12.12</version>
+            <scope>provided</scope>
         </dependency>
         <!-- fastJson依赖 -->
         <dependency>
@@ -67,7 +68,7 @@
         <dependency>
             <groupId>com.gitee.anwena</groupId>
             <artifactId>mongo-annotation</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1</version>
         </dependency>
     </dependencies>
 

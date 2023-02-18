@@ -1,7 +1,6 @@
 package com.anwen.mongo.config;
 
 import com.anwen.mongo.sql.SqlOperation;
-import com.mongodb.MongoClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -25,18 +24,13 @@ public class MongoDBJDBCConfiguration {
         this.mongoDBConnectProperty = mongoDBConnectProperty;
     }
 
-
     @Bean
     @ConditionalOnMissingBean
-    public MongoClient mongoClient(){
-        return new MongoClient(mongoDBConnectProperty.getHost(), Integer.parseInt(mongoDBConnectProperty.getPort()));
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public SqlOperation sqlOperation(MongoClient mongoClient){
-        SqlOperation sqlOperation = new SqlOperation();
-        sqlOperation.setMongoClient(mongoClient);
+    public SqlOperation<?> sqlOperation(){
+        SqlOperation<?> sqlOperation = new SqlOperation<>();
+        sqlOperation.setHost(mongoDBConnectProperty.getHost());
+        sqlOperation.setPort(mongoDBConnectProperty.getPort());
+        sqlOperation.setSlaveDataSources(mongoDBConnectProperty.getSlaveDataSource());
         sqlOperation.setDatabase(mongoDBConnectProperty.getDatabase());
         return sqlOperation;
     }
