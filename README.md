@@ -88,7 +88,7 @@ MyBatisPlus就是可以不用像MyBatis一样写过多的sql语句，Mongo-Plus�
 <dependency>
     <groupId>com.gitee.anwena</groupId>
     <artifactId>mongo-plus-boot-starter</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 </dependency>
 ```
 
@@ -123,8 +123,7 @@ mongo-plus:
 ```
 
 ### 📚   更新日志
-v1.0.0 基础增删改查方法
-v1.0.1 增加@TableName和TableField注解，可以指定列名和字段名，增加多数据源配置，修复已知BUG
+v1.0 基础用法
 
 ### ❤️ 参与贡献
 
