@@ -1,6 +1,5 @@
 package com.anwen.mongo.aop;
 
-import com.alibaba.fastjson.JSON;
 import com.anwen.mongo.enums.IdType;
 import lombok.extern.log4j.Log4j2;
 import org.aspectj.lang.JoinPoint;
@@ -12,7 +11,9 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import static com.anwen.mongo.utils.AnnotationUtil.getFieldAnnotation;
@@ -33,7 +34,6 @@ public class CutInIDAspect {
 
     @Before("idAspect()")
     public void around(JoinPoint joinPoint){
-        log.info("环绕通知的目标方法名：{}",joinPoint.getSignature().getName());
         //修改传入参数
         processInputArg(joinPoint.getArgs());
     }
@@ -45,23 +45,31 @@ public class CutInIDAspect {
      */
     private <T> void processInputArg(Object[] args) {
         for (Object arg : args) {
-            log.info("切入成功，开始处理参数");
-            try {
-                T entity = (T)arg;
-                Class<?> entityClass = entity.getClass();
-                Map<String, Object> fieldAnnotation = getFieldAnnotation(entity);
-                if (!fieldAnnotation.containsKey("fieldName") && !fieldAnnotation.containsKey("fieldType") && !fieldAnnotation.containsKey("generateType")){
-                    return;
-                }
-                IdType idType = (IdType) fieldAnnotation.get("generateType");
-                Class<?> typeClass = (Class<?>) fieldAnnotation.get("fieldType");
-                String fieldName = parseSetMethodName(String.valueOf(fieldAnnotation.get("fieldName")));
-                Method fieldSetMethod = entityClass.getMethod(fieldName, typeClass);
-                Object invoke = fieldSetMethod.invoke(entity, getClassTypeValue(typeClass, IdType.generateId(idType)));
-                log.info("处理完成：{}", JSON.toJSONString(invoke));
-            }catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e){
-                log.error("切入id失败：{}",e.getMessage(),e);
+            T entity = (T)arg;
+            if (entity instanceof Collection){
+                List<T> entityList = (List<T>) entity;
+                entityList.forEach(this::inputArg);
+            }else {
+                inputArg(entity);
             }
+        }
+    }
+
+    private <T> void inputArg(T entity){
+        Class<?> entityClass = entity.getClass();
+        Map<String, Object> fieldAnnotation = getFieldAnnotation(entity);
+        if (!fieldAnnotation.containsKey("fieldName") && !fieldAnnotation.containsKey("fieldType") && !fieldAnnotation.containsKey("generateType")){
+            return;
+        }
+        IdType idType = (IdType) fieldAnnotation.get("generateType");
+        Class<?> typeClass = (Class<?>) fieldAnnotation.get("fieldType");
+        String fieldName = parseSetMethodName(String.valueOf(fieldAnnotation.get("fieldName")));
+        Method fieldSetMethod = null;
+        try {
+            fieldSetMethod = entityClass.getMethod(fieldName, typeClass);
+            fieldSetMethod.invoke(entity, getClassTypeValue(typeClass, IdType.generateId(idType)));
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            throw new RuntimeException(e);
         }
     }
 

@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.anwen.mongo.annotation.table.TableField;
+import com.anwen.mongo.generate.Sequence;
+import com.anwen.mongo.sql.model.BaseModelID;
 import org.bson.Document;
 
 import java.lang.reflect.Field;
@@ -45,15 +47,23 @@ public class BeanMapUtilByReflect {
     */
     public static <T> T mapToBean(Map<String,Object> map, Class<T> beanClass) throws Exception {
         T object = beanClass.newInstance();
-        Class<? super T> superclass = beanClass.getSuperclass();
         Field[] fields = object.getClass().getDeclaredFields();
+        Class<?> superclass = object.getClass().getSuperclass();
+        if (superclass == BaseModelID.class){
+            Field id = superclass.getField("id");
+            id.set(object,map.get("_id"));
+        }
         for (Field field : fields) {
             int mod = field.getModifiers();
             if (Modifier.isStatic(mod) || Modifier.isFinal(mod)) {
                 continue;
             }
             field.setAccessible(true);
-            if (map.containsKey(field.getName())) {
+            String fieldName = field.getName();
+            if (field.isAnnotationPresent(TableField.class)){
+                fieldName = field.getAnnotation(TableField.class).value();
+            }
+            if (map.containsKey(fieldName)) {
                 field.set(object, map.get(field.getName()));
             }
         }
@@ -63,26 +73,33 @@ public class BeanMapUtilByReflect {
     public static <T> List<Document> listToDocumentList(Collection<T> collection){
         List<Document> documentList = new ArrayList<>();
         collection.forEach(c -> {
-            documentList.add(new Document(checkTableField(c)));
+            documentList.add(new Document(checkTableField(c,true)));
         });
         return documentList;
     }
 
-    public static <T> Map<String,Object> checkTableField(T entity){
+    public static <T> Map<String,Object> checkTableField(T entity,boolean ... flag){
         Map<String,Object> resultMap = new HashMap<>();
         Class<?> entityClass = entity.getClass();
-        for (Field field : entityClass.getFields()) {
+        Class<?> superclass = entityClass.getSuperclass();
+        try {
+            resultMap.put("_id",flag[0] ? String.valueOf(new Sequence(null).nextId()) : superclass.getField("id").get(entity));
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+        for (Field field : entityClass.getDeclaredFields()) {
             field.setAccessible(true);
+            String fieldName = field.getName();
             if (field.isAnnotationPresent(TableField.class)){
                 TableField annotation = field.getAnnotation(TableField.class);
-                if (!annotation.exist()){
-                    String fieldName = annotation.value() != null ? annotation.value() : field.getName();
-                    try {
-                        resultMap.put(fieldName,field.get(entity));
-                    } catch (IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    }
+                if (!annotation.exist() && annotation.value() != null){
+                    fieldName = annotation.value();
                 }
+            }
+            try {
+                resultMap.put(fieldName,field.get(entity));
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
             }
         }
         return resultMap;

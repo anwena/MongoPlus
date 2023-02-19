@@ -1,5 +1,6 @@
 package com.anwen.mongo.sql;
 
+import com.anwen.mongo.annotation.CutInID;
 import com.anwen.mongo.annotation.table.TableName;
 import com.anwen.mongo.domain.InitMongoCollectionException;
 import com.anwen.mongo.domain.MongoQueryException;
@@ -27,16 +28,15 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * &#064;Description: sql执行
- * &#064;BelongsProject:  mongo
- * &#064;@BelongsPackage: com.anwen.mongo.sql
- * &#064;@Author: JiaChaoYang
- * &#064;@CreateTime: 2023-02-16 20:35
- * &#064;@Version: 1.0
+ * @Description: sql执行
+ * @BelongsProject:  mongo
+ * @BelongsPackage: com.anwen.mongo.sql
+ * @Author: JiaChaoYang
+ * @CreateTime: 2023-02-16 20:35
+ * @Version: 1.0
  */
 @Data
 public class SqlOperation<T> {
@@ -81,6 +81,7 @@ public class SqlOperation<T> {
         this.collection = new ConnectMongoDB(new MongoClient(host, Integer.parseInt(port)), database, tableName).open();
     }
 
+    @CutInID
     public <T> Boolean doSave(T entity) {
         try {
             collection.insertOne(new Document(BeanMapUtilByReflect.checkTableField(entity)));
@@ -120,7 +121,7 @@ public class SqlOperation<T> {
         for (Document document : collection.find(
                 Filters.in("_id", entityList.stream().map(entity -> {
                     try {
-                        return (String) entity.getClass().getSuperclass().getMethod("get_id").invoke(entity);
+                        return (String) entity.getClass().getSuperclass().getMethod("getId").invoke(entity);
                     } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                         throw new RuntimeException(e);
                     }
@@ -138,7 +139,7 @@ public class SqlOperation<T> {
     protected <T> Boolean doUpdateById(T entity) {
         UpdateResult updateResult;
         try {
-            BasicDBObject filter = new BasicDBObject("_id",entity.getClass().getSuperclass().getMethod("get_id").invoke(entity).toString());
+            BasicDBObject filter = new BasicDBObject("_id",entity.getClass().getSuperclass().getMethod("getId").invoke(entity).toString());
             BasicDBObject update = new BasicDBObject("$set",new Document(BeanMapUtilByReflect.checkTableField(entity)));
             updateResult = collection.updateOne(filter,update);
         }catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e){
@@ -153,7 +154,7 @@ public class SqlOperation<T> {
         AtomicReference<UpdateResult> updateResult = new AtomicReference<>();
         entityList.forEach(entity -> {
             try {
-                updateResult.set(collection.updateMany(Filters.eq("_id", entity.getClass().getSuperclass().getMethod("get_id").invoke(entity)), new Document(BeanMapUtilByReflect.checkTableField(entity))));
+                updateResult.set(collection.updateMany(Filters.eq("_id", entity.getClass().getSuperclass().getMethod("getId").invoke(entity)), new Document(BeanMapUtilByReflect.checkTableField(entity))));
             } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                 log.error("update fail , fail info : {}",e.getMessage(),e);
             }
@@ -165,7 +166,7 @@ public class SqlOperation<T> {
     protected <T> Boolean doUpdateByColumn(T entity, SFunction<T, Object> column) {
         UpdateResult updateResult;
         try {
-            updateResult = collection.updateOne(Filters.eq(column.getFieldName(), entity.getClass().getMethod("get_id").invoke(entity)), new Document(BeanMapUtilByReflect.checkTableField(entity)));
+            updateResult = collection.updateOne(Filters.eq(column.getFieldName(), entity.getClass().getMethod("getId").invoke(entity)), new Document(BeanMapUtilByReflect.checkTableField(entity)));
         }catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e){
             log.error("update fail , fail info : {}",e.getMessage(),e);
             return false;
@@ -177,7 +178,7 @@ public class SqlOperation<T> {
     protected <T> Boolean doUpdateByColumn(T entity, String column) {
         UpdateResult updateResult;
         try {
-            updateResult = collection.updateOne(Filters.eq(column, entity.getClass().getMethod("get_id").invoke(entity)), new Document(BeanMapUtilByReflect.checkTableField(entity)));
+            updateResult = collection.updateOne(Filters.eq(column, entity.getClass().getMethod("getId").invoke(entity)), new Document(BeanMapUtilByReflect.checkTableField(entity)));
         }catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e){
             log.error("update fail , fail info : {}",e.getMessage(),e);
             return false;
@@ -244,9 +245,8 @@ public class SqlOperation<T> {
         List<T> resultList = new ArrayList<>();
         BasicDBObject queryCond = new BasicDBObject();
         compareList.forEach(compare -> {
-            if (Objects.equals(compare.getCondition(),"like") && StringUtils.isBlank((String) compare.getValue())){
-                Pattern pattern = Pattern.compile("^.*"+compare.getValue()+".*$", Pattern.CASE_INSENSITIVE);
-                queryCond.put(compare.getColumn(),pattern);
+            if (Objects.equals(compare.getCondition(),"like") && StringUtils.isNotBlank((String) compare.getValue())){
+                queryCond.put(compare.getColumn(),new BasicDBObject("$regex",compare.getValue()));
             }else {
                 queryCond.put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), compare.getValue()));
             }

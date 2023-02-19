@@ -1,5 +1,6 @@
 package com.anwen.mongo.sql.query;
 
+import com.anwen.mongo.enums.OrderEnum;
 import com.anwen.mongo.sql.ServiceImpl;
 import com.anwen.mongo.sql.interfaces.Compare;
 import com.anwen.mongo.sql.interfaces.Order;
@@ -53,12 +54,32 @@ public class AbstractChainWrapper<T> extends ServiceImpl<T> implements LambdaQue
     }
 
     @Override
+    public LambdaQueryMongoWrapper<T> eq(boolean condition, String column, Object value) {
+        return condition ? eq(column,value) : this;
+    }
+
+    @Override
+    public LambdaQueryMongoWrapper<T> eq(String column, Object value) {
+        return getBaseCondition(column,value);
+    }
+
+    @Override
     public LambdaQueryMongoWrapper<T> ne(boolean condition, SFunction<T, Object> column, Object value) {
         return condition ? ne(column,value) : this;
     }
 
     @Override
     public LambdaQueryMongoWrapper<T> ne(SFunction<T, Object> column, Object value) {
+        return getBaseCondition(column,value);
+    }
+
+    @Override
+    public LambdaQueryMongoWrapper<T> ne(boolean condition, String column, Object value) {
+        return condition ? ne(column,value) : this;
+    }
+
+    @Override
+    public LambdaQueryMongoWrapper<T> ne(String column,Object value) {
         return getBaseCondition(column,value);
     }
 
@@ -73,12 +94,32 @@ public class AbstractChainWrapper<T> extends ServiceImpl<T> implements LambdaQue
     }
 
     @Override
+    public LambdaQueryMongoWrapper<T> lt(boolean condition, String column, Object value) {
+        return null;
+    }
+
+    @Override
+    public LambdaQueryMongoWrapper<T> lt(String column, Object value) {
+        return getBaseCondition(column,value);
+    }
+
+    @Override
     public LambdaQueryMongoWrapper<T> lte(boolean condition, SFunction<T, Object> column, Object value) {
         return condition ? lte(column,value) : this;
     }
 
     @Override
     public LambdaQueryMongoWrapper<T> lte(SFunction<T, Object> column, Object value) {
+        return getBaseCondition(column,value);
+    }
+
+    @Override
+    public LambdaQueryMongoWrapper<T> lte(boolean condition, String column, Object value) {
+        return null;
+    }
+
+    @Override
+    public LambdaQueryMongoWrapper<T> lte(String column, Object value) {
         return getBaseCondition(column,value);
     }
 
@@ -93,12 +134,32 @@ public class AbstractChainWrapper<T> extends ServiceImpl<T> implements LambdaQue
     }
 
     @Override
+    public LambdaQueryMongoWrapper<T> gt(boolean condition, String column, Object value) {
+        return null;
+    }
+
+    @Override
+    public LambdaQueryMongoWrapper<T> gt(String column, Object value) {
+        return getBaseCondition(column,value);
+    }
+
+    @Override
     public LambdaQueryMongoWrapper<T> gte(boolean condition, SFunction<T, Object> column, Object value) {
         return condition ? gte(column,value) : this;
     }
 
     @Override
     public LambdaQueryMongoWrapper<T> gte(SFunction<T, Object> column, Object value) {
+        return getBaseCondition(column,value);
+    }
+
+    @Override
+    public LambdaQueryMongoWrapper<T> gte(boolean condition, String column, Object value) {
+        return null;
+    }
+
+    @Override
+    public LambdaQueryMongoWrapper<T> gte(String column, Object value) {
         return getBaseCondition(column,value);
     }
 
@@ -113,6 +174,16 @@ public class AbstractChainWrapper<T> extends ServiceImpl<T> implements LambdaQue
     }
 
     @Override
+    public LambdaQueryMongoWrapper<T> like(boolean condition, String column, Object value) {
+        return null;
+    }
+
+    @Override
+    public LambdaQueryMongoWrapper<T> like(String column, Object value) {
+        return getBaseCondition(column,value);
+    }
+
+    @Override
     public LambdaQueryMongoWrapper<T> in(boolean condition, SFunction<T, Object> column, Collection<Object> valueList) {
         return condition ? in(column,valueList) : this;
     }
@@ -123,13 +194,33 @@ public class AbstractChainWrapper<T> extends ServiceImpl<T> implements LambdaQue
     }
 
     @Override
+    public LambdaQueryMongoWrapper<T> in(boolean condition, String column, Collection<Object> valueList) {
+        return null;
+    }
+
+    @Override
+    public LambdaQueryMongoWrapper<T> in(String column, Collection<Object> valueList) {
+        return getBaseCondition(column,valueList);
+    }
+
+    @Override
     public LambdaQueryMongoWrapper<T> orderBy(SFunction<T, Object> column) {
-        return getBaseOrder(1,column);
+        return getBaseOrder(OrderEnum.ORDER_BY.getFlag(), column);
     }
 
     @Override
     public LambdaQueryMongoWrapper<T> orderByDesc(SFunction<T, Object> column) {
-        return getBaseOrder(-1,column);
+        return getBaseOrder(OrderEnum.ORDER_BY_DESC.getFlag(), column);
+    }
+
+    @Override
+    public LambdaQueryMongoWrapper<T> orderBy(String column) {
+        return getBaseOrder(OrderEnum.ORDER_BY.getFlag(), column);
+    }
+
+    @Override
+    public LambdaQueryMongoWrapper<T> orderByDesc(String column) {
+        return getBaseOrder(OrderEnum.ORDER_BY_DESC.getFlag(), column);
     }
 
     @Override
@@ -142,11 +233,21 @@ public class AbstractChainWrapper<T> extends ServiceImpl<T> implements LambdaQue
         return serviceImpl.one(compareList,orderList);
     }
 
+
+    public LambdaQueryMongoWrapper<T> getBaseOrder(Integer type , String column){
+        orderList.add(new Order(type,column));
+        return this;
+    }
+
     public LambdaQueryMongoWrapper<T> getBaseOrder(Integer type , SFunction<T, Object> column){
         orderList.add(new Order(type,column.getFieldNameLine()));
         return this;
     }
 
+    public LambdaQueryMongoWrapper<T> getBaseCondition(String column, Object value){
+        compareList.add(new Compare(new Throwable().getStackTrace()[1].getMethodName(), column,value));
+        return this;
+    }
 
     public LambdaQueryMongoWrapper<T> getBaseCondition(SFunction<T, Object> column, Object value){
         compareList.add(new Compare(new Throwable().getStackTrace()[1].getMethodName(), column.getFieldNameLine(),value));

@@ -5,8 +5,6 @@ import com.anwen.mongo.annotation.table.TableField;
 import com.anwen.mongo.enums.IdType;
 import lombok.Data;
 
-import java.util.UUID;
-
 /**
  * @author JiaChaoYang
  * 基础对象ID
@@ -21,5 +19,5 @@ public class BaseModelID {
     */
     @ID(type = IdType.ASSIGN_ID)
     @TableField("_id")
-    private String _id = UUID.randomUUID().toString().replaceAll("-","");
+    public String id;
 }
