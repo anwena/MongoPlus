@@ -110,16 +110,22 @@ mongo-plus:
       host: 127.0.0.1
       port: 27017
       database: test
+      username: admin #没有可不写
+      password: admin #没有可不写
       slaveDataSource[0]:
         slaveName: test1
         host: 127.0.0.1
         port: 27017
         database: database1
+        username: admin #没有可不写
+        password: admin #没有可不写
       slaveDataSource[1]:
         slaveName: test2
         host: 127.0.0.1
         port: 27017
         database: database2
+        username: admin #没有可不写
+        password: admin #没有可不写
 ```
 
 ### 📚   更新日志

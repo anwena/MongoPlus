@@ -2,6 +2,8 @@ package com.anwen.mongo.sql;
 
 import com.anwen.mongo.sql.interfaces.Compare;
 import com.anwen.mongo.sql.interfaces.Order;
+import com.anwen.mongo.sql.model.PageParam;
+import com.anwen.mongo.sql.model.PageResult;
 import com.anwen.mongo.sql.query.AbstractChainWrapper;
 import com.anwen.mongo.sql.query.LambdaQueryMongoWrapper;
 import com.anwen.mongo.sql.support.SFunction;
@@ -130,6 +132,27 @@ public class ServiceImpl<T> implements IService<T> {
     public T one(List<Compare> compareList, List<Order> orderList) {
         sqlOperation.init(getEClass());
         return sqlOperation.doOne(compareList,orderList);
+    }
+
+    @Override
+    public PageResult<T> page(PageParam pageParam) {
+        return page(pageParam.getPageNum(),pageParam.getPageSize());
+    }
+
+    @Override
+    public PageResult<T> page(Integer pageNum, Integer pageSize) {
+        sqlOperation.init(getEClass());
+        return sqlOperation.doPage(pageNum,pageSize);
+    }
+
+    @Override
+    public PageResult<T> page(List<Compare> compareList, List<Order> orderList, PageParam pageParam) {
+        return null;
+    }
+
+    @Override
+    public PageResult<T> page(List<Compare> compareList, List<Order> orderList, Integer pageNum, Integer pageSize) {
+        return null;
     }
 
     @Override

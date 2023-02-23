@@ -3,6 +3,8 @@ package com.anwen.mongo.sql;
 import com.anwen.mongo.annotation.CutInID;
 import com.anwen.mongo.sql.interfaces.Compare;
 import com.anwen.mongo.sql.interfaces.Order;
+import com.anwen.mongo.sql.model.PageParam;
+import com.anwen.mongo.sql.model.PageResult;
 import com.anwen.mongo.sql.query.LambdaQueryMongoWrapper;
 import com.anwen.mongo.sql.support.SFunction;
 
@@ -126,6 +128,14 @@ public interface IService<T> {
     List<T> list(List<Compare> compareList, List<Order> orderList);
 
     T one(List<Compare> compareList, List<Order> orderList);
+
+    PageResult<T> page(PageParam pageParam);
+
+    PageResult<T> page(Integer pageNum,Integer pageSize);
+
+    PageResult<T> page(List<Compare> compareList, List<Order> orderList,PageParam pageParam);
+
+    PageResult<T> page(List<Compare> compareList, List<Order> orderList,Integer pageNum,Integer pageSize);
 
     T getById(Serializable id);
 

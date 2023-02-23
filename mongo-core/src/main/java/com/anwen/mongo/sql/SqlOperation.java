@@ -7,12 +7,13 @@ import com.anwen.mongo.domain.MongoQueryException;
 import com.anwen.mongo.sql.comm.ConnectMongoDB;
 import com.anwen.mongo.sql.interfaces.Compare;
 import com.anwen.mongo.sql.interfaces.Order;
+import com.anwen.mongo.sql.model.PageParam;
+import com.anwen.mongo.sql.model.PageResult;
 import com.anwen.mongo.sql.model.SlaveDataSource;
 import com.anwen.mongo.sql.support.SFunction;
 import com.anwen.mongo.utils.BeanMapUtilByReflect;
 import com.anwen.mongo.utils.StringUtils;
-import com.mongodb.BasicDBObject;
-import com.mongodb.MongoClient;
+import com.mongodb.*;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
@@ -51,6 +52,10 @@ public class SqlOperation<T> {
 
     private String database;
 
+    private String username;
+
+    private String password;
+
     private List<SlaveDataSource> slaveDataSources;
 
     private T t;
@@ -73,12 +78,17 @@ public class SqlOperation<T> {
                     if (Objects.equals(annotation.dataSource(), slave.getSlaveName())) {
                         this.host = slave.getHost();
                         this.port = slave.getPort();
-                        this.port = slave.getDatabase();
+                        this.database = slave.getDatabase();
+                        this.username = slave.getUsername();
+                        this.password = slave.getPassword();
                     }
                 });
             }
         }
-        this.collection = new ConnectMongoDB(new MongoClient(host, Integer.parseInt(port)), database, tableName).open();
+        //ServerAddress()两个参数分别为 服务器地址 和 端口
+        ServerAddress serverAddress = new ServerAddress(host, Integer.parseInt(port));
+        MongoCredential mongoCredential = MongoCredential.createScramSha1Credential(username, database, password.toCharArray());
+        this.collection = new ConnectMongoDB(new MongoClient(serverAddress,mongoCredential,MongoClientOptions.builder().build()), database, tableName).open();
     }
 
     @CutInID
@@ -233,6 +243,11 @@ public class SqlOperation<T> {
         return result.size() > 0 ? result.get(0) : null;
     }
 
+    protected <T> PageResult<T> doPage(Integer pageNum,Integer pageSize){
+        baseLambdaQuery(new ArrayList<>(),new ArrayList<>(),new PageParam(pageNum,pageSize));
+        return new PageResult<>();
+    }
+
 
     protected <T> T doGetById(Serializable id) {
         BasicDBObject byId = new BasicDBObject();
@@ -241,7 +256,7 @@ public class SqlOperation<T> {
         return (T) iterable.first();
     }
 
-    private <T> List<T> baseLambdaQuery(List<Compare> compareList, List<Order> orderList){
+    private <T> List<T> baseLambdaQuery(List<Compare> compareList, List<Order> orderList, PageParam ... pageParams){
         List<T> resultList = new ArrayList<>();
         BasicDBObject queryCond = new BasicDBObject();
         compareList.forEach(compare -> {
@@ -255,7 +270,11 @@ public class SqlOperation<T> {
         orderList.forEach(order -> {
             sortCond.put(order.getColumn(),order.getType());
         });
-        for (Object document : collection.find(queryCond).sort(sortCond)) {
+        FindIterable<Document> iterable = collection.find(queryCond).sort(sortCond);
+        if (pageParams != null){
+            iterable = iterable.skip((pageParams[0].getPageNum() - 1)*pageParams[0].getPageSize()).limit(pageParams[0].getPageSize());
+        }
+        for (Object document : iterable) {
             Map<String, Object> map = BeanMapUtilByReflect.beanToMap(document);
             try {
                 resultList.add((T) BeanMapUtilByReflect.mapToBean(map, t.getClass()));

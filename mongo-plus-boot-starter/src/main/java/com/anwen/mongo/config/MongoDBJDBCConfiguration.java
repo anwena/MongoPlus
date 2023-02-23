@@ -32,6 +32,8 @@ public class MongoDBJDBCConfiguration {
         sqlOperation.setPort(mongoDBConnectProperty.getPort());
         sqlOperation.setSlaveDataSources(mongoDBConnectProperty.getSlaveDataSource());
         sqlOperation.setDatabase(mongoDBConnectProperty.getDatabase());
+        sqlOperation.setUsername(mongoDBConnectProperty.getUsername());
+        sqlOperation.setPassword(mongoDBConnectProperty.getPassword());
         return sqlOperation;
     }
 
