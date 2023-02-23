@@ -30,7 +30,7 @@ public class User extends BaseModelID {
 ```java
 import com.anwen.mongo.sql.IService;
 import org.apache.catalina.User;
-
+//如果和MyBatisPlus一起使用的话，只需要使用注入IService的方式就可以了
 public interface MongoServiceImpl extends IService<User> {
         
 }
@@ -43,7 +43,7 @@ import com.anwen.mongo.config.MongoDBConnectProperty;
 import com.anwen.mongo.sql.ServiceImpl;
 import com.mongodb.MongoClient;
 import org.apache.catalina.User;
-
+//如果和MyBatisPlus一起使用的话，只需要使用注入IService的方式就可以了
 public class MongoServiceImpl extends ServiceImpl<User> implements MongoService {
     
 }
@@ -60,6 +60,9 @@ public class UserController {
 
   @Autowired
   private MongoService mongoService;
+  
+  //如果和MyBatisPlus一起使用的话，只需要使用注入IService的方式就可以了
+//  private IService<User> service;  
 
   @GetMapping("/index")
   public void index() {
