@@ -1,9 +1,9 @@
 package com.anwen.mongo.sql.comm;
 
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
-import lombok.extern.log4j.Log4j2;
 import org.bson.Document;
+
 
 /**
  * @author JiaChaoYang

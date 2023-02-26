@@ -7,10 +7,12 @@ import com.anwen.mongo.annotation.table.TableField;
 import com.anwen.mongo.generate.Sequence;
 import com.anwen.mongo.sql.model.BaseModelID;
 import org.bson.Document;
+import org.bson.internal.ProvidersCodecRegistry;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
+
 
 /**
  * @author JiaChaoYang
@@ -92,7 +94,10 @@ public class BeanMapUtilByReflect {
             String fieldName = field.getName();
             if (field.isAnnotationPresent(TableField.class)){
                 TableField annotation = field.getAnnotation(TableField.class);
-                if (!annotation.exist() && annotation.value() != null){
+                if (!annotation.exist()){
+                    continue;
+                }
+                if (annotation.value() != null){
                     fieldName = annotation.value();
                 }
             }
@@ -104,5 +109,4 @@ public class BeanMapUtilByReflect {
         }
         return resultMap;
     }
-
 }

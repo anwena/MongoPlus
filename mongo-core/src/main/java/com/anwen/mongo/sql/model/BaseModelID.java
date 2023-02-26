@@ -1,6 +1,7 @@
 package com.anwen.mongo.sql.model;
 
 import com.anwen.mongo.annotation.ID;
+import org.bson.codecs.pojo.annotations.BsonCreator;
 import com.anwen.mongo.annotation.table.TableField;
 import com.anwen.mongo.enums.IdType;
 import lombok.Data;

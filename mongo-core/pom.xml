@@ -49,8 +49,8 @@
     <dependencies>
         <dependency>
             <groupId>org.mongodb</groupId>
-            <artifactId>mongo-java-driver</artifactId>
-            <version>3.12.12</version>
+            <artifactId>mongodb-driver-sync</artifactId>
+            <version>4.9.0</version>
         </dependency>
         <!-- fastJson依赖 -->
         <dependency>

@@ -1,5 +1,6 @@
 package com.anwen.mongo.sql;
 
+import com.alibaba.fastjson.JSON;
 import com.anwen.mongo.annotation.CutInID;
 import com.anwen.mongo.annotation.table.TableName;
 import com.anwen.mongo.domain.InitMongoCollectionException;
@@ -7,16 +8,16 @@ import com.anwen.mongo.domain.MongoQueryException;
 import com.anwen.mongo.sql.comm.ConnectMongoDB;
 import com.anwen.mongo.sql.interfaces.Compare;
 import com.anwen.mongo.sql.interfaces.Order;
+import com.anwen.mongo.sql.model.BaseProperty;
 import com.anwen.mongo.sql.model.PageParam;
 import com.anwen.mongo.sql.model.PageResult;
 import com.anwen.mongo.sql.model.SlaveDataSource;
 import com.anwen.mongo.sql.support.SFunction;
 import com.anwen.mongo.utils.BeanMapUtilByReflect;
 import com.anwen.mongo.utils.StringUtils;
-import com.mongodb.*;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
+import com.mongodb.BasicDBObject;
+import com.mongodb.MongoException;
+import com.mongodb.client.*;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.result.UpdateResult;
 import lombok.Data;
@@ -46,17 +47,11 @@ public class SqlOperation<T> {
 
     private MongoCollection<Document> collection;
 
-    private String host;
-
-    private String port;
-
-    private String database;
-
-    private String username;
-
-    private String password;
-
     private List<SlaveDataSource> slaveDataSources;
+
+    private BaseProperty baseProperty;
+
+    private MongoClient mongoClient;
 
     private T t;
 
@@ -76,25 +71,26 @@ public class SqlOperation<T> {
                 }
                 slaveDataSources.forEach(slave -> {
                     if (Objects.equals(annotation.dataSource(), slave.getSlaveName())) {
-                        this.host = slave.getHost();
-                        this.port = slave.getPort();
-                        this.database = slave.getDatabase();
-                        this.username = slave.getUsername();
-                        this.password = slave.getPassword();
+                        baseProperty.setHost(slave.getHost());
+                        baseProperty.setPort(slave.getPort());
+                        baseProperty.setDatabase(slave.getDatabase());
+                        baseProperty.setUsername(slave.getUsername());
+                        baseProperty.setPassword(slave.getPassword());
                     }
                 });
             }
         }
-        //ServerAddress()两个参数分别为 服务器地址 和 端口
-        ServerAddress serverAddress = new ServerAddress(host, Integer.parseInt(port));
-        MongoCredential mongoCredential = MongoCredential.createScramSha1Credential(username, database, password.toCharArray());
-        this.collection = new ConnectMongoDB(new MongoClient(serverAddress,mongoCredential,MongoClientOptions.builder().build()), database, tableName).open();
+        try {
+            this.collection = new ConnectMongoDB(mongoClient,baseProperty.getDatabase(),tableName).open();
+        } catch (MongoException e) {
+            log.error("Failed to connect to MongoDB: {}" + e.getMessage(),e);
+        }
     }
 
     @CutInID
-    public <T> Boolean doSave(T entity) {
+    protected Boolean doSave(T entity) {
         try {
-            collection.insertOne(new Document(BeanMapUtilByReflect.checkTableField(entity)));
+            collection.insertOne(new Document(BeanMapUtilByReflect.checkTableField(entity,false)));
         }catch (Exception e){
             log.error("save fail , error info : {}",e.getMessage(),e);
             return false;
@@ -102,7 +98,7 @@ public class SqlOperation<T> {
         return true;
     }
 
-    protected <T> Boolean doSaveBatch(Collection<T> entityList) {
+    protected Boolean doSaveBatch(Collection<T> entityList) {
         try {
             collection.insertMany(BeanMapUtilByReflect.listToDocumentList(entityList));
         }catch (Exception e){
@@ -113,7 +109,7 @@ public class SqlOperation<T> {
     }
 
 
-    protected <T> Boolean doSaveOrUpdate(T entity) {
+    protected Boolean doSaveOrUpdate(T entity) {
         try {
             Class<?> entityClass = entity.getClass().getSuperclass();
             Field field = entityClass.getFields()[0];
@@ -126,7 +122,7 @@ public class SqlOperation<T> {
     }
 
 
-    protected <T> Boolean doSaveOrUpdateBatch(Collection<T> entityList) {
+    protected Boolean doSaveOrUpdateBatch(Collection<T> entityList) {
         List<T> insertList = new ArrayList<>();
         for (Document document : collection.find(
                 Filters.in("_id", entityList.stream().map(entity -> {
@@ -146,11 +142,11 @@ public class SqlOperation<T> {
     }
 
 
-    protected <T> Boolean doUpdateById(T entity) {
+    protected Boolean doUpdateById(T entity) {
         UpdateResult updateResult;
         try {
             BasicDBObject filter = new BasicDBObject("_id",entity.getClass().getSuperclass().getMethod("getId").invoke(entity).toString());
-            BasicDBObject update = new BasicDBObject("$set",new Document(BeanMapUtilByReflect.checkTableField(entity)));
+            BasicDBObject update = new BasicDBObject("$set",new Document(BeanMapUtilByReflect.checkTableField(entity,false)));
             updateResult = collection.updateOne(filter,update);
         }catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e){
             log.error("update fail , fail info : {}",e.getMessage(),e);
@@ -160,11 +156,11 @@ public class SqlOperation<T> {
     }
 
 
-    protected <T> Boolean doUpdateBatchByIds(Collection<T> entityList) {
+    protected Boolean doUpdateBatchByIds(Collection<T> entityList) {
         AtomicReference<UpdateResult> updateResult = new AtomicReference<>();
         entityList.forEach(entity -> {
             try {
-                updateResult.set(collection.updateMany(Filters.eq("_id", entity.getClass().getSuperclass().getMethod("getId").invoke(entity)), new Document(BeanMapUtilByReflect.checkTableField(entity))));
+                updateResult.set(collection.updateMany(Filters.eq("_id", entity.getClass().getSuperclass().getMethod("getId").invoke(entity)), new Document(BeanMapUtilByReflect.checkTableField(entity,false))));
             } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                 log.error("update fail , fail info : {}",e.getMessage(),e);
             }
@@ -173,10 +169,10 @@ public class SqlOperation<T> {
     }
 
 
-    protected <T> Boolean doUpdateByColumn(T entity, SFunction<T, Object> column) {
+    protected Boolean doUpdateByColumn(T entity, SFunction<T, Object> column) {
         UpdateResult updateResult;
         try {
-            updateResult = collection.updateOne(Filters.eq(column.getFieldName(), entity.getClass().getMethod("getId").invoke(entity)), new Document(BeanMapUtilByReflect.checkTableField(entity)));
+            updateResult = collection.updateOne(Filters.eq(column.getFieldName(), entity.getClass().getMethod("getId").invoke(entity)), new Document(BeanMapUtilByReflect.checkTableField(entity,false)));
         }catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e){
             log.error("update fail , fail info : {}",e.getMessage(),e);
             return false;
@@ -185,10 +181,10 @@ public class SqlOperation<T> {
     }
 
 
-    protected <T> Boolean doUpdateByColumn(T entity, String column) {
+    protected Boolean doUpdateByColumn(T entity, String column) {
         UpdateResult updateResult;
         try {
-            updateResult = collection.updateOne(Filters.eq(column, entity.getClass().getMethod("getId").invoke(entity)), new Document(BeanMapUtilByReflect.checkTableField(entity)));
+            updateResult = collection.updateOne(Filters.eq(column, entity.getClass().getMethod("getId").invoke(entity)), new Document(BeanMapUtilByReflect.checkTableField(entity,false)));
         }catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e){
             log.error("update fail , fail info : {}",e.getMessage(),e);
             return false;
@@ -197,29 +193,29 @@ public class SqlOperation<T> {
     }
 
 
-    protected <T> Boolean doRemoveById(Serializable id) {
+    protected Boolean doRemoveById(Serializable id) {
         T t = doGetById(id);
         Document document = collection.findOneAndDelete(Filters.eq("_id", id));
         return collection.deleteOne(Filters.eq("_id",id)).getDeletedCount() != 0;
     }
 
 
-    protected <T> Boolean doRemoveByColumn(SFunction<T, Object> column, String value) {
+    protected Boolean doRemoveByColumn(SFunction<T, Object> column, String value) {
         return collection.deleteOne(Filters.eq(column.getFieldNameLine(),value)).getDeletedCount() != 0;
     }
 
 
-    protected <T> Boolean doRemoveByColumn(String column, String value) {
+    protected Boolean doRemoveByColumn(String column, String value) {
         return collection.deleteOne(Filters.eq(column,value)).getDeletedCount() != 0;
     }
 
 
-    protected <T> Boolean doRemoveBatchByIds(Collection<Object> idList) {
+    protected Boolean doRemoveBatchByIds(Collection<Object> idList) {
         return collection.deleteMany(Filters.in("_id",idList)).getDeletedCount() != 0;
     }
 
 
-    protected <T> List<T> doList() {
+    protected List<T> doList() {
         FindIterable<Document> documents = collection.find();
         MongoCursor<T> iterator = (MongoCursor<T>) documents.iterator();
         List<T> list = new ArrayList<>();
@@ -230,12 +226,12 @@ public class SqlOperation<T> {
     }
 
 
-    protected <T> List<T> doList(List<Compare> compareList, List<Order> orderList) {
+    protected List<T> doList(List<Compare> compareList, List<Order> orderList) {
         return baseLambdaQuery(compareList,orderList);
     }
 
 
-    protected <T> T doOne(List<Compare> compareList, List<Order> orderList) {
+    protected T doOne(List<Compare> compareList, List<Order> orderList) {
         List<T> result = baseLambdaQuery(compareList, orderList);
         if (result.size() > 1){
             throw new MongoQueryException("query result greater than 1 line");
@@ -243,13 +239,13 @@ public class SqlOperation<T> {
         return result.size() > 0 ? result.get(0) : null;
     }
 
-    protected <T> PageResult<T> doPage(Integer pageNum,Integer pageSize){
+    protected PageResult<T> doPage(Integer pageNum,Integer pageSize){
         baseLambdaQuery(new ArrayList<>(),new ArrayList<>(),new PageParam(pageNum,pageSize));
         return new PageResult<>();
     }
 
 
-    protected <T> T doGetById(Serializable id) {
+    protected T doGetById(Serializable id) {
         BasicDBObject byId = new BasicDBObject();
         byId.put("_id",new BasicDBObject("$eq",id));
         FindIterable<Document> iterable = collection.find(byId);
@@ -271,9 +267,10 @@ public class SqlOperation<T> {
             sortCond.put(order.getColumn(),order.getType());
         });
         FindIterable<Document> iterable = collection.find(queryCond).sort(sortCond);
-        if (pageParams != null){
+        if (pageParams != null && pageParams.length > 0){
             iterable = iterable.skip((pageParams[0].getPageNum() - 1)*pageParams[0].getPageSize()).limit(pageParams[0].getPageSize());
         }
+        log.info(JSON.toJSONString(iterable));
         for (Object document : iterable) {
             Map<String, Object> map = BeanMapUtilByReflect.beanToMap(document);
             try {

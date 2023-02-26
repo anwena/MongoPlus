@@ -25,5 +25,4 @@ public class MongoDBConnectProperty extends BaseProperty {
      * @date: 2023/2/18 15:03
      **/
     private List<SlaveDataSource> slaveDataSource;
-
 }
