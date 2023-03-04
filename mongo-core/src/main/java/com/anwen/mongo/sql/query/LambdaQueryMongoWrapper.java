@@ -88,6 +88,7 @@ public interface LambdaQueryMongoWrapper<T> extends IService<T> {
 
     LambdaQueryMongoWrapper<T> orderByDesc(String column);
 
+    @Override
     List<T> list();
 
     T one();
