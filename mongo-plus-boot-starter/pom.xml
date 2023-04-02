@@ -15,7 +15,7 @@
     <artifactId>mongo-plus-boot-starter</artifactId>
     <name>mongo-plus-boot-starter</name>
     <packaging>jar</packaging>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <description>mongo-plus-boot-starter主程序</description>
     <url>https://gitee.com/jia-chaoyang/mongo-plus</url>
     <inceptionYear>2023</inceptionYear>
@@ -59,7 +59,32 @@
         <dependency>
             <groupId>com.gitee.anwena</groupId>
             <artifactId>mongo-core</artifactId>
-            <version>1.0.2</version>
+            <version>1.0.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-sync</artifactId>
+            <version>4.9.0</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>bson</artifactId>
+                    <groupId>org.mongodb</groupId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.mongodb</groupId>
+                    <artifactId>mongodb-driver-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>bson</artifactId>
+            <version>4.9.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-core</artifactId>
+            <version>4.9.0</version>
         </dependency>
     </dependencies>
 
@@ -72,13 +97,11 @@
 
     <profiles>
         <profile>
-            <!--注意,此id必须与setting.xml中指定的一致,不要自作聪明改它名字-->
             <id>release</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
             <build>
-                <!--发布到中央SNAPSHOT仓库插件-->
                 <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
@@ -93,7 +116,6 @@
                         </configuration>
                     </plugin>
 
-                    <!--生成源码插件-->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
@@ -108,7 +130,6 @@
                         </executions>
                     </plugin>
 
-                    <!--生成API文档插件-->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
@@ -123,7 +144,6 @@
                         </executions>
                     </plugin>
 
-                    <!--gpg插件-->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
@@ -144,7 +164,6 @@
 
             <distributionManagement>
                 <snapshotRepository>
-                    <!--注意,此id必须与setting.xml中指定的一致-->
                     <id>release</id>
                     <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
                 </snapshotRepository>

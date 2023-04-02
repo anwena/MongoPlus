@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
  **/
 public class GenericSuperclassUtil {
 
-    private static Pattern humpPattern = Pattern.compile("[A-Z]");
+    private static final Pattern humpPattern = Pattern.compile("[A-Z]");
 
 
     /*

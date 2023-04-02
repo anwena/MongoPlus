@@ -32,7 +32,7 @@ public class AbstractChainWrapper<T> extends ServiceImpl<T> implements LambdaQue
 
     private final ServiceImpl<T> serviceImpl;
 
-    private T t;
+    private final T t;
 
     public AbstractChainWrapper(Class<T> tClass,ServiceImpl<T> serviceImpl) {
         try {

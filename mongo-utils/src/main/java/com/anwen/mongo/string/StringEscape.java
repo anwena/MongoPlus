@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.anwen.mongo.utils;
+package com.anwen.mongo.string;
 
 /**
  * StringEscape ，数据库字符串转义

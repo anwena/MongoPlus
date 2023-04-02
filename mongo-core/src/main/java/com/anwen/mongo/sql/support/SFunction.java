@@ -20,8 +20,8 @@ import java.util.function.Function;
 public interface SFunction<T,R> extends Function<T,R>, Serializable {
 
     //默认配置
-    static String defaultSplit = "";
-    static Integer defaultToType = 0;
+    String defaultSplit = "";
+    Integer defaultToType = 0;
 
     @SneakyThrows
     default String getFieldName() {

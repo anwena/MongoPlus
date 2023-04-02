@@ -1,16 +1,14 @@
 package com.anwen.mongo.utils;
 
+import cn.hutool.core.convert.Convert;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.anwen.mongo.annotation.table.TableField;
 import com.anwen.mongo.generate.Sequence;
-import com.anwen.mongo.sql.model.BaseModelID;
 import org.bson.Document;
-import org.bson.internal.ProvidersCodecRegistry;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.*;
 
 
@@ -38,7 +36,6 @@ public class BeanMapUtilByReflect {
         String jsonStr = JSON.toJSONString(object, SerializerFeature.WriteDateUseDateFormat);
         return JSON.parseObject(jsonStr, new TypeReference<Map<String, Object>>() {});
     }
-
     /**
      * map转对象
      * @param map map
@@ -47,29 +44,8 @@ public class BeanMapUtilByReflect {
      * @author JiaChaoYang
      * @since 2023/2/9 15:12
     */
-    public static <T> T mapToBean(Map<String,Object> map, Class<T> beanClass) throws Exception {
-        T object = beanClass.newInstance();
-        Field[] fields = object.getClass().getDeclaredFields();
-        Class<?> superclass = object.getClass().getSuperclass();
-        if (superclass == BaseModelID.class){
-            Field id = superclass.getField("id");
-            id.set(object,map.get("_id"));
-        }
-        for (Field field : fields) {
-            int mod = field.getModifiers();
-            if (Modifier.isStatic(mod) || Modifier.isFinal(mod)) {
-                continue;
-            }
-            field.setAccessible(true);
-            String fieldName = field.getName();
-            if (field.isAnnotationPresent(TableField.class)){
-                fieldName = field.getAnnotation(TableField.class).value();
-            }
-            if (map.containsKey(fieldName)) {
-                field.set(object, map.get(field.getName()));
-            }
-        }
-        return object;
+    public static <T> T mapToBean(Map<String,Object> map, Class<T> beanClass) {
+        return Convert.convert(beanClass,map);
     }
 
     public static <T> List<Document> listToDocumentList(Collection<T> collection){

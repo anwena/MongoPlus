@@ -34,10 +34,7 @@ public class MongoDBJDBCConfiguration {
         sqlOperation.setSlaveDataSources(mongoDBConnectProperty.getSlaveDataSource());
         sqlOperation.setBaseProperty(mongoDBConnectProperty);
         UrlJoint urlJoint = new UrlJoint(mongoDBConnectProperty);
-        try (MongoClient mongoClient = MongoClients.create(urlJoint.jointMongoUrl())) {
-            sqlOperation.setMongoClient(mongoClient);
-            log.info("Connected successfully to server.");
-        }
+        sqlOperation.setMongoClient(MongoClients.create(urlJoint.jointMongoUrl()));
         return sqlOperation;
     }
 

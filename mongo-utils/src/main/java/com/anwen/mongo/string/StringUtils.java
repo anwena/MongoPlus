@@ -1,4 +1,4 @@
-package com.anwen.mongo.utils;
+package com.anwen.mongo.string;
 
 import com.anwen.mongo.sql.support.BiIntFunction;
 

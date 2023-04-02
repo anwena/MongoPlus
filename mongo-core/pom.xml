@@ -8,7 +8,7 @@
     <artifactId>mongo-core</artifactId>
     <packaging>jar</packaging>
     <name>mongo-core</name>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <description>mongo-plus核心代码</description>
     <url>https://gitee.com/jia-chaoyang/mongo-plus</url>
     <inceptionYear>2023</inceptionYear>
@@ -51,12 +51,17 @@
             <groupId>org.mongodb</groupId>
             <artifactId>mongodb-driver-sync</artifactId>
             <version>4.9.0</version>
+            <scope>provided</scope>
         </dependency>
-        <!-- fastJson依赖 -->
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
             <version>1.2.83</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>5.3.2</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -67,7 +72,7 @@
         <dependency>
             <groupId>com.gitee.anwena</groupId>
             <artifactId>mongo-annotation</artifactId>
-            <version>1.0.2</version>
+            <version>1.0.3</version>
         </dependency>
         <dependency>
             <groupId>jakarta.annotation</groupId>
@@ -79,13 +84,11 @@
 
     <profiles>
         <profile>
-            <!--注意,此id必须与setting.xml中指定的一致,不要自作聪明改它名字-->
             <id>release</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
             <build>
-                <!--发布到中央SNAPSHOT仓库插件-->
                 <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
@@ -100,7 +103,6 @@
                         </configuration>
                     </plugin>
 
-                    <!--生成源码插件-->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
@@ -115,13 +117,11 @@
                         </executions>
                     </plugin>
 
-                    <!--生成API文档插件-->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
                         <version>2.9.1</version>
                         <configuration>
-                            <!-- jdk1.8要加上，1.7要去掉，否则会报错 -->
                             <additionalJOptions>
                                 <additionalJOption>-Xdoclint:none</additionalJOption>
                             </additionalJOptions>
@@ -136,7 +136,6 @@
                         </executions>
                     </plugin>
 
-                    <!--gpg插件-->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
@@ -157,7 +156,6 @@
 
             <distributionManagement>
                 <snapshotRepository>
-                    <!--注意,此id必须与setting.xml中指定的一致-->
                     <id>release</id>
                     <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
                 </snapshotRepository>

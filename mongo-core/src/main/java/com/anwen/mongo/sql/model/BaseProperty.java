@@ -48,6 +48,13 @@ public class BaseProperty {
     private String password;
 
     /**
+     * 如果开启了认证，清在这里配置认证数据库
+     * @author: JiaChaoYang
+     * @date: 2023/3/1 22:07
+     **/
+    private String authenticationDatabase;
+
+    /**
      * 指定单个连接池中随时必须存在的最小连接数 默认0
      * @author: JiaChaoYang
      * @date: 2023/2/26 20:52
