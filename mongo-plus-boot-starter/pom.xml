@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.6.13</version>
+        <version>2.6.15</version>
         <relativePath/>
     </parent>
 
@@ -64,26 +64,6 @@
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongodb-driver-sync</artifactId>
-            <version>4.9.0</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>bson</artifactId>
-                    <groupId>org.mongodb</groupId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.mongodb</groupId>
-                    <artifactId>mongodb-driver-core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.mongodb</groupId>
-            <artifactId>bson</artifactId>
-            <version>4.9.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.mongodb</groupId>
-            <artifactId>mongodb-driver-core</artifactId>
             <version>4.9.0</version>
         </dependency>
     </dependencies>

@@ -2,6 +2,7 @@ package com.anwen.mongo.sql;
 
 import com.anwen.mongo.annotation.CutInID;
 import com.anwen.mongo.annotation.table.TableName;
+import com.anwen.mongo.codec.GenericCodec;
 import com.anwen.mongo.domain.InitMongoCollectionException;
 import com.anwen.mongo.domain.MongoQueryException;
 import com.anwen.mongo.sql.comm.ConnectMongoDB;
@@ -17,12 +18,15 @@ import com.anwen.mongo.utils.ConvertUtil;
 import com.anwen.mongo.utils.StringUtils;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoException;
 import com.mongodb.client.*;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.result.UpdateResult;
 import lombok.Data;
 import org.bson.Document;
+import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.codecs.configuration.CodecRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,7 +88,7 @@ public class SqlOperation<T> {
             }
         }
         try {
-            this.collection = new ConnectMongoDB(mongoClient,baseProperty.getDatabase(),tableName).open();
+            this.collection = new ConnectMongoDB(mongoClient,baseProperty.getDatabase(),tableName).open(t);
         } catch (MongoException e) {
             log.error("Failed to connect to MongoDB: {}" + e.getMessage(),e);
         }
@@ -93,13 +97,49 @@ public class SqlOperation<T> {
     @CutInID
     protected Boolean doSave(T entity) {
         try {
+            List<T> cl = new ArrayList<>();
+            traverseObject(t,cl);
+            //连接到数据库
+            // 定义多个CodecRegistry对象并合并
+            List<CodecRegistry> codecRegistryList = new ArrayList<>();
+            codecRegistryList.add(MongoClientSettings.getDefaultCodecRegistry());
+            cl.forEach(c -> {
+                codecRegistryList.add(CodecRegistries.fromCodecs(new GenericCodec<>(c.getClass())));
+            });
             checkTableField(entity,false);
+            collection.withCodecRegistry(CodecRegistries.fromRegistries(codecRegistryList));
             collection.insertOne(new Document(checkTableField(entity,false)));
         }catch (Exception e){
             log.error("save fail , error info : {}",e.getMessage(),e);
             return false;
         }
         return true;
+    }
+
+    private <T> void traverseObject(T obj, List<T> customObjects) {
+        if (obj == null) {
+            return;
+        }
+        Field[] fields = obj.getClass().getDeclaredFields();
+        for (Field field : fields) {
+            field.setAccessible(true); // 设置访问权限
+            T fieldValue = null;
+            try {
+                fieldValue = (T) field.get(obj);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+            if (fieldValue != null && !isPrimitiveType(fieldValue)) { // 如果该字段不是基本类型
+                if (!customObjects.contains(fieldValue)) { // 避免重复遍历
+                    customObjects.add(fieldValue);
+                    traverseObject(fieldValue, customObjects); // 递归遍历
+                }
+            }
+        }
+    }
+
+    private static boolean isPrimitiveType(Object obj) {
+        return obj instanceof String || obj instanceof Number || obj.getClass().isPrimitive();
     }
 
     protected Boolean doSaveBatch(Collection<T> entityList) {
