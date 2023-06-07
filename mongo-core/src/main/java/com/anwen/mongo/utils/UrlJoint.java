@@ -3,7 +3,6 @@ package com.anwen.mongo.utils;
 import com.anwen.mongo.domain.InitMongoCollectionException;
 import com.anwen.mongo.sql.SqlOperation;
 import com.anwen.mongo.sql.model.BaseProperty;
-import org.bson.codecs.pojo.annotations.BsonExtraElements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

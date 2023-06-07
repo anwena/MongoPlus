@@ -39,6 +39,7 @@ public class GenericCodec<T> implements Codec<T> {
         writer.writeStartDocument();
         for (Field field : getClassFields()) {
             try {
+                field.setAccessible(true);
                 // 获取属性值并写入到 writer 中
                 Object fieldValue = field.get(value);
                 writer.writeName(field.getName());
