@@ -2,9 +2,7 @@ package com.anwen.mongo.sql;
 
 import com.anwen.mongo.annotation.CutInID;
 import com.anwen.mongo.annotation.table.TableName;
-import com.anwen.mongo.codec.GenericCodec;
-import com.anwen.mongo.convert.MapToObjectConverter;
-import com.anwen.mongo.convert.ObjectMappingStrategy;
+import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.domain.InitMongoCollectionException;
 import com.anwen.mongo.domain.MongoQueryException;
 import com.anwen.mongo.sql.comm.ConnectMongoDB;
@@ -16,33 +14,30 @@ import com.anwen.mongo.sql.model.PageResult;
 import com.anwen.mongo.sql.model.SlaveDataSource;
 import com.anwen.mongo.sql.support.SFunction;
 import com.anwen.mongo.utils.BeanMapUtilByReflect;
-import com.anwen.mongo.utils.ClassTypeUtil;
-import com.anwen.mongo.utils.ConvertUtil;
 import com.anwen.mongo.utils.StringUtils;
 import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
-import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoException;
-import com.mongodb.client.*;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.result.UpdateResult;
 import lombok.Data;
+import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
-import org.bson.codecs.configuration.CodecRegistries;
-import org.bson.codecs.configuration.CodecRegistry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.Serializable;
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import static com.anwen.mongo.utils.BeanMapUtilByReflect.*;
+import static com.anwen.mongo.utils.BeanMapUtilByReflect.checkTableField;
 
 /**
  * @Description: sql执行
@@ -53,9 +48,8 @@ import static com.anwen.mongo.utils.BeanMapUtilByReflect.*;
  * @Version: 1.0
  */
 @Data
+@Slf4j
 public class SqlOperation<T> {
-
-    private static final Logger log = LoggerFactory.getLogger(SqlOperation.class);
 
     private MongoCollection<Document> collection;
 
@@ -103,7 +97,7 @@ public class SqlOperation<T> {
     protected Boolean doSave(T entity) {
         try {
             //连接到数据库
-            collection.insertOne(new Document(checkTableField(entity,false)));
+            collection.insertOne(new Document(checkTableField(entity)));
         }catch (Exception e){
             log.error("save fail , error info : {}",e.getMessage(),e);
             return false;
@@ -159,7 +153,7 @@ public class SqlOperation<T> {
         UpdateResult updateResult;
         try {
             BasicDBObject filter = new BasicDBObject("_id",entity.getClass().getSuperclass().getMethod("getId").invoke(entity).toString());
-            BasicDBObject update = new BasicDBObject("$set",new Document(checkTableField(entity,false)));
+            BasicDBObject update = new BasicDBObject("$set",new Document(checkTableField(entity)));
             updateResult = collection.updateOne(filter,update);
         }catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e){
             log.error("update fail , fail info : {}",e.getMessage(),e);
@@ -173,7 +167,7 @@ public class SqlOperation<T> {
         AtomicReference<UpdateResult> updateResult = new AtomicReference<>();
         entityList.forEach(entity -> {
             try {
-                updateResult.set(collection.updateMany(Filters.eq("_id", entity.getClass().getSuperclass().getMethod("getId").invoke(entity)), new Document(checkTableField(entity,false))));
+                updateResult.set(collection.updateMany(Filters.eq("_id", entity.getClass().getSuperclass().getMethod("getId").invoke(entity)), new Document(checkTableField(entity))));
             } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                 log.error("update fail , fail info : {}",e.getMessage(),e);
             }
@@ -185,7 +179,7 @@ public class SqlOperation<T> {
     protected Boolean doUpdateByColumn(T entity, SFunction<T, Object> column) {
         UpdateResult updateResult;
         try {
-            updateResult = collection.updateOne(Filters.eq(column.getFieldName(), entity.getClass().getMethod("getId").invoke(entity)), new Document(checkTableField(entity,false)));
+            updateResult = collection.updateOne(Filters.eq(column.getFieldName(), entity.getClass().getMethod("getId").invoke(entity)), new Document(checkTableField(entity)));
         }catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e){
             log.error("update fail , fail info : {}",e.getMessage(),e);
             return false;
@@ -197,7 +191,7 @@ public class SqlOperation<T> {
     protected Boolean doUpdateByColumn(T entity, String column) {
         UpdateResult updateResult;
         try {
-            updateResult = collection.updateOne(Filters.eq(column, entity.getClass().getMethod("getId").invoke(entity)), new Document(checkTableField(entity,false)));
+            updateResult = collection.updateOne(Filters.eq(column, entity.getClass().getMethod("getId").invoke(entity)), new Document(checkTableField(entity)));
         }catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e){
             log.error("update fail , fail info : {}",e.getMessage(),e);
             return false;
@@ -279,19 +273,10 @@ public class SqlOperation<T> {
         orderList.forEach(order -> {
             sortCond.put(order.getColumn(),order.getType());
         });
-        FindIterable<Document> iterable = collection.find(queryCond).sort(sortCond);
+        FindIterable<Document> documentFindIterable = collection.find(queryCond).sort(sortCond);
         if (pageParams != null && pageParams.length > 0){
-            iterable = iterable.skip((pageParams[0].getPageNum() - 1)*pageParams[0].getPageSize()).limit(pageParams[0].getPageSize());
+            documentFindIterable = documentFindIterable.skip((pageParams[0].getPageNum() - 1)*pageParams[0].getPageSize()).limit(pageParams[0].getPageSize());
         }
-        for (Object document : iterable) {
-            Map<String, Object> map = beanToMap(document);
-            try {
-                MapToObjectConverter<?> converter = new MapToObjectConverter<>(t.getClass(), ObjectMappingStrategy.getDefault());
-                resultList.add((T) converter.convert(map));
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return resultList;
+        return (List<T>) DocumentMapperConvert.mapDocumentList(documentFindIterable,t.getClass());
     }
 }
