@@ -1,17 +1,15 @@
 package com.anwen.mongo.sql;
 
-import com.anwen.mongo.sql.interfaces.Compare;
-import com.anwen.mongo.sql.interfaces.Order;
+import com.anwen.mongo.sql.conditions.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.sql.model.PageParam;
 import com.anwen.mongo.sql.model.PageResult;
-import com.anwen.mongo.sql.query.AbstractChainWrapper;
-import com.anwen.mongo.sql.query.LambdaQueryMongoWrapper;
 import com.anwen.mongo.sql.support.SFunction;
 
 import javax.annotation.Resource;
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -123,16 +121,27 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
-    public List<T> list(List<Compare> compareList, List<Order> orderList) {
+    public T one(LambdaQueryChainWrapper<T> lambdaQueryChainWrapper) {
         sqlOperation.init(getEClass());
-        return sqlOperation.doList(compareList,orderList);
+        return sqlOperation.doOne(lambdaQueryChainWrapper.getCompareList());
     }
 
     @Override
-    public T one(List<Compare> compareList, List<Order> orderList) {
+    public List<T> list(LambdaQueryChainWrapper<T> lambdaQueryChainWrapper) {
         sqlOperation.init(getEClass());
-        return sqlOperation.doOne(compareList,orderList);
+        return sqlOperation.doList(lambdaQueryChainWrapper.getCompareList(),lambdaQueryChainWrapper.getOrderList());
     }
+
+    /*@Override
+    public List<T> list(List<Compare> compareList, List<Order> orderList) {
+        return sqlOperation.doList(compareList,orderList);
+    }*/
+
+    /*@Override
+    public T one(LambdaAbstractWrapperChainWrapper<T> lambdaQueryMongoWrapper) {
+        sqlOperation.init(getEClass());
+        return sqlOperation.doOne(lambdaQueryMongoWrapper.getQueryCondition().getCompareList());
+    }*/
 
     @Override
     public PageResult<T> page(PageParam pageParam) {
@@ -142,18 +151,18 @@ public class ServiceImpl<T> implements IService<T> {
     @Override
     public PageResult<T> page(Integer pageNum, Integer pageSize) {
         sqlOperation.init(getEClass());
-        return sqlOperation.doPage(pageNum,pageSize);
+        return sqlOperation.doPage(new ArrayList<>(),new ArrayList<>(),pageNum,pageSize);
     }
 
-    @Override
+    /*@Override
     public PageResult<T> page(List<Compare> compareList, List<Order> orderList, PageParam pageParam) {
-        return null;
+        return page(compareList,orderList,pageParam.getPageNum(),pageParam.getPageSize());
     }
 
     @Override
     public PageResult<T> page(List<Compare> compareList, List<Order> orderList, Integer pageNum, Integer pageSize) {
-        return null;
-    }
+        return sqlOperation.doPage(compareList,orderList,pageNum,pageSize);
+    }*/
 
     @Override
     public T getById(Serializable id) {
@@ -162,8 +171,13 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
-    public LambdaQueryMongoWrapper<T> lambdaQuery() {
-        sqlOperation.init(getEClass());
-        return new AbstractChainWrapper<>(getEClass(),this);
+    public SqlOperation<T> getSqlOperation() {
+        return sqlOperation;
     }
+
+/*    @Override
+    public LambdaAbstractWrapperChainWrapper<T> lambdaQuery() {
+        sqlOperation.init(getEClass());
+        return new AbstractChainQueryChainWrapper<>(getEClass(),this);
+    }*/
 }

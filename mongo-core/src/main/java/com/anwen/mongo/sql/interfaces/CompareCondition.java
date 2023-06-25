@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Compare {
+public class CompareCondition {
 
     /**
      * 条件
@@ -31,5 +31,12 @@ public class Compare {
      * @since 2023/2/10 10:16
     */
     private Object value;
+
+    /**
+     * 类型 0查询，1修改
+     * @author JiaChaoYang
+     * @date 2023/6/25/025 1:49
+    */
+    private Integer type;
 
 }

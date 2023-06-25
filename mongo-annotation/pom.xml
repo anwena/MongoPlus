@@ -9,7 +9,7 @@
     <artifactId>mongo-annotation</artifactId>
     <name>mongo-annotation</name>
     <packaging>jar</packaging>
-    <version>2.0.0</version>
+    <version>2.0.1</version>
     <description>mongo-plus注解、枚举</description>
     <url>https://gitee.com/jia-chaoyang/mongo-plus</url>
     <inceptionYear>2023</inceptionYear>
@@ -60,8 +60,9 @@
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
-            <version>5.8.15</version>
+            <version>5.8.17</version>
         </dependency>
+
         <dependency>
             <groupId>com.github.f4b6a3</groupId>
             <artifactId>ulid-creator</artifactId>

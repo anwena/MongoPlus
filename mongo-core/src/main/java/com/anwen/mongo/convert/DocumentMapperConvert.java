@@ -1,6 +1,12 @@
 package com.anwen.mongo.convert;
 
 import com.anwen.mongo.annotation.table.TableField;
+import com.anwen.mongo.sql.IService;
+import com.anwen.mongo.sql.SqlOperation;
+import com.anwen.mongo.sql.conditions.query.LambdaQueryChainWrapper;
+import com.anwen.mongo.sql.model.BaseModelID;
+import com.anwen.mongo.sql.model.PageParam;
+import com.anwen.mongo.sql.model.PageResult;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import org.bson.Document;
@@ -21,12 +27,15 @@ public class DocumentMapperConvert {
 
     private static final Map<Class<?>, List<Field>> FIELD_CACHE = new HashMap<>();
 
+    private static IService<BaseModelID> service;
+
     /**
      * 将一个 Document 对象转换成指定类型的对象
      * @author: JiaChaoYang
      * @date: 2023/6/7 20:58
      **/
     public static <T> T mapDocument(Document doc, Class<T> clazz) {
+
         T obj = null;
         try {
             obj = clazz.getDeclaredConstructor().newInstance();

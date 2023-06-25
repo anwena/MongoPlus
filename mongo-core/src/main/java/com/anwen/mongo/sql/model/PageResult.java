@@ -18,9 +18,10 @@ import java.util.List;
 public class PageResult<T> {
     /**
      * 当前页
+     *
      * @author JiaChaoYang
      * @date 2023/2/23 10:58
-    */
+     */
     private long pageNum;
 
     /**

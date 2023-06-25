@@ -1,12 +1,13 @@
 package com.anwen.mongo.sql;
 
 import com.anwen.mongo.annotation.CutInID;
-import com.anwen.mongo.sql.interfaces.Compare;
-import com.anwen.mongo.sql.interfaces.Order;
+import com.anwen.mongo.sql.conditions.query.LambdaQueryChainWrapper;
+import com.anwen.mongo.sql.conditions.update.LambdaUpdateChainWrapper;
 import com.anwen.mongo.sql.model.PageParam;
 import com.anwen.mongo.sql.model.PageResult;
-import com.anwen.mongo.sql.query.LambdaQueryMongoWrapper;
 import com.anwen.mongo.sql.support.SFunction;
+import com.anwen.mongo.sql.update.LambdaUpdateMongoWrapper;
+import com.anwen.mongo.toolkit.ChainWrappers;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -125,19 +126,39 @@ public interface IService<T> {
     */
     List<T> list();
 
-    List<T> list(List<Compare> compareList, List<Order> orderList);
+    T one(LambdaQueryChainWrapper<T> lambdaQueryChainWrapper);
 
-    T one(List<Compare> compareList, List<Order> orderList);
+    List<T> list(LambdaQueryChainWrapper<T> lambdaQueryChainWrapper);
 
+    /**
+     * 分页查询
+     * @param pageParam 分页参数对象
+     * @return com.anwen.mongo.sql.model.PageResult<T>
+     * @author JiaChaoYang
+     * @date 2023/6/25/025
+    */
     PageResult<T> page(PageParam pageParam);
 
+    /**
+     * 分页查询
+     * @param pageNum 当前页
+     * @param pageSize 每页显示行数
+     * @return com.anwen.mongo.sql.model.PageResult<T>
+     * @author JiaChaoYang
+     * @date 2023/6/25/025
+    */
     PageResult<T> page(Integer pageNum,Integer pageSize);
 
-    PageResult<T> page(List<Compare> compareList, List<Order> orderList,PageParam pageParam);
-
-    PageResult<T> page(List<Compare> compareList, List<Order> orderList,Integer pageNum,Integer pageSize);
-
+    /**
+     * 根据id查询单个
+     * @param id id
+     * @return T
+     * @author JiaChaoYang
+     * @date 2023/6/25/025
+    */
     T getById(Serializable id);
+
+    SqlOperation<T> getSqlOperation();
 
     /**
      * 自定义构建查询
@@ -145,5 +166,14 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @since 2023/2/10 9:49
      */
-    LambdaQueryMongoWrapper<T> lambdaQuery();
+//    LambdaAbstractWrapperChainWrapper<T> lambdaQuery();
+
+    default LambdaQueryChainWrapper<T> lambdaQuery(){
+        return ChainWrappers.lambdaQueryChain(getSqlOperation());
+    }
+
+    default LambdaUpdateChainWrapper<T> lambdaUpdate(){
+        return ChainWrappers.lambdaUpdateChain(getSqlOperation());
+    }
+
 }

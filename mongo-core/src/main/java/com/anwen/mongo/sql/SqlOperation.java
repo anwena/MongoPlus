@@ -6,7 +6,7 @@ import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.domain.InitMongoCollectionException;
 import com.anwen.mongo.domain.MongoQueryException;
 import com.anwen.mongo.sql.comm.ConnectMongoDB;
-import com.anwen.mongo.sql.interfaces.Compare;
+import com.anwen.mongo.sql.interfaces.CompareCondition;
 import com.anwen.mongo.sql.interfaces.Order;
 import com.anwen.mongo.sql.model.BaseProperty;
 import com.anwen.mongo.sql.model.PageParam;
@@ -24,7 +24,6 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.result.UpdateResult;
 import lombok.Data;
-import lombok.extern.log4j.Log4j2;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import java.io.Serializable;
@@ -49,7 +48,7 @@ import static com.anwen.mongo.utils.BeanMapUtilByReflect.checkTableField;
  */
 @Data
 @Slf4j
-public class SqlOperation<T> {
+public final class SqlOperation<T> {
 
     private MongoCollection<Document> collection;
 
@@ -94,7 +93,7 @@ public class SqlOperation<T> {
     }
 
     @CutInID
-    protected Boolean doSave(T entity) {
+    public Boolean doSave(T entity) {
         try {
             //连接到数据库
             collection.insertOne(new Document(checkTableField(entity)));
@@ -105,7 +104,7 @@ public class SqlOperation<T> {
         return true;
     }
 
-    protected Boolean doSaveBatch(Collection<T> entityList) {
+    public Boolean doSaveBatch(Collection<T> entityList) {
         try {
             collection.insertMany(BeanMapUtilByReflect.listToDocumentList(entityList));
         }catch (Exception e){
@@ -116,7 +115,7 @@ public class SqlOperation<T> {
     }
 
 
-    protected Boolean doSaveOrUpdate(T entity) {
+    public Boolean doSaveOrUpdate(T entity) {
         try {
             Class<?> entityClass = entity.getClass().getSuperclass();
             Field field = entityClass.getFields()[0];
@@ -129,7 +128,7 @@ public class SqlOperation<T> {
     }
 
 
-    protected Boolean doSaveOrUpdateBatch(Collection<T> entityList) {
+    public Boolean doSaveOrUpdateBatch(Collection<T> entityList) {
         List<T> insertList = new ArrayList<>();
         for (Document document : collection.find(
                 Filters.in("_id", entityList.stream().map(entity -> {
@@ -149,7 +148,7 @@ public class SqlOperation<T> {
     }
 
 
-    protected Boolean doUpdateById(T entity) {
+    public Boolean doUpdateById(T entity) {
         UpdateResult updateResult;
         try {
             BasicDBObject filter = new BasicDBObject("_id",entity.getClass().getSuperclass().getMethod("getId").invoke(entity).toString());
@@ -163,7 +162,7 @@ public class SqlOperation<T> {
     }
 
 
-    protected Boolean doUpdateBatchByIds(Collection<T> entityList) {
+    public Boolean doUpdateBatchByIds(Collection<T> entityList) {
         AtomicReference<UpdateResult> updateResult = new AtomicReference<>();
         entityList.forEach(entity -> {
             try {
@@ -176,7 +175,7 @@ public class SqlOperation<T> {
     }
 
 
-    protected Boolean doUpdateByColumn(T entity, SFunction<T, Object> column) {
+    public Boolean doUpdateByColumn(T entity, SFunction<T, Object> column) {
         UpdateResult updateResult;
         try {
             updateResult = collection.updateOne(Filters.eq(column.getFieldName(), entity.getClass().getMethod("getId").invoke(entity)), new Document(checkTableField(entity)));
@@ -188,7 +187,7 @@ public class SqlOperation<T> {
     }
 
 
-    protected Boolean doUpdateByColumn(T entity, String column) {
+    public Boolean doUpdateByColumn(T entity, String column) {
         UpdateResult updateResult;
         try {
             updateResult = collection.updateOne(Filters.eq(column, entity.getClass().getMethod("getId").invoke(entity)), new Document(checkTableField(entity)));
@@ -200,29 +199,29 @@ public class SqlOperation<T> {
     }
 
 
-    protected Boolean doRemoveById(Serializable id) {
+    public Boolean doRemoveById(Serializable id) {
         T t = doGetById(id);
         Document document = collection.findOneAndDelete(Filters.eq("_id", id));
         return collection.deleteOne(Filters.eq("_id",id)).getDeletedCount() != 0;
     }
 
 
-    protected Boolean doRemoveByColumn(SFunction<T, Object> column, String value) {
+    public Boolean doRemoveByColumn(SFunction<T, Object> column, String value) {
         return collection.deleteOne(Filters.eq(column.getFieldNameLine(),value)).getDeletedCount() != 0;
     }
 
 
-    protected Boolean doRemoveByColumn(String column, String value) {
+    public Boolean doRemoveByColumn(String column, String value) {
         return collection.deleteOne(Filters.eq(column,value)).getDeletedCount() != 0;
     }
 
 
-    protected Boolean doRemoveBatchByIds(Collection<Object> idList) {
+    public Boolean doRemoveBatchByIds(Collection<Object> idList) {
         return collection.deleteMany(Filters.in("_id",idList)).getDeletedCount() != 0;
     }
 
 
-    protected List<T> doList() {
+    public List<T> doList() {
         FindIterable<Document> documents = collection.find();
         MongoCursor<T> iterator = (MongoCursor<T>) documents.iterator();
         List<T> list = new ArrayList<>();
@@ -233,50 +232,73 @@ public class SqlOperation<T> {
     }
 
 
-    protected List<T> doList(List<Compare> compareList, List<Order> orderList) {
-        return baseLambdaQuery(compareList,orderList);
+    public List<T> doList(List<CompareCondition> compareConditionList, List<Order> orderList) {
+        return baseLambdaQuery(compareConditionList,orderList);
     }
 
 
-    protected T doOne(List<Compare> compareList, List<Order> orderList) {
-        List<T> result = baseLambdaQuery(compareList, orderList);
+    public T doOne(List<CompareCondition> compareConditionList) {
+        List<T> result = baseLambdaQuery(compareConditionList,new ArrayList<>());
         if (result.size() > 1){
             throw new MongoQueryException("query result greater than 1 line");
         }
         return result.size() > 0 ? result.get(0) : null;
     }
 
-    protected PageResult<T> doPage(Integer pageNum,Integer pageSize){
-        baseLambdaQuery(new ArrayList<>(),new ArrayList<>(),new PageParam(pageNum,pageSize));
-        return new PageResult<>();
+    public PageResult<T> doPage(List<CompareCondition> compareConditionList, List<Order> orderList , Integer pageNum, Integer pageSize){
+        List<T> contentData = baseLambdaQuery(compareConditionList, orderList, new PageParam(pageNum, pageSize));
+        return new PageResult<>(pageNum,pageSize,contentData.size(),(contentData.size() + pageSize - 1) / pageSize,contentData);
     }
 
-
-    protected T doGetById(Serializable id) {
+    public T doGetById(Serializable id) {
         BasicDBObject byId = new BasicDBObject();
         byId.put("_id",new BasicDBObject("$eq",id));
         FindIterable<Document> iterable = collection.find(byId);
         return (T) iterable.first();
     }
 
-    private <T> List<T> baseLambdaQuery(List<Compare> compareList, List<Order> orderList, PageParam ... pageParams){
-        List<T> resultList = new ArrayList<>();
-        BasicDBObject queryCond = new BasicDBObject();
-        compareList.forEach(compare -> {
-            if (Objects.equals(compare.getCondition(),"like") && StringUtils.isNotBlank((String) compare.getValue())){
-                queryCond.put(compare.getColumn(),new BasicDBObject("$regex",compare.getValue()));
-            }else {
-                queryCond.put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), compare.getValue()));
-            }
-        });
+    public Boolean doUpdate(List<CompareCondition> compareConditionList){
+        //TODO 待实现
+        return true;
+    }
+
+    public Boolean doRemove(List<CompareCondition> compareConditionList){
+        //TODO 待实现
+        return true;
+    }
+
+    /**
+     * 查询执行
+     * @author JiaChaoYang
+     * @date 2023/6/25/025 1:51
+    */
+    private <T> List<T> baseLambdaQuery(List<CompareCondition> compareConditionList, List<Order> orderList, PageParam ... pageParams){
         BasicDBObject sortCond = new BasicDBObject();
         orderList.forEach(order -> {
             sortCond.put(order.getColumn(),order.getType());
         });
-        FindIterable<Document> documentFindIterable = collection.find(queryCond).sort(sortCond);
+        FindIterable<Document> documentFindIterable = collection.find(buildQueryCondition(compareConditionList)).sort(sortCond);
         if (pageParams != null && pageParams.length > 0){
             documentFindIterable = documentFindIterable.skip((pageParams[0].getPageNum() - 1)*pageParams[0].getPageSize()).limit(pageParams[0].getPageSize());
         }
         return (List<T>) DocumentMapperConvert.mapDocumentList(documentFindIterable,t.getClass());
     }
+
+    /**
+     * 构建查询条件
+     * @author JiaChaoYang
+     * @date 2023/6/25/025 1:48
+    */
+    private BasicDBObject buildQueryCondition(List<CompareCondition> compareConditionList){
+        return new BasicDBObject(){{
+            compareConditionList.stream().filter(compareCondition -> compareCondition.getType() == 0).collect(Collectors.toList()).forEach(compare -> {
+                if (Objects.equals(compare.getCondition(),"like") && StringUtils.isNotBlank((String) compare.getValue())){
+                    put(compare.getColumn(),new BasicDBObject("$regex",compare.getValue()));
+                }else {
+                    put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), compare.getValue()));
+                }
+            });
+        }};
+    }
+
 }
