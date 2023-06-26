@@ -160,6 +160,8 @@ public interface IService<T> {
 
     SqlOperation<T> getSqlOperation();
 
+    <T> Class<T> getEClass();
+
     /**
      * 自定义构建查询
      * @return com.qihengyun.mongon.orm.query.LambdaQueryMongoWrapper<T>
@@ -169,7 +171,7 @@ public interface IService<T> {
 //    LambdaAbstractWrapperChainWrapper<T> lambdaQuery();
 
     default LambdaQueryChainWrapper<T> lambdaQuery(){
-        return ChainWrappers.lambdaQueryChain(getSqlOperation());
+        return ChainWrappers.lambdaQueryChain(getEClass(),getSqlOperation());
     }
 
     default LambdaUpdateChainWrapper<T> lambdaUpdate(){

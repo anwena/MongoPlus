@@ -1,5 +1,6 @@
 package com.anwen.mongo.sql;
 
+import cn.hutool.db.Page;
 import com.anwen.mongo.annotation.CutInID;
 import com.anwen.mongo.annotation.table.TableName;
 import com.anwen.mongo.convert.DocumentMapperConvert;
@@ -29,10 +30,7 @@ import org.bson.Document;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -48,7 +46,7 @@ import static com.anwen.mongo.utils.BeanMapUtilByReflect.checkTableField;
  */
 @Data
 @Slf4j
-public final class SqlOperation<T> {
+public class SqlOperation<T> {
 
     private MongoCollection<Document> collection;
 
@@ -233,21 +231,20 @@ public final class SqlOperation<T> {
 
 
     public List<T> doList(List<CompareCondition> compareConditionList, List<Order> orderList) {
-        return baseLambdaQuery(compareConditionList,orderList);
+        return getLambdaQueryResult(compareConditionList,orderList);
     }
 
 
     public T doOne(List<CompareCondition> compareConditionList) {
-        List<T> result = baseLambdaQuery(compareConditionList,new ArrayList<>());
+        List<T> result = getLambdaQueryResult(compareConditionList,new ArrayList<>());
         if (result.size() > 1){
-            throw new MongoQueryException("query result greater than 1 line");
+            throw new MongoQueryException("query result greater than one line");
         }
         return result.size() > 0 ? result.get(0) : null;
     }
 
     public PageResult<T> doPage(List<CompareCondition> compareConditionList, List<Order> orderList , Integer pageNum, Integer pageSize){
-        List<T> contentData = baseLambdaQuery(compareConditionList, orderList, new PageParam(pageNum, pageSize));
-        return new PageResult<>(pageNum,pageSize,contentData.size(),(contentData.size() + pageSize - 1) / pageSize,contentData);
+        return getLambdaQueryResultPage(compareConditionList, orderList, new PageParam(pageNum, pageSize));
     }
 
     public T doGetById(Serializable id) {
@@ -272,16 +269,26 @@ public final class SqlOperation<T> {
      * @author JiaChaoYang
      * @date 2023/6/25/025 1:51
     */
-    private <T> List<T> baseLambdaQuery(List<CompareCondition> compareConditionList, List<Order> orderList, PageParam ... pageParams){
+    private FindIterable<Document> baseLambdaQuery(List<CompareCondition> compareConditionList, List<Order> orderList){
         BasicDBObject sortCond = new BasicDBObject();
-        orderList.forEach(order -> {
-            sortCond.put(order.getColumn(),order.getType());
-        });
-        FindIterable<Document> documentFindIterable = collection.find(buildQueryCondition(compareConditionList)).sort(sortCond);
-        if (pageParams != null && pageParams.length > 0){
-            documentFindIterable = documentFindIterable.skip((pageParams[0].getPageNum() - 1)*pageParams[0].getPageSize()).limit(pageParams[0].getPageSize());
-        }
-        return (List<T>) DocumentMapperConvert.mapDocumentList(documentFindIterable,t.getClass());
+        orderList.forEach(order -> sortCond.put(order.getColumn(),order.getType()));
+        return collection.find(buildQueryCondition(compareConditionList)).sort(sortCond);
+    }
+
+    private <T> List<T> getLambdaQueryResult(List<CompareCondition> compareConditionList, List<Order> orderList){
+        return (List<T>) DocumentMapperConvert.mapDocumentList(baseLambdaQuery(compareConditionList,orderList),t.getClass());
+    }
+
+    private PageResult<T> getLambdaQueryResultPage(List<CompareCondition> compareConditionList, List<Order> orderList, PageParam pageParams){
+        PageResult<T> pageResult = new PageResult<>();
+        FindIterable<Document> documentFindIterable = baseLambdaQuery(compareConditionList, orderList);
+        Integer totalSize = documentFindIterable.iterator().available();
+        pageResult.setPageNum(pageResult.getPageNum());
+        pageResult.setPageSize(pageResult.getPageSize());
+        pageResult.setTotalSize(totalSize);
+        pageResult.setTotalPages((totalSize + pageParams.getPageSize() - 1) / pageParams.getPageSize());
+        pageResult.setContentData((List<T>) DocumentMapperConvert.mapDocumentList(documentFindIterable.skip((pageParams.getPageNum() - 1) * pageParams.getPageSize()).limit(pageParams.getPageSize()),t.getClass()));
+        return pageResult;
     }
 
     /**

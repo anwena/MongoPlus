@@ -23,6 +23,7 @@ public class ServiceImpl<T> implements IService<T> {
     @Resource
     private SqlOperation<T> sqlOperation;
 
+    @Override
     public <T> Class<T> getEClass() {
 
         //get the Class object of this own class

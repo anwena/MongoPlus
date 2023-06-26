@@ -12,8 +12,8 @@ import com.anwen.mongo.sql.update.LambdaUpdateMongoWrapper;
 */ 
 public final class ChainWrappers {
 
-    public static <T> LambdaQueryChainWrapper<T> lambdaQueryChain(SqlOperation<T> sqlOperation){
-        return new LambdaQueryChainWrapper<>(sqlOperation);
+    public static <T> LambdaQueryChainWrapper<T> lambdaQueryChain(Class<T> clazz,SqlOperation<T> sqlOperation){
+        return new LambdaQueryChainWrapper<>(clazz,sqlOperation);
     }
 
     public static <T> LambdaUpdateChainWrapper<T> lambdaUpdateChain(SqlOperation<T> sqlOperation){

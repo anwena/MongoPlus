@@ -7,9 +7,12 @@ import com.anwen.mongo.sql.interfaces.Order;
 import com.anwen.mongo.sql.model.PageParam;
 import com.anwen.mongo.sql.model.PageResult;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 查询实现
@@ -18,29 +21,20 @@ import java.util.List;
 */
 public class LambdaQueryChainWrapper<T> extends AbstractChainWrapper<T,LambdaQueryChainWrapper<T>> implements ChainQuery<T> {
 
+    // 泛型类型缓存
+    private static final Map<Class<?>, Class<?>> genericTypeCache = new HashMap<>();
+
     private SqlOperation<T> sqlOperation;
 
-    public LambdaQueryChainWrapper(SqlOperation<T> sqlOperation) {
+    private T clazz;
+
+    public LambdaQueryChainWrapper(Class<T> clazz , SqlOperation<T> sqlOperation) {
         this.sqlOperation = sqlOperation;
-    }
-
-    public <T> Class<T> getEClass() {
-
-        //get the Class object of this own class
-        Class<? extends LambdaQueryChainWrapper> thisClass = this.getClass();
-
-        //get the Type Object of supper class
-        Type superClassType = thisClass.getGenericSuperclass();
-        ParameterizedType pt = (ParameterizedType) superClassType;
-
-        //get the Generic Type array
-        Type[] genTypeArr = pt.getActualTypeArguments();
-        Type genType = genTypeArr[0];
-        if (!(genType instanceof Class)) {
-            return (Class<T>) Object.class;
+        try {
+            this.clazz = clazz.getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            throw new RuntimeException(e);
         }
-
-        return (Class<T>) genType;
     }
 
     /*@Override
@@ -50,25 +44,25 @@ public class LambdaQueryChainWrapper<T> extends AbstractChainWrapper<T,LambdaQue
     }*/
     @Override
     public List<T> list() {
-        sqlOperation.init(getEClass());
+        sqlOperation.init(clazz.getClass());
         return sqlOperation.doList(getCompareList(), getOrderList());
     }
 
     @Override
     public T one() {
-        sqlOperation.init(getEClass());
+        sqlOperation.init(clazz.getClass());
         return sqlOperation.doOne(getCompareList());
     }
 
     @Override
     public PageResult<T> page(PageParam pageParam) {
-        sqlOperation.init(getEClass());
+        sqlOperation.init(clazz.getClass());
         return sqlOperation.doPage(getCompareList(),getOrderList(),pageParam.getPageNum(),pageParam.getPageSize());
     }
 
     @Override
     public PageResult<T> page(Integer pageNum, Integer pageSize) {
-        sqlOperation.init(getEClass());
+        sqlOperation.init(clazz.getClass());
         return sqlOperation.doPage(getCompareList(),getOrderList(),pageNum,pageSize);
     }
 }
