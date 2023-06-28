@@ -1,7 +1,5 @@
 package com.anwen.mongo.sql;
 
-import cn.hutool.db.Page;
-import cn.hutool.json.JSONUtil;
 import com.anwen.mongo.annotation.CutInID;
 import com.anwen.mongo.annotation.table.TableName;
 import com.anwen.mongo.convert.DocumentMapperConvert;
@@ -19,7 +17,6 @@ import com.anwen.mongo.utils.BeanMapUtilByReflect;
 import com.anwen.mongo.utils.StringUtils;
 import com.anwen.mongo.utils.codec.RegisterCodecUtil;
 import com.mongodb.BasicDBObject;
-import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClient;
@@ -32,13 +29,10 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
-import org.bson.codecs.configuration.CodecRegistry;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -73,45 +67,6 @@ public class SqlOperation<T> {
     public void setMongoEntity(Class<T> mongoEntity) {
         this.mongoEntity = mongoEntity;
     }
-/*public Class<T> getEClass() {
-        Type genericSuperclass = this.getClass().getGenericSuperclass();
-        if (genericSuperclass instanceof ParameterizedType) {
-            Type[] actualTypeArguments = ((ParameterizedType) genericSuperclass)
-                    .getActualTypeArguments();
-            if (actualTypeArguments != null && actualTypeArguments.length > 0) {
-                mongoEntity = (Class<T>) actualTypeArguments[0];
-            }
-        }
-        return mongoEntity;
-        *//*Type superClass = getClass().getGenericSuperclass();
-        if (!(superClass instanceof ParameterizedType)) {
-            throw new IllegalArgumentException("无泛型类型信息");
-        }
-        mongoEntity = (T) Object.class;
-        ParameterizedType parameterizedType = (ParameterizedType)SqlOperation.class.getGenericSuperclass();
-        System.out.println(parameterizedType.getTypeName() + "--------->" + parameterizedType.getActualTypeArguments()[0].getTypeName());
-
-        Type[] types = SqlOperation.class.getGenericInterfaces();
-        for (Type type : types) {
-            ParameterizedType typ = (ParameterizedType)type;
-
-        }
-        //get the Class object of this own class
-        Class<? extends SqlOperation> thisClass = this.getClass();
-
-        //get the Type Object of supper class
-        Type superClassType = thisClass.getGenericSuperclass();
-        ParameterizedType pt = (ParameterizedType) superClassType;
-
-        //get the Generic Type array
-        Type[] genTypeArr = pt.getActualTypeArguments();
-        Type genType = genTypeArr[0];
-        if (!(genType instanceof Class)) {
-            return (Class<T>) Object.class;
-        }
-
-        return (Class<T>) genType;*//*
-    }*/
 
     public void init(Class<?> clazz) {
         String tableName = clazz.getSimpleName().toLowerCase();
@@ -138,10 +93,6 @@ public class SqlOperation<T> {
         try {
             connectMongoDB = new ConnectMongoDB(mongoClient, baseProperty.getDatabase(), tableName);
             collectionMap.put(tableName,connectMongoDB.open());
-            /*if (connectMongoDB == null || !connectMongoDB.isSame(baseProperty.getDatabase(), tableName)) {
-                connectMongoDB = new ConnectMongoDB(mongoClient, baseProperty.getDatabase(), tableName);
-                this.collection = connectMongoDB.open(t);
-            }*/
         } catch (MongoException e) {
             log.error("Failed to connect to MongoDB: {}", e.getMessage(), e);
         }

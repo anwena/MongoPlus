@@ -6,7 +6,6 @@ import com.anwen.mongo.sql.conditions.update.LambdaUpdateChainWrapper;
 import com.anwen.mongo.sql.model.PageParam;
 import com.anwen.mongo.sql.model.PageResult;
 import com.anwen.mongo.sql.support.SFunction;
-import com.anwen.mongo.sql.update.LambdaUpdateMongoWrapper;
 import com.anwen.mongo.toolkit.ChainWrappers;
 
 import java.io.Serializable;
@@ -162,13 +161,6 @@ public interface IService<T> {
 
     <T> Class<T> getEClass();
 
-    /**
-     * 自定义构建查询
-     * @return com.qihengyun.mongon.orm.query.LambdaQueryMongoWrapper<T>
-     * @author JiaChaoYang
-     * @since 2023/2/10 9:49
-     */
-//    LambdaAbstractWrapperChainWrapper<T> lambdaQuery();
 
     default LambdaQueryChainWrapper<T> lambdaQuery(){
         return ChainWrappers.lambdaQueryChain(getEClass(),getSqlOperation());

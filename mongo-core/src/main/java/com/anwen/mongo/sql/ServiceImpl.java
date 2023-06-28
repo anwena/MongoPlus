@@ -7,8 +7,6 @@ import com.anwen.mongo.sql.model.PageResult;
 import com.anwen.mongo.sql.support.SFunction;
 import org.springframework.context.ApplicationListener;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
