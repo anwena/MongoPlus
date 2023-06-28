@@ -8,11 +8,7 @@ import com.anwen.mongo.sql.model.PageParam;
 import com.anwen.mongo.sql.model.PageResult;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 查询实现
@@ -21,20 +17,17 @@ import java.util.Map;
 */
 public class LambdaQueryChainWrapper<T> extends AbstractChainWrapper<T,LambdaQueryChainWrapper<T>> implements ChainQuery<T> {
 
-    // 泛型类型缓存
-    private static final Map<Class<?>, Class<?>> genericTypeCache = new HashMap<>();
-
-    private SqlOperation<T> sqlOperation;
-
-    private T clazz;
+    private final SqlOperation<T> sqlOperation;
 
     public LambdaQueryChainWrapper(Class<T> clazz , SqlOperation<T> sqlOperation) {
         this.sqlOperation = sqlOperation;
+        T tClass;
         try {
-            this.clazz = clazz.getDeclaredConstructor().newInstance();
+            tClass = clazz.getDeclaredConstructor().newInstance();
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
+        sqlOperation.init(tClass.getClass());
     }
 
     /*@Override
@@ -44,25 +37,21 @@ public class LambdaQueryChainWrapper<T> extends AbstractChainWrapper<T,LambdaQue
     }*/
     @Override
     public List<T> list() {
-        sqlOperation.init(clazz.getClass());
         return sqlOperation.doList(getCompareList(), getOrderList());
     }
 
     @Override
     public T one() {
-        sqlOperation.init(clazz.getClass());
         return sqlOperation.doOne(getCompareList());
     }
 
     @Override
     public PageResult<T> page(PageParam pageParam) {
-        sqlOperation.init(clazz.getClass());
         return sqlOperation.doPage(getCompareList(),getOrderList(),pageParam.getPageNum(),pageParam.getPageSize());
     }
 
     @Override
     public PageResult<T> page(Integer pageNum, Integer pageSize) {
-        sqlOperation.init(clazz.getClass());
         return sqlOperation.doPage(getCompareList(),getOrderList(),pageNum,pageSize);
     }
 }

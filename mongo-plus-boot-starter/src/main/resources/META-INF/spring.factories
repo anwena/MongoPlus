@@ -1,7 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-    com.anwen.mongo.config.MongoDBJDBCConfiguration,\
-    org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration,\
-    org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
-
-org.springframework.boot.autoconfigure.SpringBootApplication=\
-  org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+    com.anwen.mongo.config.MongoDBJDBCConfiguration

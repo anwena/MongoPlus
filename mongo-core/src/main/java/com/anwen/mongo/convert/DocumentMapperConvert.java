@@ -1,5 +1,6 @@
 package com.anwen.mongo.convert;
 
+import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.table.TableField;
 import com.anwen.mongo.sql.IService;
 import com.anwen.mongo.sql.SqlOperation;
@@ -27,15 +28,12 @@ public class DocumentMapperConvert {
 
     private static final Map<Class<?>, List<Field>> FIELD_CACHE = new HashMap<>();
 
-    private static IService<BaseModelID> service;
-
     /**
      * 将一个 Document 对象转换成指定类型的对象
      * @author: JiaChaoYang
      * @date: 2023/6/7 20:58
      **/
     public static <T> T mapDocument(Document doc, Class<T> clazz) {
-
         T obj = null;
         try {
             obj = clazz.getDeclaredConstructor().newInstance();
@@ -72,15 +70,14 @@ public class DocumentMapperConvert {
         List<Field> fields = getFields(clazz);
         for (Field field : fields) {
             TableField tableField = field.getAnnotation(TableField.class);
+            ID id = field.getAnnotation(ID.class);
             String fieldName = tableField != null ? tableField.value() : field.getName();
+            if (id != null) fieldName = "_id";
             if (tableField != null && !tableField.exist()) {
                 continue;
             }
             if (doc.containsKey(fieldName)) {
                 Object fieldValue = doc.get(fieldName);
-
-                // 省略集合、数组和 Map 类型的处理
-
                 field.setAccessible(true);
                 field.set(obj, fieldValue);
             }
@@ -108,9 +105,6 @@ public class DocumentMapperConvert {
             }
             if (doc.containsKey(fieldName)) {
                 Object fieldValue = doc.get(fieldName);
-
-                // 省略集合、数组和 Map 类型的处理
-
                 field.setAccessible(true);
                 field.set(obj, fieldValue);
             }

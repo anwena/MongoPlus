@@ -1,6 +1,7 @@
 package com.anwen.mongo.sql;
 
 import cn.hutool.db.Page;
+import cn.hutool.json.JSONUtil;
 import com.anwen.mongo.annotation.CutInID;
 import com.anwen.mongo.annotation.table.TableName;
 import com.anwen.mongo.convert.DocumentMapperConvert;
@@ -16,20 +17,28 @@ import com.anwen.mongo.sql.model.SlaveDataSource;
 import com.anwen.mongo.sql.support.SFunction;
 import com.anwen.mongo.utils.BeanMapUtilByReflect;
 import com.anwen.mongo.utils.StringUtils;
+import com.anwen.mongo.utils.codec.RegisterCodecUtil;
 import com.mongodb.BasicDBObject;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
+import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.codecs.configuration.CodecRegistry;
+
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -48,7 +57,7 @@ import static com.anwen.mongo.utils.BeanMapUtilByReflect.checkTableField;
 @Slf4j
 public class SqlOperation<T> {
 
-    private MongoCollection<Document> collection;
+    private Map<String,MongoCollection<Document>> collectionMap = new HashMap<>();
 
     private List<SlaveDataSource> slaveDataSources;
 
@@ -56,55 +65,102 @@ public class SqlOperation<T> {
 
     private MongoClient mongoClient;
 
-    private T t;
+    // 实例化 ConnectMongoDB 对象，用于保存连接
+    private ConnectMongoDB connectMongoDB;
 
-    public void init(Class<?> aClass){
-        try {
-            this.t = (T)aClass.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException(e);
+    private Class<T> mongoEntity;
+
+    public void setMongoEntity(Class<T> mongoEntity) {
+        this.mongoEntity = mongoEntity;
+    }
+/*public Class<T> getEClass() {
+        Type genericSuperclass = this.getClass().getGenericSuperclass();
+        if (genericSuperclass instanceof ParameterizedType) {
+            Type[] actualTypeArguments = ((ParameterizedType) genericSuperclass)
+                    .getActualTypeArguments();
+            if (actualTypeArguments != null && actualTypeArguments.length > 0) {
+                mongoEntity = (Class<T>) actualTypeArguments[0];
+            }
         }
-        String tableName = aClass.getSimpleName().toLowerCase();
-        if (aClass.isAnnotationPresent(TableName.class)){
-            TableName annotation = aClass.getAnnotation(TableName.class);
+        return mongoEntity;
+        *//*Type superClass = getClass().getGenericSuperclass();
+        if (!(superClass instanceof ParameterizedType)) {
+            throw new IllegalArgumentException("无泛型类型信息");
+        }
+        mongoEntity = (T) Object.class;
+        ParameterizedType parameterizedType = (ParameterizedType)SqlOperation.class.getGenericSuperclass();
+        System.out.println(parameterizedType.getTypeName() + "--------->" + parameterizedType.getActualTypeArguments()[0].getTypeName());
+
+        Type[] types = SqlOperation.class.getGenericInterfaces();
+        for (Type type : types) {
+            ParameterizedType typ = (ParameterizedType)type;
+
+        }
+        //get the Class object of this own class
+        Class<? extends SqlOperation> thisClass = this.getClass();
+
+        //get the Type Object of supper class
+        Type superClassType = thisClass.getGenericSuperclass();
+        ParameterizedType pt = (ParameterizedType) superClassType;
+
+        //get the Generic Type array
+        Type[] genTypeArr = pt.getActualTypeArguments();
+        Type genType = genTypeArr[0];
+        if (!(genType instanceof Class)) {
+            return (Class<T>) Object.class;
+        }
+
+        return (Class<T>) genType;*//*
+    }*/
+
+    public void init(Class<?> clazz) {
+        String tableName = clazz.getSimpleName().toLowerCase();
+        if (clazz.isAnnotationPresent(TableName.class)) {
+            TableName annotation = clazz.getAnnotation(TableName.class);
             tableName = annotation.value();
-            if (StringUtils.isNotBlank(annotation.dataSource())){
-                if (slaveDataSources == null || slaveDataSources.size() == 0){
-                    throw new InitMongoCollectionException("No slave data source configured");
+            String dataSource = annotation.dataSource();
+            if (StringUtils.isNotBlank(dataSource)) {
+                Optional<SlaveDataSource> matchingSlave = slaveDataSources.stream()
+                        .filter(slave -> Objects.equals(dataSource, slave.getSlaveName()))
+                        .findFirst();
+                if (matchingSlave.isPresent()) {
+                    SlaveDataSource slave = matchingSlave.get();
+                    baseProperty.setHost(slave.getHost());
+                    baseProperty.setPort(slave.getPort());
+                    baseProperty.setDatabase(slave.getDatabase());
+                    baseProperty.setUsername(slave.getUsername());
+                    baseProperty.setPassword(slave.getPassword());
+                } else {
+                    throw new InitMongoCollectionException("No matching slave data source configured");
                 }
-                slaveDataSources.forEach(slave -> {
-                    if (Objects.equals(annotation.dataSource(), slave.getSlaveName())) {
-                        baseProperty.setHost(slave.getHost());
-                        baseProperty.setPort(slave.getPort());
-                        baseProperty.setDatabase(slave.getDatabase());
-                        baseProperty.setUsername(slave.getUsername());
-                        baseProperty.setPassword(slave.getPassword());
-                    }
-                });
             }
         }
         try {
-            this.collection = new ConnectMongoDB(mongoClient,baseProperty.getDatabase(),tableName).open(t);
+            connectMongoDB = new ConnectMongoDB(mongoClient, baseProperty.getDatabase(), tableName);
+            collectionMap.put(tableName,connectMongoDB.open());
+            /*if (connectMongoDB == null || !connectMongoDB.isSame(baseProperty.getDatabase(), tableName)) {
+                connectMongoDB = new ConnectMongoDB(mongoClient, baseProperty.getDatabase(), tableName);
+                this.collection = connectMongoDB.open(t);
+            }*/
         } catch (MongoException e) {
-            log.error("Failed to connect to MongoDB: {}" + e.getMessage(),e);
+            log.error("Failed to connect to MongoDB: {}", e.getMessage(), e);
         }
     }
 
     @CutInID
     public Boolean doSave(T entity) {
         try {
-            //连接到数据库
-            collection.insertOne(new Document(checkTableField(entity)));
+            InsertOneResult insertOneResult = getCollection().withCodecRegistry(CodecRegistries.fromRegistries(RegisterCodecUtil.registerCodec(entity))).insertOne(new Document(checkTableField(entity)));
+            return insertOneResult.wasAcknowledged();
         }catch (Exception e){
             log.error("save fail , error info : {}",e.getMessage(),e);
             return false;
         }
-        return true;
     }
 
     public Boolean doSaveBatch(Collection<T> entityList) {
         try {
-            collection.insertMany(BeanMapUtilByReflect.listToDocumentList(entityList));
+            getCollection().insertMany(BeanMapUtilByReflect.listToDocumentList(entityList));
         }catch (Exception e){
             log.error("saveBatch fail , error info : {}",e.getMessage(),e);
             return false;
@@ -128,7 +184,7 @@ public class SqlOperation<T> {
 
     public Boolean doSaveOrUpdateBatch(Collection<T> entityList) {
         List<T> insertList = new ArrayList<>();
-        for (Document document : collection.find(
+        for (Document document : getCollection().find(
                 Filters.in("_id", entityList.stream().map(entity -> {
                     try {
                         return (String) entity.getClass().getSuperclass().getMethod("getId").invoke(entity);
@@ -151,7 +207,7 @@ public class SqlOperation<T> {
         try {
             BasicDBObject filter = new BasicDBObject("_id",entity.getClass().getSuperclass().getMethod("getId").invoke(entity).toString());
             BasicDBObject update = new BasicDBObject("$set",new Document(checkTableField(entity)));
-            updateResult = collection.updateOne(filter,update);
+            updateResult = getCollection().updateOne(filter,update);
         }catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e){
             log.error("update fail , fail info : {}",e.getMessage(),e);
             return false;
@@ -164,7 +220,7 @@ public class SqlOperation<T> {
         AtomicReference<UpdateResult> updateResult = new AtomicReference<>();
         entityList.forEach(entity -> {
             try {
-                updateResult.set(collection.updateMany(Filters.eq("_id", entity.getClass().getSuperclass().getMethod("getId").invoke(entity)), new Document(checkTableField(entity))));
+                updateResult.set(getCollection().updateMany(Filters.eq("_id", entity.getClass().getSuperclass().getMethod("getId").invoke(entity)), new Document(checkTableField(entity))));
             } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                 log.error("update fail , fail info : {}",e.getMessage(),e);
             }
@@ -176,7 +232,7 @@ public class SqlOperation<T> {
     public Boolean doUpdateByColumn(T entity, SFunction<T, Object> column) {
         UpdateResult updateResult;
         try {
-            updateResult = collection.updateOne(Filters.eq(column.getFieldName(), entity.getClass().getMethod("getId").invoke(entity)), new Document(checkTableField(entity)));
+            updateResult = getCollection().updateOne(Filters.eq(column.getFieldName(), entity.getClass().getMethod("getId").invoke(entity)), new Document(checkTableField(entity)));
         }catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e){
             log.error("update fail , fail info : {}",e.getMessage(),e);
             return false;
@@ -188,7 +244,7 @@ public class SqlOperation<T> {
     public Boolean doUpdateByColumn(T entity, String column) {
         UpdateResult updateResult;
         try {
-            updateResult = collection.updateOne(Filters.eq(column, entity.getClass().getMethod("getId").invoke(entity)), new Document(checkTableField(entity)));
+            updateResult = getCollection().updateOne(Filters.eq(column, entity.getClass().getMethod("getId").invoke(entity)), new Document(checkTableField(entity)));
         }catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e){
             log.error("update fail , fail info : {}",e.getMessage(),e);
             return false;
@@ -199,28 +255,28 @@ public class SqlOperation<T> {
 
     public Boolean doRemoveById(Serializable id) {
         T t = doGetById(id);
-        Document document = collection.findOneAndDelete(Filters.eq("_id", id));
-        return collection.deleteOne(Filters.eq("_id",id)).getDeletedCount() != 0;
+        Document document = getCollection().findOneAndDelete(Filters.eq("_id", id));
+        return getCollection().deleteOne(Filters.eq("_id",id)).getDeletedCount() != 0;
     }
 
 
     public Boolean doRemoveByColumn(SFunction<T, Object> column, String value) {
-        return collection.deleteOne(Filters.eq(column.getFieldNameLine(),value)).getDeletedCount() != 0;
+        return getCollection().deleteOne(Filters.eq(column.getFieldNameLine(),value)).getDeletedCount() != 0;
     }
 
 
     public Boolean doRemoveByColumn(String column, String value) {
-        return collection.deleteOne(Filters.eq(column,value)).getDeletedCount() != 0;
+        return getCollection().deleteOne(Filters.eq(column,value)).getDeletedCount() != 0;
     }
 
 
     public Boolean doRemoveBatchByIds(Collection<Object> idList) {
-        return collection.deleteMany(Filters.in("_id",idList)).getDeletedCount() != 0;
+        return getCollection().deleteMany(Filters.in("_id",idList)).getDeletedCount() != 0;
     }
 
 
     public List<T> doList() {
-        FindIterable<Document> documents = collection.find();
+        FindIterable<Document> documents = getCollection().find();
         MongoCursor<T> iterator = (MongoCursor<T>) documents.iterator();
         List<T> list = new ArrayList<>();
         while (iterator.hasNext()){
@@ -250,7 +306,7 @@ public class SqlOperation<T> {
     public T doGetById(Serializable id) {
         BasicDBObject byId = new BasicDBObject();
         byId.put("_id",new BasicDBObject("$eq",id));
-        FindIterable<Document> iterable = collection.find(byId);
+        FindIterable<Document> iterable = getCollection().find(byId);
         return (T) iterable.first();
     }
 
@@ -272,11 +328,11 @@ public class SqlOperation<T> {
     private FindIterable<Document> baseLambdaQuery(List<CompareCondition> compareConditionList, List<Order> orderList){
         BasicDBObject sortCond = new BasicDBObject();
         orderList.forEach(order -> sortCond.put(order.getColumn(),order.getType()));
-        return collection.find(buildQueryCondition(compareConditionList)).sort(sortCond);
+        return getCollection().find(buildQueryCondition(compareConditionList)).sort(sortCond);
     }
 
     private <T> List<T> getLambdaQueryResult(List<CompareCondition> compareConditionList, List<Order> orderList){
-        return (List<T>) DocumentMapperConvert.mapDocumentList(baseLambdaQuery(compareConditionList,orderList),t.getClass());
+        return (List<T>) DocumentMapperConvert.mapDocumentList(baseLambdaQuery(compareConditionList,orderList),mongoEntity);
     }
 
     private PageResult<T> getLambdaQueryResultPage(List<CompareCondition> compareConditionList, List<Order> orderList, PageParam pageParams){
@@ -287,7 +343,7 @@ public class SqlOperation<T> {
         pageResult.setPageSize(pageResult.getPageSize());
         pageResult.setTotalSize(totalSize);
         pageResult.setTotalPages((totalSize + pageParams.getPageSize() - 1) / pageParams.getPageSize());
-        pageResult.setContentData((List<T>) DocumentMapperConvert.mapDocumentList(documentFindIterable.skip((pageParams.getPageNum() - 1) * pageParams.getPageSize()).limit(pageParams.getPageSize()),t.getClass()));
+        pageResult.setContentData(DocumentMapperConvert.mapDocumentList(documentFindIterable.skip((pageParams.getPageNum() - 1) * pageParams.getPageSize()).limit(pageParams.getPageSize()),mongoEntity));
         return pageResult;
     }
 
@@ -306,6 +362,21 @@ public class SqlOperation<T> {
                 }
             });
         }};
+    }
+
+    private MongoCollection<Document> getCollection(){
+        Class<?> clazz = mongoEntity;
+        String tableName = clazz.getSimpleName().toLowerCase();
+        if (clazz.isAnnotationPresent(TableName.class)){
+            tableName = clazz.getAnnotation(TableName.class).value();
+        }
+        // 检查连接是否需要重新创建
+        if (!this.collectionMap.containsKey(tableName)){
+            MongoCollection<Document> mongoCollection = connectMongoDB.open();
+            this.collectionMap.put(tableName,mongoCollection);
+            return mongoCollection;
+        }
+        return this.collectionMap.get(tableName);
     }
 
 }

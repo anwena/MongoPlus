@@ -1,14 +1,24 @@
 package com.anwen.mongo.config;
 
+import com.anwen.mongo.event.SqlOperationInitializedEvent;
+import com.anwen.mongo.log.CustomMongoDriverLogger;
 import com.anwen.mongo.sql.SqlOperation;
 import com.anwen.mongo.utils.UrlJoint;
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoCredential;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
+import com.mongodb.connection.ClusterSettings;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 
 /**
  * @author JiaChaoYang
@@ -20,6 +30,14 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(MongoDBConnectProperty.class)
 public class MongoDBJDBCConfiguration {
 
+    /**
+     * 自定义事件
+     * @author JiaChaoYang
+     * @date 2023/6/26/026 22:06
+    */ 
+    @Resource
+    private ApplicationEventPublisher eventPublisher;
+
     final
     MongoDBConnectProperty mongoDBConnectProperty;
 
@@ -29,13 +47,38 @@ public class MongoDBJDBCConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    @PostConstruct
     public SqlOperation<?> sqlOperation() {
+        CustomMongoDriverLogger customLogger = new CustomMongoDriverLogger();
         SqlOperation<?> sqlOperation = new SqlOperation<>();
         sqlOperation.setSlaveDataSources(mongoDBConnectProperty.getSlaveDataSource());
         sqlOperation.setBaseProperty(mongoDBConnectProperty);
         UrlJoint urlJoint = new UrlJoint(mongoDBConnectProperty);
-        sqlOperation.setMongoClient(MongoClients.create(urlJoint.jointMongoUrl()));
+/*
+        ClusterSettings clusterSettings = ClusterSettings.builder()
+                .applyConnectionString(new ConnectionString(urlJoint.jointMongoUrl()))
+                // 设置其他的ClusterSettings
+                .build();
+        MongoCredential credential = MongoCredential.createCredential(mongoDBConnectProperty.getUsername(), mongoDBConnectProperty.getAuthenticationDatabase(), mongoDBConnectProperty.getPassword().toCharArray());
+        MongoClientSettings settings = MongoClientSettings.builder()
+                .applyConnectionString(new ConnectionString(urlJoint.jointMongoUrl()))
+                .credential(credential)
+                // 设置其他的MongoClientSettings
+                .build();
+        MongoClient mongoClient = MongoClients.create(MongoClientSettings.builder()
+                .applyToClusterSettings(builder -> builder.applySettings(clusterSettings)).addCommandListener(customLogger).build());*/
+        MongoClientSettings settings = MongoClientSettings.builder()
+                .applyConnectionString(new ConnectionString(urlJoint.jointMongoUrl()))
+                .addCommandListener(customLogger)
+                .build();
+        sqlOperation.setMongoClient(MongoClients.create(settings));
+        // 发布自定义事件通知其他类，sqlOperation已完成初始化
+        eventPublisher.publishEvent(new SqlOperationInitializedEvent(sqlOperation));
         return sqlOperation;
     }
 
+/*    @Override
+    public String[] selectImports(AnnotationMetadata importingClassMetadata) {
+        return new String[]{MongoAutoConfiguration.class.getName()};
+    }*/
 }
