@@ -2,7 +2,7 @@ package com.anwen.mongo.sql.conditions.update;
 
 import com.anwen.mongo.sql.SqlOperation;
 
-public class LambdaUpdateChainWrapper<T> extends UpdateChainWrapper<T,LambdaUpdateChainWrapper<T>> implements ChainUpdate<T> {
+public class LambdaUpdateChainWrapper<T> extends UpdateChainWrapper<T,LambdaUpdateChainWrapper<T>> implements ChainUpdate {
 
     private final SqlOperation<T> sqlOperation;
 

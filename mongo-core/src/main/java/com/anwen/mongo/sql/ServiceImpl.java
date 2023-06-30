@@ -13,6 +13,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author JiaChaoYang
@@ -23,6 +24,8 @@ public class ServiceImpl<T> implements IService<T>, ApplicationListener<SqlOpera
 
     private SqlOperation<T> sqlOperation;
 
+    private Class<T> eClass;
+
     @Override
     public void onApplicationEvent(SqlOperationInitializedEvent event) {
         sqlOperation = (SqlOperation<T>) event.getSqlOperation();
@@ -30,29 +33,31 @@ public class ServiceImpl<T> implements IService<T>, ApplicationListener<SqlOpera
     }
 
     @Override
-    public <T> Class<T> getEClass() {
-
-        //get the Class object of this own class
-        Class<? extends ServiceImpl> thisClass = this.getClass();
-
-        //get the Type Object of supper class
-        Type superClassType = thisClass.getGenericSuperclass();
-        ParameterizedType pt = (ParameterizedType) superClassType;
-
-        //get the Generic Type array
-        Type[] genTypeArr = pt.getActualTypeArguments();
-        Type genType = genTypeArr[0];
-        if (!(genType instanceof Class)) {
-            return (Class<T>) Object.class;
+    public Class<T> getEClass() {
+        if (eClass != null) {
+            return eClass;
         }
-
-        return (Class<T>) genType;
+        Type superClassType = getClass().getGenericSuperclass();
+        ParameterizedType pt = (ParameterizedType) superClassType;
+        Type genType = pt.getActualTypeArguments()[0];
+        if (genType instanceof Class) {
+            eClass = (Class<T>) genType;
+        } else {
+            eClass = (Class<T>) Object.class;
+        }
+        return eClass;
     }
 
     @Override
     public Boolean save(T entity) {
         sqlOperation.setMongoEntity(getEClass());
         return sqlOperation.doSave(entity);
+    }
+
+    @Override
+    public Boolean save(Map<String, Object> entityMap,String tableName) {
+        setMongoEntity();
+        return null;
     }
 
     @Override
@@ -128,6 +133,11 @@ public class ServiceImpl<T> implements IService<T>, ApplicationListener<SqlOpera
     }
 
     @Override
+    public List<Map<String, Object>> list(String tableName) {
+        return sqlOperation.doList(tableName);
+    }
+
+    @Override
     public T one(LambdaQueryChainWrapper<T> lambdaQueryChainWrapper) {
         sqlOperation.setMongoEntity(getEClass());
         return sqlOperation.doOne(lambdaQueryChainWrapper.getCompareList());
@@ -161,4 +171,11 @@ public class ServiceImpl<T> implements IService<T>, ApplicationListener<SqlOpera
         sqlOperation.setMongoEntity(getEClass());
         return sqlOperation;
     }
+
+    private void setMongoEntity() {
+        Class<T> actualTypeArgument = getEClass();
+        // 根据实际情况进行设置
+        sqlOperation.setMongoEntity(actualTypeArgument);
+    }
+
 }

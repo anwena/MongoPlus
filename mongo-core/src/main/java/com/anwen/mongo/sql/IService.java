@@ -7,10 +7,12 @@ import com.anwen.mongo.sql.model.PageParam;
 import com.anwen.mongo.sql.model.PageResult;
 import com.anwen.mongo.sql.support.SFunction;
 import com.anwen.mongo.toolkit.ChainWrappers;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -29,6 +31,8 @@ public interface IService<T> {
     */
     @CutInID
     Boolean save(T entity);
+
+    Boolean save(Map<String,Object> entityMap,String tableName);
 
     /**
      * 添加多个
@@ -124,6 +128,8 @@ public interface IService<T> {
      * @since 2023/2/10 9:48
     */
     List<T> list();
+
+    List<Map<String,Object>> list(String tableName);
 
     T one(LambdaQueryChainWrapper<T> lambdaQueryChainWrapper);
 

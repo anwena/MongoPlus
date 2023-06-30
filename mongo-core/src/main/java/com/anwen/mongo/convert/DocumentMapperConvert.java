@@ -78,8 +78,10 @@ public class DocumentMapperConvert {
             }
             if (doc.containsKey(fieldName)) {
                 Object fieldValue = doc.get(fieldName);
-                field.setAccessible(true);
-                field.set(obj, fieldValue);
+                if (fieldValue != null) {
+                    field.setAccessible(true);
+                    field.set(obj, fieldValue);
+                }
             }
         }
 

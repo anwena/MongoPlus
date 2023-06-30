@@ -1,5 +1,6 @@
 package com.anwen.mongo.sql;
 
+import cn.hutool.core.convert.Convert;
 import com.anwen.mongo.annotation.CutInID;
 import com.anwen.mongo.annotation.table.TableName;
 import com.anwen.mongo.convert.DocumentMapperConvert;
@@ -14,6 +15,7 @@ import com.anwen.mongo.sql.model.PageResult;
 import com.anwen.mongo.sql.model.SlaveDataSource;
 import com.anwen.mongo.sql.support.SFunction;
 import com.anwen.mongo.utils.BeanMapUtilByReflect;
+import com.anwen.mongo.utils.Converter;
 import com.anwen.mongo.utils.StringUtils;
 import com.anwen.mongo.utils.codec.RegisterCodecUtil;
 import com.mongodb.BasicDBObject;
@@ -30,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 
+import javax.print.Doc;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -102,6 +105,17 @@ public class SqlOperation<T> {
     public Boolean doSave(T entity) {
         try {
             InsertOneResult insertOneResult = getCollection().withCodecRegistry(CodecRegistries.fromRegistries(RegisterCodecUtil.registerCodec(entity))).insertOne(new Document(checkTableField(entity)));
+            return insertOneResult.wasAcknowledged();
+        }catch (Exception e){
+            log.error("save fail , error info : {}",e.getMessage(),e);
+            return false;
+        }
+    }
+
+    @CutInID
+    public Boolean doSave(Map<String,Object> entityMap,String tableName){
+        try {
+            InsertOneResult insertOneResult = getCollection(tableName).withCodecRegistry(CodecRegistries.fromRegistries(RegisterCodecUtil.registerCodec(entityMap))).insertOne(new Document(checkTableField(entityMap)));
             return insertOneResult.wasAcknowledged();
         }catch (Exception e){
             log.error("save fail , error info : {}",e.getMessage(),e);
@@ -236,6 +250,10 @@ public class SqlOperation<T> {
         return list;
     }
 
+    public List<Map<String,Object>> doList(String tableName){
+        return Converter.convertDocumentToMap(getCollection(tableName).find());
+    }
+
 
     public List<T> doList(List<CompareCondition> compareConditionList, List<Order> orderList) {
         return getLambdaQueryResult(compareConditionList,orderList);
@@ -321,6 +339,10 @@ public class SqlOperation<T> {
         if (clazz.isAnnotationPresent(TableName.class)){
             tableName = clazz.getAnnotation(TableName.class).value();
         }
+        return getCollection(tableName);
+    }
+
+    private MongoCollection<Document> getCollection(String tableName){
         // 检查连接是否需要重新创建
         if (!this.collectionMap.containsKey(tableName)){
             MongoCollection<Document> mongoCollection = connectMongoDB.open();

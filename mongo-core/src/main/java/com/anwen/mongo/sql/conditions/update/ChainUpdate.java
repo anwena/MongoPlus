@@ -5,7 +5,7 @@ package com.anwen.mongo.sql.conditions.update;
  * @author JiaChaoYang
  * @date 2023/6/24/024 2:58
 */
-public interface ChainUpdate<T> {
+public interface ChainUpdate {
 
     boolean update();
 
