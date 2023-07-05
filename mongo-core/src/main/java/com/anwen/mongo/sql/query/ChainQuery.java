@@ -1,4 +1,4 @@
-package com.anwen.mongo.sql.conditions.query;
+package com.anwen.mongo.sql.query;
 
 import com.anwen.mongo.sql.model.PageParam;
 import com.anwen.mongo.sql.model.PageResult;

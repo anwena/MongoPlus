@@ -1,4 +1,4 @@
-package com.anwen.mongo.sql.conditions.query;
+package com.anwen.mongo.sql.query;
 
 import com.anwen.mongo.sql.conditions.AbstractChainWrapper;
 import com.anwen.mongo.sql.SqlOperation;

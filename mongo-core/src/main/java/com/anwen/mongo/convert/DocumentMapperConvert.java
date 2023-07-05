@@ -2,12 +2,6 @@ package com.anwen.mongo.convert;
 
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.table.TableField;
-import com.anwen.mongo.sql.IService;
-import com.anwen.mongo.sql.SqlOperation;
-import com.anwen.mongo.sql.conditions.query.LambdaQueryChainWrapper;
-import com.anwen.mongo.sql.model.BaseModelID;
-import com.anwen.mongo.sql.model.PageParam;
-import com.anwen.mongo.sql.model.PageResult;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import org.bson.Document;
@@ -80,7 +74,16 @@ public class DocumentMapperConvert {
                 Object fieldValue = doc.get(fieldName);
                 if (fieldValue != null) {
                     field.setAccessible(true);
-                    field.set(obj, fieldValue);
+                    if (Objects.equals(fieldName, "_id")){
+                        field.set(obj,String.valueOf(fieldValue));
+                    }
+                    // 如果字段类型是对象类型，则递归调用mapDocumentFields方法进行处理
+                    if (!isPrimitive(field.getType())) {
+                        Object nestedObj = mapDocument((Document) fieldValue, field.getType());
+                        field.set(obj, nestedObj);
+                    } else {
+                        field.set(obj,fieldValue);
+                    }
                 }
             }
         }
@@ -88,8 +91,16 @@ public class DocumentMapperConvert {
         // 处理父类中的字段
         Class<?> superClass = clazz.getSuperclass();
         if (superClass != null && !superClass.equals(Object.class)) {
-            mapSuperClassFields(doc, obj, superClass);
+            mapDocumentFields(doc, obj, superClass);
         }
+    }
+
+    /**
+     * 判断给定类型是否为基本类型或基本类型的包装类型
+     */
+    private static boolean isPrimitive(Class<?> type) {
+        return type.isPrimitive() || Number.class.isAssignableFrom(type) || Boolean.class.isAssignableFrom(type)
+                || Character.class.isAssignableFrom(type) || String.class.isAssignableFrom(type);
     }
 
     /**

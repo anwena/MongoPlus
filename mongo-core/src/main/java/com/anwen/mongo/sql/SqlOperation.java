@@ -6,6 +6,7 @@ import com.anwen.mongo.annotation.table.TableName;
 import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.domain.InitMongoCollectionException;
 import com.anwen.mongo.domain.MongoQueryException;
+import com.anwen.mongo.log.CustomMongoDriverLogger;
 import com.anwen.mongo.sql.comm.ConnectMongoDB;
 import com.anwen.mongo.sql.interfaces.CompareCondition;
 import com.anwen.mongo.sql.interfaces.Order;
@@ -28,7 +29,7 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 
@@ -38,6 +39,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static com.anwen.mongo.utils.BeanMapUtilByReflect.checkTableField;
@@ -51,7 +53,7 @@ import static com.anwen.mongo.utils.BeanMapUtilByReflect.checkTableField;
  * @Version: 1.0
  */
 @Data
-@Slf4j
+@Log4j2
 public class SqlOperation<T> {
 
     private Map<String,MongoCollection<Document>> collectionMap = new HashMap<>();

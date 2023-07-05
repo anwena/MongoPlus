@@ -6,11 +6,8 @@ import com.anwen.mongo.sql.SqlOperation;
 import com.anwen.mongo.utils.UrlJoint;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
-import com.mongodb.MongoCredential;
-import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
-import com.mongodb.connection.ClusterSettings;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationEventPublisher;
@@ -26,7 +23,7 @@ import javax.annotation.Resource;
  * @since 2023-02-09 14:27
  **/
 @Configuration
-@Slf4j
+@Log4j2
 @EnableConfigurationProperties(MongoDBConnectProperty.class)
 public class MongoDBJDBCConfiguration {
 

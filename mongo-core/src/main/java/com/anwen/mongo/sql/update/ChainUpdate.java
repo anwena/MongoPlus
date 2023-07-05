@@ -1,4 +1,4 @@
-package com.anwen.mongo.sql.conditions.update;
+package com.anwen.mongo.sql.update;
 
 /**
  * 修改方法定义

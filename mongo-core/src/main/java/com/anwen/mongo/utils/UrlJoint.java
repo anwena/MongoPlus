@@ -3,8 +3,7 @@ package com.anwen.mongo.utils;
 import com.anwen.mongo.domain.InitMongoCollectionException;
 import com.anwen.mongo.sql.SqlOperation;
 import com.anwen.mongo.sql.model.BaseProperty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 
 /**
  * @Description: 拼接mongodb连接
@@ -14,9 +13,8 @@ import org.slf4j.LoggerFactory;
  * @CreateTime: 2023-02-26 21:56
  * @Version: 1.0
  */
+@Log4j2
 public class UrlJoint {
-
-    private static final Logger log = LoggerFactory.getLogger(SqlOperation.class);
 
     private final BaseProperty baseProperty;
 

@@ -1,13 +1,12 @@
 package com.anwen.mongo.sql;
 
 import com.anwen.mongo.annotation.CutInID;
-import com.anwen.mongo.sql.conditions.query.LambdaQueryChainWrapper;
-import com.anwen.mongo.sql.conditions.update.LambdaUpdateChainWrapper;
+import com.anwen.mongo.sql.query.LambdaQueryChainWrapper;
+import com.anwen.mongo.sql.update.LambdaUpdateChainWrapper;
 import com.anwen.mongo.sql.model.PageParam;
 import com.anwen.mongo.sql.model.PageResult;
 import com.anwen.mongo.sql.support.SFunction;
 import com.anwen.mongo.toolkit.ChainWrappers;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 
 import java.io.Serializable;
 import java.util.Collection;

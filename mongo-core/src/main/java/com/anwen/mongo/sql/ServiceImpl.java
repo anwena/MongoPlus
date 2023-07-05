@@ -1,7 +1,7 @@
 package com.anwen.mongo.sql;
 
 import com.anwen.mongo.event.SqlOperationInitializedEvent;
-import com.anwen.mongo.sql.conditions.query.LambdaQueryChainWrapper;
+import com.anwen.mongo.sql.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.sql.model.PageParam;
 import com.anwen.mongo.sql.model.PageResult;
 import com.anwen.mongo.sql.support.SFunction;

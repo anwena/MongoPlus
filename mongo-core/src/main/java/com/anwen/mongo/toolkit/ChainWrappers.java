@@ -1,8 +1,8 @@
 package com.anwen.mongo.toolkit;
 
-import com.anwen.mongo.sql.conditions.query.LambdaQueryChainWrapper;
+import com.anwen.mongo.sql.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.sql.SqlOperation;
-import com.anwen.mongo.sql.conditions.update.LambdaUpdateChainWrapper;
+import com.anwen.mongo.sql.update.LambdaUpdateChainWrapper;
 
 /**
  * 快速构建链式调用

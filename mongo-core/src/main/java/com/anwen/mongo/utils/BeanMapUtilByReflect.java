@@ -114,8 +114,9 @@ public class BeanMapUtilByReflect {
                 // 获取属性名和属性值，并添加到结果中
                 String fieldName = tableField != null && StringUtils.isNotBlank(tableField.value()) ? tableField.value() : field.getName();
                 Object fieldValue = field.get(entity);
-
-                resultMap.put(fieldName, fieldValue);
+                if (fieldValue != null) {
+                    resultMap.put(fieldName, fieldValue);
+                }
             }
         } catch (ExecutionException | IllegalAccessException e) {
             handleException(e);

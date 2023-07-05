@@ -1,7 +1,6 @@
 package com.anwen.mongo.generate;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
@@ -13,9 +12,9 @@ import java.util.concurrent.ThreadLocalRandom;
  * 雪花生成
  * @since 2023-02-13 16:11
  **/
+@Log4j2
 public class Sequence {
 
-    protected static final Logger log = LoggerFactory.getLogger(Sequence.class);
     /**
      * 时间起始标记点，作为基准，一般取系统的最近时间（一旦确定不能变动）
      */
