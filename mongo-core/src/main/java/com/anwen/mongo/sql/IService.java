@@ -153,6 +153,8 @@ public interface IService<T> {
     */
     PageResult<T> page(Integer pageNum,Integer pageSize);
 
+    PageResult<T> page(LambdaQueryChainWrapper<T> lambdaQueryChainWrapper,Integer pageNum,Integer pageSize);
+
     /**
      * 根据id查询单个
      * @param id id

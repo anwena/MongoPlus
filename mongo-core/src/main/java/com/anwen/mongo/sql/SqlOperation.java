@@ -1,6 +1,7 @@
 package com.anwen.mongo.sql;
 
 import cn.hutool.core.convert.Convert;
+import cn.hutool.json.JSONUtil;
 import com.anwen.mongo.annotation.CutInID;
 import com.anwen.mongo.annotation.table.TableName;
 import com.anwen.mongo.convert.DocumentMapperConvert;
@@ -26,6 +27,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.result.InsertManyResult;
 import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
 import lombok.Data;
@@ -106,7 +108,7 @@ public class SqlOperation<T> {
     @CutInID
     public Boolean doSave(T entity) {
         try {
-            InsertOneResult insertOneResult = getCollection().withCodecRegistry(CodecRegistries.fromRegistries(RegisterCodecUtil.registerCodec(entity))).insertOne(new Document(checkTableField(entity)));
+            InsertOneResult insertOneResult = getCollection(entity).insertOne(new Document(checkTableField(entity)));
             return insertOneResult.wasAcknowledged();
         }catch (Exception e){
             log.error("save fail , error info : {}",e.getMessage(),e);
@@ -117,7 +119,7 @@ public class SqlOperation<T> {
     @CutInID
     public Boolean doSave(Map<String,Object> entityMap,String tableName){
         try {
-            InsertOneResult insertOneResult = getCollection(tableName).withCodecRegistry(CodecRegistries.fromRegistries(RegisterCodecUtil.registerCodec(entityMap))).insertOne(new Document(checkTableField(entityMap)));
+            InsertOneResult insertOneResult = getCollection(entityMap,tableName).insertOne(new Document(checkTableField(entityMap)));
             return insertOneResult.wasAcknowledged();
         }catch (Exception e){
             log.error("save fail , error info : {}",e.getMessage(),e);
@@ -127,12 +129,12 @@ public class SqlOperation<T> {
 
     public Boolean doSaveBatch(Collection<T> entityList) {
         try {
-            getCollection().insertMany(BeanMapUtilByReflect.listToDocumentList(entityList));
+            InsertManyResult insertManyResult = getCollection(entityList.iterator().next()).insertMany(BeanMapUtilByReflect.listToDocumentList(entityList));
+            return insertManyResult.getInsertedIds().size() == entityList.size();
         }catch (Exception e){
             log.error("saveBatch fail , error info : {}",e.getMessage(),e);
             return false;
         }
-        return true;
     }
 
 
@@ -163,7 +165,9 @@ public class SqlOperation<T> {
             insertList.add((T) document);
             entityList.remove(document);
         }
-        if (insertList.size() != 0) doSaveBatch(insertList);
+        if (!insertList.isEmpty()) {
+            doSaveBatch(insertList);
+        }
         doUpdateBatchByIds(entityList);
         return true;
     }
@@ -174,7 +178,7 @@ public class SqlOperation<T> {
         try {
             BasicDBObject filter = new BasicDBObject("_id",entity.getClass().getSuperclass().getMethod("getId").invoke(entity).toString());
             BasicDBObject update = new BasicDBObject("$set",new Document(checkTableField(entity)));
-            updateResult = getCollection().updateOne(filter,update);
+            updateResult = getCollection(entity).updateOne(filter,update);
         }catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e){
             log.error("update fail , fail info : {}",e.getMessage(),e);
             return false;
@@ -184,45 +188,42 @@ public class SqlOperation<T> {
 
 
     public Boolean doUpdateBatchByIds(Collection<T> entityList) {
-        AtomicReference<UpdateResult> updateResult = new AtomicReference<>();
-        entityList.forEach(entity -> {
-            try {
-                updateResult.set(getCollection().updateMany(Filters.eq("_id", entity.getClass().getSuperclass().getMethod("getId").invoke(entity)), new Document(checkTableField(entity))));
-            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                log.error("update fail , fail info : {}",e.getMessage(),e);
-            }
-        });
-        return updateResult.get().getMatchedCount() != 0;
+        T entity = entityList.iterator().next();
+        try {
+            UpdateResult updateResult = getCollection(entity).updateMany(Filters.eq("_id", entity.getClass().getSuperclass().getMethod("getId").invoke(entity)), new Document(checkTableField(entity)));
+            return updateResult.getModifiedCount() == entityList.size();
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            log.error("update fail , fail info : {}",e.getMessage(),e);
+            return false;
+        }
     }
 
 
     public Boolean doUpdateByColumn(T entity, SFunction<T, Object> column) {
-        UpdateResult updateResult;
         try {
-            updateResult = getCollection().updateOne(Filters.eq(column.getFieldName(), entity.getClass().getMethod("getId").invoke(entity)), new Document(checkTableField(entity)));
+            UpdateResult updateResult = getCollection(entity).updateOne(Filters.eq(column.getFieldName(), entity.getClass().getMethod("getId").invoke(entity)), new Document(checkTableField(entity)));
+            return updateResult.getModifiedCount() > 0;
         }catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e){
             log.error("update fail , fail info : {}",e.getMessage(),e);
             return false;
         }
-        return updateResult.getMatchedCount() != 0;
     }
 
 
     public Boolean doUpdateByColumn(T entity, String column) {
-        UpdateResult updateResult;
         try {
-            updateResult = getCollection().updateOne(Filters.eq(column, entity.getClass().getMethod("getId").invoke(entity)), new Document(checkTableField(entity)));
+            UpdateResult updateResult = getCollection(entity).updateOne(Filters.eq(column, entity.getClass().getMethod("getId").invoke(entity)), new Document(checkTableField(entity)));
+            return updateResult.getModifiedCount() > 0;
         }catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e){
             log.error("update fail , fail info : {}",e.getMessage(),e);
             return false;
         }
-        return updateResult.getMatchedCount() != 0;
     }
 
 
     public Boolean doRemoveById(Serializable id) {
         T t = doGetById(id);
-        Document document = getCollection().findOneAndDelete(Filters.eq("_id", id));
+//        Document document = getCollection().findOneAndDelete(Filters.eq("_id", id));
         return getCollection().deleteOne(Filters.eq("_id",id)).getDeletedCount() != 0;
     }
 
@@ -310,8 +311,8 @@ public class SqlOperation<T> {
         PageResult<T> pageResult = new PageResult<>();
         FindIterable<Document> documentFindIterable = baseLambdaQuery(compareConditionList, orderList);
         Integer totalSize = documentFindIterable.iterator().available();
-        pageResult.setPageNum(pageResult.getPageNum());
-        pageResult.setPageSize(pageResult.getPageSize());
+        pageResult.setPageNum(pageParams.getPageNum());
+        pageResult.setPageSize(pageParams.getPageSize());
         pageResult.setTotalSize(totalSize);
         pageResult.setTotalPages((totalSize + pageParams.getPageSize() - 1) / pageParams.getPageSize());
         pageResult.setContentData(DocumentMapperConvert.mapDocumentList(documentFindIterable.skip((pageParams.getPageNum() - 1) * pageParams.getPageSize()).limit(pageParams.getPageSize()),mongoEntity));
@@ -333,6 +334,14 @@ public class SqlOperation<T> {
                 }
             });
         }};
+    }
+
+    private MongoCollection<Document> getCollection(T entity){
+        return getCollection().withCodecRegistry(CodecRegistries.fromRegistries(RegisterCodecUtil.registerCodec(entity)));
+    }
+
+    private MongoCollection<Document> getCollection(Map<String,Object> entityMap,String tableName){
+        return getCollection(tableName).withCodecRegistry(CodecRegistries.fromRegistries(RegisterCodecUtil.registerCodec(entityMap)));
     }
 
     private MongoCollection<Document> getCollection(){

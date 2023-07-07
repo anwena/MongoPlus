@@ -150,6 +150,12 @@ public class ServiceImpl<T> implements IService<T>, ApplicationListener<SqlOpera
     }
 
     @Override
+    public PageResult<T> page(LambdaQueryChainWrapper<T> lambdaQueryChainWrapper, Integer pageNum, Integer pageSize){
+        sqlOperation.setMongoEntity(getEClass());
+        return sqlOperation.doPage(lambdaQueryChainWrapper.getCompareList(),lambdaQueryChainWrapper.getOrderList(), pageNum,pageSize);
+    }
+
+    @Override
     public PageResult<T> page(PageParam pageParam) {
         return page(pageParam.getPageNum(),pageParam.getPageSize());
     }

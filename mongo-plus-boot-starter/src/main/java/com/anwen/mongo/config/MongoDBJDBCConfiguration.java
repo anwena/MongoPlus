@@ -8,11 +8,13 @@ import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClients;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.boot.autoconfigure.AutoConfigurationExcludeFilter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.*;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -51,19 +53,6 @@ public class MongoDBJDBCConfiguration {
         sqlOperation.setSlaveDataSources(mongoDBConnectProperty.getSlaveDataSource());
         sqlOperation.setBaseProperty(mongoDBConnectProperty);
         UrlJoint urlJoint = new UrlJoint(mongoDBConnectProperty);
-/*
-        ClusterSettings clusterSettings = ClusterSettings.builder()
-                .applyConnectionString(new ConnectionString(urlJoint.jointMongoUrl()))
-                // 设置其他的ClusterSettings
-                .build();
-        MongoCredential credential = MongoCredential.createCredential(mongoDBConnectProperty.getUsername(), mongoDBConnectProperty.getAuthenticationDatabase(), mongoDBConnectProperty.getPassword().toCharArray());
-        MongoClientSettings settings = MongoClientSettings.builder()
-                .applyConnectionString(new ConnectionString(urlJoint.jointMongoUrl()))
-                .credential(credential)
-                // 设置其他的MongoClientSettings
-                .build();
-        MongoClient mongoClient = MongoClients.create(MongoClientSettings.builder()
-                .applyToClusterSettings(builder -> builder.applySettings(clusterSettings)).addCommandListener(customLogger).build());*/
         MongoClientSettings settings = MongoClientSettings.builder()
                 .applyConnectionString(new ConnectionString(urlJoint.jointMongoUrl()))
                 .addCommandListener(customLogger)
@@ -73,9 +62,4 @@ public class MongoDBJDBCConfiguration {
         eventPublisher.publishEvent(new SqlOperationInitializedEvent(sqlOperation));
         return sqlOperation;
     }
-
-/*    @Override
-    public String[] selectImports(AnnotationMetadata importingClassMetadata) {
-        return new String[]{MongoAutoConfiguration.class.getName()};
-    }*/
 }

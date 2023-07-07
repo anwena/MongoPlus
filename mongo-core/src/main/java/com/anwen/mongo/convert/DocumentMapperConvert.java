@@ -1,5 +1,6 @@
 package com.anwen.mongo.convert;
 
+import cn.hutool.core.date.DateTime;
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.table.TableField;
 import com.mongodb.client.FindIterable;
@@ -8,6 +9,8 @@ import org.bson.Document;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 /**
@@ -60,7 +63,7 @@ public class DocumentMapperConvert {
      * @author: JiaChaoYang
      * @date: 2023/6/7 21:26
      **/
-    private static void mapDocumentFields(Document doc, Object obj, Class<?> clazz) throws IllegalAccessException {
+    private static void mapDocumentFields(Document doc, Object obj, Class<?> clazz) throws IllegalAccessException, InstantiationException {
         List<Field> fields = getFields(clazz);
         for (Field field : fields) {
             TableField tableField = field.getAnnotation(TableField.class);
@@ -75,14 +78,26 @@ public class DocumentMapperConvert {
                 if (fieldValue != null) {
                     field.setAccessible(true);
                     if (Objects.equals(fieldName, "_id")){
-                        field.set(obj,String.valueOf(fieldValue));
-                    }
-                    // 如果字段类型是对象类型，则递归调用mapDocumentFields方法进行处理
-                    if (!isPrimitive(field.getType())) {
-                        Object nestedObj = mapDocument((Document) fieldValue, field.getType());
-                        field.set(obj, nestedObj);
+                        field.set(obj, String.valueOf(fieldValue));
+                    } else if (field.getType().equals(Date.class)) {
+                        if (fieldValue instanceof Date) {
+                            field.set(obj, fieldValue);
+                        } else if (fieldValue instanceof Long) {
+                            field.set(obj, new Date((Long) fieldValue));
+                        }
+                    } else if (field.getType().equals(LocalDateTime.class)) {
+                        if (fieldValue instanceof Date) {
+                            field.set(obj, ((Date) fieldValue).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
+                        }
+                    } else if (!isPrimitive(field.getType())) {
+                        if (fieldValue instanceof Document) {
+                            Object nestedObj = mapDocument((Document) fieldValue, field.getType());
+                            field.set(obj, nestedObj);
+                        } else {
+                            field.set(obj, fieldValue);
+                        }
                     } else {
-                        field.set(obj,fieldValue);
+                        field.set(obj, fieldValue);
                     }
                 }
             }
@@ -102,6 +117,7 @@ public class DocumentMapperConvert {
         return type.isPrimitive() || Number.class.isAssignableFrom(type) || Boolean.class.isAssignableFrom(type)
                 || Character.class.isAssignableFrom(type) || String.class.isAssignableFrom(type);
     }
+
 
     /**
      * 处理父类中的字段
