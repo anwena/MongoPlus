@@ -6,12 +6,15 @@ import com.anwen.mongo.sql.SqlOperation;
 import com.anwen.mongo.utils.UrlJoint;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigurationExcludeFilter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
+import org.springframework.boot.autoconfigure.mongo.MongoClientSettingsBuilderCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.*;
@@ -27,7 +30,12 @@ import javax.annotation.Resource;
 @Configuration
 @Log4j2
 @EnableConfigurationProperties(MongoDBConnectProperty.class)
-public class MongoDBJDBCConfiguration {
+public class MongoDBJDBCConfiguration extends MongoAutoConfiguration{
+
+    @Override
+    public MongoClient mongo(ObjectProvider<MongoClientSettingsBuilderCustomizer> builderCustomizers, MongoClientSettings settings) {
+        return null;
+    }
 
     /**
      * 自定义事件

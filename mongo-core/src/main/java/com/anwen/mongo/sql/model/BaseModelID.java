@@ -1,9 +1,8 @@
 package com.anwen.mongo.sql.model;
 
 import com.anwen.mongo.annotation.ID;
-import org.bson.codecs.pojo.annotations.BsonCreator;
 import com.anwen.mongo.annotation.table.TableField;
-import com.anwen.mongo.enums.IdType;
+import com.anwen.mongo.enums.IdTypeEnum;
 import lombok.Data;
 
 /**
@@ -18,7 +17,7 @@ public class BaseModelID {
      * mongoDB生成的id
      * @since 2023/2/13 11:52
     */
-    @ID(type = IdType.ASSIGN_ID)
+    @ID(type = IdTypeEnum.ASSIGN_ID)
     @TableField("_id")
     public String id;
 }

@@ -2,6 +2,9 @@ package com.anwen.mongo.sql.comm;
 
 import com.anwen.mongo.codec.GenericCodec;
 import com.anwen.mongo.log.CustomMongoDriverLogger;
+import com.anwen.mongo.sql.IService;
+import com.anwen.mongo.sql.ServiceImpl;
+import com.anwen.mongo.sql.model.BaseModelID;
 import com.anwen.mongo.utils.ClassTypeUtil;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoCredential;
@@ -27,6 +30,8 @@ public class ConnectMongoDB {
     private final String database;
 
     private final String collection;
+
+    IService service;
 
     public ConnectMongoDB(MongoClient mongoClient, String database, String collectionValue) {
         this.mongoClient = mongoClient;

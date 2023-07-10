@@ -2,7 +2,6 @@ package com.anwen.mongo.enums;
 
 import com.anwen.mongo.generate.ObjectId;
 import com.anwen.mongo.generate.Sequence;
-import com.github.f4b6a3.ulid.Ulid;
 import com.github.f4b6a3.ulid.UlidCreator;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,7 +15,7 @@ import java.util.UUID;
  **/
 @Getter
 @AllArgsConstructor
-public enum IdType {
+public enum IdTypeEnum {
 
     /**
      * 生成mongoDB自带的_id
@@ -48,17 +47,17 @@ public enum IdType {
 
     private final int key;
 
-    public static String generateId(IdType idType){
-        if (idType.getKey() == OBJECT_ID.getKey()){
+    public static String generateId(IdTypeEnum idTypeEnum){
+        if (idTypeEnum.getKey() == OBJECT_ID.getKey()){
             return ObjectId.next(false);
         }
-        if (idType.getKey() == ASSIGN_UUID.getKey()){
+        if (idTypeEnum.getKey() == ASSIGN_UUID.getKey()){
             return UUID.randomUUID().toString().replaceAll("-","");
         }
-        if (idType.getKey() == ASSIGN_ULID.getKey()){
+        if (idTypeEnum.getKey() == ASSIGN_ULID.getKey()){
             return UlidCreator.getMonotonicUlid().toLowerCase();
         }
-        if (idType.getKey() == ASSIGN_ID.getKey()){
+        if (idTypeEnum.getKey() == ASSIGN_ID.getKey()){
             return String.valueOf(new Sequence(null).nextId());
         }
         return null;

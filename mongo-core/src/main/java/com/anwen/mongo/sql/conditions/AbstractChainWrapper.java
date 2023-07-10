@@ -181,7 +181,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children like(boolean condition, String column, Object value) {
-        return null;
+        return condition ? like(column,value) : typedThis;
     }
 
     @Override

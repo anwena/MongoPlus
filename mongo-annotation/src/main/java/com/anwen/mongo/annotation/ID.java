@@ -1,6 +1,6 @@
 package com.anwen.mongo.annotation;
 
-import com.anwen.mongo.enums.IdType;
+import com.anwen.mongo.enums.IdTypeEnum;
 
 import java.lang.annotation.*;
 
@@ -17,6 +17,6 @@ import java.lang.annotation.*;
 @Documented
 public @interface ID {
 
-    IdType type() default IdType.ASSIGN_ID;
+    IdTypeEnum type() default IdTypeEnum.ASSIGN_ID;
 
 }

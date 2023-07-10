@@ -1,7 +1,7 @@
 package com.anwen.mongo.utils;
 
 import com.anwen.mongo.annotation.ID;
-import com.anwen.mongo.enums.IdType;
+import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.sql.model.BaseModelID;
 
 import java.lang.reflect.Field;
@@ -19,27 +19,27 @@ public class AnnotationUtil {
         Field[] fields = object.getClass().getDeclaredFields();
         Map<String,Object> resultMap = new HashMap<>();
         Class<?> superclass = object.getClass().getSuperclass();
-        IdType idType = null;
+        IdTypeEnum idTypeEnum = null;
         String fieldName = "id";
         Class<?> fieldType = String.class;
         for (Field field : fields) {
             if (field.isAnnotationPresent(ID.class)){
-                idType = field.getAnnotation(ID.class).type();
+                idTypeEnum = field.getAnnotation(ID.class).type();
                 fieldName = field.getName();
                 fieldType = field.getType();
             }
         }
         if (superclass == BaseModelID.class){
             try {
-                idType = superclass.getField("id").getAnnotation(ID.class).type();
+                idTypeEnum = superclass.getField("id").getAnnotation(ID.class).type();
             } catch (NoSuchFieldException e) {
                 throw new RuntimeException(e);
             }
         }
-        if (idType != null){
+        if (idTypeEnum != null){
             resultMap.put("fieldName",fieldName);
             resultMap.put("fieldType",fieldType);
-            resultMap.put("generateType",idType);
+            resultMap.put("generateType", idTypeEnum);
         }
         return resultMap;
     }

@@ -1,6 +1,6 @@
 package com.anwen.mongo.aop;
 
-import com.anwen.mongo.enums.IdType;
+import com.anwen.mongo.enums.IdTypeEnum;
 import lombok.extern.log4j.Log4j2;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
@@ -61,13 +61,13 @@ public class CutInIDAspect {
         if (!fieldAnnotation.containsKey("fieldName") && !fieldAnnotation.containsKey("fieldType") && !fieldAnnotation.containsKey("generateType")){
             return;
         }
-        IdType idType = (IdType) fieldAnnotation.get("generateType");
+        IdTypeEnum idTypeEnum = (IdTypeEnum) fieldAnnotation.get("generateType");
         Class<?> typeClass = (Class<?>) fieldAnnotation.get("fieldType");
         String fieldName = parseSetMethodName(String.valueOf(fieldAnnotation.get("fieldName")));
         Method fieldSetMethod = null;
         try {
             fieldSetMethod = entityClass.getMethod(fieldName, typeClass);
-            fieldSetMethod.invoke(entity, getClassTypeValue(typeClass, IdType.generateId(idType)));
+            fieldSetMethod.invoke(entity, getClassTypeValue(typeClass, IdTypeEnum.generateId(idTypeEnum)));
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             throw new RuntimeException(e);
         }

@@ -7,6 +7,7 @@ import com.anwen.mongo.annotation.table.TableName;
 import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.domain.InitMongoCollectionException;
 import com.anwen.mongo.domain.MongoQueryException;
+import com.anwen.mongo.enums.CpmpareEnum;
 import com.anwen.mongo.log.CustomMongoDriverLogger;
 import com.anwen.mongo.sql.comm.ConnectMongoDB;
 import com.anwen.mongo.sql.interfaces.CompareCondition;
@@ -27,6 +28,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.InsertManyResult;
 import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
@@ -183,7 +185,7 @@ public class SqlOperation<T> {
             log.error("update fail , fail info : {}",e.getMessage(),e);
             return false;
         }
-        return updateResult.getMatchedCount() != 0;
+        return updateResult.getModifiedCount() != 0;
     }
 
 
@@ -283,13 +285,18 @@ public class SqlOperation<T> {
     }
 
     public Boolean doUpdate(List<CompareCondition> compareConditionList){
-        //TODO 待实现
-        return true;
+        BasicDBObject queryBasic = buildQueryCondition(compareConditionList);
+        BasicDBObject updateBasic = buildUpdateValue(compareConditionList);
+        UpdateResult updateResult = getCollection().updateMany(queryBasic, new BasicDBObject() {{
+            append("$set", updateBasic);
+        }});
+        return updateResult.getModifiedCount() > 0;
     }
 
     public Boolean doRemove(List<CompareCondition> compareConditionList){
-        //TODO 待实现
-        return true;
+        BasicDBObject deleteBasic = buildQueryCondition(compareConditionList);
+        DeleteResult deleteResult = getCollection().deleteMany(deleteBasic);
+        return deleteResult.getDeletedCount() > 0;
     }
 
     /**
@@ -326,13 +333,26 @@ public class SqlOperation<T> {
     */
     private BasicDBObject buildQueryCondition(List<CompareCondition> compareConditionList){
         return new BasicDBObject(){{
-            compareConditionList.stream().filter(compareCondition -> compareCondition.getType() == 0).collect(Collectors.toList()).forEach(compare -> {
+            compareConditionList.stream().filter(compareCondition -> compareCondition.getType() == CpmpareEnum.QUERY.getKey()).collect(Collectors.toList()).forEach(compare -> {
                 if (Objects.equals(compare.getCondition(),"like") && StringUtils.isNotBlank((String) compare.getValue())){
                     put(compare.getColumn(),new BasicDBObject("$regex",compare.getValue()));
                 }else {
                     put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), compare.getValue()));
                 }
             });
+        }};
+    }
+
+    /**
+     * 构建更新值
+     * @author JiaChaoYang
+     * @date 2023/7/9 22:16
+    */ 
+    private BasicDBObject buildUpdateValue(List<CompareCondition> compareConditionList){
+        return new BasicDBObject(){{
+           compareConditionList.stream().filter(compareCondition -> compareCondition.getType() == CpmpareEnum.UPDATE.getKey()).collect(Collectors.toList()).forEach(compare -> {
+               put(compare.getColumn(),compare.getValue());
+           });
         }};
     }
 

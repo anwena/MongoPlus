@@ -9,8 +9,7 @@ import org.bson.Document;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.*;
 
 /**
@@ -87,7 +86,7 @@ public class DocumentMapperConvert {
                         }
                     } else if (field.getType().equals(LocalDateTime.class)) {
                         if (fieldValue instanceof Date) {
-                            field.set(obj, ((Date) fieldValue).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
+                            field.set(obj, LocalDateTime.ofInstant(((Date)fieldValue).toInstant(), ZoneOffset.UTC).atZone(ZoneId.of("Asia/Shanghai")).toLocalDateTime());
                         }
                     } else if (!isPrimitive(field.getType())) {
                         if (fieldValue instanceof Document) {
