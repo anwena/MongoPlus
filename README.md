@@ -14,8 +14,8 @@ import com.anwen.mongo.sql.model.BaseModelID;
  * @TableName：配置对应的表名，不配置默认使用小写类名，通过dataSource属性切换数据源
  **/
 @TableName(value="对应的表名",dataSource="配置多数据源时的slaveName"/*不配置dataSource默认使用主数据源*/)
-public class User extends BaseModelID {
-    @TableField("user_name")//标识对应数据库中的字段
+public class User extends BaseModelID { 
+  @TableField("user_name")//标识对应数据库中的字段
   private String username;
   private int status;
   private int age;
@@ -91,7 +91,7 @@ MyBatisPlus就是可以不用像MyBatis一样写过多的sql语句，Mongo-Plus�
 <dependency>
     <groupId>com.gitee.anwena</groupId>
     <artifactId>mongo-plus-boot-starter</artifactId>
-    <version>1.0.2</version>
+    <version>2.0.2</version>
 </dependency>
 ```
 
@@ -103,6 +103,10 @@ mongo-plus:
       host: 127.0.0.1
       port: 27017
       database: test
+      username: admin
+      password: admin
+      authenticationDatabase: admin
+      connectTimeoutMS: 50000
 ```
 
 #### 多数据源配置：
