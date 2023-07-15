@@ -210,6 +210,26 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
     }
 
     @Override
+    public Children nin(boolean condition, SFunction<T, Object> column, Collection<Object> valueList) {
+        return condition ? nin(column,valueList) : typedThis;
+    }
+
+    @Override
+    public Children nin(SFunction<T, Object> column, Collection<Object> valueList) {
+        return getBaseCondition(column,valueList);
+    }
+
+    @Override
+    public Children nin(boolean condition, String column, Collection<Object> valueList) {
+        return condition ? nin(column,valueList) : typedThis;
+    }
+
+    @Override
+    public Children nin(String column, Collection<Object> valueList) {
+        return getBaseCondition(column,valueList);
+    }
+
+    @Override
     public Children orderByAsc(SFunction<T, Object> column) {
         return getBaseOrder(OrderEnum.ORDER_BY.getFlag(), column);
     }

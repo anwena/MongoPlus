@@ -19,6 +19,10 @@ public class UpdateChainWrapper<T,Children extends UpdateChainWrapper<T,Children
 
     private List<CompareCondition> updateCompareList = new ArrayList<>();
 
+    public List<CompareCondition> getUpdateCompareList() {
+        return updateCompareList;
+    }
+
     @Override
     public Children set(boolean condition, SFunction<T, Object> column, Object value) {
         return condition ? set(column,value) : typedThis;
@@ -40,12 +44,12 @@ public class UpdateChainWrapper<T,Children extends UpdateChainWrapper<T,Children
     }
 
     private Children getBaseUpdateCompare(SFunction<T, Object> column, Object value){
-        updateCompareList.add(new CompareCondition(new Throwable().getStackTrace()[1].getMethodName(), column.getFieldNameLine(),value,0));
+        updateCompareList.add(new CompareCondition(new Throwable().getStackTrace()[1].getMethodName(), column.getFieldNameLine(),value,1));
         return typedThis;
     }
 
     private Children getBaseUpdateCompare(String column, Object value){
-        updateCompareList.add(new CompareCondition(new Throwable().getStackTrace()[1].getMethodName(), column,value,0));
+        updateCompareList.add(new CompareCondition(new Throwable().getStackTrace()[1].getMethodName(), column,value,1));
         return typedThis;
     }
 
