@@ -1,6 +1,10 @@
 package com.anwen.mongo.sql.update;
 
 import com.anwen.mongo.sql.SqlOperation;
+import com.anwen.mongo.sql.interfaces.CompareCondition;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class LambdaUpdateChainWrapper<T> extends UpdateChainWrapper<T,LambdaUpdateChainWrapper<T>> implements ChainUpdate {
 
@@ -12,7 +16,10 @@ public class LambdaUpdateChainWrapper<T> extends UpdateChainWrapper<T,LambdaUpda
 
     @Override
     public boolean update(){
-        return sqlOperation.doUpdate(getCompareList());
+        List<CompareCondition> compareConditionList = new ArrayList<>();
+        compareConditionList.addAll(getCompareList());
+        compareConditionList.addAll(getUpdateCompareList());
+        return sqlOperation.doUpdate(compareConditionList);
     }
 
     @Override

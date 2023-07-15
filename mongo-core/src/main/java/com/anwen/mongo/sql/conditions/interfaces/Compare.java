@@ -348,6 +348,48 @@ public interface Compare<Children, T> extends Serializable {
     Children in(String column, Collection<Object> valueList);
 
     /**
+     * 不包含
+     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param column 列名、字段名
+     * @param valueList 值的集合
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/7/15 15:57
+    */
+    Children nin(boolean condition , SFunction<T,Object> column , Collection<Object> valueList);
+
+    /**
+     * 不包含
+     * @param column 列名、字段名
+     * @param valueList 值的集合
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/7/15 15:57
+    */
+    Children nin(SFunction<T,Object> column , Collection<Object> valueList);
+
+    /**
+     * 不包含
+     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param column 列名、字段名
+     * @param valueList 值的集合
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/7/15 15:58
+    */
+    Children nin(boolean condition , String column , Collection<Object> valueList);
+
+    /**
+     * 不包含
+     * @param column 列名、字段名
+     * @param valueList 值的集合
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/7/15 15:58
+    */
+    Children nin(String column , Collection<Object> valueList);
+
+    /**
      * 正序排序
      * @param column 列名、字段名，lambda方式
      * @return com.anwen.mongo.sql.query.LambdaQueryMongoWrapper<T>
