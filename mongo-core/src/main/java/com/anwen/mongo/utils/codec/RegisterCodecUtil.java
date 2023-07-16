@@ -14,7 +14,7 @@ public class RegisterCodecUtil {
     static List<CodecRegistry> codecRegistryList = new ArrayList<>();
 
     public static <T> List<CodecRegistry> registerCodec(T t){
-        if (codecRegistryList.size() == 0){
+        if (codecRegistryList.isEmpty()){
             codecRegistryList.add(MongoClientSettings.getDefaultCodecRegistry());
         }
         List<Class<?>> fieldClasses = ClassTypeUtil.getAllCustomFieldClasses(t.getClass());

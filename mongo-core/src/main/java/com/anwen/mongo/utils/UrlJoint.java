@@ -1,7 +1,6 @@
 package com.anwen.mongo.utils;
 
 import com.anwen.mongo.domain.InitMongoCollectionException;
-import com.anwen.mongo.sql.SqlOperation;
 import com.anwen.mongo.sql.model.BaseProperty;
 import lombok.extern.log4j.Log4j2;
 

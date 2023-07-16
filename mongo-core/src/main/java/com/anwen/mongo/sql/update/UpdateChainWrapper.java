@@ -1,5 +1,7 @@
 package com.anwen.mongo.sql.update;
 
+import com.anwen.mongo.enums.CpmpareEnum;
+import com.anwen.mongo.enums.LogicTypeEnum;
 import com.anwen.mongo.sql.conditions.AbstractChainWrapper;
 import com.anwen.mongo.sql.conditions.interfaces.Update;
 import com.anwen.mongo.sql.interfaces.CompareCondition;
@@ -44,12 +46,12 @@ public class UpdateChainWrapper<T,Children extends UpdateChainWrapper<T,Children
     }
 
     private Children getBaseUpdateCompare(SFunction<T, Object> column, Object value){
-        updateCompareList.add(new CompareCondition(new Throwable().getStackTrace()[1].getMethodName(), column.getFieldNameLine(),value,1));
+        updateCompareList.add(new CompareCondition(new Throwable().getStackTrace()[1].getMethodName(), column.getFieldNameLine(),value, CpmpareEnum.UPDATE.getKey(), LogicTypeEnum.AND.getKey()));
         return typedThis;
     }
 
     private Children getBaseUpdateCompare(String column, Object value){
-        updateCompareList.add(new CompareCondition(new Throwable().getStackTrace()[1].getMethodName(), column,value,1));
+        updateCompareList.add(new CompareCondition(new Throwable().getStackTrace()[1].getMethodName(), column,value,CpmpareEnum.UPDATE.getKey(), LogicTypeEnum.AND.getKey()));
         return typedThis;
     }
 

@@ -2,6 +2,7 @@ package com.anwen.mongo.event;
 
 
 import com.anwen.mongo.sql.SqlOperation;
+import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
 /**
@@ -9,8 +10,14 @@ import org.springframework.context.ApplicationEvent;
  * @author JiaChaoYang
  * @date 2023/6/26/026 22:10
 */ 
+@Getter
 public class SqlOperationInitializedEvent extends ApplicationEvent {
 
+    /**
+     * -- GETTER --
+     *  获取事件
+     *
+     */
     private final SqlOperation<?> sqlOperation;
 
     /**
@@ -22,13 +29,5 @@ public class SqlOperationInitializedEvent extends ApplicationEvent {
         super(sqlOperation);
         this.sqlOperation = sqlOperation;
     }
-    
-    /**
-     * 获取事件
-     * @author JiaChaoYang
-     * @date 2023/6/26/026 22:09
-    */ 
-    public SqlOperation<?> getSqlOperation() {
-        return sqlOperation;
-    }
+
 }

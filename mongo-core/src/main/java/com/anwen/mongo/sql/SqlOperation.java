@@ -1,14 +1,13 @@
 package com.anwen.mongo.sql;
 
-import cn.hutool.core.convert.Convert;
-import cn.hutool.json.JSONUtil;
+import cn.hutool.core.collection.CollUtil;
 import com.anwen.mongo.annotation.CutInID;
 import com.anwen.mongo.annotation.table.TableName;
 import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.domain.InitMongoCollectionException;
 import com.anwen.mongo.domain.MongoQueryException;
 import com.anwen.mongo.enums.CpmpareEnum;
-import com.anwen.mongo.log.CustomMongoDriverLogger;
+import com.anwen.mongo.enums.LogicTypeEnum;
 import com.anwen.mongo.sql.comm.ConnectMongoDB;
 import com.anwen.mongo.sql.interfaces.CompareCondition;
 import com.anwen.mongo.sql.interfaces.Order;
@@ -37,13 +36,10 @@ import lombok.extern.log4j.Log4j2;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 
-import javax.print.Doc;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static com.anwen.mongo.utils.BeanMapUtilByReflect.checkTableField;
@@ -336,11 +332,37 @@ public class SqlOperation<T> {
             compareConditionList.stream().filter(compareCondition -> compareCondition.getType() == CpmpareEnum.QUERY.getKey()).collect(Collectors.toList()).forEach(compare -> {
                 if (Objects.equals(compare.getCondition(),"like") && StringUtils.isNotBlank((String) compare.getValue())){
                     put(compare.getColumn(),new BasicDBObject("$regex",compare.getValue()));
-                }else {
+                }else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.OR.getKey())){
+                    if (CollUtil.isEmpty(compare.getChildCondition())){
+                        compare.setChildCondition(Collections.singletonList(compare));
+                    }
+                    put("$or", buildOrQueryCondition(compare.getChildCondition()));
+                } else {
                     put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), compare.getValue()));
                 }
             });
         }};
+    }
+
+    /**
+     * 构建子条件
+     * @author JiaChaoYang
+     * @date 2023/7/16 19:59
+    */
+    private List<BasicDBObject> buildOrQueryCondition(List<CompareCondition> compareConditionList){
+        List<BasicDBObject> basicDBObjectList = new ArrayList<>();
+        compareConditionList.forEach(compare -> {
+            BasicDBObject basicDBObject = new BasicDBObject();
+            if (Objects.equals(compare.getCondition(),"like") && StringUtils.isNotBlank((String) compare.getValue())){
+                basicDBObject.put(compare.getColumn(),new BasicDBObject("$regex",compare.getValue()));
+            }else if (Objects.equals(compare.getCondition(), "and")){
+                basicDBObjectList.add(buildQueryCondition(compare.getChildCondition()));
+            } else {
+                basicDBObject.put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), compare.getValue()));
+            }
+            basicDBObjectList.add(basicDBObject);
+        });
+        return basicDBObjectList;
     }
 
     /**

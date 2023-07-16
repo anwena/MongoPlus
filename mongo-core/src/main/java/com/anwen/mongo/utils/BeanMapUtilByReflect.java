@@ -7,7 +7,6 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.table.TableField;
 import com.anwen.mongo.generate.ObjectId;
-import com.anwen.mongo.generate.Sequence;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -16,7 +15,6 @@ import org.bson.Document;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
