@@ -1,6 +1,5 @@
 package com.anwen.mongo.sql.query;
 
-import com.anwen.mongo.sql.conditions.AbstractChainWrapper;
 import com.anwen.mongo.sql.SqlOperation;
 import com.anwen.mongo.sql.model.PageParam;
 import com.anwen.mongo.sql.model.PageResult;
@@ -13,7 +12,7 @@ import java.util.List;
  * @author JiaChaoYang
  * @date 2023/6/24/024 2:11
 */
-public class LambdaQueryChainWrapper<T> extends AbstractChainWrapper<T,LambdaQueryChainWrapper<T>> implements ChainQuery<T> {
+public class LambdaQueryChainWrapper<T> extends QueryChainWrapper<T,LambdaQueryChainWrapper<T>> implements ChainQuery<T> {
 
     private final SqlOperation<T> sqlOperation;
 

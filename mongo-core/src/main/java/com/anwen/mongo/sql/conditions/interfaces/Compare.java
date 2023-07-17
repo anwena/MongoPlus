@@ -1,5 +1,6 @@
 package com.anwen.mongo.sql.conditions.interfaces;
 
+import com.anwen.mongo.enums.TypeEnum;
 import com.anwen.mongo.sql.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.sql.support.SFunction;
 
@@ -391,84 +392,65 @@ public interface Compare<Children, T> extends Serializable {
     Children nin(String column , Collection<Object> valueList);
 
     /**
-     * 或者
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
-     * @param lambdaQueryChainWrapper 链式查询
+     * 指定查询的字段类型
+     * @param column 列名、字段名
+     * @param value 枚举值
      * @return Children
      * @author JiaChaoYang
-     * @date 2023/7/16 20:59
+     * @date 2023/7/18 0:10
+    */
+    Children type(SFunction<T,Object> column, TypeEnum value);
+
+    /**
+     * 指定查询的字段类型
+     * @param column 列名、字段名
+     * @param value 枚举值
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/7/18 0:10
      */
-    Children or(boolean condition , LambdaQueryChainWrapper<T> lambdaQueryChainWrapper);
+    Children type(String column, TypeEnum value);
 
     /**
-     * 或者
-     * @param lambdaQueryChainWrapper 链式查询
-     * @return Children
-     * @author JiaChaoYang
-     * @date 2023/7/16 20:44
-    */
-    Children or(LambdaQueryChainWrapper<T> lambdaQueryChainWrapper);
-
-    /**
-     * 或者
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * 指定查询的字段类型
      * @param column 列名、字段名
-     * @param value 值
+     * @param value 类型，参考{@link com.anwen.mongo.enums.TypeEnum}的枚举
      * @return Children
      * @author JiaChaoYang
-     * @date 2023/7/16 20:59
-    */
-    Children or(boolean condition , SFunction<T,Object> column,Object value);
+     * @date 2023/7/18 0:10
+     */
+    Children type(SFunction<T,Object> column, String value);
 
     /**
-     * 并且 在or中使用
-     * @param lambdaQueryChainWrapper 链式查询
-     * @return Children
-     * @author JiaChaoYang
-     * @date 2023/7/16 22:10
-    */
-    Children and(LambdaQueryChainWrapper<T> lambdaQueryChainWrapper);
-
-    /**
-     * 并且 在or中使用
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
-     * @param lambdaQueryChainWrapper 链式查询
-     * @return Children
-     * @author JiaChaoYang
-     * @date 2023/7/16 22:11
-    */
-    Children and(boolean condition,LambdaQueryChainWrapper<T> lambdaQueryChainWrapper);
-
-    /**
-     * 或者 单个条件
+     * 指定查询的字段类型
      * @param column 列名、字段名
-     * @param value 值
+     * @param value 类型，参考{@link com.anwen.mongo.enums.TypeEnum}的枚举
      * @return Children
      * @author JiaChaoYang
-     * @date 2023/7/16 20:48
-    */
-    Children or(SFunction<T,Object> column,Object value);
+     * @date 2023/7/18 0:10
+     */
+    Children type(String column, String value);
 
     /**
-     * 或者
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * 指定查询的字段类型
      * @param column 列名、字段名
-     * @param value 值
+     * @param value 类型，参考{@link com.anwen.mongo.enums.TypeEnum}的枚举
      * @return Children
      * @author JiaChaoYang
-     * @date 2023/7/16 21:01
-    */
-    Children or(boolean condition,String column,Object value);
+     * @date 2023/7/18 0:10
+     */
+    Children type(SFunction<T,Object> column, Integer value);
 
     /**
-     * 或者 单个条件
+     * 指定查询的字段类型
      * @param column 列名、字段名
-     * @param value 值
+     * @param value 类型，参考{@link com.anwen.mongo.enums.TypeEnum}的枚举
      * @return Children
      * @author JiaChaoYang
-     * @date 2023/7/16 20:50
-    */
-    Children or(String column , Object value);
+     * @date 2023/7/18 0:10
+     */
+    Children type(String column, Integer value);
+    
 
     /**
      * 正序排序

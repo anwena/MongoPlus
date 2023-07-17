@@ -2,6 +2,7 @@ package com.anwen.mongo.sql.conditions;
 
 import com.anwen.mongo.enums.CpmpareEnum;
 import com.anwen.mongo.enums.LogicTypeEnum;
+import com.anwen.mongo.enums.TypeEnum;
 import com.anwen.mongo.sql.conditions.interfaces.Compare;
 import com.anwen.mongo.enums.OrderEnum;
 import com.anwen.mongo.sql.interfaces.CompareCondition;
@@ -226,43 +227,33 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
     }
 
     @Override
-    public Children or(boolean condition, LambdaQueryChainWrapper<T> lambdaQueryChainWrapper) {
-        return condition ? or(lambdaQueryChainWrapper) : typedThis;
+    public Children type(SFunction<T, Object> column, TypeEnum value) {
+        return getBaseCondition(column,value.getTypeCode(),LogicTypeEnum.AND.getKey());
     }
 
     @Override
-    public Children or(LambdaQueryChainWrapper<T> lambdaQueryChainWrapper) {
-        return getBaseOrCondition(lambdaQueryChainWrapper.getCompareList());
+    public Children type(String column, TypeEnum value) {
+        return getBaseCondition(column,value.getTypeCode(),LogicTypeEnum.AND.getKey());
     }
 
     @Override
-    public Children or(boolean condition, SFunction<T, Object> column, Object value) {
-        return condition ? or(column,value) : typedThis;
+    public Children type(SFunction<T, Object> column, String value) {
+        return getBaseCondition(column,value,LogicTypeEnum.AND.getKey());
     }
 
     @Override
-    public Children and(boolean condition, LambdaQueryChainWrapper<T> lambdaQueryChainWrapper) {
-        return condition ? and(lambdaQueryChainWrapper) : typedThis;
+    public Children type(String column, String value) {
+        return getBaseCondition(column,value,LogicTypeEnum.AND.getKey());
     }
 
     @Override
-    public Children and(LambdaQueryChainWrapper<T> lambdaQueryChainWrapper) {
-        return getBaseAndCondition(lambdaQueryChainWrapper.getCompareList());
+    public Children type(SFunction<T, Object> column, Integer value) {
+        return getBaseCondition(column,value,LogicTypeEnum.AND.getKey());
     }
 
     @Override
-    public Children or(SFunction<T, Object> column, Object value) {
-        return getBaseCondition(column,value,LogicTypeEnum.OR.getKey());
-    }
-
-    @Override
-    public Children or(boolean condition, String column, Object value) {
-        return condition ? or(column,value) : typedThis;
-    }
-
-    @Override
-    public Children or(String column, Object value) {
-        return getBaseCondition(column,value,LogicTypeEnum.OR.getKey());
+    public Children type(String column, Integer value) {
+        return getBaseCondition(column,value,LogicTypeEnum.AND.getKey());
     }
 
     @Override
@@ -319,5 +310,4 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
         orderList.add(new Order(type,column.getFieldNameLine()));
         return typedThis;
     }
-
 }

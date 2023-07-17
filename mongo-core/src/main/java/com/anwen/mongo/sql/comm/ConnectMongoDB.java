@@ -1,5 +1,7 @@
 package com.anwen.mongo.sql.comm;
 
+import com.anwen.mongo.sql.IService;
+import com.anwen.mongo.sql.model.BaseModelID;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
