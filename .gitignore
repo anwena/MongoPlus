@@ -18,7 +18,6 @@ mongo-core/target/
 *.iws
 *.iml
 *.ipr
-log
 requirement
 
 # src/main/resources/config/application-pro.yml
