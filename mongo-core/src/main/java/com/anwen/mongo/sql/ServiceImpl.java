@@ -6,6 +6,8 @@ import com.anwen.mongo.sql.model.PageParam;
 import com.anwen.mongo.sql.model.PageResult;
 import com.anwen.mongo.sql.support.SFunction;
 import org.springframework.context.ApplicationListener;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;

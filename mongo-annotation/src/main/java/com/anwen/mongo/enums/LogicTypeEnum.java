@@ -15,7 +15,13 @@ public enum LogicTypeEnum {
 
     AND(0),
 
-    OR(1);
+    OR(1),
+
+    NOR(2),
+
+    NOT(3),
+
+    ELEMMATCH(4);
 
     private final Integer key;
 

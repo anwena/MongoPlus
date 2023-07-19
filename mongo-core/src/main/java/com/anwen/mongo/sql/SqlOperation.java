@@ -337,7 +337,11 @@ public class SqlOperation<T> {
                         compare.setChildCondition(Collections.singletonList(compare));
                     }
                     put("$or", buildOrQueryCondition(compare.getChildCondition()));
-                } else {
+                } else if (Objects.equals(compare.getLogicType(),LogicTypeEnum.NOR.getKey())){
+                    put("$nor",buildQueryCondition(compare.getChildCondition()));
+                } else if (Objects.equals(compare.getLogicType(),LogicTypeEnum.ELEMMATCH.getKey())){
+                    put("$elemMatch",buildOrQueryCondition(compare.getChildCondition()));
+                }else {
                     put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), compare.getValue()));
                 }
             });

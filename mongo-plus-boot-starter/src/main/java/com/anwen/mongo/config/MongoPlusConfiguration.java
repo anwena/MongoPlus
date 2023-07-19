@@ -16,7 +16,6 @@ import org.springframework.boot.autoconfigure.mongo.MongoClientSettingsBuilderCu
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -26,28 +25,30 @@ import javax.annotation.Resource;
  * 连接配置
  * @since 2023-02-09 14:27
  **/
-@Configuration
 @Log4j2
 @EnableConfigurationProperties(MongoDBConnectProperty.class)
-public class MongoDBJDBCConfiguration extends MongoAutoConfiguration{
-
-    @Override
-    public MongoClient mongo(ObjectProvider<MongoClientSettingsBuilderCustomizer> builderCustomizers, MongoClientSettings settings) {
-        return null;
-    }
+public class MongoPlusConfiguration extends MongoAutoConfiguration{
 
     /**
      * 自定义事件
      * @author JiaChaoYang
      * @date 2023/6/26/026 22:06
-    */ 
+     */
     @Resource
     private ApplicationEventPublisher eventPublisher;
 
     final
     MongoDBConnectProperty mongoDBConnectProperty;
 
-    public MongoDBJDBCConfiguration(MongoDBConnectProperty mongoDBConnectProperty) {
+    private MongoClient mongoClient;
+
+    @Override
+    public MongoClient mongo(ObjectProvider<MongoClientSettingsBuilderCustomizer> builderCustomizers, MongoClientSettings settings) {
+        return this.mongoClient;
+    }
+
+
+    public MongoPlusConfiguration(MongoDBConnectProperty mongoDBConnectProperty) {
         this.mongoDBConnectProperty = mongoDBConnectProperty;
     }
 
@@ -64,7 +65,8 @@ public class MongoDBJDBCConfiguration extends MongoAutoConfiguration{
                 .applyConnectionString(new ConnectionString(urlJoint.jointMongoUrl()))
                 .addCommandListener(customLogger)
                 .build();
-        sqlOperation.setMongoClient(MongoClients.create(settings));
+        this.mongoClient = MongoClients.create(settings);
+        sqlOperation.setMongoClient(this.mongoClient);
         // 发布自定义事件通知其他类，sqlOperation已完成初始化
         eventPublisher.publishEvent(new SqlOperationInitializedEvent(sqlOperation));
         return sqlOperation;
