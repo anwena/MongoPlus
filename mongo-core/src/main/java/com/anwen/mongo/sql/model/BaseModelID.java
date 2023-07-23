@@ -1,7 +1,7 @@
 package com.anwen.mongo.sql.model;
 
 import com.anwen.mongo.annotation.ID;
-import com.anwen.mongo.annotation.table.TableField;
+import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.enums.IdTypeEnum;
 import lombok.Data;
 
@@ -18,6 +18,6 @@ public class BaseModelID {
      * @since 2023/2/13 11:52
     */
     @ID(type = IdTypeEnum.ASSIGN_ID)
-    @TableField("_id")
+    @CollectionField("_id")
     public String id;
 }

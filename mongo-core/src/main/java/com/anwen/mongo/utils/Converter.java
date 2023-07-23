@@ -1,11 +1,14 @@
 package com.anwen.mongo.utils;
 
 import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCursor;
 import org.bson.Document;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -19,12 +22,13 @@ public class Converter {
      * @date 2023/6/29/029
     */
     public static List<Map<String, Object>> convertDocumentToMap(FindIterable<Document> iterable) {
-        // 使用并行流处理Iterable的元素
-        return StreamSupport.stream(iterable.spliterator(), true)
-                .map(document -> document.entrySet().stream()
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))
-                // 将结果收集到List中并返回
-                .collect(Collectors.toList());
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        try (MongoCursor<Document> cursor = iterable.iterator()) {
+            while (cursor.hasNext()) {
+                resultList.add(cursor.next());
+            }
+        }
+        return resultList;
     }
 
     /**

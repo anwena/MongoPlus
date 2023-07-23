@@ -6,8 +6,6 @@ import com.anwen.mongo.sql.model.PageParam;
 import com.anwen.mongo.sql.model.PageResult;
 import com.anwen.mongo.sql.support.SFunction;
 import org.springframework.context.ApplicationListener;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
@@ -54,12 +52,6 @@ public class ServiceImpl<T> implements IService<T>, ApplicationListener<SqlOpera
     public Boolean save(T entity) {
         sqlOperation.setMongoEntity(getEClass());
         return sqlOperation.doSave(entity);
-    }
-
-    @Override
-    public Boolean save(Map<String, Object> entityMap,String tableName) {
-        setMongoEntity();
-        return null;
     }
 
     @Override
@@ -123,7 +115,7 @@ public class ServiceImpl<T> implements IService<T>, ApplicationListener<SqlOpera
     }
 
     @Override
-    public Boolean removeBatchByIds(Collection<Object> idList) {
+    public Boolean removeBatchByIds(Collection<Serializable> idList) {
         sqlOperation.setMongoEntity(getEClass());
         return sqlOperation.doRemoveBatchByIds(idList);
     }
@@ -172,6 +164,12 @@ public class ServiceImpl<T> implements IService<T>, ApplicationListener<SqlOpera
     public T getById(Serializable id) {
         sqlOperation.setMongoEntity(getEClass());
         return sqlOperation.doGetById(id);
+    }
+
+    @Override
+    public List<T> getByIds(Collection<Serializable> ids) {
+        sqlOperation.setMongoEntity(getEClass());
+        return sqlOperation.doGetByIds(ids);
     }
 
     @Override

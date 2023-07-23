@@ -1,10 +1,11 @@
 package com.anwen.mongo.convert;
 
 import com.anwen.mongo.annotation.ID;
-import com.anwen.mongo.annotation.table.TableField;
+import com.anwen.mongo.annotation.collection.CollectionField;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -66,11 +67,11 @@ public class DocumentMapperConvert {
     private static void mapDocumentFields(Document doc, Object obj, Class<?> clazz) throws IllegalAccessException, InstantiationException {
         List<Field> fields = getFields(clazz);
         for (Field field : fields) {
-            TableField tableField = field.getAnnotation(TableField.class);
+            CollectionField collectionField = field.getAnnotation(CollectionField.class);
             ID id = field.getAnnotation(ID.class);
-            String fieldName = tableField != null ? tableField.value() : field.getName();
+            String fieldName = collectionField != null ? collectionField.value() : field.getName();
             if (id != null) fieldName = "_id";
-            if (tableField != null && !tableField.exist()) {
+            if (collectionField != null && !collectionField.exist()) {
                 continue;
             }
             if (doc.containsKey(fieldName)) {
@@ -127,9 +128,9 @@ public class DocumentMapperConvert {
     private static void mapSuperClassFields(Document doc, Object obj, Class<?> clazz) throws IllegalAccessException {
         List<Field> fields = getFields(clazz);
         for (Field field : fields) {
-            TableField tableField = field.getAnnotation(TableField.class);
-            String fieldName = tableField != null ? tableField.value() : field.getName();
-            if (tableField != null && !tableField.exist()) {
+            CollectionField collectionField = field.getAnnotation(CollectionField.class);
+            String fieldName = collectionField != null ? collectionField.value() : field.getName();
+            if (collectionField != null && !collectionField.exist()) {
                 continue;
             }
             if (doc.containsKey(fieldName)) {

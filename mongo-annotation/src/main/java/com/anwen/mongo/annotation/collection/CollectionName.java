@@ -1,4 +1,4 @@
-package com.anwen.mongo.annotation.table;
+package com.anwen.mongo.annotation.collection;
 
 import java.lang.annotation.*;
 
@@ -16,7 +16,7 @@ import java.lang.annotation.*;
 //表明这个注解应该被 javadoc工具记录
 //生成文档
 @Documented
-public @interface TableName {
+public @interface CollectionName {
     String value() default "";
 
     String dataSource() default "";

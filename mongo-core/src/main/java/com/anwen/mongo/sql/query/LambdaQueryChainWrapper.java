@@ -27,14 +27,24 @@ public class LambdaQueryChainWrapper<T> extends QueryChainWrapper<T,LambdaQueryC
         sqlOperation.init(tClass.getClass());
     }
 
+    public LambdaQueryChainWrapper(SqlOperation<T> sqlOperation){
+        this.sqlOperation = sqlOperation;
+    }
+
     @Override
     public List<T> list() {
         return sqlOperation.doList(getCompareList(), getOrderList());
     }
 
+
     @Override
     public T one() {
         return sqlOperation.doOne(getCompareList());
+    }
+
+    @Override
+    public T limitOne() {
+        return sqlOperation.doLimitOne(getCompareList());
     }
 
     @Override

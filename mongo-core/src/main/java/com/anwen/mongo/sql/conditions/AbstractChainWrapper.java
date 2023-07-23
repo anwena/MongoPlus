@@ -30,7 +30,7 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
      * 构建条件对象
      * @since 2023/2/10 12:00
      */
-    List<CompareCondition> compareConditionList = new ArrayList<>();
+    private List<CompareCondition> compareConditionList = new ArrayList<>();
 
     /**
      * 构建排序对象

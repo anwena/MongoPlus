@@ -1,7 +1,5 @@
 package com.anwen.mongo.sql.comm;
 
-import com.anwen.mongo.sql.IService;
-import com.anwen.mongo.sql.model.BaseModelID;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
@@ -19,6 +17,7 @@ public class ConnectMongoDB {
     private final String database;
 
     private final String collection;
+
 
     public ConnectMongoDB(MongoClient mongoClient, String database, String collectionValue) {
         this.mongoClient = mongoClient;

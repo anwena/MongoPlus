@@ -1,6 +1,6 @@
 package com.anwen.mongo.sql.support;
 
-import com.anwen.mongo.annotation.table.TableField;
+import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.utils.StringUtils;
 import lombok.SneakyThrows;
 
@@ -68,9 +68,9 @@ public interface SFunction<T,R> extends Function<T,R>, Serializable {
         }
 
         // 从field取出字段名，可以根据实际情况调整
-        TableField tableField = field.getAnnotation(TableField.class);
-        if (tableField != null && tableField.value().length() > 0) {
-            return tableField.value();
+        CollectionField collectionField = field.getAnnotation(CollectionField.class);
+        if (collectionField != null && collectionField.value().length() > 0) {
+            return collectionField.value();
         } else {
             //0.不做转换 1.大写 2.小写
             switch (toType) {

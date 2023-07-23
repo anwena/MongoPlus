@@ -31,7 +31,6 @@ public interface IService<T> {
     @CutInID
     Boolean save(T entity);
 
-    Boolean save(Map<String,Object> entityMap,String tableName);
 
     /**
      * 添加多个
@@ -118,7 +117,7 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @since 2023/2/9 13:59
     */
-    Boolean removeBatchByIds(Collection<Object> idList);
+    Boolean removeBatchByIds(Collection<Serializable> idList);
 
     /**
      * 查询所有
@@ -163,6 +162,8 @@ public interface IService<T> {
      * @date 2023/6/25/025
     */
     T getById(Serializable id);
+
+    List<T> getByIds(Collection<Serializable> ids);
 
     SqlOperation<T> getSqlOperation();
 

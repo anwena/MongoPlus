@@ -17,6 +17,6 @@ import java.lang.annotation.*;
 @Documented
 public @interface ID {
 
-    IdTypeEnum type() default IdTypeEnum.ASSIGN_ID;
+    IdTypeEnum type() default IdTypeEnum.OBJECT_ID;
 
 }

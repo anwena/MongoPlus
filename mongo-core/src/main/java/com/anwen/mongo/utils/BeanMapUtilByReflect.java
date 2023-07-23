@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.anwen.mongo.annotation.ID;
-import com.anwen.mongo.annotation.table.TableField;
+import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.generate.ObjectId;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -102,15 +102,15 @@ public class BeanMapUtilByReflect {
 
             // 遍历对象的所有属性，将其添加到结果中
             for (Field field : fields) {
-                TableField tableField = field.getAnnotation(TableField.class);
+                CollectionField collectionField = field.getAnnotation(CollectionField.class);
 
                 // 如果TableField注解的exist值为false，则跳过该属性
-                if (tableField != null && !tableField.exist()) {
+                if (collectionField != null && !collectionField.exist()) {
                     continue;
                 }
 
                 // 获取属性名和属性值，并添加到结果中
-                String fieldName = tableField != null && StringUtils.isNotBlank(tableField.value()) ? tableField.value() : field.getName();
+                String fieldName = collectionField != null && StringUtils.isNotBlank(collectionField.value()) ? collectionField.value() : field.getName();
                 Object fieldValue = field.get(entity);
                 if (fieldValue != null) {
                     resultMap.put(fieldName, fieldValue);

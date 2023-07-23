@@ -2,7 +2,7 @@ package com.anwen.mongo.domain;
 
 /**
  * @author JiaChaoYang
- * 自定义异常
+ * 查询异常
  * @since 2023-02-10 13:37
  **/
 public class MongoQueryException extends RuntimeException {

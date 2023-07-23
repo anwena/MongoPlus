@@ -19,4 +19,8 @@ public final class ChainWrappers {
         return new LambdaUpdateChainWrapper<>(sqlOperation);
     }
 
+    public static <T> LambdaQueryChainWrapper<T> lambdaQueryChain(SqlOperation<T> sqlOperation){
+        return new LambdaQueryChainWrapper<>(sqlOperation);
+    }
+
 }
