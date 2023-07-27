@@ -46,4 +46,14 @@ public class LambdaQueryChainInjectWrapper extends AbstractChainWrapper<Map<Stri
     public PageResult<Map<String, Object>> page(String collectionName, Integer pageNum, Integer pageSize) {
         return sqlOperation.doPage(collectionName,getCompareList(),getOrderList(),pageNum,pageSize);
     }
+
+    @Override
+    public long count(String collectionName) {
+        return sqlOperation.doCount(collectionName,getCompareList());
+    }
+
+    @Override
+    public long count(String collectionName, LambdaQueryChainInjectWrapper lambdaQueryChainInjectWrapper) {
+        return sqlOperation.doCount(collectionName,lambdaQueryChainInjectWrapper.getCompareList());
+    }
 }

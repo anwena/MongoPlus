@@ -133,6 +133,10 @@ public interface IService<T> {
 
     List<T> list(LambdaQueryChainWrapper<T> lambdaQueryChainWrapper);
 
+    long count();
+
+    long count(LambdaQueryChainWrapper<T> lambdaQueryChainWrapper);
+
     /**
      * 分页查询
      * @param pageParam 分页参数对象

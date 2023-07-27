@@ -20,16 +20,18 @@ import java.util.Map;
  * @description
  * @date 2023-07-20 21:54
  **/
-@Component
-public class MongoPlusOperate implements ApplicationListener<SqlOperationInitializedEvent> , InjectQuery {
+public class MongoPlusOperate implements InjectQuery {
 
     private SqlOperation<Map<String,Object>> sqlOperation;
 
+    public MongoPlusOperate(SqlOperation<Map<String, Object>> sqlOperation) {
+        this.sqlOperation = sqlOperation;
+    }
 
-    @Override
+    /*@Override
     public void onApplicationEvent(SqlOperationInitializedEvent event) {
         sqlOperation = (SqlOperation<Map<String,Object>>) event.getSqlOperation();
-    }
+    }*/
 
     public LambdaQueryChainInjectWrapper lambdaQuery(){
         return new LambdaQueryChainInjectWrapper(sqlOperation);
@@ -44,6 +46,11 @@ public class MongoPlusOperate implements ApplicationListener<SqlOperationInitial
         return sqlOperation.doList(collectionName);
     }
 
+    @Override
+    public List<Map<String, Object>> list(String collectionName, LambdaQueryChainInjectWrapper lambdaQueryChainInjectWrapper) {
+        return sqlOperation.doList(collectionName,lambdaQueryChainInjectWrapper.getCompareList(),lambdaQueryChainInjectWrapper.getOrderList());
+    }
+
 
     @Override
     public PageResult<Map<String, Object>> page(String collectionName, PageParam pageParam) {
@@ -51,8 +58,18 @@ public class MongoPlusOperate implements ApplicationListener<SqlOperationInitial
     }
 
     @Override
+    public PageResult<Map<String, Object>> page(String collectionName, PageParam pageParam, LambdaQueryChainInjectWrapper lambdaQueryChainInjectWrapper) {
+        return sqlOperation.doPage(collectionName,lambdaQueryChainInjectWrapper.getCompareList(),lambdaQueryChainInjectWrapper.getOrderList(),pageParam.getPageNum(),pageParam.getPageSize());
+    }
+
+    @Override
     public PageResult<Map<String, Object>> page(String collectionName, Integer pageNum, Integer pageSize) {
         return sqlOperation.doPage(collectionName,pageNum,pageSize);
+    }
+
+    @Override
+    public PageResult<Map<String, Object>> page(String collectionName, Integer pageNum, Integer pageSize, LambdaQueryChainInjectWrapper lambdaQueryChainInjectWrapper) {
+        return sqlOperation.doPage(collectionName,lambdaQueryChainInjectWrapper.getCompareList(),lambdaQueryChainInjectWrapper.getOrderList(),pageNum,pageSize);
     }
 
     @Override
@@ -113,6 +130,11 @@ public class MongoPlusOperate implements ApplicationListener<SqlOperationInitial
     @Override
     public Boolean removeBatchByIds(String collectionName, Collection<Serializable> idList) {
         return sqlOperation.doRemoveBatchByIds(collectionName,idList);
+    }
+
+    @Override
+    public long count(String collectionName) {
+        return sqlOperation.doCount(collectionName);
     }
 
 }

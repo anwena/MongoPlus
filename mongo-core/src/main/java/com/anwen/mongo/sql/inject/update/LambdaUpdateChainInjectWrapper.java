@@ -5,11 +5,7 @@ import com.anwen.mongo.enums.LogicTypeEnum;
 import com.anwen.mongo.sql.SqlOperation;
 import com.anwen.mongo.sql.conditions.AbstractChainWrapper;
 import com.anwen.mongo.sql.conditions.interfaces.Inject.InjectUpdate;
-import com.anwen.mongo.sql.conditions.interfaces.Update;
 import com.anwen.mongo.sql.interfaces.CompareCondition;
-import com.anwen.mongo.sql.update.ChainUpdate;
-import com.anwen.mongo.sql.update.LambdaUpdateChainWrapper;
-import com.anwen.mongo.sql.update.UpdateChainWrapper;
 import lombok.Getter;
 
 import java.util.ArrayList;

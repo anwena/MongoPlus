@@ -144,6 +144,17 @@ public class ServiceImpl<T> implements IService<T>, ApplicationListener<SqlOpera
     }
 
     @Override
+    public long count() {
+        sqlOperation.setMongoEntity(getEClass());
+        return sqlOperation.doCount();
+    }
+
+    @Override
+    public long count(LambdaQueryChainWrapper<T> lambdaQueryChainWrapper) {
+        return 0;
+    }
+
+    @Override
     public PageResult<T> page(LambdaQueryChainWrapper<T> lambdaQueryChainWrapper, Integer pageNum, Integer pageSize){
         sqlOperation.setMongoEntity(getEClass());
         return sqlOperation.doPage(lambdaQueryChainWrapper.getCompareList(),lambdaQueryChainWrapper.getOrderList(), pageNum,pageSize);

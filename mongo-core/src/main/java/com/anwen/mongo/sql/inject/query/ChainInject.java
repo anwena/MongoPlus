@@ -65,4 +65,23 @@ public interface ChainInject {
      */
     PageResult<Map<String,Object>> page(String collectionName , Integer pageNum, Integer pageSize);
 
+    /**
+     * 获取总行数
+     * @param collectionName 集合名
+     * @return {@link long}
+     * @author JiaChaoYang
+     * @date 2023/7/27 13:11
+    */
+    long count(String collectionName);
+
+    /**
+     * 获取总行数
+     * @param collectionName 集合名
+     * @param lambdaQueryChainInjectWrapper 条件构造器
+     * @return {@link long}
+     * @author JiaChaoYang
+     * @date 2023/7/27 13:12
+    */
+    long count(String collectionName,LambdaQueryChainInjectWrapper lambdaQueryChainInjectWrapper);
+
 }

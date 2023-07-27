@@ -56,4 +56,6 @@ public interface ChainQuery<T> {
     */
     PageResult<T> page(Integer pageNum, Integer pageSize);
 
+    long count();
+
 }

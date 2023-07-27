@@ -3,6 +3,7 @@ package com.anwen.mongo.config;
 import com.anwen.mongo.event.SqlOperationInitializedEvent;
 import com.anwen.mongo.log.CustomMongoDriverLogger;
 import com.anwen.mongo.sql.SqlOperation;
+import com.anwen.mongo.sql.inject.query.MongoPlusOperate;
 import com.anwen.mongo.utils.UrlJoint;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
@@ -19,6 +20,7 @@ import org.springframework.context.annotation.Bean;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.util.Map;
 
 /**
  * @author JiaChaoYang
@@ -71,4 +73,10 @@ public class MongoPlusConfiguration extends MongoAutoConfiguration{
         eventPublisher.publishEvent(new SqlOperationInitializedEvent(sqlOperation));
         return sqlOperation;
     }
+
+    @Bean
+    public MongoPlusOperate mongoPlusOperate(SqlOperation<Map<String,Object>> sqlOperation){
+        return new MongoPlusOperate(sqlOperation);
+    }
+
 }

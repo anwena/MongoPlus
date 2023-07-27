@@ -1,6 +1,7 @@
 package com.anwen.mongo.sql.conditions.interfaces.Inject;
 
 import com.anwen.mongo.annotation.CutInID;
+import com.anwen.mongo.sql.inject.query.LambdaQueryChainInjectWrapper;
 import com.anwen.mongo.sql.model.PageParam;
 import com.anwen.mongo.sql.model.PageResult;
 
@@ -18,13 +19,15 @@ import java.util.Map;
 public interface InjectQuery {
 
     /**
-     * 获取列表 返回T类型的List
+     * 获取列表 返回Map<String,Object>类型的List
      * @param collectionName 集合名
      * @return {@link List<Map<String,Object>>}
      * @author JiaChaoYang
      * @date 2023/7/20 23:17
     */
     List<Map<String,Object>> list(String collectionName);
+
+    List<Map<String,Object>> list(String collectionName, LambdaQueryChainInjectWrapper lambdaQueryChainInjectWrapper);
 
     /**
      * 分页
@@ -36,6 +39,8 @@ public interface InjectQuery {
     */
     PageResult<Map<String,Object>> page(String collectionName,PageParam pageParam);
 
+    PageResult<Map<String,Object>> page(String collectionName,PageParam pageParam,LambdaQueryChainInjectWrapper lambdaQueryChainInjectWrapper);
+
     /**
      * 分页
      * @param collectionName 集合名
@@ -46,6 +51,8 @@ public interface InjectQuery {
      * @date 2023/7/20 23:20
     */
     PageResult<Map<String,Object>> page(String collectionName , Integer pageNum, Integer pageSize);
+
+    PageResult<Map<String,Object>> page(String collectionName , Integer pageNum, Integer pageSize,LambdaQueryChainInjectWrapper lambdaQueryChainInjectWrapper);
 
     Map<String,Object> getById(String collectionName ,Serializable id);
 
@@ -155,8 +162,13 @@ public interface InjectQuery {
      */
     Boolean removeBatchByIds(String collectionName,Collection<Serializable> idList);
 
-/*    default ChainInject lambdaQuery(){
-        return this;
-    }*/
 
+    /**
+     * 获取总行数
+     * @param collectionName 集合名
+     * @return {@link long}
+     * @author JiaChaoYang
+     * @date 2023/7/27 13:11
+     */
+    long count(String collectionName);
 }

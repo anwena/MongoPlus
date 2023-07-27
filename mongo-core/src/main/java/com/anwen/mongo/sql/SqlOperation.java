@@ -1,7 +1,6 @@
 package com.anwen.mongo.sql;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.convert.Convert;
 import com.anwen.mongo.annotation.CutInID;
 import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.convert.DocumentMapperConvert;
@@ -26,19 +25,16 @@ import com.mongodb.MongoException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.InsertManyResult;
 import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
-import com.sun.org.apache.xpath.internal.operations.Or;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 
-import javax.swing.*;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -459,6 +455,22 @@ public class SqlOperation<T> {
         return deleteResult.getDeletedCount() > 0;
     }
 
+    public long doCount(String collectionName,List<CompareCondition> compareConditionList){
+        return getCollection(collectionName).countDocuments(buildQueryCondition(compareConditionList));
+    }
+
+    public long doCount(String collectionName){
+        return getCollection(collectionName).countDocuments();
+    }
+
+    public long doCount(){
+        return getCollection().countDocuments();
+    }
+
+    public long doCount(List<CompareCondition> compareConditionList){
+        return getCollection().countDocuments(buildQueryCondition(compareConditionList));
+    }
+
     private List<T> getLambdaQueryResult(List<CompareCondition> compareConditionList, List<Order> orderList) {
         return DocumentMapperConvert.mapDocumentList(baseLambdaQuery(compareConditionList, orderList), mongoEntity);
     }
@@ -488,7 +500,7 @@ public class SqlOperation<T> {
     private PageResult<T> getLambdaQueryResultPage(List<CompareCondition> compareConditionList, List<Order> orderList, PageParam pageParams) {
         PageResult<T> pageResult = new PageResult<>();
         FindIterable<Document> documentFindIterable = baseLambdaQuery(compareConditionList, orderList);
-        Integer totalSize = documentFindIterable.iterator().available();
+        long totalSize = doCount();
         pageResult.setPageNum(pageParams.getPageNum());
         pageResult.setPageSize(pageParams.getPageSize());
         pageResult.setTotalSize(totalSize);
@@ -500,7 +512,7 @@ public class SqlOperation<T> {
     private PageResult<Map<String, Object>> getLambdaQueryResultPage(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList, PageParam pageParams) {
         PageResult<Map<String, Object>> pageResult = new PageResult<>();
         FindIterable<Document> documentFindIterable = baseLambdaQuery(collectionName, compareConditionList, orderList);
-        Integer totalSize = documentFindIterable.iterator().available();
+        long totalSize = doCount(collectionName);
         pageResult.setPageNum(pageParams.getPageNum());
         pageResult.setPageSize(pageParams.getPageSize());
         pageResult.setTotalSize(totalSize);

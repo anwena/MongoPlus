@@ -56,4 +56,9 @@ public class LambdaQueryChainWrapper<T> extends QueryChainWrapper<T,LambdaQueryC
     public PageResult<T> page(Integer pageNum, Integer pageSize) {
         return sqlOperation.doPage(getCompareList(),getOrderList(),pageNum,pageSize);
     }
+
+    @Override
+    public long count() {
+        return sqlOperation.doCount(getCompareList());
+    }
 }
