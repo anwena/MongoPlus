@@ -3,6 +3,9 @@ package com.anwen.mongo.sql.conditions.interfaces;
 import com.anwen.mongo.enums.TypeEnum;
 import com.anwen.mongo.sql.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.sql.support.SFunction;
+import com.mongodb.BasicDBObject;
+import com.mongodb.client.model.Filters;
+import org.bson.conversions.Bson;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -639,14 +642,38 @@ public interface Compare<Children, T> extends Serializable {
      * @author JiaChaoYang
      * @date 2023/7/19 23:03
     */
-    Children not();
+    Children not(SFunction<T,Object> column,Bson bson);
+
+
+    Children not(boolean condition,SFunction<T,Object> column,Bson bson);
+
+    /**
+     * 暂不可用！
+     * @author JiaChaoYang
+     * @date 2023/7/19 23:03
+     */
+    Children not(String column,Bson bson);
+
+
+    Children not(boolean condition,String column,Bson bson);
 
     /**
      * 暂不可用
      * @author JiaChaoYang
      * @date 2023/7/19 23:04
     */
-    Children expr();
+    Children expr(SFunction<T,Object> column,Bson bson);
+
+    Children expr(boolean condition,SFunction<T,Object> column,Bson bson);
+
+    /**
+     * 暂不可用
+     * @author JiaChaoYang
+     * @date 2023/7/19 23:04
+     */
+    Children expr(String column,Bson bson);
+
+    Children expr(boolean condition,String column,Bson bson);
 
     /**
      * 字段值符合余数

@@ -9,7 +9,10 @@ import com.anwen.mongo.sql.interfaces.CompareCondition;
 import com.anwen.mongo.sql.interfaces.Order;
 import com.anwen.mongo.sql.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.sql.support.SFunction;
+import com.anwen.mongo.utils.StringUtils;
+import com.mongodb.BasicDBObject;
 import lombok.Getter;
+import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -348,13 +351,43 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
     }
 
     @Override
-    public Children not() {
-        return null;
+    public Children not(SFunction<T,Object> column,Bson bson) {
+        return getBaseCondition(column,bson.toBsonDocument());
     }
 
     @Override
-    public Children expr() {
-        return null;
+    public Children not(boolean condition,SFunction<T,Object> column, Bson bson) {
+        return condition ? not(column,bson) : typedThis;
+    }
+
+    @Override
+    public Children not(String column, Bson bson) {
+        return getBaseCondition(column,bson.toBsonDocument());
+    }
+
+    @Override
+    public Children not(boolean condition, String column, Bson bson) {
+        return condition ? not(column,bson) : typedThis;
+    }
+
+    @Override
+    public Children expr(boolean condition,SFunction<T,Object> column, Bson bson) {
+        return condition ? expr(column,bson) : typedThis;
+    }
+
+    @Override
+    public Children expr(String column, Bson bson) {
+        return getBaseCondition(column,bson.toBsonDocument());
+    }
+
+    @Override
+    public Children expr(boolean condition, String column, Bson bson) {
+        return condition ? getBaseCondition(column,bson.toBsonDocument()) : typedThis;
+    }
+
+    @Override
+    public Children expr(SFunction<T,Object> column,Bson bson) {
+        return getBaseCondition(column,bson.toBsonDocument());
     }
 
     @Override

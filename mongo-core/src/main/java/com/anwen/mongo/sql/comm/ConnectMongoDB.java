@@ -1,8 +1,13 @@
 package com.anwen.mongo.sql.comm;
 
+import com.anwen.mongo.sql.IService;
+import com.anwen.mongo.sql.model.BaseModelID;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Filters;
+import org.bson.BsonDocument;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 
 /**
@@ -32,6 +37,13 @@ public class ConnectMongoDB {
 
     public boolean isSame(String database, String collection) {
         return this.database.equals(database) && this.collection.equals(collection);
+    }
+
+    public static void main(String[] args) {
+        Bson bson = Filters.eq("userName", "张三");
+        BsonDocument bsonDocument = bson.toBsonDocument();
+        String key = bsonDocument.getFirstKey();
+        System.out.println(key);
     }
 
 }

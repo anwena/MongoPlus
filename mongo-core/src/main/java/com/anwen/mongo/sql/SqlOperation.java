@@ -1,6 +1,7 @@
 package com.anwen.mongo.sql;
 
 import cn.hutool.core.collection.CollUtil;
+import com.alibaba.fastjson.JSON;
 import com.anwen.mongo.annotation.CutInID;
 import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.convert.DocumentMapperConvert;
@@ -8,6 +9,7 @@ import com.anwen.mongo.domain.InitMongoCollectionException;
 import com.anwen.mongo.domain.MongoQueryException;
 import com.anwen.mongo.enums.CpmpareEnum;
 import com.anwen.mongo.enums.LogicTypeEnum;
+import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.sql.comm.ConnectMongoDB;
 import com.anwen.mongo.sql.interfaces.CompareCondition;
 import com.anwen.mongo.sql.interfaces.Order;
@@ -32,6 +34,8 @@ import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
+import org.bson.BSONObject;
+import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 
@@ -530,18 +534,18 @@ public class SqlOperation<T> {
     private BasicDBObject buildQueryCondition(List<CompareCondition> compareConditionList) {
         return new BasicDBObject() {{
             compareConditionList.stream().filter(compareCondition -> compareCondition.getType() == CpmpareEnum.QUERY.getKey()).collect(Collectors.toList()).forEach(compare -> {
-                if (Objects.equals(compare.getCondition(), "like") && StringUtils.isNotBlank((String) compare.getValue())) {
-                    put(compare.getColumn(), new BasicDBObject("$regex", compare.getValue()));
+                if (Objects.equals(compare.getCondition(), SpecialConditionEnum.LIKE.getCondition()) && StringUtils.isNotBlank((String) compare.getValue())) {
+                    put(compare.getColumn(), new BasicDBObject(SpecialConditionEnum.REGEX.getCondition(), compare.getValue()));
                 } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.OR.getKey())) {
                     if (CollUtil.isEmpty(compare.getChildCondition())) {
                         compare.setChildCondition(Collections.singletonList(compare));
                     }
-                    put("$or", buildOrQueryCondition(compare.getChildCondition()));
+                    put(SpecialConditionEnum.OR.getCondition(), buildOrQueryCondition(compare.getChildCondition()));
                 } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.NOR.getKey())) {
-                    put("$nor", buildQueryCondition(compare.getChildCondition()));
+                    put(SpecialConditionEnum.NOR.getCondition(), buildQueryCondition(compare.getChildCondition()));
                 } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.ELEMMATCH.getKey())) {
-                    put("$elemMatch", buildOrQueryCondition(compare.getChildCondition()));
-                } else {
+                    put(SpecialConditionEnum.ELEM_MATCH.getCondition(), buildOrQueryCondition(compare.getChildCondition()));
+                }else {
                     put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), compare.getValue()));
                 }
             });
@@ -558,9 +562,9 @@ public class SqlOperation<T> {
         List<BasicDBObject> basicDBObjectList = new ArrayList<>();
         compareConditionList.forEach(compare -> {
             BasicDBObject basicDBObject = new BasicDBObject();
-            if (Objects.equals(compare.getCondition(), "like") && StringUtils.isNotBlank((String) compare.getValue())) {
-                basicDBObject.put(compare.getColumn(), new BasicDBObject("$regex", compare.getValue()));
-            } else if (Objects.equals(compare.getCondition(), "and")) {
+            if (Objects.equals(compare.getCondition(), SpecialConditionEnum.LIKE.getCondition()) && StringUtils.isNotBlank((String) compare.getValue())) {
+                basicDBObject.put(compare.getColumn(), new BasicDBObject(SpecialConditionEnum.REGEX.getCondition(), compare.getValue()));
+            } else if (Objects.equals(compare.getCondition(), SpecialConditionEnum.AND.getCondition())) {
                 basicDBObjectList.add(buildQueryCondition(compare.getChildCondition()));
             } else {
                 basicDBObject.put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), compare.getValue()));
