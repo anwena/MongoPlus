@@ -1,6 +1,6 @@
 package com.anwen.mongo.sql.inject.update;
 
-import com.anwen.mongo.enums.CpmpareEnum;
+import com.anwen.mongo.enums.CompareEnum;
 import com.anwen.mongo.enums.LogicTypeEnum;
 import com.anwen.mongo.sql.SqlOperation;
 import com.anwen.mongo.sql.conditions.AbstractChainWrapper;
@@ -40,7 +40,7 @@ public class LambdaUpdateChainInjectWrapper extends AbstractChainWrapper<String,
     }
 
     private LambdaUpdateChainInjectWrapper getBaseUpdateCompare(String column, Object value){
-        updateCompareList.add(new CompareCondition(new Throwable().getStackTrace()[1].getMethodName(), column,value, CpmpareEnum.UPDATE.getKey(), LogicTypeEnum.AND.getKey()));
+        updateCompareList.add(CompareCondition.builder().condition(new Throwable().getStackTrace()[1].getMethodName()).column(column).value(value).type(CompareEnum.UPDATE.getKey()).logicType(LogicTypeEnum.AND.getKey()).build());
         return this;
     }
 

@@ -14,7 +14,7 @@ import java.lang.annotation.*;
 //生成文档
 @Documented
 public @interface CollectionField {
-    String value();
+    String value() default "";
 
     boolean exist() default true;
 }

@@ -1,13 +1,10 @@
 package com.anwen.mongo.sql.inject.query;
 
-import com.anwen.mongo.event.SqlOperationInitializedEvent;
 import com.anwen.mongo.sql.SqlOperation;
 import com.anwen.mongo.sql.conditions.interfaces.Inject.InjectQuery;
 import com.anwen.mongo.sql.inject.update.LambdaUpdateChainInjectWrapper;
 import com.anwen.mongo.sql.model.PageParam;
 import com.anwen.mongo.sql.model.PageResult;
-import org.springframework.context.ApplicationListener;
-import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.util.Collection;

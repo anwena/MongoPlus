@@ -1,11 +1,9 @@
 package com.anwen.mongo.sql.conditions.interfaces;
 
 import com.anwen.mongo.enums.TypeEnum;
+import com.anwen.mongo.sql.interfaces.CompareCondition;
 import com.anwen.mongo.sql.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.sql.support.SFunction;
-import com.mongodb.BasicDBObject;
-import com.mongodb.client.model.Filters;
-import org.bson.conversions.Bson;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -19,7 +17,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 等于
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名，lambda方式
      * @param value 值
      * @return Children
@@ -40,7 +38,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 等于
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
      * @param value 值
      * @return Children
@@ -61,7 +59,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 不等于
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名，lambda方式
      * @param value 值
      * @return Children
@@ -82,7 +80,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 不等于
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
      * @param value 值
      * @return Children
@@ -103,7 +101,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 小于
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名，lambda方式
      * @param value 值
      * @return Children
@@ -124,7 +122,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 等于
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
      * @param value 值
      * @return Children
@@ -145,7 +143,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 小于等于
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名，lambda方式
      * @param value 值
      * @return Children
@@ -166,7 +164,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 小于等于
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
      * @param value 值
      * @return Children
@@ -187,7 +185,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 大于
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名，lambda方式
      * @param value 值
      * @return Children
@@ -208,7 +206,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 大于
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
      * @param value 值
      * @return Children
@@ -228,7 +226,7 @@ public interface Compare<Children, T> extends Serializable {
     Children gt(String column, Object value);
     /**
      * 大于等于
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名，lambda方式
      * @param value 值
      * @return Children
@@ -249,7 +247,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 大于等于
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
      * @param value 值
      * @return Children
@@ -270,7 +268,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 包含（模糊查询）
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名，lambda方式
      * @param value 值
      * @return Children
@@ -291,7 +289,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 包含（模糊查询）
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
      * @param value 值
      * @return Children
@@ -312,7 +310,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 多值查询
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名，lambda方式
      * @param valueList 值的集合
      * @return Children
@@ -333,7 +331,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 多值查询
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
      * @param valueList 值的集合
      * @return Children
@@ -354,7 +352,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 不包含
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
      * @param valueList 值的集合
      * @return Children
@@ -375,7 +373,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 不包含
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
      * @param valueList 值的集合
      * @return Children
@@ -405,7 +403,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 并且 在or中使用
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param lambdaQueryChainWrapper 链式查询
      * @return Children
      * @author JiaChaoYang
@@ -415,7 +413,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 或者
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param lambdaQueryChainWrapper 链式查询
      * @return Children
      * @author JiaChaoYang
@@ -434,7 +432,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 或者
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
      * @param value 值
      * @return Children
@@ -455,7 +453,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 或者
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
      * @param value 值
      * @return Children
@@ -476,7 +474,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 查询的文档必须不符合所有条件
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param lambdaQueryChainWrapper 链式查询
      * @return Children
      * @author JiaChaoYang
@@ -495,7 +493,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 查询的文档必须不符合所有条件
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
      * @param value 值
      * @return Children
@@ -516,7 +514,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 查询的文档必须不符合所有条件
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
      * @param value 值
      * @return Children
@@ -597,7 +595,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 字段是否存在
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
      * @param value 值
      * @return Children
@@ -618,7 +616,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 字段是否存在
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
      * @param value 值
      * @return Children
@@ -637,47 +635,23 @@ public interface Compare<Children, T> extends Serializable {
      */
     Children exists(String column,Boolean value);
 
-    /**
-     * 暂不可用！
-     * @author JiaChaoYang
-     * @date 2023/7/19 23:03
-    */
-    Children not(SFunction<T,Object> column,Bson bson);
+    Children not(CompareCondition compareCondition);
 
 
-    Children not(boolean condition,SFunction<T,Object> column,Bson bson);
-
-    /**
-     * 暂不可用！
-     * @author JiaChaoYang
-     * @date 2023/7/19 23:03
-     */
-    Children not(String column,Bson bson);
-
-
-    Children not(boolean condition,String column,Bson bson);
+    Children not(boolean condition,CompareCondition compareCondition);
 
     /**
      * 暂不可用
      * @author JiaChaoYang
      * @date 2023/7/19 23:04
     */
-    Children expr(SFunction<T,Object> column,Bson bson);
+    Children expr(CompareCondition compareCondition);
 
-    Children expr(boolean condition,SFunction<T,Object> column,Bson bson);
-
-    /**
-     * 暂不可用
-     * @author JiaChaoYang
-     * @date 2023/7/19 23:04
-     */
-    Children expr(String column,Bson bson);
-
-    Children expr(boolean condition,String column,Bson bson);
+    Children expr(boolean condition,CompareCondition compareCondition);
 
     /**
      * 字段值符合余数
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
      * @param divide 被除数
      * @param remain 余数
@@ -700,7 +674,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 字段值符合余数
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
      * @param value 传入集合，第一个值为除数，第二个值为余数
      * @return Children
@@ -721,7 +695,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 字段值符合余数
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
      * @param divide 被除数
      * @param remain 余数
@@ -744,7 +718,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 字段值符合余数
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
      * @param value 传入集合，第一个值为除数，第二个值为余数
      * @return Children
@@ -765,7 +739,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 匹配数组中的值
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
      * @param lambdaQueryChainWrapper 查询条件
      * @return Children
@@ -786,7 +760,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 匹配数组中的值
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
      * @param lambdaQueryChainWrapper 查询条件
      * @return Children
@@ -807,7 +781,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 匹配数组中的值 必须同时包含指定的多个元素
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
      * @param value 值
      * @return Children
@@ -828,7 +802,7 @@ public interface Compare<Children, T> extends Serializable {
 
     /**
      * 匹配数组中的值 必须同时包含指定的多个元素
-     * @param condition 判断如果为true，则加入此条件，可做判空，及不为空就加入这个条件
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
      * @param value 值
      * @return Children
@@ -848,39 +822,86 @@ public interface Compare<Children, T> extends Serializable {
     Children all(String column,Collection<Object> value);
 
     /**
-     * 正序排序
-     * @param column 列名、字段名，lambda方式
-     * @return com.anwen.mongo.sql.query.LambdaQueryMongoWrapper<T>
-     * @author JiaChaoYang
-     * @date 2023/6/20/020
-     */
-    Children orderByAsc(SFunction<T, Object> column);
-
-    /**
-     * 倒序排序
-     * @param column 列名、字段名，lambda方式
-     * @return com.anwen.mongo.sql.query.LambdaQueryMongoWrapper<T>
-     * @author JiaChaoYang
-     * @date 2023/6/20/020
-     */
-    Children orderByDesc(SFunction<T,Object> column);
-
-    /**
-     * 正序排序
+     * 正则表达式查询
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
-     * @return com.anwen.mongo.sql.query.LambdaQueryMongoWrapper<T>
+     * @param value 值（可传入{@link java.util.regex.Pattern}对象）
+     * @return Children
      * @author JiaChaoYang
-     * @date 2023/6/20/020
-     */
-    Children orderByAsc(String column);
+     * @date 2023/7/30 0:18
+    */
+    Children regex(boolean condition, SFunction<T,Object> column, Object value);
 
     /**
-     * 倒序排序
-     * @param column 列名、字段名，lambda方式
-     * @return com.anwen.mongo.sql.query.LambdaQueryMongoWrapper<T>
+     * 正则表达式查询
+     * @param column 列名、字段名
+     * @param value 值（可传入{@link java.util.regex.Pattern}对象）
+     * @return Children
      * @author JiaChaoYang
-     * @date 2023/6/20/020
-     */
-    Children orderByDesc(String column);
+     * @date 2023/7/30 0:19
+    */
+    Children regex(SFunction<T,Object> column,Object value);
 
+    /**
+     * 正则表达式查询
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
+     * @param column 列名、字段名
+     * @param value 值（可传入{@link java.util.regex.Pattern}对象）
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/7/30 0:18
+     */
+    Children regex(boolean condition,String column,Object value);
+
+    /**
+     * 正则表达式查询
+     * @param column 列名、字段名
+     * @param value 值（可传入{@link java.util.regex.Pattern}对象）
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/7/30 0:19
+     */
+    Children regex(String column,Object value);
+
+    /**
+     * 文本查询
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
+     * @param column 列名、字段名
+     * @param value 值
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/7/30 1:06
+    */
+    Children text(boolean condition , SFunction<T,Object> column, Object value);
+
+    /**
+     * 文本查询
+     * @param column 列名、字段名
+     * @param value 值
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/7/30 1:06
+     */
+    Children text(SFunction<T,Object> column, Object value);
+
+    /**
+     * 文本查询
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
+     * @param column 列名、字段名
+     * @param value 值
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/7/30 1:06
+     */
+    Children text(boolean condition , String column, Object value);
+
+    /**
+     * 文本查询
+     * @param column 列名、字段名
+     * @param value 值
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/7/30 1:06
+     */
+    Children text(String column, Object value);
 }

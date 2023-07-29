@@ -4,8 +4,8 @@ import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
+import org.bson.BsonDocument;
 import org.bson.Document;
-import org.bson.types.ObjectId;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -49,6 +49,7 @@ public class DocumentMapperConvert {
      **/
     public static <T> List<T> mapDocumentList(FindIterable<Document> findIterable, Class<T> clazz) {
         List<T> list = new ArrayList<>();
+        FindIterable<Document> max = findIterable.max(new BsonDocument());
         try (MongoCursor<Document> cursor = findIterable.iterator()) {
             while (cursor.hasNext()) {
                 Document doc = cursor.next();

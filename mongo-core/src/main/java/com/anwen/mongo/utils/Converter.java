@@ -2,6 +2,7 @@ package com.anwen.mongo.utils;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
+import lombok.extern.log4j.Log4j2;
 import org.bson.Document;
 
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+@Log4j2
 public class Converter {
 
     /**
@@ -22,11 +24,22 @@ public class Converter {
      * @date 2023/6/29/029
     */
     public static List<Map<String, Object>> convertDocumentToMap(FindIterable<Document> iterable) {
-        List<Map<String, Object>> resultList = new ArrayList<>();
+        /*int i = Integer.parseInt(String.valueOf(StreamSupport.stream(iterable.spliterator(), false)
+                .count()));*/
+        List<Map<String, Object>> resultList = new ArrayList<>(10000);
         try (MongoCursor<Document> cursor = iterable.iterator()) {
+
             while (cursor.hasNext()) {
                 resultList.add(cursor.next());
             }
+        }
+        return resultList;
+    }
+
+    public static List<Map<String, Object>> convertDocumentToMap(FindIterable<Document> iterable,Integer total) {
+        List<Map<String, Object>> resultList = new ArrayList<>(total);
+        for (Document document : iterable.batchSize(total)) {
+            resultList.add(document);
         }
         return resultList;
     }

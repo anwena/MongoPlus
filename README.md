@@ -1,6 +1,10 @@
 <p align="center">
   <a href="https://gitee.com/anwena/mongo-plus/blob/master/LICENSE"><img src="https://img.shields.io/hexpm/l/plug.svg" alt="License"></a>
+<a target="_blank" href="https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html">
+	<img src="https://img.shields.io/badge/JDK-8-green.svg" alt="jdk-8" />
+</a>
 </p>
+
 
 通过MyBatisPlus的方式，优雅的操作MongoDB
 

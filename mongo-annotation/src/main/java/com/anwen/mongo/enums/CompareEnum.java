@@ -10,7 +10,7 @@ import lombok.Getter;
 */
 @Getter
 @AllArgsConstructor
-public enum CpmpareEnum {
+public enum CompareEnum {
 
     QUERY(0),
 

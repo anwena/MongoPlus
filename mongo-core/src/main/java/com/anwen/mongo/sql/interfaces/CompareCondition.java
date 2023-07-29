@@ -1,6 +1,11 @@
 package com.anwen.mongo.sql.interfaces;
 
+import com.anwen.mongo.enums.CompareEnum;
+import com.anwen.mongo.enums.LogicTypeEnum;
+import com.anwen.mongo.enums.QueryOperator;
+import com.anwen.mongo.sql.support.SFunction;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -14,6 +19,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class CompareCondition {
 
     /**
@@ -55,17 +61,52 @@ public class CompareCondition {
     */
     private List<CompareCondition> childCondition;
 
-    public CompareCondition(String condition, String column, Object value, Integer type, Integer logicType) {
-        this.condition = condition;
-        this.column = column;
-        this.value = value;
-        this.type = type;
-        this.logicType = logicType;
+    /**
+     * 构建条件
+     * @param condition 条件，参考{@link com.anwen.mongo.enums.QueryOperator}
+     * @param column 列名、字段名
+     * @param value 值
+     * @return com.anwen.mongo.sql.interfaces.CompareCondition
+     * @author JiaChaoYang
+     * @date 2023/7/30 0:33
+    */
+    public static CompareCondition build(String condition,String column,Object value){
+        return CompareCondition.builder().condition(condition).column(column).value(value).type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.AND.getKey()).build();
     }
 
-    public CompareCondition(Integer type, Integer logicType, List<CompareCondition> childCondition) {
-        this.type = type;
-        this.logicType = logicType;
-        this.childCondition = childCondition;
+    /**
+     * 构建条件
+     * @param condition 条件，参考{@link com.anwen.mongo.enums.QueryOperator}
+     * @param column 列名、字段名
+     * @param value 值
+     * @return com.anwen.mongo.sql.interfaces.CompareCondition
+     * @author JiaChaoYang
+     * @date 2023/7/30 0:33
+     */
+    public static <T> CompareCondition build(String condition, SFunction<T,Object> column, Object value){
+        return CompareCondition.builder().condition(condition).column(column.getFieldNameLine()).value(value).type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.AND.getKey()).build();
     }
+
+    /**
+     * 构建条件
+     * @param condition 查询条件枚举
+     * @param column 列名、字段名
+     * @param value 值
+     * @return com.anwen.mongo.sql.interfaces.CompareCondition
+     * @author JiaChaoYang
+     * @date 2023/7/30 0:33
+     */
+    public static <T> CompareCondition build(QueryOperator condition, SFunction<T,Object> column, Object value){
+        return CompareCondition.builder().condition(condition.getValue()).column(column.getFieldNameLine()).value(value).type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.AND.getKey()).build();
+    }
+
+    /**
+     * 构建OR条件
+     * @author JiaChaoYang
+     * @date 2023/7/29 23:11
+    */
+    public static CompareCondition buildOr(List<CompareCondition> compareConditionList){
+        return CompareCondition.builder().type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.OR.getKey()).childCondition(compareConditionList).build();
+    }
+
 }

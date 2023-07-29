@@ -1,14 +1,14 @@
 package com.anwen.mongo.sql;
 
 import cn.hutool.core.collection.CollUtil;
-import com.alibaba.fastjson.JSON;
 import com.anwen.mongo.annotation.CutInID;
 import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.domain.InitMongoCollectionException;
 import com.anwen.mongo.domain.MongoQueryException;
-import com.anwen.mongo.enums.CpmpareEnum;
+import com.anwen.mongo.enums.CompareEnum;
 import com.anwen.mongo.enums.LogicTypeEnum;
+import com.anwen.mongo.enums.QueryOperator;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.sql.comm.ConnectMongoDB;
 import com.anwen.mongo.sql.interfaces.CompareCondition;
@@ -34,8 +34,6 @@ import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
-import org.bson.BSONObject;
-import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 
@@ -71,6 +69,10 @@ public class SqlOperation<T> {
     private ConnectMongoDB connectMongoDB;
 
     private Class<T> mongoEntity;
+    
+    private final String _ID = "_id";
+
+    private String createIndex = null;
 
     public void setMongoEntity(Class<T> mongoEntity) {
         this.mongoEntity = mongoEntity;
@@ -174,7 +176,7 @@ public class SqlOperation<T> {
         //            Class<?> entityClass = entity.getClass().getSuperclass();
 //            Field field = entityClass.getFields()[0];
 //            String id = String.valueOf(field.get(entity));
-        if (entityMap.containsKey("_id")) {
+        if (entityMap.containsKey(_ID)) {
             return doUpdateById(collectionName, entityMap);
         }
         return doSave(collectionName, entityMap);
@@ -184,7 +186,7 @@ public class SqlOperation<T> {
     public Boolean doSaveOrUpdateBatch(Collection<T> entityList) {
         List<T> insertList = new ArrayList<>();
         for (Document document : getCollection(entityList.iterator().next()).find(
-                Filters.in("_id", entityList.stream().map(entity -> {
+                Filters.in(_ID, entityList.stream().map(entity -> {
                     try {
                         return (String) entity.getClass().getSuperclass().getMethod("getId").invoke(entity);
                     } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
@@ -204,7 +206,7 @@ public class SqlOperation<T> {
     public Boolean doSaveOrUpdateBatch(String collectionName, Collection<Map<String, Object>> entityList) {
         List<Map<String,Object>> insertList = new ArrayList<>();
         for (Document document : getCollection(entityList.iterator().next(), collectionName).find(
-                Filters.in("_id", entityList.stream().map(entity -> entity.get("_id")).collect(Collectors.toList()))
+                Filters.in(_ID, entityList.stream().map(entity -> entity.get(_ID)).collect(Collectors.toList()))
         )) {
             insertList.add(document);
             entityList.remove(document);
@@ -219,8 +221,8 @@ public class SqlOperation<T> {
     public Boolean doUpdateById(T entity) {
         UpdateResult updateResult;
         try {
-            BasicDBObject filter = new BasicDBObject("_id", entity.getClass().getSuperclass().getMethod("getId").invoke(entity).toString());
-            BasicDBObject update = new BasicDBObject("$set", new Document(checkTableField(entity)));
+            BasicDBObject filter = new BasicDBObject(_ID, entity.getClass().getSuperclass().getMethod("getId").invoke(entity).toString());
+            BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), new Document(checkTableField(entity)));
             updateResult = getCollection(entity).updateOne(filter, update);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             log.error("update fail , fail info : {}", e.getMessage(), e);
@@ -230,12 +232,12 @@ public class SqlOperation<T> {
     }
 
     public Boolean doUpdateById(String collectionName, Map<String, Object> entityMap) {
-        if (entityMap.containsKey("_id")) {
+        if (entityMap.containsKey(_ID)) {
             throw new MongoException("_id undefined");
         }
         UpdateResult updateResult;
-        BasicDBObject filter = new BasicDBObject("_id", entityMap.get("_id"));
-        BasicDBObject update = new BasicDBObject("$set", new Document(entityMap));
+        BasicDBObject filter = new BasicDBObject(_ID, entityMap.get(_ID));
+        BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), new Document(entityMap));
         updateResult = getCollection(entityMap, collectionName).updateOne(filter, update);
         return updateResult.getModifiedCount() != 0;
     }
@@ -245,7 +247,7 @@ public class SqlOperation<T> {
         for (T entity : entityList) {
             UpdateResult updateResult;
             try {
-                updateResult = getCollection(entity).updateMany(Filters.eq("_id", entity.getClass().getSuperclass().getMethod("getId").invoke(entity)), new Document(checkTableField(entity)));
+                updateResult = getCollection(entity).updateMany(Filters.eq(_ID, entity.getClass().getSuperclass().getMethod("getId").invoke(entity)), new Document(checkTableField(entity)));
             } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                 throw new RuntimeException(e);
             }
@@ -256,7 +258,7 @@ public class SqlOperation<T> {
 
     public Boolean doUpdateBatchByIds(String collectionName, Collection<Map<String, Object>> entityList) {
         for (Map<String, Object> entity : entityList) {
-            UpdateResult updateResult = getCollection(entity, collectionName).updateOne(Filters.eq("_id", entity.get("_id")), new Document(entity));
+            UpdateResult updateResult = getCollection(entity, collectionName).updateOne(Filters.eq(_ID, entity.get(_ID)), new Document(entity));
             return updateResult.getModifiedCount() == entityList.size();
         }
         return false;
@@ -291,11 +293,11 @@ public class SqlOperation<T> {
 
 
     public Boolean doRemoveById(Serializable id) {
-        return getCollection().deleteOne(Filters.eq("_id", id)).getDeletedCount() != 0;
+        return getCollection().deleteOne(Filters.eq(_ID, id)).getDeletedCount() != 0;
     }
 
     public Boolean doRemoveById(String collectionName,Serializable id) {
-        return getCollection(collectionName).deleteOne(Filters.eq("_id", id)).getDeletedCount() != 0;
+        return getCollection(collectionName).deleteOne(Filters.eq(_ID, id)).getDeletedCount() != 0;
     }
 
 
@@ -314,46 +316,18 @@ public class SqlOperation<T> {
 
 
     public Boolean doRemoveBatchByIds(Collection<Serializable> idList) {
-        return getCollection().deleteMany(Filters.in("_id", idList)).getDeletedCount() != 0;
+        return getCollection().deleteMany(Filters.in(_ID, idList)).getDeletedCount() != 0;
     }
 
     public Boolean doRemoveBatchByIds(String collectionName,Collection<Serializable> idList) {
-        return getCollection(collectionName).deleteMany(Filters.in("_id", idList)).getDeletedCount() != 0;
+        return getCollection(collectionName).deleteMany(Filters.in(_ID, idList)).getDeletedCount() != 0;
     }
 
     public List<T> doList() {
-        /*long queryAction = System.currentTimeMillis();
-        System.out.println("查询开始时间："+queryAction);
-        FindIterable<Document> iterable = getCollection().find();
-        long queryEnd = System.currentTimeMillis();
-        System.out.println("查询结束时间："+queryEnd);
-        System.out.println("查询耗时："+(queryEnd-queryAction));
-        System.out.println("---------------------------分割线---------------------------");
-        long convertAction = System.currentTimeMillis();
-        System.out.println("转换开始时间："+convertAction);
-        List<T> list = DocumentMapperConvert.mapDocumentList(iterable, mongoEntity);
-        long convertEnd = System.currentTimeMillis();
-        System.out.println("转换结束时间："+convertEnd);
-        System.out.println("转换耗时："+(convertEnd-convertAction));
-        return list;*/
         return DocumentMapperConvert.mapDocumentList(getCollection().find(),mongoEntity);
     }
 
     public List<Map<String, Object>> doList(String collectionName) {
-        /*long queryAction = System.currentTimeMillis();
-        System.out.println("查询开始时间："+queryAction);
-        FindIterable<Document> iterable = getCollection(collectionName).find();
-        long queryEnd = System.currentTimeMillis();
-        System.out.println("查询结束时间："+queryEnd);
-        System.out.println("查询耗时："+(queryEnd-queryAction));
-        System.out.println("---------------------------分割线---------------------------");
-        long convertAction = System.currentTimeMillis();
-        System.out.println("转换开始时间："+convertAction);
-        List<Map<String, Object>> mapList = Converter.convertDocumentToMap(iterable);
-        long convertEnd = System.currentTimeMillis();
-        System.out.println("转换结束时间："+convertEnd);
-        System.out.println("转换耗时："+(convertEnd-convertAction));
-        return mapList;*/
         return Converter.convertDocumentToMap(getCollection(collectionName).find());
     }
 
@@ -384,13 +358,13 @@ public class SqlOperation<T> {
 
 
     public T doGetById(String collectionName, Serializable id) {
-        BasicDBObject byId = new BasicDBObject("_id", new BasicDBObject("$eq", id));
+        BasicDBObject byId = new BasicDBObject(_ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), id));
         FindIterable<Document> iterable = getCollection(collectionName).find(byId);
         return (T) iterable.first();
     }
 
     public List<T> doGetByIds(String collectionName, Collection<Serializable> ids) {
-        BasicDBObject query = new BasicDBObject("_id", new BasicDBObject("$in", ids));
+        BasicDBObject query = new BasicDBObject(_ID, new BasicDBObject(SpecialConditionEnum.IN.getCondition(), ids));
         FindIterable<Document> iterable = getCollection(collectionName).find(query);
         return DocumentMapperConvert.mapDocumentList(iterable, mongoEntity);
     }
@@ -418,13 +392,13 @@ public class SqlOperation<T> {
     }
 
     public T doGetById(Serializable id) {
-        BasicDBObject byId = new BasicDBObject("_id", new BasicDBObject("$eq", id));
+        BasicDBObject byId = new BasicDBObject(_ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), id));
         FindIterable<Document> iterable = getCollection().find(byId);
         return (T) iterable.first();
     }
 
     public List<T> doGetByIds(Collection<Serializable> ids) {
-        BasicDBObject query = new BasicDBObject("_id", new BasicDBObject("$in", ids));
+        BasicDBObject query = new BasicDBObject(_ID, new BasicDBObject(SpecialConditionEnum.IN.getCondition(), ids));
         FindIterable<Document> iterable = getCollection().find(query);
         return DocumentMapperConvert.mapDocumentList(iterable, mongoEntity);
     }
@@ -433,7 +407,7 @@ public class SqlOperation<T> {
         BasicDBObject queryBasic = buildQueryCondition(compareConditionList);
         BasicDBObject updateBasic = buildUpdateValue(compareConditionList);
         UpdateResult updateResult = getCollection().updateMany(queryBasic, new BasicDBObject() {{
-            append("$set", updateBasic);
+            append(SpecialConditionEnum.SET.getCondition(), updateBasic);
         }});
         return updateResult.getModifiedCount() > 0;
     }
@@ -442,7 +416,7 @@ public class SqlOperation<T> {
         BasicDBObject queryBasic = buildQueryCondition(compareConditionList);
         BasicDBObject updateBasic = buildUpdateValue(compareConditionList);
         UpdateResult updateResult = getCollection(collectionName).updateMany(queryBasic, new BasicDBObject() {{
-            append("$set", updateBasic);
+            append(SpecialConditionEnum.SET.getCondition(), updateBasic);
         }});
         return updateResult.getModifiedCount() > 0;
     }
@@ -492,7 +466,11 @@ public class SqlOperation<T> {
     private FindIterable<Document> baseLambdaQuery(List<CompareCondition> compareConditionList, List<Order> orderList) {
         BasicDBObject sortCond = new BasicDBObject();
         orderList.forEach(order -> sortCond.put(order.getColumn(), order.getType()));
-        return getCollection().find(buildQueryCondition(compareConditionList)).sort(sortCond);
+        MongoCollection<Document> collection = getCollection();
+        if (StringUtils.isNotBlank(createIndex)) {
+            collection.createIndex(new Document(createIndex, QueryOperator.TEXT.getValue()));
+        }
+        return collection.find(buildQueryCondition(compareConditionList)).sort(sortCond);
     }
 
     private FindIterable<Document> baseLambdaQuery(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList) {
@@ -533,8 +511,8 @@ public class SqlOperation<T> {
      */
     private BasicDBObject buildQueryCondition(List<CompareCondition> compareConditionList) {
         return new BasicDBObject() {{
-            compareConditionList.stream().filter(compareCondition -> compareCondition.getType() == CpmpareEnum.QUERY.getKey()).collect(Collectors.toList()).forEach(compare -> {
-                if (Objects.equals(compare.getCondition(), SpecialConditionEnum.LIKE.getCondition()) && StringUtils.isNotBlank((String) compare.getValue())) {
+            compareConditionList.stream().filter(compareCondition -> compareCondition.getType() == CompareEnum.QUERY.getKey()).collect(Collectors.toList()).forEach(compare -> {
+                if (Objects.equals(compare.getCondition(), QueryOperator.LIKE.getValue()) && StringUtils.isNotBlank((String) compare.getValue())) {
                     put(compare.getColumn(), new BasicDBObject(SpecialConditionEnum.REGEX.getCondition(), compare.getValue()));
                 } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.OR.getKey())) {
                     if (CollUtil.isEmpty(compare.getChildCondition())) {
@@ -545,7 +523,10 @@ public class SqlOperation<T> {
                     put(SpecialConditionEnum.NOR.getCondition(), buildQueryCondition(compare.getChildCondition()));
                 } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.ELEMMATCH.getKey())) {
                     put(SpecialConditionEnum.ELEM_MATCH.getCondition(), buildOrQueryCondition(compare.getChildCondition()));
-                }else {
+                } else if (Objects.equals(compare.getCondition(),QueryOperator.TEXT.getValue())) {
+                    put(SpecialConditionEnum.TEXT.getCondition(), new BasicDBObject(SpecialConditionEnum.SEARCH.getCondition(), compare.getValue()));
+                    createIndex = compare.getColumn();
+                } else {
                     put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), compare.getValue()));
                 }
             });
@@ -562,11 +543,14 @@ public class SqlOperation<T> {
         List<BasicDBObject> basicDBObjectList = new ArrayList<>();
         compareConditionList.forEach(compare -> {
             BasicDBObject basicDBObject = new BasicDBObject();
-            if (Objects.equals(compare.getCondition(), SpecialConditionEnum.LIKE.getCondition()) && StringUtils.isNotBlank((String) compare.getValue())) {
+            if (Objects.equals(compare.getCondition(), QueryOperator.LIKE.getValue()) && StringUtils.isNotBlank((String) compare.getValue())) {
                 basicDBObject.put(compare.getColumn(), new BasicDBObject(SpecialConditionEnum.REGEX.getCondition(), compare.getValue()));
-            } else if (Objects.equals(compare.getCondition(), SpecialConditionEnum.AND.getCondition())) {
+            } else if (Objects.equals(compare.getCondition(), QueryOperator.AND.getValue())) {
                 basicDBObjectList.add(buildQueryCondition(compare.getChildCondition()));
-            } else {
+            } else if (Objects.equals(compare.getCondition(),QueryOperator.TEXT.getValue())) {
+                basicDBObject.put(SpecialConditionEnum.TEXT.getCondition(), new BasicDBObject(SpecialConditionEnum.SEARCH.getCondition(), compare.getValue()));
+                createIndex = compare.getColumn();
+            }else {
                 basicDBObject.put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), compare.getValue()));
             }
             basicDBObjectList.add(basicDBObject);
@@ -582,7 +566,7 @@ public class SqlOperation<T> {
      */
     private BasicDBObject buildUpdateValue(List<CompareCondition> compareConditionList) {
         return new BasicDBObject() {{
-            compareConditionList.stream().filter(compareCondition -> compareCondition.getType() == CpmpareEnum.UPDATE.getKey()).collect(Collectors.toList()).forEach(compare -> {
+            compareConditionList.stream().filter(compareCondition -> compareCondition.getType() == CompareEnum.UPDATE.getKey()).collect(Collectors.toList()).forEach(compare -> {
                 put(compare.getColumn(), compare.getValue());
             });
         }};
@@ -597,6 +581,7 @@ public class SqlOperation<T> {
     }
 
     private MongoCollection<Document> getCollection() {
+        createIndex = null;
         Class<?> clazz = mongoEntity;
         String tableName = clazz.getSimpleName().toLowerCase();
         if (clazz.isAnnotationPresent(CollectionName.class)) {
@@ -606,6 +591,7 @@ public class SqlOperation<T> {
     }
 
     private MongoCollection<Document> getCollection(String tableName) {
+        createIndex = null;
         // 检查连接是否需要重新创建
         if (!this.collectionMap.containsKey(tableName)) {
             if (connectMongoDB == null){

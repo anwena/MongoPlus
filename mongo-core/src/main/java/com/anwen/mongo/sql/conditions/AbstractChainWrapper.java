@@ -1,23 +1,18 @@
 package com.anwen.mongo.sql.conditions;
 
-import com.anwen.mongo.enums.CpmpareEnum;
+import cn.hutool.json.JSONUtil;
+import com.anwen.mongo.enums.CompareEnum;
 import com.anwen.mongo.enums.LogicTypeEnum;
 import com.anwen.mongo.enums.TypeEnum;
 import com.anwen.mongo.sql.conditions.interfaces.Compare;
-import com.anwen.mongo.enums.OrderEnum;
 import com.anwen.mongo.sql.interfaces.CompareCondition;
 import com.anwen.mongo.sql.interfaces.Order;
 import com.anwen.mongo.sql.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.sql.support.SFunction;
-import com.anwen.mongo.utils.StringUtils;
-import com.mongodb.BasicDBObject;
 import lombok.Getter;
-import org.bson.conversions.Bson;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.lang.reflect.Method;
+import java.util.*;
 
 /**
  * 查询条件
@@ -351,43 +346,24 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
     }
 
     @Override
-    public Children not(SFunction<T,Object> column,Bson bson) {
-        return getBaseCondition(column,bson.toBsonDocument());
+    public Children not(CompareCondition compareCondition) {
+        compareConditionList.add(compareCondition);
+        return typedThis;
     }
 
     @Override
-    public Children not(boolean condition,SFunction<T,Object> column, Bson bson) {
-        return condition ? not(column,bson) : typedThis;
+    public Children not(boolean condition, CompareCondition compareCondition) {
+        return condition ? not(compareCondition) : typedThis;
     }
 
     @Override
-    public Children not(String column, Bson bson) {
-        return getBaseCondition(column,bson.toBsonDocument());
+    public Children expr(boolean condition, CompareCondition compareCondition) {
+        return condition ? expr(compareCondition) : typedThis;
     }
-
     @Override
-    public Children not(boolean condition, String column, Bson bson) {
-        return condition ? not(column,bson) : typedThis;
-    }
-
-    @Override
-    public Children expr(boolean condition,SFunction<T,Object> column, Bson bson) {
-        return condition ? expr(column,bson) : typedThis;
-    }
-
-    @Override
-    public Children expr(String column, Bson bson) {
-        return getBaseCondition(column,bson.toBsonDocument());
-    }
-
-    @Override
-    public Children expr(boolean condition, String column, Bson bson) {
-        return condition ? getBaseCondition(column,bson.toBsonDocument()) : typedThis;
-    }
-
-    @Override
-    public Children expr(SFunction<T,Object> column,Bson bson) {
-        return getBaseCondition(column,bson.toBsonDocument());
+    public Children expr(CompareCondition compareCondition) {
+        compareConditionList.add(compareCondition);
+        return typedThis;
     }
 
     @Override
@@ -471,44 +447,64 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
     }
 
     @Override
-    public Children orderByAsc(SFunction<T, Object> column) {
-        return getBaseOrder(OrderEnum.ORDER_BY.getFlag(), column);
+    public Children regex(boolean condition, SFunction<T, Object> column, Object value) {
+        return condition ? regex(column,value) : typedThis;
     }
 
     @Override
-    public Children orderByDesc(SFunction<T, Object> column) {
-        return getBaseOrder(OrderEnum.ORDER_BY_DESC.getFlag(), column);
+    public Children regex(SFunction<T, Object> column, Object value) {
+        return getBaseCondition(column,value);
     }
 
     @Override
-    public Children orderByAsc(String column) {
-        return getBaseOrder(OrderEnum.ORDER_BY.getFlag(), column);
+    public Children regex(boolean condition, String column, Object value) {
+        return condition ? regex(column,value) : typedThis;
     }
 
     @Override
-    public Children orderByDesc(String column) {
-        return getBaseOrder(OrderEnum.ORDER_BY_DESC.getFlag(), column);
+    public Children regex(String column, Object value) {
+        return getBaseCondition(column,value);
+    }
+
+    @Override
+    public Children text(boolean condition, SFunction<T, Object> column, Object value) {
+        return condition ? text(column,value) : typedThis;
+    }
+
+    @Override
+    public Children text(SFunction<T, Object> column, Object value) {
+        return getBaseCondition(column,value);
+    }
+
+    @Override
+    public Children text(boolean condition, String column, Object value) {
+        return condition ? text(column,value) : typedThis;
+    }
+
+    @Override
+    public Children text(String column, Object value) {
+        return getBaseCondition(column,value);
     }
 
     public Children getBaseCondition(String column, Object value){
-        compareConditionList.add(new CompareCondition(new Throwable().getStackTrace()[1].getMethodName(), column,value, CpmpareEnum.QUERY.getKey(), LogicTypeEnum.AND.getKey()));
+        compareConditionList.add(CompareCondition.builder().condition(new Throwable().getStackTrace()[1].getMethodName()).column(column).value(value).type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.AND.getKey()).build());
         return typedThis;
     }
 
     public Children getChildBaseCondition(String column, Object value,Integer logic){
-        compareConditionList.add(new CompareCondition(new Throwable().getStackTrace()[1].getMethodName(), column,value, CpmpareEnum.QUERY.getKey(), logic));
+        compareConditionList.add(CompareCondition.builder().condition(new Throwable().getStackTrace()[1].getMethodName()).column(column).value(value).type(CompareEnum.QUERY.getKey()).logicType(logic).build());
         return typedThis;
     }
 
     public Children getBaseOrCondition(List<CompareCondition> compareConditionList){
-        this.compareConditionList.add(new CompareCondition(CpmpareEnum.QUERY.getKey(),LogicTypeEnum.OR.getKey(), compareConditionList));
+        this.compareConditionList.add(CompareCondition.builder().type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.OR.getKey()).childCondition(compareConditionList).build());
         return typedThis;
     }
 
     public Children getBaseAndCondition(List<CompareCondition> compareConditionList){
         CompareCondition compareCondition = new CompareCondition();
         compareCondition.setCondition("and");
-        compareCondition.setType(CpmpareEnum.QUERY.getKey());
+        compareCondition.setType(CompareEnum.QUERY.getKey());
         compareCondition.setLogicType(LogicTypeEnum.AND.getKey());
         compareCondition.setChildCondition(compareConditionList);
         this.compareConditionList.add(compareCondition);
@@ -516,12 +512,12 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
     }
 
     public Children getBaseCondition(SFunction<T, Object> column, Object value){
-        compareConditionList.add(new CompareCondition(new Throwable().getStackTrace()[1].getMethodName(), column.getFieldNameLine(),value,CpmpareEnum.QUERY.getKey(),LogicTypeEnum.AND.getKey()));
+        compareConditionList.add(CompareCondition.builder().condition(new Throwable().getStackTrace()[1].getMethodName()).column(column.getFieldNameLine()).value(value).type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.AND.getKey()).build());
         return typedThis;
     }
 
     public Children getChildBaseCondition(SFunction<T,Object> column,Object value,Integer logic){
-        compareConditionList.add(new CompareCondition(new Throwable().getStackTrace()[1].getMethodName(), column.getFieldNameLine(),value,CpmpareEnum.QUERY.getKey(),logic));
+        compareConditionList.add(CompareCondition.builder().condition(new Throwable().getStackTrace()[1].getMethodName()).column(column.getFieldNameLine()).value(value).type(CompareEnum.QUERY.getKey()).logicType(logic).build());
         return typedThis;
     }
 
@@ -534,4 +530,25 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
         orderList.add(new Order(type,column.getFieldNameLine()));
         return typedThis;
     }
+
+    public static Set<String> getMethodNames(Class<?> clazz) {
+        Set<String> methodNames = new HashSet<>();
+
+        // 获取类中声明的所有方法
+        Method[] methods = clazz.getDeclaredMethods();
+
+        // 遍历每个方法并获取方法名
+        for (Method method : methods) {
+            methodNames.add(method.getName());
+        }
+
+        return methodNames;
+    }
+
+    public static void main(String[] args) {
+        // 示例使用：获取String类中的所有方法名
+        Set<String> stringMethodNames = getMethodNames(AbstractChainWrapper.class);
+        System.out.println(JSONUtil.toJsonStr(stringMethodNames));
+    }
+
 }

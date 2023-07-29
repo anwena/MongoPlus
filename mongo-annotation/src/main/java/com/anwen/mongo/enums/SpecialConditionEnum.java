@@ -7,17 +7,24 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum SpecialConditionEnum {
 
-    AND("and"),
 
     OR("$or"),
 
     NOR("$nor"),
 
+    SET("$set"),
+
+    IN("$in"),
+
+    EQ("$eq"),
+
     ELEM_MATCH("$elemMatch"),
 
-    LIKE("like"),
+    REGEX("$regex"),
 
-    REGEX("$regex")
+    TEXT("$text"),
+
+    SEARCH("$search")
 
     ;
 

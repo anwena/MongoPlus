@@ -17,7 +17,7 @@ import java.lang.annotation.*;
 //生成文档
 @Documented
 public @interface CollectionName {
-    String value() default "";
+    String value();
 
     String dataSource() default "";
 }

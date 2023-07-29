@@ -2,10 +2,9 @@ package com.anwen.mongo.sql.support;
 
 /**
  * 接受 Int 小类型的处理函数，使用小类型来避免 Java 自动装箱
- *
- * @author HCL
- * Create at 2018/11/19
- */
+ * @author JiaChaoYang
+ * @date 2023/7/30 1:28
+*/
 @FunctionalInterface
 public interface BiIntFunction<T, R> {
 

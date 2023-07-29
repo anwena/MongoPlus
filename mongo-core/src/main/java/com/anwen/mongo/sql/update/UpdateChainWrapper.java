@@ -1,6 +1,6 @@
 package com.anwen.mongo.sql.update;
 
-import com.anwen.mongo.enums.CpmpareEnum;
+import com.anwen.mongo.enums.CompareEnum;
 import com.anwen.mongo.enums.LogicTypeEnum;
 import com.anwen.mongo.sql.conditions.AbstractChainWrapper;
 import com.anwen.mongo.sql.conditions.interfaces.Update;
@@ -44,12 +44,12 @@ public class UpdateChainWrapper<T,Children extends UpdateChainWrapper<T,Children
     }
 
     private Children getBaseUpdateCompare(SFunction<T, Object> column, Object value){
-        updateCompareList.add(new CompareCondition(new Throwable().getStackTrace()[1].getMethodName(), column.getFieldNameLine(),value, CpmpareEnum.UPDATE.getKey(), LogicTypeEnum.AND.getKey()));
+        updateCompareList.add(CompareCondition.builder().condition(new Throwable().getStackTrace()[1].getMethodName()).column(column.getFieldNameLine()).value(value).type(CompareEnum.UPDATE.getKey()).logicType(LogicTypeEnum.AND.getKey()).build());
         return typedThis;
     }
 
     private Children getBaseUpdateCompare(String column, Object value){
-        updateCompareList.add(new CompareCondition(new Throwable().getStackTrace()[1].getMethodName(), column,value,CpmpareEnum.UPDATE.getKey(), LogicTypeEnum.AND.getKey()));
+        updateCompareList.add(CompareCondition.builder().condition(new Throwable().getStackTrace()[1].getMethodName()).column(column).value(value).type(CompareEnum.UPDATE.getKey()).logicType(LogicTypeEnum.AND.getKey()).build());
         return typedThis;
     }
 
