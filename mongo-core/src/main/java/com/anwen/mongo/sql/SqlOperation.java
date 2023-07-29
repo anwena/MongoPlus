@@ -324,11 +324,19 @@ public class SqlOperation<T> {
     }
 
     public List<T> doList() {
-        return DocumentMapperConvert.mapDocumentList(getCollection().find(),mongoEntity);
+        MongoCollection<Document> collection = getCollection();
+        if (StringUtils.isNotBlank(createIndex)) {
+            collection.createIndex(new Document(createIndex, QueryOperator.TEXT.getValue()));
+        }
+        return DocumentMapperConvert.mapDocumentList(collection.find(),mongoEntity);
     }
 
     public List<Map<String, Object>> doList(String collectionName) {
-        return Converter.convertDocumentToMap(getCollection(collectionName).find());
+        MongoCollection<Document> collection = getCollection(collectionName);
+        if (StringUtils.isNotBlank(createIndex)) {
+            collection.createIndex(new Document(createIndex, QueryOperator.TEXT.getValue()));
+        }
+        return Converter.convertDocumentToMap(collection.find());
     }
 
     public List<Map<String, Object>> doList(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList) {
@@ -467,16 +475,22 @@ public class SqlOperation<T> {
         BasicDBObject sortCond = new BasicDBObject();
         orderList.forEach(order -> sortCond.put(order.getColumn(), order.getType()));
         MongoCollection<Document> collection = getCollection();
+        BasicDBObject basicDBObject = buildQueryCondition(compareConditionList);
         if (StringUtils.isNotBlank(createIndex)) {
             collection.createIndex(new Document(createIndex, QueryOperator.TEXT.getValue()));
         }
-        return collection.find(buildQueryCondition(compareConditionList)).sort(sortCond);
+        return collection.find(basicDBObject).sort(sortCond);
     }
 
     private FindIterable<Document> baseLambdaQuery(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList) {
         BasicDBObject sortCond = new BasicDBObject();
         orderList.forEach(order -> sortCond.put(order.getColumn(), order.getType()));
-        return getCollection(collectionName).find(buildQueryCondition(compareConditionList)).sort(sortCond);
+        MongoCollection<Document> collection = getCollection(collectionName);
+        BasicDBObject basicDBObject = buildQueryCondition(compareConditionList);
+        if (StringUtils.isNotBlank(createIndex)) {
+            collection.createIndex(new Document(createIndex, QueryOperator.TEXT.getValue()));
+        }
+        return collection.find(basicDBObject).sort(sortCond);
     }
 
     private PageResult<T> getLambdaQueryResultPage(List<CompareCondition> compareConditionList, List<Order> orderList, PageParam pageParams) {
