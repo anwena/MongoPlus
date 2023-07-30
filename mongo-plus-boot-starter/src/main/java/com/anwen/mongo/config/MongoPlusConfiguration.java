@@ -4,6 +4,7 @@ import com.anwen.mongo.event.SqlOperationInitializedEvent;
 import com.anwen.mongo.log.CustomMongoDriverLogger;
 import com.anwen.mongo.sql.SqlOperation;
 import com.anwen.mongo.sql.inject.query.MongoPlusOperate;
+import com.anwen.mongo.transactional.MongoTransactionalAspect;
 import com.anwen.mongo.utils.UrlJoint;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
@@ -77,6 +78,11 @@ public class MongoPlusConfiguration extends MongoAutoConfiguration{
     @Bean
     public MongoPlusOperate mongoPlusOperate(SqlOperation<Map<String,Object>> sqlOperation){
         return new MongoPlusOperate(sqlOperation);
+    }
+
+    @Bean
+    public MongoTransactionalAspect mongoTransactionalAspect(){
+        return new MongoTransactionalAspect(mongoClient);
     }
 
 }

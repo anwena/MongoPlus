@@ -7,6 +7,7 @@ import com.anwen.mongo.enums.TypeEnum;
 import com.anwen.mongo.sql.conditions.interfaces.Compare;
 import com.anwen.mongo.sql.interfaces.CompareCondition;
 import com.anwen.mongo.sql.interfaces.Order;
+import com.anwen.mongo.sql.interfaces.Projection;
 import com.anwen.mongo.sql.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.sql.support.SFunction;
 import lombok.Getter;
@@ -35,6 +36,13 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
      * @since 2023/2/10 12:00
      */
     List<Order> orderList = new ArrayList<>();
+
+    /**
+     * 构建显示字段
+     * @author JiaChaoYang
+     * @date 2023/7/30 20:34
+    */
+    List<Projection> projectionList = new ArrayList<>();
 
     /**
      * 查询条件

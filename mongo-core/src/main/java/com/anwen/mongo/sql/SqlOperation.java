@@ -8,7 +8,7 @@ import com.anwen.mongo.domain.InitMongoCollectionException;
 import com.anwen.mongo.domain.MongoQueryException;
 import com.anwen.mongo.enums.CompareEnum;
 import com.anwen.mongo.enums.LogicTypeEnum;
-import com.anwen.mongo.enums.QueryOperator;
+import com.anwen.mongo.enums.QueryOperatorEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.sql.comm.ConnectMongoDB;
 import com.anwen.mongo.sql.interfaces.CompareCondition;
@@ -23,7 +23,9 @@ import com.anwen.mongo.utils.Converter;
 import com.anwen.mongo.utils.StringUtils;
 import com.anwen.mongo.utils.codec.RegisterCodecUtil;
 import com.mongodb.BasicDBObject;
+import com.mongodb.ClientSessionOptions;
 import com.mongodb.MongoException;
+import com.mongodb.client.ClientSession;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
@@ -173,9 +175,6 @@ public class SqlOperation<T> {
     }
 
     public Boolean doSaveOrUpdate(String collectionName, Map<String, Object> entityMap) {
-        //            Class<?> entityClass = entity.getClass().getSuperclass();
-//            Field field = entityClass.getFields()[0];
-//            String id = String.valueOf(field.get(entity));
         if (entityMap.containsKey(_ID)) {
             return doUpdateById(collectionName, entityMap);
         }
@@ -326,7 +325,7 @@ public class SqlOperation<T> {
     public List<T> doList() {
         MongoCollection<Document> collection = getCollection();
         if (StringUtils.isNotBlank(createIndex)) {
-            collection.createIndex(new Document(createIndex, QueryOperator.TEXT.getValue()));
+            collection.createIndex(new Document(createIndex, QueryOperatorEnum.TEXT.getValue()));
         }
         return DocumentMapperConvert.mapDocumentList(collection.find(),mongoEntity);
     }
@@ -334,7 +333,7 @@ public class SqlOperation<T> {
     public List<Map<String, Object>> doList(String collectionName) {
         MongoCollection<Document> collection = getCollection(collectionName);
         if (StringUtils.isNotBlank(createIndex)) {
-            collection.createIndex(new Document(createIndex, QueryOperator.TEXT.getValue()));
+            collection.createIndex(new Document(createIndex, QueryOperatorEnum.TEXT.getValue()));
         }
         return Converter.convertDocumentToMap(collection.find());
     }
@@ -477,7 +476,7 @@ public class SqlOperation<T> {
         MongoCollection<Document> collection = getCollection();
         BasicDBObject basicDBObject = buildQueryCondition(compareConditionList);
         if (StringUtils.isNotBlank(createIndex)) {
-            collection.createIndex(new Document(createIndex, QueryOperator.TEXT.getValue()));
+            collection.createIndex(new Document(createIndex, QueryOperatorEnum.TEXT.getValue()));
         }
         return collection.find(basicDBObject).sort(sortCond);
     }
@@ -488,7 +487,7 @@ public class SqlOperation<T> {
         MongoCollection<Document> collection = getCollection(collectionName);
         BasicDBObject basicDBObject = buildQueryCondition(compareConditionList);
         if (StringUtils.isNotBlank(createIndex)) {
-            collection.createIndex(new Document(createIndex, QueryOperator.TEXT.getValue()));
+            collection.createIndex(new Document(createIndex, QueryOperatorEnum.TEXT.getValue()));
         }
         return collection.find(basicDBObject).sort(sortCond);
     }
@@ -526,7 +525,7 @@ public class SqlOperation<T> {
     private BasicDBObject buildQueryCondition(List<CompareCondition> compareConditionList) {
         return new BasicDBObject() {{
             compareConditionList.stream().filter(compareCondition -> compareCondition.getType() == CompareEnum.QUERY.getKey()).collect(Collectors.toList()).forEach(compare -> {
-                if (Objects.equals(compare.getCondition(), QueryOperator.LIKE.getValue()) && StringUtils.isNotBlank((String) compare.getValue())) {
+                if (Objects.equals(compare.getCondition(), QueryOperatorEnum.LIKE.getValue()) && StringUtils.isNotBlank((String) compare.getValue())) {
                     put(compare.getColumn(), new BasicDBObject(SpecialConditionEnum.REGEX.getCondition(), compare.getValue()));
                 } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.OR.getKey())) {
                     if (CollUtil.isEmpty(compare.getChildCondition())) {
@@ -537,7 +536,7 @@ public class SqlOperation<T> {
                     put(SpecialConditionEnum.NOR.getCondition(), buildQueryCondition(compare.getChildCondition()));
                 } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.ELEMMATCH.getKey())) {
                     put(SpecialConditionEnum.ELEM_MATCH.getCondition(), buildOrQueryCondition(compare.getChildCondition()));
-                } else if (Objects.equals(compare.getCondition(),QueryOperator.TEXT.getValue())) {
+                } else if (Objects.equals(compare.getCondition(), QueryOperatorEnum.TEXT.getValue())) {
                     put(SpecialConditionEnum.TEXT.getCondition(), new BasicDBObject(SpecialConditionEnum.SEARCH.getCondition(), compare.getValue()));
                     createIndex = compare.getColumn();
                 } else {
@@ -557,11 +556,11 @@ public class SqlOperation<T> {
         List<BasicDBObject> basicDBObjectList = new ArrayList<>();
         compareConditionList.forEach(compare -> {
             BasicDBObject basicDBObject = new BasicDBObject();
-            if (Objects.equals(compare.getCondition(), QueryOperator.LIKE.getValue()) && StringUtils.isNotBlank((String) compare.getValue())) {
+            if (Objects.equals(compare.getCondition(), QueryOperatorEnum.LIKE.getValue()) && StringUtils.isNotBlank((String) compare.getValue())) {
                 basicDBObject.put(compare.getColumn(), new BasicDBObject(SpecialConditionEnum.REGEX.getCondition(), compare.getValue()));
-            } else if (Objects.equals(compare.getCondition(), QueryOperator.AND.getValue())) {
+            } else if (Objects.equals(compare.getCondition(), QueryOperatorEnum.AND.getValue())) {
                 basicDBObjectList.add(buildQueryCondition(compare.getChildCondition()));
-            } else if (Objects.equals(compare.getCondition(),QueryOperator.TEXT.getValue())) {
+            } else if (Objects.equals(compare.getCondition(), QueryOperatorEnum.TEXT.getValue())) {
                 basicDBObject.put(SpecialConditionEnum.TEXT.getCondition(), new BasicDBObject(SpecialConditionEnum.SEARCH.getCondition(), compare.getValue()));
                 createIndex = compare.getColumn();
             }else {

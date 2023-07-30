@@ -10,7 +10,7 @@ import lombok.Getter;
 */
 @Getter
 @AllArgsConstructor
-public enum QueryOperator {
+public enum QueryOperatorEnum {
 
     MOD("mod"),
 

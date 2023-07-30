@@ -2,7 +2,7 @@ package com.anwen.mongo.sql.interfaces;
 
 import com.anwen.mongo.enums.CompareEnum;
 import com.anwen.mongo.enums.LogicTypeEnum;
-import com.anwen.mongo.enums.QueryOperator;
+import com.anwen.mongo.enums.QueryOperatorEnum;
 import com.anwen.mongo.sql.support.SFunction;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -63,7 +63,7 @@ public class CompareCondition {
 
     /**
      * 构建条件
-     * @param condition 条件，参考{@link com.anwen.mongo.enums.QueryOperator}
+     * @param condition 条件，参考{@link QueryOperatorEnum}
      * @param column 列名、字段名
      * @param value 值
      * @return com.anwen.mongo.sql.interfaces.CompareCondition
@@ -76,7 +76,7 @@ public class CompareCondition {
 
     /**
      * 构建条件
-     * @param condition 条件，参考{@link com.anwen.mongo.enums.QueryOperator}
+     * @param condition 条件，参考{@link QueryOperatorEnum}
      * @param column 列名、字段名
      * @param value 值
      * @return com.anwen.mongo.sql.interfaces.CompareCondition
@@ -96,7 +96,7 @@ public class CompareCondition {
      * @author JiaChaoYang
      * @date 2023/7/30 0:33
      */
-    public static <T> CompareCondition build(QueryOperator condition, SFunction<T,Object> column, Object value){
+    public static <T> CompareCondition build(QueryOperatorEnum condition, SFunction<T,Object> column, Object value){
         return CompareCondition.builder().condition(condition.getValue()).column(column.getFieldNameLine()).value(value).type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.AND.getKey()).build();
     }
 

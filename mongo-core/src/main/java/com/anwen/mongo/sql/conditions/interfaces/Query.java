@@ -1,10 +1,13 @@
 package com.anwen.mongo.sql.conditions.interfaces;
 
+import com.anwen.mongo.sql.conditions.interfaces.aggregate.project.Project;
 import com.anwen.mongo.sql.support.SFunction;
 
 public interface Query<T,Children> {
 
-    Children select(SFunction<T,Object> column);
+    Children projection(Project... project);
+
+//    Children projection(SFunction<T,Object> column,Boolean value)
 
 
     /**
