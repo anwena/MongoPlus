@@ -45,7 +45,7 @@ public class MongoPlusOperate implements InjectQuery {
 
     @Override
     public List<Map<String, Object>> list(String collectionName, LambdaQueryChainInjectWrapper lambdaQueryChainInjectWrapper) {
-        return sqlOperation.doList(collectionName,lambdaQueryChainInjectWrapper.getCompareList(),lambdaQueryChainInjectWrapper.getOrderList());
+        return sqlOperation.doList(collectionName,lambdaQueryChainInjectWrapper.getCompareList(),lambdaQueryChainInjectWrapper.getOrderList(),lambdaQueryChainInjectWrapper.getProjectionList());
     }
 
 
@@ -56,7 +56,7 @@ public class MongoPlusOperate implements InjectQuery {
 
     @Override
     public PageResult<Map<String, Object>> page(String collectionName, PageParam pageParam, LambdaQueryChainInjectWrapper lambdaQueryChainInjectWrapper) {
-        return sqlOperation.doPage(collectionName,lambdaQueryChainInjectWrapper.getCompareList(),lambdaQueryChainInjectWrapper.getOrderList(),pageParam.getPageNum(),pageParam.getPageSize());
+        return sqlOperation.doPage(collectionName,lambdaQueryChainInjectWrapper.getCompareList(),lambdaQueryChainInjectWrapper.getOrderList(),lambdaQueryChainInjectWrapper.getProjectionList(),pageParam.getPageNum(),pageParam.getPageSize());
     }
 
     @Override
@@ -66,7 +66,7 @@ public class MongoPlusOperate implements InjectQuery {
 
     @Override
     public PageResult<Map<String, Object>> page(String collectionName, Integer pageNum, Integer pageSize, LambdaQueryChainInjectWrapper lambdaQueryChainInjectWrapper) {
-        return sqlOperation.doPage(collectionName,lambdaQueryChainInjectWrapper.getCompareList(),lambdaQueryChainInjectWrapper.getOrderList(),pageNum,pageSize);
+        return sqlOperation.doPage(collectionName,lambdaQueryChainInjectWrapper.getCompareList(),lambdaQueryChainInjectWrapper.getOrderList(),lambdaQueryChainInjectWrapper.getProjectionList(),pageNum,pageSize);
     }
 
     @Override

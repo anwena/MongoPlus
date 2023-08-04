@@ -1,3 +1,4 @@
+/*
 package com.anwen.mongo.config.log;
 
 import ch.qos.logback.classic.Level;
@@ -8,11 +9,13 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Configuration;
 
 
+*/
 /**
  * @author JiaChaoYang
  * 日志配置
  * @since 2023-06-07 23:00
- **/
+ **//*
+
 @Configuration
 @EnableConfigurationProperties(MongoDBLogProperty.class)
 public class MongoLogConfig {
@@ -31,3 +34,4 @@ public class MongoLogConfig {
     }
 
 }
+*/

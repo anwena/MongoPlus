@@ -1,13 +1,13 @@
 package com.anwen.mongo.sql.conditions;
 
-import cn.hutool.json.JSONUtil;
 import com.anwen.mongo.enums.CompareEnum;
 import com.anwen.mongo.enums.LogicTypeEnum;
+import com.anwen.mongo.enums.ProjectionEnum;
 import com.anwen.mongo.enums.TypeEnum;
 import com.anwen.mongo.sql.conditions.interfaces.Compare;
+import com.anwen.mongo.sql.conditions.interfaces.aggregate.project.Projection;
 import com.anwen.mongo.sql.interfaces.CompareCondition;
 import com.anwen.mongo.sql.interfaces.Order;
-import com.anwen.mongo.sql.interfaces.Projection;
 import com.anwen.mongo.sql.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.sql.support.SFunction;
 import lombok.Getter;
@@ -539,24 +539,46 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
         return typedThis;
     }
 
-    public static Set<String> getMethodNames(Class<?> clazz) {
-        Set<String> methodNames = new HashSet<>();
-
-        // 获取类中声明的所有方法
-        Method[] methods = clazz.getDeclaredMethods();
-
-        // 遍历每个方法并获取方法名
-        for (Method method : methods) {
-            methodNames.add(method.getName());
-        }
-
-        return methodNames;
+    public void getBaseProject(String column, Integer value){
+        projectionList.add(Projection.builder().column(column).value(value).build());
     }
 
-    public static void main(String[] args) {
-        // 示例使用：获取String类中的所有方法名
-        Set<String> stringMethodNames = getMethodNames(AbstractChainWrapper.class);
-        System.out.println(JSONUtil.toJsonStr(stringMethodNames));
+    public Children getBaseProject(Projection... projections){
+        projectionList.addAll(Arrays.asList(projections));
+        return typedThis;
+    }
+
+    public Children getBaseProjectDisplay(String... columns){
+        for (String column : columns) {
+            projectionList.add(Projection.builder().column(column).value(ProjectionEnum.DISPLAY.getValue()).build());
+        }
+        return typedThis;
+    }
+
+    public Children getBaseProjectNone(String... columns){
+        for (String column : columns) {
+            projectionList.add(Projection.builder().column(column).value(ProjectionEnum.NONE.getValue()).build());
+        }
+        return typedThis;
+    }
+
+    public Children getBaseProjectDisplay(SFunction<T, Object>... columns){
+        for (SFunction<T, Object> column : columns) {
+            projectionList.add(Projection.builder().column(column.getFieldNameLine()).value(ProjectionEnum.DISPLAY.getValue()).build());
+        }
+        return typedThis;
+    }
+
+    public Children getBaseProjectNone(SFunction<T, Object>... columns){
+        for (SFunction<T, Object> column : columns) {
+            projectionList.add(Projection.builder().column(column.getFieldNameLine()).value(ProjectionEnum.NONE.getValue()).build());
+        }
+        return typedThis;
+    }
+
+    public Children setProjectNoneId(){
+        projectionList.add(Projection.builder().column("_id").value(ProjectionEnum.NONE.getValue()).build());
+        return typedThis;
     }
 
 }

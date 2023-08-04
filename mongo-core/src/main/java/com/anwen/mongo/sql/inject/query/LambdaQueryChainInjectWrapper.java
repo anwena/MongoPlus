@@ -4,6 +4,7 @@ import com.anwen.mongo.sql.SqlOperation;
 import com.anwen.mongo.sql.conditions.AbstractChainWrapper;
 import com.anwen.mongo.sql.model.PageParam;
 import com.anwen.mongo.sql.model.PageResult;
+import com.anwen.mongo.sql.query.QueryChainWrapper;
 
 import java.util.List;
 import java.util.Map;
@@ -14,7 +15,7 @@ import java.util.Map;
  * @description
  * @date 2023-07-21 00:22
  **/
-public class LambdaQueryChainInjectWrapper extends AbstractChainWrapper<Map<String,Object>, LambdaQueryChainInjectWrapper> implements ChainInject {
+public class LambdaQueryChainInjectWrapper extends QueryChainWrapper<Map<String,Object>, LambdaQueryChainInjectWrapper> implements ChainInject {
 
     private final SqlOperation<Map<String,Object>> sqlOperation;
 
@@ -24,27 +25,27 @@ public class LambdaQueryChainInjectWrapper extends AbstractChainWrapper<Map<Stri
 
     @Override
     public List<Map<String, Object>> list(String collection) {
-        return sqlOperation.doList(collection,getCompareList(),getOrderList());
+        return sqlOperation.doList(collection,getCompareList(),getOrderList(),getProjectionList());
     }
 
     @Override
     public Map<String, Object> one(String collectionName) {
-        return sqlOperation.doOne(collectionName,getCompareList());
+        return sqlOperation.doOne(collectionName,getCompareList(),getProjectionList());
     }
 
     @Override
     public Map<String, Object> limitOne(String collectionName) {
-        return sqlOperation.doLimitOne(collectionName,getCompareList());
+        return sqlOperation.doLimitOne(collectionName,getCompareList(),getProjectionList());
     }
 
     @Override
     public PageResult<Map<String, Object>> page(String collectionName, PageParam pageParam) {
-        return sqlOperation.doPage(collectionName,getCompareList(),getOrderList(),pageParam.getPageNum(),pageParam.getPageSize());
+        return sqlOperation.doPage(collectionName,getCompareList(),getOrderList(),getProjectionList(),pageParam.getPageNum(),pageParam.getPageSize());
     }
 
     @Override
     public PageResult<Map<String, Object>> page(String collectionName, Integer pageNum, Integer pageSize) {
-        return sqlOperation.doPage(collectionName,getCompareList(),getOrderList(),pageNum,pageSize);
+        return sqlOperation.doPage(collectionName,getCompareList(),getOrderList(),getProjectionList(),pageNum,pageSize);
     }
 
     @Override

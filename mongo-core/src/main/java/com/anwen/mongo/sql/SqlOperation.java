@@ -11,6 +11,7 @@ import com.anwen.mongo.enums.LogicTypeEnum;
 import com.anwen.mongo.enums.QueryOperatorEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.sql.comm.ConnectMongoDB;
+import com.anwen.mongo.sql.conditions.interfaces.aggregate.project.Projection;
 import com.anwen.mongo.sql.interfaces.CompareCondition;
 import com.anwen.mongo.sql.interfaces.Order;
 import com.anwen.mongo.sql.model.BaseProperty;
@@ -338,28 +339,28 @@ public class SqlOperation<T> {
         return Converter.convertDocumentToMap(collection.find());
     }
 
-    public List<Map<String, Object>> doList(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList) {
-        return getLambdaQueryResult(collectionName, compareConditionList, orderList);
+    public List<Map<String, Object>> doList(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList) {
+        return getLambdaQueryResult(collectionName, compareConditionList, orderList,projectionList);
     }
 
-    public PageResult<Map<String, Object>> doPage(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList, Integer pageNum, Integer pageSize) {
-        return getLambdaQueryResultPage(collectionName, compareConditionList, orderList, new PageParam(pageNum, pageSize));
+    public PageResult<Map<String, Object>> doPage(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList, Integer pageNum, Integer pageSize) {
+        return getLambdaQueryResultPage(collectionName, compareConditionList, orderList,projectionList, new PageParam(pageNum, pageSize));
     }
 
     public PageResult<Map<String,Object>> doPage(String collectionName,Integer pageNum,Integer pageSize){
-        return getLambdaQueryResultPage(collectionName,new ArrayList<>(),new ArrayList<>(),new PageParam(pageNum,pageSize));
+        return getLambdaQueryResultPage(collectionName,new ArrayList<>(),new ArrayList<>(),new ArrayList<>(),new PageParam(pageNum,pageSize));
     }
 
-    public Map<String, Object> doOne(String collectionName, List<CompareCondition> compareConditionList) {
-        List<Map<String, Object>> result = getLambdaQueryResult(collectionName, compareConditionList, new ArrayList<>());
+    public Map<String, Object> doOne(String collectionName, List<CompareCondition> compareConditionList,List<Projection> projectionList) {
+        List<Map<String, Object>> result = getLambdaQueryResult(collectionName, compareConditionList, new ArrayList<>(),projectionList);
         if (result.size() > 1) {
             throw new MongoQueryException("query result greater than one line");
         }
         return !result.isEmpty() ? result.get(0) : new HashMap<>();
     }
 
-    public Map<String, Object> doLimitOne(String collectionName, List<CompareCondition> compareConditionList) {
-        List<Map<String, Object>> result = getLambdaQueryResult(collectionName, compareConditionList, new ArrayList<>());
+    public Map<String, Object> doLimitOne(String collectionName, List<CompareCondition> compareConditionList,List<Projection> projectionList) {
+        List<Map<String, Object>> result = getLambdaQueryResult(collectionName, compareConditionList, new ArrayList<>(),projectionList);
         return !result.isEmpty() ? result.get(0) : new HashMap<>();
     }
 
@@ -460,8 +461,8 @@ public class SqlOperation<T> {
         return DocumentMapperConvert.mapDocumentList(baseLambdaQuery(compareConditionList, orderList), mongoEntity);
     }
 
-    private List<Map<String, Object>> getLambdaQueryResult(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList) {
-        return Converter.convertDocumentToMap(baseLambdaQuery(collectionName, compareConditionList, orderList));
+    private List<Map<String, Object>> getLambdaQueryResult(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList) {
+        return Converter.convertDocumentToMap(baseLambdaQuery(collectionName, compareConditionList, orderList,projectionList));
     }
 
     /**
@@ -481,7 +482,7 @@ public class SqlOperation<T> {
         return collection.find(basicDBObject).sort(sortCond);
     }
 
-    private FindIterable<Document> baseLambdaQuery(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList) {
+    private FindIterable<Document> baseLambdaQuery(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList) {
         BasicDBObject sortCond = new BasicDBObject();
         orderList.forEach(order -> sortCond.put(order.getColumn(), order.getType()));
         MongoCollection<Document> collection = getCollection(collectionName);
@@ -489,13 +490,13 @@ public class SqlOperation<T> {
         if (StringUtils.isNotBlank(createIndex)) {
             collection.createIndex(new Document(createIndex, QueryOperatorEnum.TEXT.getValue()));
         }
-        return collection.find(basicDBObject).sort(sortCond);
+        return collection.find(basicDBObject).projection(buildProjection(projectionList)).sort(sortCond);
     }
 
     private PageResult<T> getLambdaQueryResultPage(List<CompareCondition> compareConditionList, List<Order> orderList, PageParam pageParams) {
         PageResult<T> pageResult = new PageResult<>();
         FindIterable<Document> documentFindIterable = baseLambdaQuery(compareConditionList, orderList);
-        long totalSize = doCount();
+        long totalSize = doCount(compareConditionList);
         pageResult.setPageNum(pageParams.getPageNum());
         pageResult.setPageSize(pageParams.getPageSize());
         pageResult.setTotalSize(totalSize);
@@ -504,16 +505,24 @@ public class SqlOperation<T> {
         return pageResult;
     }
 
-    private PageResult<Map<String, Object>> getLambdaQueryResultPage(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList, PageParam pageParams) {
+    private PageResult<Map<String, Object>> getLambdaQueryResultPage(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList, PageParam pageParams) {
         PageResult<Map<String, Object>> pageResult = new PageResult<>();
-        FindIterable<Document> documentFindIterable = baseLambdaQuery(collectionName, compareConditionList, orderList);
-        long totalSize = doCount(collectionName);
+        FindIterable<Document> documentFindIterable = baseLambdaQuery(collectionName, compareConditionList, orderList,projectionList);
+        long totalSize = doCount(collectionName,compareConditionList);
         pageResult.setPageNum(pageParams.getPageNum());
         pageResult.setPageSize(pageParams.getPageSize());
         pageResult.setTotalSize(totalSize);
         pageResult.setTotalPages((totalSize + pageParams.getPageSize() - 1) / pageParams.getPageSize());
         pageResult.setContentData(Converter.convertDocumentToMap(documentFindIterable.skip((pageParams.getPageNum() - 1) * pageParams.getPageSize()).limit(pageParams.getPageSize())));
         return pageResult;
+    }
+
+    private BasicDBObject buildProjection(List<Projection> projectionList){
+        return new BasicDBObject(){{
+            projectionList.forEach(projection -> {
+                put(projection.getColumn(),projection.getValue());
+            });
+        }};
     }
 
     /**

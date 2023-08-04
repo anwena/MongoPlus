@@ -28,7 +28,6 @@ public class Converter {
                 .count()));*/
         List<Map<String, Object>> resultList = new ArrayList<>(10000);
         try (MongoCursor<Document> cursor = iterable.iterator()) {
-
             while (cursor.hasNext()) {
                 resultList.add(cursor.next());
             }
