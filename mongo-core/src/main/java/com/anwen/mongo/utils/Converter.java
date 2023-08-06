@@ -6,12 +6,8 @@ import lombok.extern.log4j.Log4j2;
 import org.bson.Document;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ForkJoinPool;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @Log4j2
 public class Converter {

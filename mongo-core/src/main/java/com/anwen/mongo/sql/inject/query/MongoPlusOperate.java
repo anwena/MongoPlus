@@ -19,7 +19,7 @@ import java.util.Map;
  **/
 public class MongoPlusOperate implements InjectQuery {
 
-    private SqlOperation<Map<String,Object>> sqlOperation;
+    private final SqlOperation<Map<String,Object>> sqlOperation;
 
     public MongoPlusOperate(SqlOperation<Map<String, Object>> sqlOperation) {
         this.sqlOperation = sqlOperation;

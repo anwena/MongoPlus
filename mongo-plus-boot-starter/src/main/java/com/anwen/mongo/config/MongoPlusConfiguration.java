@@ -12,7 +12,6 @@ import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
-import com.mongodb.event.CommandListener;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -24,8 +23,6 @@ import org.springframework.context.annotation.Bean;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -88,10 +85,10 @@ public class MongoPlusConfiguration extends MongoAutoConfiguration{
         return new MongoPlusOperate(sqlOperation);
     }
 
-    @Bean
-    public MongoPlusBaseMapper<?> mongoPlusBaseMapper(){
-        return new MongoPlusBaseMapper<>();
-    }
+/*    @Bean
+    public MongoPlusBaseMapper<?> mongoPlusBaseMapper(SqlOperation<?> sqlOperation){
+        return new MongoPlusBaseMapper<>(sqlOperation);
+    }*/
 
     @Bean
     public MongoTransactionalAspect mongoTransactionalAspect(){

@@ -189,6 +189,11 @@ public class ServiceImpl<T> implements IService<T>, ApplicationListener<SqlOpera
         return sqlOperation;
     }
 
+    @Override
+    public SqlOperation<T> setSqlOperation(SqlOperation<T> sqlOperation) {
+        return this.sqlOperation;
+    }
+
     private void setMongoEntity() {
         Class<T> actualTypeArgument = getEClass();
         // 根据实际情况进行设置

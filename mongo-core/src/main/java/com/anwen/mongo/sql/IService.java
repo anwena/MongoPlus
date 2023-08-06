@@ -171,6 +171,8 @@ public interface IService<T> {
 
     SqlOperation<T> getSqlOperation();
 
+    SqlOperation<T> setSqlOperation(SqlOperation<T> sqlOperation);
+
     <T> Class<T> getEClass();
 
 
