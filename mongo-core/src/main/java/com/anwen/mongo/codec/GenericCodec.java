@@ -128,9 +128,9 @@ public class GenericCodec<T> implements Codec<T> {
             writer.writeDouble(((Float) value).doubleValue());
         } else if (value instanceof Double) {
             writer.writeDouble((Double) value);
-        } else {
+        }/* else {
             throw new CodecConfigurationException("Unsupported value type: " + value.getClass().getName());
-        }
+        }*/
     }
 
     // 从 reader 中读取属性值

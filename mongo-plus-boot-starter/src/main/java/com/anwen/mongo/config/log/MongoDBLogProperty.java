@@ -19,7 +19,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class MongoDBLogProperty {
 
     /**
-     * 日志级别
+     * 是否开启日志
      * @author: JiaChaoYang
      * @date: 2023/6/7 23:08
      **/

@@ -6,6 +6,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
+import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.generate.ObjectId;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -63,6 +64,14 @@ public class BeanMapUtilByReflect {
         return documentList;
     }
 
+    public static List<Document> mapListToDocumentList(Collection<Map<String,Object>> mapCollection){
+        List<Document> documentList = new ArrayList<>();
+        mapCollection.forEach(map -> {
+            documentList.add(new Document(map));
+        });
+        return documentList;
+    }
+
     /**
      * 使用guava缓存
      * @author: JiaChaoYang
@@ -91,10 +100,10 @@ public class BeanMapUtilByReflect {
 
         try {
             // 判断是否存在ID注解
-            if (!ID_ANNOTATION_CACHE.get(entityClass)) {
+            /*if (!ID_ANNOTATION_CACHE.get(entityClass)) {
                 String id = generateObjectId(entity);
                 resultMap.put("_id", id);
-            }
+            }*/
 
             // 设置所有属性可访问
             Field[] fields = entityClass.getDeclaredFields();
@@ -103,20 +112,26 @@ public class BeanMapUtilByReflect {
             // 遍历对象的所有属性，将其添加到结果中
             for (Field field : fields) {
                 CollectionField collectionField = field.getAnnotation(CollectionField.class);
-
                 // 如果TableField注解的exist值为false，则跳过该属性
                 if (collectionField != null && !collectionField.exist()) {
                     continue;
                 }
-
+                Object fieldValue = field.get(entity);
+                ID id = field.getAnnotation(ID.class);
+                if (id != null){
+                    resultMap.put("_id",fieldValue == null ? IdTypeEnum.generateId(id.type()) : fieldValue);
+                }
                 // 获取属性名和属性值，并添加到结果中
                 String fieldName = collectionField != null && StringUtils.isNotBlank(collectionField.value()) ? collectionField.value() : field.getName();
-                Object fieldValue = field.get(entity);
                 if (fieldValue != null) {
+                    if (id != null){
+                        resultMap.put("_id",new org.bson.types.ObjectId(String.valueOf(fieldValue)));
+                        continue;
+                    }
                     resultMap.put(fieldName, fieldValue);
                 }
             }
-        } catch (ExecutionException | IllegalAccessException e) {
+        } catch (IllegalAccessException e) {
             handleException(e);
         }
 

@@ -85,11 +85,6 @@ public class MongoPlusConfiguration extends MongoAutoConfiguration{
         return new MongoPlusOperate(sqlOperation);
     }
 
-/*    @Bean
-    public MongoPlusBaseMapper<?> mongoPlusBaseMapper(SqlOperation<?> sqlOperation){
-        return new MongoPlusBaseMapper<>(sqlOperation);
-    }*/
-
     @Bean
     public MongoTransactionalAspect mongoTransactionalAspect(){
         return new MongoTransactionalAspect(mongoClient);

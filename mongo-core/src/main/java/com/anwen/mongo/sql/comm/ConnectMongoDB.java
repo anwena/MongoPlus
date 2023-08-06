@@ -2,6 +2,7 @@ package com.anwen.mongo.sql.comm;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
+import lombok.Getter;
 import org.bson.Document;
 
 
@@ -10,6 +11,7 @@ import org.bson.Document;
  * 连接工具类
  * @since 2023-02-09 14:47
  **/
+@Getter
 public class ConnectMongoDB {
 
     private final MongoClient mongoClient;

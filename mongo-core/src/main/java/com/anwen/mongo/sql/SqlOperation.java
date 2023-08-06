@@ -37,8 +37,10 @@ import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
+import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.types.ObjectId;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -120,7 +122,6 @@ public class SqlOperation<T> {
         }
     }
 
-    @CutInID
     public Boolean doSave(T entity) {
         try {
             InsertOneResult insertOneResult = getCollection(entity).insertOne(new Document(checkTableField(entity)));
@@ -131,10 +132,9 @@ public class SqlOperation<T> {
         }
     }
 
-    @CutInID
     public Boolean doSave(String collectionName, Map<String, Object> entityMap) {
         try {
-            InsertOneResult insertOneResult = getCollection(entityMap, collectionName).insertOne(new Document(checkTableField(entityMap)));
+            InsertOneResult insertOneResult = getCollection(collectionName).insertOne(new Document(entityMap));
             return insertOneResult.wasAcknowledged();
         } catch (Exception e) {
             log.error("save fail , error info : {}", e.getMessage(), e);
@@ -154,7 +154,7 @@ public class SqlOperation<T> {
 
     public Boolean doSaveBatch(String collectionName, Collection<Map<String, Object>> entityList) {
         try {
-            InsertManyResult insertManyResult = getCollection(entityList.iterator().next(), collectionName).insertMany(BeanMapUtilByReflect.listToDocumentList(entityList));
+            InsertManyResult insertManyResult = getCollection(collectionName).insertMany(BeanMapUtilByReflect.mapListToDocumentList(entityList));
             return insertManyResult.getInsertedIds().size() == entityList.size();
         } catch (Exception e) {
             log.error("saveBatch fail , error info : {}", e.getMessage(), e);
@@ -205,7 +205,7 @@ public class SqlOperation<T> {
 
     public Boolean doSaveOrUpdateBatch(String collectionName, Collection<Map<String, Object>> entityList) {
         List<Map<String,Object>> insertList = new ArrayList<>();
-        for (Document document : getCollection(entityList.iterator().next(), collectionName).find(
+        for (Document document : getCollection(collectionName).find(
                 Filters.in(_ID, entityList.stream().map(entity -> entity.get(_ID)).collect(Collectors.toList()))
         )) {
             insertList.add(document);
@@ -220,25 +220,23 @@ public class SqlOperation<T> {
 
     public Boolean doUpdateById(T entity) {
         UpdateResult updateResult;
-        try {
-            BasicDBObject filter = new BasicDBObject(_ID, entity.getClass().getSuperclass().getMethod("getId").invoke(entity).toString());
-            BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), new Document(checkTableField(entity)));
-            updateResult = getCollection(entity).updateOne(filter, update);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            log.error("update fail , fail info : {}", e.getMessage(), e);
-            return false;
-        }
+        Document document = new Document(checkTableField(entity));
+        BasicDBObject filter = new BasicDBObject(_ID, new ObjectId(String.valueOf(document.get(_ID))));
+        document.remove(_ID);
+        BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
+        updateResult = getCollection(entity).updateOne(filter, update);
         return updateResult.getModifiedCount() != 0;
     }
 
     public Boolean doUpdateById(String collectionName, Map<String, Object> entityMap) {
-        if (entityMap.containsKey(_ID)) {
+        if (!entityMap.containsKey(_ID)) {
             throw new MongoException("_id undefined");
         }
         UpdateResult updateResult;
-        BasicDBObject filter = new BasicDBObject(_ID, entityMap.get(_ID));
+        BasicDBObject filter = new BasicDBObject(_ID, new ObjectId(String.valueOf(entityMap.get(_ID))));
+        entityMap.remove(_ID);
         BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), new Document(entityMap));
-        updateResult = getCollection(entityMap, collectionName).updateOne(filter, update);
+        updateResult = getCollection(collectionName).updateOne(filter, update);
         return updateResult.getModifiedCount() != 0;
     }
 
@@ -258,7 +256,7 @@ public class SqlOperation<T> {
 
     public Boolean doUpdateBatchByIds(String collectionName, Collection<Map<String, Object>> entityList) {
         for (Map<String, Object> entity : entityList) {
-            UpdateResult updateResult = getCollection(entity, collectionName).updateOne(Filters.eq(_ID, entity.get(_ID)), new Document(entity));
+            UpdateResult updateResult = getCollection(collectionName).updateOne(Filters.eq(_ID, new ObjectId(String.valueOf(entity.get(_ID)))), new Document(entity));
             return updateResult.getModifiedCount() == entityList.size();
         }
         return false;
@@ -287,7 +285,7 @@ public class SqlOperation<T> {
     }
 
     public Boolean doUpdateByColumn(String collectionName,Map<String,Object> entityMap, String column) {
-        UpdateResult updateResult = getCollection(entityMap,collectionName).updateOne(Filters.eq(column, entityMap.get(column)), new Document(entityMap));
+        UpdateResult updateResult = getCollection(collectionName).updateOne(Filters.eq(column, entityMap.get(column)), new Document(entityMap));
         return updateResult.getModifiedCount() > 0;
     }
 
@@ -297,7 +295,7 @@ public class SqlOperation<T> {
     }
 
     public Boolean doRemoveById(String collectionName,Serializable id) {
-        return getCollection(collectionName).deleteOne(Filters.eq(_ID, id)).getDeletedCount() != 0;
+        return getCollection(collectionName).deleteOne(Filters.eq(_ID, new ObjectId(String.valueOf(id)))).getDeletedCount() != 0;
     }
 
 
@@ -616,7 +614,7 @@ public class SqlOperation<T> {
         createIndex = null;
         // 检查连接是否需要重新创建
         if (!this.collectionMap.containsKey(tableName)) {
-            if (connectMongoDB == null){
+            if (connectMongoDB == null || !Objects.equals(connectMongoDB.getCollection(), tableName)){
                 connectMongoDB = new ConnectMongoDB(mongoClient, baseProperty.getDatabase(), tableName);
             }
             MongoCollection<Document> mongoCollection = connectMongoDB.open();
