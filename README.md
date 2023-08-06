@@ -32,9 +32,9 @@ MyBatisPlus就是可以不用像MyBatis一样写过多的sql语句，Mongo-Plus�
 * v2.0      修复1.0BUG</br>
 * v2.0.1    优化查询效率，增加ID生成策略，优化和MongoTemplate一起使用问题，重构链式调用结构</br>
 * v2.0.2    修复增删改时的解码器问题，增加遗漏条件</br>
-* v2.0.3    增加sql日志打印，增加遗漏条件，增加无实体类情况下的操作（MongoPlusOperation）</br>
+* v2.0.3    增加sql日志打印，增加遗漏条件，增加无实体类情况下的操作（MongoPlusOperate）</br>
 * v2.0.4    修复分页的总行数显示数量问题，增加count()函数的操作</br>
-
+* v2.0.4.1  修复分页总行数显示为所有，增加projection操作，修改日志配置，修改MongoPlusOperate增删改操作
 ### 文档
 文档地址： https://www.mongoplus.cn/
 
