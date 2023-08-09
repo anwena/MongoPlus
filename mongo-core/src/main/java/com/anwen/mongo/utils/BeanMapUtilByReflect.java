@@ -6,8 +6,10 @@ import com.alibaba.fastjson.TypeReference;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
+import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.generate.ObjectId;
+import com.anwen.mongo.sql.SqlOperation;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -16,8 +18,8 @@ import org.bson.Document;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 
 /**
@@ -56,20 +58,21 @@ public class BeanMapUtilByReflect {
         return Convert.convert(beanClass,map);
     }
 
-    public static <T> List<Document> listToDocumentList(Collection<T> collection){
+    public static <T> List<Document> listToDocumentList(Collection<T> collection,SqlOperation<T> sqlOperation){
         List<Document> documentList = new ArrayList<>();
         collection.forEach(c -> {
-            documentList.add(new Document(checkTableField(c)));
+            Map<String, Object> tableField = checkTableField(c);
+            documentList.add(new Document());
         });
         return documentList;
     }
 
     public static List<Document> mapListToDocumentList(Collection<Map<String,Object>> mapCollection){
-        List<Document> documentList = new ArrayList<>();
-        mapCollection.forEach(map -> {
-            documentList.add(new Document(map));
-        });
-        return documentList;
+        return mapCollection.stream().map(Document::new).collect(Collectors.toList());
+    }
+
+    public static int a(int i){
+        return i+1;
     }
 
     /**
@@ -92,19 +95,13 @@ public class BeanMapUtilByReflect {
      * @param entity 对象实例
      * @return 属性值Map
      */
-    public static <T> Map<String, Object> checkTableField(T entity) {
+    public static <T> Map<String, Object> checkTableField(T entity,boolean... isItAutoId) {
         // 存放结果的Map
         Map<String, Object> resultMap = new HashMap<>();
         // 获取对象的Class对象
         Class<?> entityClass = entity.getClass();
 
         try {
-            // 判断是否存在ID注解
-            /*if (!ID_ANNOTATION_CACHE.get(entityClass)) {
-                String id = generateObjectId(entity);
-                resultMap.put("_id", id);
-            }*/
-
             // 设置所有属性可访问
             Field[] fields = entityClass.getDeclaredFields();
             AccessibleObject.setAccessible(fields, true);
@@ -119,6 +116,9 @@ public class BeanMapUtilByReflect {
                 Object fieldValue = field.get(entity);
                 ID id = field.getAnnotation(ID.class);
                 if (id != null){
+                    if (id.type() == IdTypeEnum.AUTO && isItAutoId != null){
+                        resultMap.put(SqlOperationConstant.IS_IT_AUTO_ID,true);
+                    }
                     resultMap.put("_id",fieldValue == null ? IdTypeEnum.generateId(id.type()) : fieldValue);
                 }
                 // 获取属性名和属性值，并添加到结果中
@@ -128,7 +128,27 @@ public class BeanMapUtilByReflect {
                         resultMap.put("_id",new org.bson.types.ObjectId(String.valueOf(fieldValue)));
                         continue;
                     }
-                    resultMap.put(fieldName, fieldValue);
+                    //更新值是对象时，会把为null的也修改
+                    if (ClassTypeUtil.isItCustomType(field)){
+                        Class<?> fieldType = field.getType();
+                        if (fieldType.isArray() || Collection.class.isAssignableFrom(fieldType)){
+                            List<Map> mapList = JSON.parseArray(JSON.toJSONString(fieldValue), Map.class);
+                            mapList.forEach(childMap -> {
+                                childMap.values().removeIf(Objects::isNull);
+                                childMap.keySet().forEach(map -> {
+                                    resultMap.put(fieldName+"."+map,childMap.get(map));
+                                });
+                            });
+                        }else {
+                            Map<String, Object> childMap = Convert.convert(Map.class, fieldValue);
+                            childMap.values().removeIf(Objects::isNull);
+                            childMap.keySet().forEach(map -> {
+                                resultMap.put(fieldName + "." + map, childMap.get(map));
+                            });
+                        }
+                    }else {
+                        resultMap.put(fieldName, fieldValue);
+                    }
                 }
             }
         } catch (IllegalAccessException e) {

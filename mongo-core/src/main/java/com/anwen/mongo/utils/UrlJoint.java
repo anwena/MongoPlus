@@ -1,5 +1,6 @@
 package com.anwen.mongo.utils;
 
+import cn.hutool.json.JSONUtil;
 import com.anwen.mongo.domain.InitMongoCollectionException;
 import com.anwen.mongo.sql.model.BaseProperty;
 import lombok.extern.log4j.Log4j2;
@@ -28,17 +29,21 @@ public class UrlJoint {
             uri.append(baseProperty.getUsername()).append(":").append(baseProperty.getPassword()).append("@");
         }
         if (StringUtils.isNotBlank(baseProperty.getHost()) && StringUtils.isNotBlank(baseProperty.getPort())){
-            if (baseProperty.getHost().contains(",") && baseProperty.getPort().contains(",")){
+            if (baseProperty.getHost().contains(",")){
                 String[] hostArray = baseProperty.getHost().split(",");
                 String[] portArray = baseProperty.getPort().split(",");
-                if (hostArray.length != portArray.length){
+                if (hostArray.length != portArray.length && portArray.length > 1){
                     throw new InitMongoCollectionException("Host and port do not match");
                 }
-                for (String host : hostArray) {
-                    for (String port : portArray) {
-                        uri.append(host).append(":").append(port).append(",");
-                    }
+                for (int i = 0; i < hostArray.length; i++) {
+                    String host = hostArray[i];
+                    uri.append(host).append(":").append(portArray.length > 1 ? portArray[i] : portArray[0]).append(",");
                 }
+//                for (String host : hostArray) {
+//                    for (String port : portArray) {
+//                        uri.append(host).append(":").append(port).append(",");
+//                    }
+//                }
                 uri.deleteCharAt(uri.length()-1);
             }else {
                 uri.append(baseProperty.getHost()).append(":").append(baseProperty.getPort());

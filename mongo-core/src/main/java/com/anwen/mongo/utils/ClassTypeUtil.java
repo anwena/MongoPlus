@@ -54,26 +54,45 @@ public class ClassTypeUtil {
         List<Class<?>> classList = new ArrayList<>();
         Field[] declaredFields = clazz.getDeclaredFields();
         for (Field field : declaredFields) {
-            Class<?> fieldType = field.getType();
-            if (fieldType.isArray()) {
-                // 如果字段类型为数组，获取数组元素类型并添加到列表中
-                classList.add(fieldType.getComponentType());
-            } else if (Collection.class.isAssignableFrom(fieldType)) {
-                // 如果字段类型为集合，则获取集合元素的类型并添加到列表中
-                Type genericType = field.getGenericType();
-                if (genericType instanceof ParameterizedType) {
-                    ParameterizedType parameterizedType = (ParameterizedType) genericType;
-                    classList.add((Class<?>) parameterizedType.getActualTypeArguments()[0]);
-                }
-            } else {
-                // 如果字段类型为普通类型，则直接添加到列表中
-                classList.add(fieldType);
-            }
+            classList.add(getClassByFieldType(field));
         }
         // 将结果存储到缓存中
         cacheMap.put(clazz, classList);
         // 返回结果
         return classList;
+    }
+
+    /**
+     * 获取field的类型
+     * @author JiaChaoYang
+     * @date 2023/8/9 22:04
+    */
+    public static Class<?> getClassByFieldType(Field field){
+        Class<?> fieldType = field.getType();
+        if (fieldType.isArray()) {
+            // 如果字段类型为数组，获取数组元素类型并添加到列表中
+            return fieldType.getComponentType();
+        } else if (Collection.class.isAssignableFrom(fieldType)) {
+            // 如果字段类型为集合，则获取集合元素的类型并添加到列表中
+            Type genericType = field.getGenericType();
+            if (genericType instanceof ParameterizedType) {
+                ParameterizedType parameterizedType = (ParameterizedType) genericType;
+                return (Class<?>) parameterizedType.getActualTypeArguments()[0];
+            }
+        }
+        // 如果字段类型为普通类型，则直接添加到列表中
+        return fieldType;
+    }
+
+    /**
+     * 判断字段是否是自定义类型
+     * @param field 字段
+     * @return java.lang.Boolean
+     * @author JiaChaoYang
+     * @date 2023/8/9 22:05
+    */
+    public static Boolean isItCustomType(Field field){
+        return CustomClassUtil.isCustomObject(getClassByFieldType(field));
     }
 
     /**

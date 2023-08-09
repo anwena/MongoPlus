@@ -1,10 +1,22 @@
 <p align="center">
-  <a href="https://gitee.com/anwena/mongo-plus/blob/master/LICENSE"><img src="https://img.shields.io/hexpm/l/plug.svg" alt="License"></a>
-<a target="_blank" href="https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html">
+  <a href="https://gitee.com/anwena/mongo-plus/blob/master/LICENSE">
+    <img src="https://img.shields.io/hexpm/l/plug.svg" alt="License">
+  </a>
+<a href="https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html">
 	<img src="https://img.shields.io/badge/JDK-8-green.svg" alt="jdk-8" />
 </a>
+<a href='https://gitee.com/anwena/mongo-plus/stargazers'>
+  <img src='https://gitee.com/anwena/mongo-plus/badge/star.svg?theme=dark' alt='star'/>
+</a>
+<a href='https://gitee.com/anwena/mongo-plus/members'>
+  <img src='https://gitee.com/anwena/mongo-plus/badge/fork.svg?theme=dark' alt='fork'/>
+</a>
 </p>
-
+<style>
+  img {
+    height: 21px
+  }
+</style>
 ### 介绍：
 
 #### 🔥🔥🔥使用MyBatisPlus的方式，优雅的操作MongoDB

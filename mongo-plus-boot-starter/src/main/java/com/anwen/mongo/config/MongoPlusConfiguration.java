@@ -3,7 +3,6 @@ package com.anwen.mongo.config;
 import com.anwen.mongo.config.log.MongoDBLogProperty;
 import com.anwen.mongo.event.SqlOperationInitializedEvent;
 import com.anwen.mongo.log.CustomMongoDriverLogger;
-import com.anwen.mongo.sql.MongoPlusBaseMapper;
 import com.anwen.mongo.sql.SqlOperation;
 import com.anwen.mongo.sql.inject.query.MongoPlusOperate;
 import com.anwen.mongo.transactional.MongoTransactionalAspect;
@@ -49,11 +48,12 @@ public class MongoPlusConfiguration extends MongoAutoConfiguration{
 
     private MongoClient mongoClient;
 
+    private SqlOperation<?> sqlOperation;
+
     @Override
     public MongoClient mongo(ObjectProvider<MongoClientSettingsBuilderCustomizer> builderCustomizers, MongoClientSettings settings) {
         return this.mongoClient;
     }
-
 
     public MongoPlusConfiguration(MongoDBConnectProperty mongoDBConnectProperty,MongoDBLogProperty mongoDBLogProperty) {
         this.mongoDBConnectProperty = mongoDBConnectProperty;
@@ -64,6 +64,9 @@ public class MongoPlusConfiguration extends MongoAutoConfiguration{
     @ConditionalOnMissingBean
     @PostConstruct
     public SqlOperation<?> sqlOperation() {
+        if (sqlOperation != null){
+            return this.sqlOperation;
+        }
         SqlOperation<?> sqlOperation = new SqlOperation<>();
         sqlOperation.setSlaveDataSources(mongoDBConnectProperty.getSlaveDataSource());
         sqlOperation.setBaseProperty(mongoDBConnectProperty);
@@ -77,6 +80,7 @@ public class MongoPlusConfiguration extends MongoAutoConfiguration{
         sqlOperation.setMongoClient(this.mongoClient);
         // 发布自定义事件通知其他类，sqlOperation已完成初始化
         eventPublisher.publishEvent(new SqlOperationInitializedEvent(sqlOperation));
+        this.sqlOperation = sqlOperation;
         return sqlOperation;
     }
 

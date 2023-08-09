@@ -1,8 +1,8 @@
 package com.anwen.mongo.sql;
 
 import cn.hutool.core.collection.CollUtil;
-import com.anwen.mongo.annotation.CutInID;
 import com.anwen.mongo.annotation.collection.CollectionName;
+import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.domain.InitMongoCollectionException;
 import com.anwen.mongo.domain.MongoQueryException;
@@ -24,20 +24,19 @@ import com.anwen.mongo.utils.Converter;
 import com.anwen.mongo.utils.StringUtils;
 import com.anwen.mongo.utils.codec.RegisterCodecUtil;
 import com.mongodb.BasicDBObject;
-import com.mongodb.ClientSessionOptions;
 import com.mongodb.MongoException;
-import com.mongodb.client.ClientSession;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.FindOneAndUpdateOptions;
+import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.InsertManyResult;
 import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
-import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.types.ObjectId;
@@ -74,10 +73,10 @@ public class SqlOperation<T> {
     private ConnectMongoDB connectMongoDB;
 
     private Class<T> mongoEntity;
-    
-    private final String _ID = "_id";
 
     private String createIndex = null;
+
+    private String collectionName;
 
     public void setMongoEntity(Class<T> mongoEntity) {
         this.mongoEntity = mongoEntity;
@@ -113,18 +112,9 @@ public class SqlOperation<T> {
         }
     }
 
-    public void init(String collectionName) {
-        try {
-            connectMongoDB = new ConnectMongoDB(mongoClient, baseProperty.getDatabase(), collectionName);
-            collectionMap.put(collectionName, connectMongoDB.open());
-        } catch (MongoException e) {
-            log.error("Failed to connect to MongoDB: {}", e.getMessage(), e);
-        }
-    }
-
     public Boolean doSave(T entity) {
         try {
-            InsertOneResult insertOneResult = getCollection(entity).insertOne(new Document(checkTableField(entity)));
+            InsertOneResult insertOneResult = getCollection(entity).insertOne(processIdField(entity));
             return insertOneResult.wasAcknowledged();
         } catch (Exception e) {
             log.error("save fail , error info : {}", e.getMessage(), e);
@@ -144,7 +134,7 @@ public class SqlOperation<T> {
 
     public Boolean doSaveBatch(Collection<T> entityList) {
         try {
-            InsertManyResult insertManyResult = getCollection(entityList.iterator().next()).insertMany(BeanMapUtilByReflect.listToDocumentList(entityList));
+            InsertManyResult insertManyResult = getCollection(entityList.iterator().next()).insertMany(processIdFieldList(entityList));
             return insertManyResult.getInsertedIds().size() == entityList.size();
         } catch (Exception e) {
             log.error("saveBatch fail , error info : {}", e.getMessage(), e);
@@ -176,7 +166,7 @@ public class SqlOperation<T> {
     }
 
     public Boolean doSaveOrUpdate(String collectionName, Map<String, Object> entityMap) {
-        if (entityMap.containsKey(_ID)) {
+        if (entityMap.containsKey(SqlOperationConstant._ID)) {
             return doUpdateById(collectionName, entityMap);
         }
         return doSave(collectionName, entityMap);
@@ -186,7 +176,7 @@ public class SqlOperation<T> {
     public Boolean doSaveOrUpdateBatch(Collection<T> entityList) {
         List<T> insertList = new ArrayList<>();
         for (Document document : getCollection(entityList.iterator().next()).find(
-                Filters.in(_ID, entityList.stream().map(entity -> {
+                Filters.in(SqlOperationConstant._ID, entityList.stream().map(entity -> {
                     try {
                         return (String) entity.getClass().getSuperclass().getMethod("getId").invoke(entity);
                     } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
@@ -206,7 +196,7 @@ public class SqlOperation<T> {
     public Boolean doSaveOrUpdateBatch(String collectionName, Collection<Map<String, Object>> entityList) {
         List<Map<String,Object>> insertList = new ArrayList<>();
         for (Document document : getCollection(collectionName).find(
-                Filters.in(_ID, entityList.stream().map(entity -> entity.get(_ID)).collect(Collectors.toList()))
+                Filters.in(SqlOperationConstant._ID, entityList.stream().map(entity -> entity.get(SqlOperationConstant._ID)).collect(Collectors.toList()))
         )) {
             insertList.add(document);
             entityList.remove(document);
@@ -221,20 +211,20 @@ public class SqlOperation<T> {
     public Boolean doUpdateById(T entity) {
         UpdateResult updateResult;
         Document document = new Document(checkTableField(entity));
-        BasicDBObject filter = new BasicDBObject(_ID, new ObjectId(String.valueOf(document.get(_ID))));
-        document.remove(_ID);
+        BasicDBObject filter = new BasicDBObject(SqlOperationConstant._ID, new ObjectId(String.valueOf(document.get(SqlOperationConstant._ID))));
+        document.remove(SqlOperationConstant._ID);
         BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
         updateResult = getCollection(entity).updateOne(filter, update);
         return updateResult.getModifiedCount() != 0;
     }
 
     public Boolean doUpdateById(String collectionName, Map<String, Object> entityMap) {
-        if (!entityMap.containsKey(_ID)) {
+        if (!entityMap.containsKey(SqlOperationConstant._ID)) {
             throw new MongoException("_id undefined");
         }
         UpdateResult updateResult;
-        BasicDBObject filter = new BasicDBObject(_ID, new ObjectId(String.valueOf(entityMap.get(_ID))));
-        entityMap.remove(_ID);
+        BasicDBObject filter = new BasicDBObject(SqlOperationConstant._ID, new ObjectId(String.valueOf(entityMap.get(SqlOperationConstant._ID))));
+        entityMap.remove(SqlOperationConstant._ID);
         BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), new Document(entityMap));
         updateResult = getCollection(collectionName).updateOne(filter, update);
         return updateResult.getModifiedCount() != 0;
@@ -245,7 +235,7 @@ public class SqlOperation<T> {
         for (T entity : entityList) {
             UpdateResult updateResult;
             try {
-                updateResult = getCollection(entity).updateMany(Filters.eq(_ID, entity.getClass().getSuperclass().getMethod("getId").invoke(entity)), new Document(checkTableField(entity)));
+                updateResult = getCollection(entity).updateMany(Filters.eq(SqlOperationConstant._ID, entity.getClass().getSuperclass().getMethod("getId").invoke(entity)), new Document(checkTableField(entity)));
             } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                 throw new RuntimeException(e);
             }
@@ -256,7 +246,7 @@ public class SqlOperation<T> {
 
     public Boolean doUpdateBatchByIds(String collectionName, Collection<Map<String, Object>> entityList) {
         for (Map<String, Object> entity : entityList) {
-            UpdateResult updateResult = getCollection(collectionName).updateOne(Filters.eq(_ID, new ObjectId(String.valueOf(entity.get(_ID)))), new Document(entity));
+            UpdateResult updateResult = getCollection(collectionName).updateOne(Filters.eq(SqlOperationConstant._ID, new ObjectId(String.valueOf(entity.get(SqlOperationConstant._ID)))), new Document(entity));
             return updateResult.getModifiedCount() == entityList.size();
         }
         return false;
@@ -291,11 +281,11 @@ public class SqlOperation<T> {
 
 
     public Boolean doRemoveById(Serializable id) {
-        return getCollection().deleteOne(Filters.eq(_ID, id)).getDeletedCount() != 0;
+        return getCollection().deleteOne(Filters.eq(SqlOperationConstant._ID, id)).getDeletedCount() != 0;
     }
 
     public Boolean doRemoveById(String collectionName,Serializable id) {
-        return getCollection(collectionName).deleteOne(Filters.eq(_ID, new ObjectId(String.valueOf(id)))).getDeletedCount() != 0;
+        return getCollection(collectionName).deleteOne(Filters.eq(SqlOperationConstant._ID, new ObjectId(String.valueOf(id)))).getDeletedCount() != 0;
     }
 
 
@@ -314,11 +304,11 @@ public class SqlOperation<T> {
 
 
     public Boolean doRemoveBatchByIds(Collection<Serializable> idList) {
-        return getCollection().deleteMany(Filters.in(_ID, idList)).getDeletedCount() != 0;
+        return getCollection().deleteMany(Filters.in(SqlOperationConstant._ID, idList)).getDeletedCount() != 0;
     }
 
     public Boolean doRemoveBatchByIds(String collectionName,Collection<Serializable> idList) {
-        return getCollection(collectionName).deleteMany(Filters.in(_ID, idList)).getDeletedCount() != 0;
+        return getCollection(collectionName).deleteMany(Filters.in(SqlOperationConstant._ID, idList)).getDeletedCount() != 0;
     }
 
     public List<T> doList() {
@@ -364,13 +354,13 @@ public class SqlOperation<T> {
 
 
     public T doGetById(String collectionName, Serializable id) {
-        BasicDBObject byId = new BasicDBObject(_ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), id));
+        BasicDBObject byId = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), id));
         FindIterable<Document> iterable = getCollection(collectionName).find(byId);
         return (T) iterable.first();
     }
 
     public List<T> doGetByIds(String collectionName, Collection<Serializable> ids) {
-        BasicDBObject query = new BasicDBObject(_ID, new BasicDBObject(SpecialConditionEnum.IN.getCondition(), ids));
+        BasicDBObject query = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.IN.getCondition(), ids));
         FindIterable<Document> iterable = getCollection(collectionName).find(query);
         return DocumentMapperConvert.mapDocumentList(iterable, mongoEntity);
     }
@@ -398,13 +388,13 @@ public class SqlOperation<T> {
     }
 
     public T doGetById(Serializable id) {
-        BasicDBObject byId = new BasicDBObject(_ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), id));
+        BasicDBObject byId = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), id));
         FindIterable<Document> iterable = getCollection().find(byId);
         return (T) iterable.first();
     }
 
     public List<T> doGetByIds(Collection<Serializable> ids) {
-        BasicDBObject query = new BasicDBObject(_ID, new BasicDBObject(SpecialConditionEnum.IN.getCondition(), ids));
+        BasicDBObject query = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.IN.getCondition(), ids));
         FindIterable<Document> iterable = getCollection().find(query);
         return DocumentMapperConvert.mapDocumentList(iterable, mongoEntity);
     }
@@ -603,25 +593,53 @@ public class SqlOperation<T> {
     private MongoCollection<Document> getCollection() {
         createIndex = null;
         Class<?> clazz = mongoEntity;
-        String tableName = clazz.getSimpleName().toLowerCase();
+        String collectionName = clazz.getSimpleName().toLowerCase();
         if (clazz.isAnnotationPresent(CollectionName.class)) {
-            tableName = clazz.getAnnotation(CollectionName.class).value();
+            collectionName = clazz.getAnnotation(CollectionName.class).value();
         }
-        return getCollection(tableName);
+        return getCollection(collectionName);
     }
 
-    private MongoCollection<Document> getCollection(String tableName) {
+    private MongoCollection<Document> getCollection(String collectionName) {
         createIndex = null;
+        this.collectionName = collectionName;
         // 检查连接是否需要重新创建
-        if (!this.collectionMap.containsKey(tableName)) {
-            if (connectMongoDB == null || !Objects.equals(connectMongoDB.getCollection(), tableName)){
-                connectMongoDB = new ConnectMongoDB(mongoClient, baseProperty.getDatabase(), tableName);
+        if (!this.collectionMap.containsKey(collectionName)) {
+            if (connectMongoDB == null || !Objects.equals(connectMongoDB.getCollection(), collectionName)){
+                connectMongoDB = new ConnectMongoDB(mongoClient, baseProperty.getDatabase(), collectionName);
             }
             MongoCollection<Document> mongoCollection = connectMongoDB.open();
-            this.collectionMap.put(tableName, mongoCollection);
+            this.collectionMap.put(collectionName, mongoCollection);
             return mongoCollection;
         }
-        return this.collectionMap.get(tableName);
+        return this.collectionMap.get(collectionName);
+    }
+
+    private Document processIdField(T entity){
+        Map<String, Object> tableFieldMap = checkTableField(entity,true);
+        if (tableFieldMap.containsKey(SqlOperationConstant.IS_IT_AUTO_ID)){
+            long num = 1L;
+            MongoCollection<Document> collection = getCollection("counters");
+            Document query = new Document(SqlOperationConstant._ID, collectionName);
+            Document update = new Document("$inc", new Document(SqlOperationConstant.AUTO_NUM, num));
+            Document document = collection.findOneAndUpdate(query,update,new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
+            if (document == null){
+                Long finalNum = num;
+                collection.insertOne(new Document(new HashMap<String,Object>(){{
+                    put(SqlOperationConstant._ID,collectionName);
+                    put(SqlOperationConstant.AUTO_NUM, finalNum);
+                }}));
+            }else {
+                num = Long.parseLong(String.valueOf(document.get(SqlOperationConstant.AUTO_NUM)));
+            }
+            tableFieldMap.put(SqlOperationConstant._ID,num);
+            tableFieldMap.remove(SqlOperationConstant.IS_IT_AUTO_ID);
+        }
+        return new Document(tableFieldMap);
+    }
+
+    private List<Document> processIdFieldList(Collection<T> entityList){
+        return entityList.stream().map(this::processIdField).collect(Collectors.toList());
     }
 
 }

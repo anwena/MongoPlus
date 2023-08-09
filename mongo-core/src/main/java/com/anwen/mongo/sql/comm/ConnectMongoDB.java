@@ -2,6 +2,7 @@ package com.anwen.mongo.sql.comm;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import lombok.Getter;
 import org.bson.Document;
 
@@ -20,6 +21,8 @@ public class ConnectMongoDB {
 
     private final String collection;
 
+    private MongoDatabase mongoDatabase;
+
     public ConnectMongoDB(MongoClient mongoClient, String database, String collectionValue) {
         this.mongoClient = mongoClient;
         this.database = database;
@@ -27,8 +30,8 @@ public class ConnectMongoDB {
     }
 
     public MongoCollection<Document> open(){
-        return mongoClient.getDatabase(database)
-                .getCollection(collection);
+        mongoDatabase = mongoClient.getDatabase(database);
+        return mongoDatabase.getCollection(collection);
     }
 
     public boolean isSame(String database, String collection) {
