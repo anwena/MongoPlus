@@ -29,7 +29,6 @@ public enum SpecialConditionEnum {
     ;
 
 
-
     private final String condition;
 
 }

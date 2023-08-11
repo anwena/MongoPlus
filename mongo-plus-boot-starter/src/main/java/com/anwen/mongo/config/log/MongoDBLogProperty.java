@@ -25,4 +25,11 @@ public class MongoDBLogProperty {
      **/
     private Boolean log;
 
+    /**
+     * 是否开启自增id
+     * @author JiaChaoYang
+     * @date 2023/8/10 19:19
+    */
+    private Boolean isItAutoId;
+
 }

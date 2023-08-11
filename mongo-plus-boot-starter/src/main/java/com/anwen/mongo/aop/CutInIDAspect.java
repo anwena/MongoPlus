@@ -16,7 +16,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import static com.anwen.mongo.utils.AnnotationUtil.getFieldAnnotation;
+import static com.anwen.mongo.toolkit.AnnotationUtil.getFieldAnnotation;
 
 /**
  * @author JiaChaoYang

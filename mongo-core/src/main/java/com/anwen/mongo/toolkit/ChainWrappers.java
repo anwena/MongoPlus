@@ -1,8 +1,13 @@
 package com.anwen.mongo.toolkit;
 
-import com.anwen.mongo.sql.query.LambdaQueryChainWrapper;
+import com.anwen.mongo.conditions.inject.query.InjectWrapper;
+import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
+import com.anwen.mongo.conditions.query.QueryChainWrapper;
+import com.anwen.mongo.conditions.query.Wrapper;
+import com.anwen.mongo.conditions.update.LambdaUpdateChainWrapper;
 import com.anwen.mongo.sql.SqlOperation;
-import com.anwen.mongo.sql.update.LambdaUpdateChainWrapper;
+
+import java.util.Map;
 
 /**
  * 快速构建链式调用
@@ -11,7 +16,7 @@ import com.anwen.mongo.sql.update.LambdaUpdateChainWrapper;
 */ 
 public final class ChainWrappers {
 
-    public static <T> LambdaQueryChainWrapper<T> lambdaQueryChain(Class<T> clazz,SqlOperation<T> sqlOperation){
+    public static <T> LambdaQueryChainWrapper<T> lambdaQueryChain(Class<T> clazz, SqlOperation<T> sqlOperation){
         return new LambdaQueryChainWrapper<>(clazz,sqlOperation);
     }
 
@@ -19,8 +24,13 @@ public final class ChainWrappers {
         return new LambdaUpdateChainWrapper<>(sqlOperation);
     }
 
-    public static <T> LambdaQueryChainWrapper<T> lambdaQueryChain(SqlOperation<T> sqlOperation){
-        return new LambdaQueryChainWrapper<>(sqlOperation);
+    public static <T> QueryChainWrapper<T, Wrapper<T>> lambdaQueryChain(){
+        return new QueryChainWrapper<>();
     }
+
+    public static QueryChainWrapper<Map<String,Object>, InjectWrapper> lambdaQueryChainInject(){
+        return new QueryChainWrapper<>();
+    }
+
 
 }

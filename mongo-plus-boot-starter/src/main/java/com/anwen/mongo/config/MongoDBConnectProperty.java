@@ -1,8 +1,11 @@
 package com.anwen.mongo.config;
 
-import com.anwen.mongo.sql.model.BaseProperty;
-import com.anwen.mongo.sql.model.SlaveDataSource;
-import lombok.*;
+import com.anwen.mongo.model.BaseProperty;
+import com.anwen.mongo.model.SlaveDataSource;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.List;

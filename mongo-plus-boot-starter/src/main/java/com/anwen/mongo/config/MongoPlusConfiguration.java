@@ -3,10 +3,11 @@ package com.anwen.mongo.config;
 import com.anwen.mongo.config.log.MongoDBLogProperty;
 import com.anwen.mongo.event.SqlOperationInitializedEvent;
 import com.anwen.mongo.log.CustomMongoDriverLogger;
+import com.anwen.mongo.mapper.MongoPlusMapMapper;
+import com.anwen.mongo.sql.MongoPlusOperate;
 import com.anwen.mongo.sql.SqlOperation;
-import com.anwen.mongo.sql.inject.query.MongoPlusOperate;
+import com.anwen.mongo.toolkit.UrlJoint;
 import com.anwen.mongo.transactional.MongoTransactionalAspect;
-import com.anwen.mongo.utils.UrlJoint;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
@@ -70,6 +71,7 @@ public class MongoPlusConfiguration extends MongoAutoConfiguration{
         SqlOperation<?> sqlOperation = new SqlOperation<>();
         sqlOperation.setSlaveDataSources(mongoDBConnectProperty.getSlaveDataSource());
         sqlOperation.setBaseProperty(mongoDBConnectProperty);
+        sqlOperation.setIsItAutoId(mongoDBLogProperty.getIsItAutoId());
         UrlJoint urlJoint = new UrlJoint(mongoDBConnectProperty);
         MongoClientSettings.Builder builder = MongoClientSettings.builder()
                 .applyConnectionString(new ConnectionString(urlJoint.jointMongoUrl()));
@@ -87,6 +89,11 @@ public class MongoPlusConfiguration extends MongoAutoConfiguration{
     @Bean
     public MongoPlusOperate mongoPlusOperate(SqlOperation<Map<String,Object>> sqlOperation){
         return new MongoPlusOperate(sqlOperation);
+    }
+
+    @Bean
+    public MongoPlusMapMapper mongoPlusMapMapper(SqlOperation<Map<String,Object>> sqlOperation){
+        return new MongoPlusMapMapper(sqlOperation);
     }
 
     @Bean
