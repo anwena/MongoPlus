@@ -14,6 +14,6 @@ public class BaseAggregate {
 
     private String type;
 
-    private Pipeline pipeline;
+    private BasePipeline basePipeline;
 
 }

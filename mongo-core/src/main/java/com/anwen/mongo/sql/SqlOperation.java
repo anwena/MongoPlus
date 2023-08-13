@@ -445,7 +445,7 @@ public class SqlOperation<T> {
         List<BasicDBObject> basicDBObjectList = new ArrayList<>();
         aggregateList.forEach(aggregate -> {
             if (Objects.equals(aggregate.getType(), AggregateTypeEnum.MATCH.getType())){
-                basicDBObjectList.add(new BasicDBObject("$" + aggregate.getType(), buildQueryCondition(((BaseMatchAggregate) aggregate.getPipeline()).getCompareConditionList())));
+                basicDBObjectList.add(new BasicDBObject("$" + aggregate.getType(), buildQueryCondition(((BaseMatchAggregate) aggregate.getBasePipeline()).getCompareConditionList())));
             }
         });
         AggregateIterable<Document> aggregateIterable = getCollection().aggregate(basicDBObjectList);

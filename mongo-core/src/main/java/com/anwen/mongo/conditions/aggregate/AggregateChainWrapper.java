@@ -2,14 +2,11 @@ package com.anwen.mongo.conditions.aggregate;
 
 import com.anwen.mongo.conditions.interfaces.aggregate.Aggregate;
 import com.anwen.mongo.conditions.interfaces.aggregate.project.Projection;
-import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.interfaces.condition.Order;
-import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.enums.AggregateTypeEnum;
 import com.anwen.mongo.model.BaseAggregate;
 import com.anwen.mongo.model.BaseMatchAggregate;
-import com.anwen.mongo.model.Pipeline;
 
 import java.util.ArrayList;
 import java.util.List;
