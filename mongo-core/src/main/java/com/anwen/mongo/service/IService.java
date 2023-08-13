@@ -1,6 +1,7 @@
 package com.anwen.mongo.service;
 
 import com.anwen.mongo.annotation.CutInID;
+import com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper;
 import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conditions.update.LambdaUpdateChainWrapper;
@@ -131,7 +132,7 @@ public interface IService<T> {
 
     List<Map<String,Object>> list(String tableName);
 
-    T one(QueryChainWrapper<T,LambdaQueryChainWrapper<T>> queryChainWrapper);
+    T one(QueryChainWrapper<T,?> queryChainWrapper);
 
     /**
      * 获取单个，返回T类型的对象
@@ -140,13 +141,13 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @date 2023/7/20 23:20
      */
-    T limitOne(QueryChainWrapper<T,LambdaQueryChainWrapper<T>> queryChainWrapper);
+    T limitOne(QueryChainWrapper<T,?> queryChainWrapper);
 
-    List<T> list(QueryChainWrapper<T,LambdaQueryChainWrapper<T>> queryChainWrapper);
+    List<T> list(QueryChainWrapper<T ,?> queryChainWrapper);
 
     long count();
 
-    long count(QueryChainWrapper<T,LambdaQueryChainWrapper<T>> queryChainWrapper);
+    long count(QueryChainWrapper<T,?> queryChainWrapper);
 
     /**
      * 分页查询
@@ -167,7 +168,7 @@ public interface IService<T> {
     */
     PageResult<T> page(Integer pageNum,Integer pageSize);
 
-    PageResult<T> page(QueryChainWrapper<T,LambdaQueryChainWrapper<T>> lambdaQueryChainWrapper, Integer pageNum, Integer pageSize);
+    PageResult<T> page(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize);
 
     /**
      * 根据id查询单个
@@ -189,6 +190,10 @@ public interface IService<T> {
 
     default LambdaQueryChainWrapper<T> lambdaQuery(){
         return ChainWrappers.lambdaQueryChain(getEClass(),getSqlOperation());
+    }
+
+    default LambdaAggregateChainWrapper<T> lambdaAggregateChain(){
+        return ChainWrappers.lambdaAggregateChain(getEClass(),getSqlOperation());
     }
 
     default LambdaUpdateChainWrapper<T> lambdaUpdate(){

@@ -6,7 +6,7 @@ import com.anwen.mongo.toolkit.ChainWrappers;
 /**
  * @author JiaChaoYang
  **/
-public class Wrapper<T> extends AbstractChainWrapper<T,Wrapper<T>> {
+public class Wrapper<T> extends QueryChainWrapper<T,Wrapper<T>> {
     
     /**
      * 链式调用

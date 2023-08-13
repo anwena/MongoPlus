@@ -1,5 +1,6 @@
 package com.anwen.mongo.toolkit;
 
+import com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper;
 import com.anwen.mongo.conditions.inject.query.InjectWrapper;
 import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
@@ -18,6 +19,10 @@ public final class ChainWrappers {
 
     public static <T> LambdaQueryChainWrapper<T> lambdaQueryChain(Class<T> clazz, SqlOperation<T> sqlOperation){
         return new LambdaQueryChainWrapper<>(clazz,sqlOperation);
+    }
+
+    public static <T> LambdaAggregateChainWrapper<T> lambdaAggregateChain(Class<T> clazz, SqlOperation<T> sqlOperation){
+        return new LambdaAggregateChainWrapper<>(clazz,sqlOperation);
     }
 
     public static <T> LambdaUpdateChainWrapper<T> lambdaUpdateChain(SqlOperation<T> sqlOperation){

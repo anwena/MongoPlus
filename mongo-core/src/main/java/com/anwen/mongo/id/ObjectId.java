@@ -1,4 +1,4 @@
-package com.anwen.mongo.toolkit.id;
+package com.anwen.mongo.id;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ClassLoaderUtil;

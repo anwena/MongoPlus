@@ -1,7 +1,5 @@
 package com.anwen.mongo.toolkit;
 
-import com.anwen.mongo.support.BiIntFunction;
-
 import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

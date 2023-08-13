@@ -49,20 +49,4 @@ public enum IdTypeEnum {
     ;
 
     private final int key;
-
-//    public static String generateId(IdTypeEnum idTypeEnum){
-//        if (idTypeEnum.getKey() == OBJECT_ID.getKey()){
-//            return ObjectId.next(false);
-//        }
-//        if (idTypeEnum.getKey() == ASSIGN_UUID.getKey()){
-//            return UUID.randomUUID().toString().replaceAll("-","");
-//        }
-//        if (idTypeEnum.getKey() == ASSIGN_ULID.getKey()){
-//            return UlidCreator.getMonotonicUlid().toLowerCase();
-//        }
-//        if (idTypeEnum.getKey() == ASSIGN_ID.getKey()){
-//            return String.valueOf(new Sequence(null).nextId());
-//        }
-//        return null;
-//    }
 }

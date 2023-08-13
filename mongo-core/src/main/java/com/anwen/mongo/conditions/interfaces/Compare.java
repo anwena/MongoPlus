@@ -13,7 +13,7 @@ import java.util.Collection;
  * @author JiaChaoYang
  * @date 2023/6/24/024 1:37
 */ 
-public interface Compare<Children, T> extends Serializable {
+public interface Compare<T,Children> extends Serializable {
 
     /**
      * 等于

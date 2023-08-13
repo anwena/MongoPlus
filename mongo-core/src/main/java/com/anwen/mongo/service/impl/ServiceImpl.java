@@ -13,6 +13,7 @@ import org.springframework.context.ApplicationListener;
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -40,14 +41,20 @@ public class ServiceImpl<T> implements IService<T>, ApplicationListener<SqlOpera
         if (eClass != null) {
             return eClass;
         }
+
         Type superClassType = getClass().getGenericSuperclass();
         ParameterizedType pt = (ParameterizedType) superClassType;
         Type genType = pt.getActualTypeArguments()[0];
+
         if (genType instanceof Class) {
             eClass = (Class<T>) genType;
-        } else {
+        } else if (genType instanceof TypeVariable) {
+            // 处理泛型类型是 TypeVariable 的情况
             eClass = (Class<T>) Object.class;
+        } else {
+            throw new IllegalArgumentException("Unsupported generic type: " + genType);
         }
+
         return eClass;
     }
 
@@ -135,19 +142,19 @@ public class ServiceImpl<T> implements IService<T>, ApplicationListener<SqlOpera
     }
 
     @Override
-    public T one(QueryChainWrapper<T,LambdaQueryChainWrapper<T>> queryChainWrapper) {
+    public T one(QueryChainWrapper<T,?> queryChainWrapper) {
         sqlOperation.setMongoEntity(getEClass());
         return sqlOperation.doOne(queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList());
     }
 
     @Override
-    public T limitOne(QueryChainWrapper<T, LambdaQueryChainWrapper<T>> queryChainWrapper) {
+    public T limitOne(QueryChainWrapper<T, ?> queryChainWrapper) {
         sqlOperation.setMongoEntity(getEClass());
         return sqlOperation.doLimitOne(queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList());
     }
 
     @Override
-    public List<T> list(QueryChainWrapper<T,LambdaQueryChainWrapper<T>> queryChainWrapper) {
+    public List<T> list(QueryChainWrapper<T,?> queryChainWrapper) {
         sqlOperation.setMongoEntity(getEClass());
         return sqlOperation.doList(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList());
     }
@@ -159,13 +166,13 @@ public class ServiceImpl<T> implements IService<T>, ApplicationListener<SqlOpera
     }
 
     @Override
-    public long count(QueryChainWrapper<T, LambdaQueryChainWrapper<T>> queryChainWrapper) {
+    public long count(QueryChainWrapper<T, ?> queryChainWrapper) {
         sqlOperation.setMongoEntity(getEClass());
         return sqlOperation.doCount(queryChainWrapper.getCompareList());
     }
 
     @Override
-    public PageResult<T> page(QueryChainWrapper<T,LambdaQueryChainWrapper<T>> queryChainWrapper, Integer pageNum, Integer pageSize){
+    public PageResult<T> page(QueryChainWrapper<T,?> queryChainWrapper, Integer pageNum, Integer pageSize){
         sqlOperation.setMongoEntity(getEClass());
         return sqlOperation.doPage(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(), pageNum,pageSize);
     }

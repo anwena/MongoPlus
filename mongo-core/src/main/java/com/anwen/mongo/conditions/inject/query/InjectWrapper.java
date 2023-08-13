@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * @author JiaChaoYang
  **/
-public class InjectWrapper extends AbstractChainWrapper<Map<String,Object>, InjectWrapper> {
+public class InjectWrapper extends QueryChainWrapper<Map<String,Object>, InjectWrapper> {
 
     /**
      * 链式调用

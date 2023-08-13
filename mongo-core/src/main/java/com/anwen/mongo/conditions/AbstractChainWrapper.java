@@ -5,6 +5,7 @@ import com.anwen.mongo.conditions.interfaces.aggregate.project.Projection;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
+import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.enums.CompareEnum;
 import com.anwen.mongo.enums.LogicTypeEnum;
 import com.anwen.mongo.enums.ProjectionEnum;
@@ -23,7 +24,7 @@ import java.util.List;
  * @date 2023/6/24/024 0:49
 */
 @Getter
-public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Children>> implements Compare<Children,T> {
+public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Children>> implements Compare<T,Children> {
 
     protected final Children typedThis = (Children) this;
 
@@ -45,16 +46,6 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
      * @date 2023/7/30 20:34
     */
     List<Projection> projectionList = new ArrayList<>();
-
-    /**
-     * 查询条件
-     * @author JiaChaoYang
-     * @date 2023/6/25/025 15:17
-    */
-    public List<CompareCondition> getCompareList() {
-        return compareList;
-    }
-
     @Override
     public Children eq(boolean condition, SFunction<T, Object> column, Object value) {
         return condition ? eq(column,value) : typedThis;
@@ -579,7 +570,7 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
     }
 
     public Children setProjectNoneId(){
-        projectionList.add(Projection.builder().column("_id").value(ProjectionEnum.NONE.getValue()).build());
+        projectionList.add(Projection.builder().column(SqlOperationConstant._ID).value(ProjectionEnum.NONE.getValue()).build());
         return typedThis;
     }
 

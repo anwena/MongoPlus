@@ -6,63 +6,71 @@ import com.anwen.mongo.conditions.interfaces.aggregate.project.Projection;
 import com.anwen.mongo.enums.OrderEnum;
 import com.anwen.mongo.support.SFunction;
 
-public class QueryChainWrapper<T,Children extends AbstractChainWrapper<T,Children>> extends AbstractChainWrapper<T,Children> implements Query<T,Children> {
+import java.util.List;
+import java.util.Properties;
+
+public class QueryChainWrapper<T,Children extends QueryChainWrapper<T,Children>> extends AbstractChainWrapper<T,Children> implements Query<T,Children> {
 
     @Override
-    public Children projection(Projection... projection) {
+    public Children project(Projection... projection) {
         return getBaseProject(projection);
     }
 
-    @SafeVarargs
     @Override
-    public final Children projectionDisplay(SFunction<T, Object>... column) {
-        return getBaseProjectDisplay(column);
-    }
-
-    @Override
-    public Children projectionDisplay(String... column) {
-        return getBaseProjectDisplay(column);
+    public Children project(List<Projection> projectionList) {
+        return getBaseProject(projectionList.toArray(new Projection[0]));
     }
 
     @SafeVarargs
     @Override
-    public final Children projectionNone(SFunction<T, Object>... column) {
+    public final Children projectDisplay(SFunction<T, Object>... column) {
+        return getBaseProjectDisplay(column);
+    }
+
+    @Override
+    public Children projectDisplay(String... column) {
+        return getBaseProjectDisplay(column);
+    }
+
+    @SafeVarargs
+    @Override
+    public final Children projectNone(SFunction<T, Object>... column) {
         return getBaseProjectNone(column);
     }
 
     @Override
-    public Children projectionNone(String... column) {
+    public Children projectNone(String... column) {
         return getBaseProjectNone(column);
     }
 
     @Override
-    public Children projection(boolean displayId, Projection... projection) {
+    public Children project(boolean displayId, Projection... projection) {
         getBaseProject(projection);
         return displayId ? typedThis : setProjectNoneId();
     }
 
     @SafeVarargs
     @Override
-    public final Children projectionDisplay(boolean displayId, SFunction<T, Object>... column) {
+    public final Children projectDisplay(boolean displayId, SFunction<T, Object>... column) {
         getBaseProjectDisplay(column);
         return displayId ? typedThis : setProjectNoneId();
     }
 
     @Override
-    public Children projectionDisplay(boolean displayId, String... column) {
+    public Children projectDisplay(boolean displayId, String... column) {
         getBaseProjectDisplay(column);
         return displayId ? typedThis : setProjectNoneId();
     }
 
     @SafeVarargs
     @Override
-    public final Children projectionNone(boolean displayId, SFunction<T, Object>... column) {
+    public final Children projectNone(boolean displayId, SFunction<T, Object>... column) {
         getBaseProjectNone(column);
         return displayId ? typedThis : setProjectNoneId();
     }
 
     @Override
-    public Children projectionNone(boolean displayId, String... column) {
+    public Children projectNone(boolean displayId, String... column) {
         getBaseProjectNone(column);
         return displayId ? typedThis : setProjectNoneId();
     }

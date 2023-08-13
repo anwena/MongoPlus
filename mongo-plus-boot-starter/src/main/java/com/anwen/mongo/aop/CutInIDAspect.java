@@ -1,6 +1,8 @@
 package com.anwen.mongo.aop;
 
 import com.anwen.mongo.enums.IdTypeEnum;
+import com.anwen.mongo.toolkit.Generate;
+import com.anwen.mongo.toolkit.StringUtils;
 import lombok.extern.log4j.Log4j2;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
@@ -67,7 +69,7 @@ public class CutInIDAspect {
         Method fieldSetMethod = null;
         try {
             fieldSetMethod = entityClass.getMethod(fieldName, typeClass);
-            fieldSetMethod.invoke(entity, getClassTypeValue(typeClass, IdTypeEnum.generateId(idTypeEnum)));
+            fieldSetMethod.invoke(entity, getClassTypeValue(typeClass, Generate.generateId(idTypeEnum)));
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -81,7 +83,7 @@ public class CutInIDAspect {
      * @since 2023/2/13 14:52
     */
     public static String parseSetMethodName(String fieldName) {
-        if (fieldName == null || "".equals(fieldName)) {
+        if (StringUtils.isBlank(fieldName)) {
             return null;
         }
         StringBuilder methodName = new StringBuilder();

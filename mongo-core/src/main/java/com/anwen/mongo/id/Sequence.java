@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.anwen.mongo.toolkit.id;
+package com.anwen.mongo.id;
 
 import cn.hutool.core.lang.Assert;
 import com.anwen.mongo.toolkit.StringPool;
@@ -30,7 +30,7 @@ import java.util.concurrent.ThreadLocalRandom;
  *
  * <p>优化开源项目：https://gitee.com/yu120/sequence</p>
  *
- * @author hubin
+ * @author JiaChaoYang
  * @since 2016-08-18
  */
 @Log4j2

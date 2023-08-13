@@ -3,16 +3,27 @@ package com.anwen.mongo.conditions.interfaces;
 import com.anwen.mongo.conditions.interfaces.aggregate.project.Projection;
 import com.anwen.mongo.support.SFunction;
 
+import java.util.List;
+
 public interface Query<T,Children> {
 
     /**
      * 要显示哪写字段或者不显示哪些字段
-     * @param projection
+     * @param projection Projection对象
      * @return Children
      * @author JiaChaoYang
      * @date 2023/8/1 21:36
     */
-    Children projection(Projection... projection);
+    Children project(Projection... projection);
+
+    /**
+     * 要显示哪写字段或者不显示哪些字段
+     * @param projectionList Projection集合
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/8/1 21:36
+     */
+    Children project(List<Projection> projectionList);
 
     /**
      * 显示哪些字段
@@ -21,7 +32,7 @@ public interface Query<T,Children> {
      * @author JiaChaoYang
      * @date 2023/8/1 21:37
     */
-    Children projectionDisplay(SFunction<T,Object>... column);
+    Children projectDisplay(SFunction<T,Object>... column);
 
     /**
      * 显示哪些字段
@@ -30,7 +41,7 @@ public interface Query<T,Children> {
      * @author JiaChaoYang
      * @date 2023/8/1 21:37
     */
-    Children projectionDisplay(String... column);
+    Children projectDisplay(String... column);
 
     /**
      * 不显示哪些字段
@@ -39,7 +50,7 @@ public interface Query<T,Children> {
      * @author JiaChaoYang
      * @date 2023/8/1 21:37
     */
-    Children projectionNone(SFunction<T,Object>... column);
+    Children projectNone(SFunction<T,Object>... column);
 
     /**
      * 不显示哪些字段
@@ -48,7 +59,7 @@ public interface Query<T,Children> {
      * @author JiaChaoYang
      * @date 2023/8/1 21:38
     */
-    Children projectionNone(String... column);
+    Children projectNone(String... column);
 
     /**
      * 要显示哪写字段或者不显示哪些字段
@@ -59,7 +70,7 @@ public interface Query<T,Children> {
      * @author JiaChaoYang
      * @date 2023/8/1 21:36
      */
-    Children projection(boolean displayId,Projection... projection);
+    Children project(boolean displayId,Projection... projection);
 
     /**
      * 显示哪些字段
@@ -69,7 +80,7 @@ public interface Query<T,Children> {
      * @author JiaChaoYang
      * @date 2023/8/1 21:37
      */
-    Children projectionDisplay(boolean displayId,SFunction<T,Object>... column);
+    Children projectDisplay(boolean displayId,SFunction<T,Object>... column);
 
     /**
      * 显示哪些字段
@@ -79,7 +90,7 @@ public interface Query<T,Children> {
      * @author JiaChaoYang
      * @date 2023/8/1 21:37
      */
-    Children projectionDisplay(boolean displayId,String... column);
+    Children projectDisplay(boolean displayId,String... column);
 
     /**
      * 不显示哪些字段
@@ -89,7 +100,7 @@ public interface Query<T,Children> {
      * @author JiaChaoYang
      * @date 2023/8/1 21:37
      */
-    Children projectionNone(boolean displayId,SFunction<T,Object>... column);
+    Children projectNone(boolean displayId,SFunction<T,Object>... column);
 
     /**
      * 不显示哪些字段
@@ -99,7 +110,7 @@ public interface Query<T,Children> {
      * @author JiaChaoYang
      * @date 2023/8/1 21:38
      */
-    Children projectionNone(boolean displayId,String... column);
+    Children projectNone(boolean displayId,String... column);
 
 
     /**

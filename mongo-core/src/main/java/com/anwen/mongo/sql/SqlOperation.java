@@ -6,28 +6,21 @@ import com.anwen.mongo.conditions.interfaces.aggregate.project.Projection;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.conn.ConnectMongoDB;
+import com.anwen.mongo.constant.IdAutoConstant;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.convert.Converter;
 import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.domain.InitMongoCollectionException;
 import com.anwen.mongo.domain.MongoQueryException;
-import com.anwen.mongo.enums.CompareEnum;
-import com.anwen.mongo.enums.LogicTypeEnum;
-import com.anwen.mongo.enums.QueryOperatorEnum;
-import com.anwen.mongo.enums.SpecialConditionEnum;
-import com.anwen.mongo.model.BaseProperty;
-import com.anwen.mongo.model.PageParam;
-import com.anwen.mongo.model.PageResult;
-import com.anwen.mongo.model.SlaveDataSource;
+import com.anwen.mongo.enums.*;
+import com.anwen.mongo.model.*;
 import com.anwen.mongo.support.SFunction;
 import com.anwen.mongo.toolkit.BeanMapUtilByReflect;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.anwen.mongo.toolkit.codec.RegisterCodecUtil;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoCollection;
+import com.mongodb.client.*;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
@@ -181,7 +174,7 @@ public class SqlOperation<T> {
         for (Document document : getCollection(entityList.iterator().next()).find(
                 Filters.in(SqlOperationConstant._ID, entityList.stream().map(entity -> {
                     try {
-                        return (String) entity.getClass().getSuperclass().getMethod("getId").invoke(entity);
+                        return String.valueOf(entity.getClass().getSuperclass().getMethod("getId").invoke(entity));
                     } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                         throw new RuntimeException(e);
                     }
@@ -327,7 +320,7 @@ public class SqlOperation<T> {
         if (StringUtils.isNotBlank(createIndex)) {
             collection.createIndex(new Document(createIndex, QueryOperatorEnum.TEXT.getValue()));
         }
-        return Converter.convertDocumentToMap(collection.find(), Math.toIntExact(doCount(collectionName)));
+        return Converter.convertDocumentToMap(collection.find(Map.class), Math.toIntExact(doCount(collectionName)));
     }
 
     public List<Map<String, Object>> doList(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList, List<Projection> projectionList) {
@@ -448,6 +441,18 @@ public class SqlOperation<T> {
         return getCollection().countDocuments(buildQueryCondition(compareConditionList));
     }
 
+    public List<T> doAggregateList(List<BaseAggregate> aggregateList){
+        List<BasicDBObject> basicDBObjectList = new ArrayList<>();
+        aggregateList.forEach(aggregate -> {
+            if (Objects.equals(aggregate.getType(), AggregateTypeEnum.MATCH.getType())){
+                basicDBObjectList.add(new BasicDBObject("$" + aggregate.getType(), buildQueryCondition(((BaseMatchAggregate) aggregate.getPipeline()).getCompareConditionList())));
+            }
+        });
+        AggregateIterable<Document> aggregateIterable = getCollection().aggregate(basicDBObjectList);
+        return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),mongoEntity);
+    }
+
+
     private List<T> getLambdaQueryResult(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList) {
         return DocumentMapperConvert.mapDocumentList(baseLambdaQuery(compareConditionList, orderList,projectionList), mongoEntity);
     }
@@ -473,7 +478,7 @@ public class SqlOperation<T> {
         return collection.find(basicDBObject).projection(buildProjection(projectionList)).sort(sortCond);
     }
 
-    private FindIterable<Document> baseLambdaQuery(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList) {
+    private FindIterable<Map> baseLambdaQuery(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList) {
         BasicDBObject sortCond = new BasicDBObject();
         orderList.forEach(order -> sortCond.put(order.getColumn(), order.getType()));
         MongoCollection<Document> collection = getCollection(collectionName);
@@ -481,7 +486,7 @@ public class SqlOperation<T> {
         if (StringUtils.isNotBlank(createIndex)) {
             collection.createIndex(new Document(createIndex, QueryOperatorEnum.TEXT.getValue()));
         }
-        return collection.find(basicDBObject).projection(buildProjection(projectionList)).sort(sortCond);
+        return collection.find(basicDBObject,Map.class).projection(buildProjection(projectionList)).sort(sortCond);
     }
 
     private PageResult<T> getLambdaQueryResultPage(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList, PageParam pageParams) {
@@ -498,7 +503,7 @@ public class SqlOperation<T> {
 
     private PageResult<Map<String, Object>> getLambdaQueryResultPage(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList, PageParam pageParams) {
         PageResult<Map<String, Object>> pageResult = new PageResult<>();
-        FindIterable<Document> documentFindIterable = baseLambdaQuery(collectionName, compareConditionList, orderList,projectionList);
+        FindIterable<Map> documentFindIterable = baseLambdaQuery(collectionName, compareConditionList, orderList,projectionList);
         long totalSize = doCount(collectionName,compareConditionList);
         pageResult.setPageNum(pageParams.getPageNum());
         pageResult.setPageSize(pageParams.getPageSize());
@@ -525,7 +530,7 @@ public class SqlOperation<T> {
     private BasicDBObject buildQueryCondition(List<CompareCondition> compareConditionList) {
         return new BasicDBObject() {{
             compareConditionList.stream().filter(compareCondition -> compareCondition.getType() == CompareEnum.QUERY.getKey()).collect(Collectors.toList()).forEach(compare -> {
-                if (Objects.equals(compare.getCondition(), QueryOperatorEnum.LIKE.getValue()) && StringUtils.isNotBlank((String) compare.getValue())) {
+                if (Objects.equals(compare.getCondition(), QueryOperatorEnum.LIKE.getValue()) && StringUtils.isNotBlank(String.valueOf(compare.getValue()))) {
                     put(compare.getColumn(), new BasicDBObject(SpecialConditionEnum.REGEX.getCondition(), compare.getValue()));
                 } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.OR.getKey())) {
                     if (CollUtil.isEmpty(compare.getChildCondition())) {
@@ -556,7 +561,7 @@ public class SqlOperation<T> {
         List<BasicDBObject> basicDBObjectList = new ArrayList<>();
         compareConditionList.forEach(compare -> {
             BasicDBObject basicDBObject = new BasicDBObject();
-            if (Objects.equals(compare.getCondition(), QueryOperatorEnum.LIKE.getValue()) && StringUtils.isNotBlank((String) compare.getValue())) {
+            if (Objects.equals(compare.getCondition(), QueryOperatorEnum.LIKE.getValue()) && StringUtils.isNotBlank(String.valueOf(compare.getValue()))) {
                 basicDBObject.put(compare.getColumn(), new BasicDBObject(SpecialConditionEnum.REGEX.getCondition(), compare.getValue()));
             } else if (Objects.equals(compare.getCondition(), QueryOperatorEnum.AND.getValue())) {
                 basicDBObjectList.add(buildQueryCondition(compare.getChildCondition()));
@@ -619,8 +624,8 @@ public class SqlOperation<T> {
     }
 
     private Document processIdField(T entity){
-        Map<String, Object> tableFieldMap = checkTableField(entity,true);
-        if (tableFieldMap.containsKey(SqlOperationConstant.IS_IT_AUTO_ID)){
+        Map<String, Object> tableFieldMap = checkTableField(entity);
+        if (IdAutoConstant.IS_IT_AUTO_ID){
             long num = 1L;
             MongoCollection<Document> collection = getCollection("counters");
             Document query = new Document(SqlOperationConstant._ID, collectionName);

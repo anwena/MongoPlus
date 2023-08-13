@@ -19,11 +19,9 @@ public class Converter {
      * @author JiaChaoYang
      * @date 2023/6/29/029
     */
-    public static List<Map<String, Object>> convertDocumentToMap(FindIterable<Document> iterable) {
-        /*int i = Integer.parseInt(String.valueOf(StreamSupport.stream(iterable.spliterator(), false)
-                .count()));*/
-        List<Map<String, Object>> resultList = new ArrayList<>(10000);
-        try (MongoCursor<Document> cursor = iterable.iterator()) {
+    public static List<Map<String, Object>> convertDocumentToMap(FindIterable<Map> iterable) {
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        try (MongoCursor<Map> cursor = iterable.iterator()) {
             while (cursor.hasNext()) {
                 resultList.add(cursor.next());
             }
@@ -31,10 +29,10 @@ public class Converter {
         return resultList;
     }
 
-    public static List<Map<String, Object>> convertDocumentToMap(FindIterable<Document> iterable,Integer total) {
+    public static List<Map<String, Object>> convertDocumentToMap(FindIterable<Map> iterable,Integer total) {
         List<Map<String, Object>> resultList = new ArrayList<>(total);
-        for (Document document : iterable.batchSize(total)) {
-            resultList.add(document);
+        for (Map<String,Object> map : iterable.batchSize(total)) {
+            resultList.add(map);
         }
         return resultList;
     }
