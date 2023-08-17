@@ -1,12 +1,17 @@
 package com.anwen.mongo.conditions.aggregate;
 
+import com.anwen.mongo.conditions.accumulator.Accumulator;
+import com.anwen.mongo.conditions.accumulator.AccumulatorInterface;
 import com.anwen.mongo.conditions.interfaces.aggregate.Aggregate;
 import com.anwen.mongo.conditions.interfaces.aggregate.project.Projection;
 import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.enums.AggregateTypeEnum;
+import com.anwen.mongo.enums.GroupTypeEnum;
 import com.anwen.mongo.model.BaseAggregate;
+import com.anwen.mongo.model.BaseGroupAggregate;
 import com.anwen.mongo.model.BaseMatchAggregate;
+import com.anwen.mongo.support.SFunction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +19,7 @@ import java.util.List;
 /**
  * @author JiaChaoYang
  **/
-public class AggregateChainWrapper<T,Children> implements Aggregate<T,Children> {
+public class AggregateChainWrapper<T,Children> implements Aggregate<T,Children>, AccumulatorInterface<T> {
 
     List<BaseAggregate> baseAggregateList = new ArrayList<>();
 
@@ -47,8 +52,45 @@ public class AggregateChainWrapper<T,Children> implements Aggregate<T,Children> 
     }
 
     @Override
-    public Children group() {
-        return null;
+    public Children group(SFunction<T, Object> _id, Accumulator accumulator) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(),new BaseGroupAggregate(accumulator)));
+        return typedThis;
+    }
+
+    @Override
+    public Children group(String _id, Accumulator... accumulator) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(),new BaseGroupAggregate(accumulator)));
+        return typedThis;
+    }
+
+    @Override
+    public Children group(List<Accumulator> accumulatorList) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(),new BaseGroupAggregate(accumulatorList)));
+        return typedThis;
+    }
+
+    @Override
+    public Children group(String resultMappingField, String operator, String field) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new BaseGroupAggregate(new Accumulator(resultMappingField,operator,field))));
+        return typedThis;
+    }
+
+    @Override
+    public Children group(String resultMappingField, GroupTypeEnum operator, String field) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new BaseGroupAggregate(new Accumulator(resultMappingField,operator.getOperator(),field))));
+        return typedThis;
+    }
+
+    @Override
+    public Children group(SFunction<T, Object> resultMappingField, String operator, SFunction<T, Object> field) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new BaseGroupAggregate(new Accumulator(resultMappingField.getFieldNameLine(),operator,field.getFieldNameLine()))));
+        return typedThis;
+    }
+
+    @Override
+    public Children group(SFunction<T, Object> resultMappingField, GroupTypeEnum operator, SFunction<T, Object> field) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new BaseGroupAggregate(new Accumulator(resultMappingField.getFieldNameLine(),operator.getOperator(),field.getFieldNameLine()))));
+        return typedThis;
     }
 
     @Override

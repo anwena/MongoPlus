@@ -64,11 +64,11 @@ public class MongoPlusConfiguration extends MongoAutoConfiguration{
     @Bean
     @ConditionalOnMissingBean
     @PostConstruct
-    public SqlOperation<?> sqlOperation() {
+    public <T> SqlOperation<T> sqlOperation() {
         if (sqlOperation != null){
-            return this.sqlOperation;
+            return (SqlOperation<T>) this.sqlOperation;
         }
-        SqlOperation<?> sqlOperation = new SqlOperation<>();
+        SqlOperation<T> sqlOperation = new SqlOperation<>();
         sqlOperation.setSlaveDataSources(mongoDBConnectProperty.getSlaveDataSource());
         sqlOperation.setBaseProperty(mongoDBConnectProperty);
 //        sqlOperation.setIsItAutoId(mongoDBLogProperty.getIsItAutoId());

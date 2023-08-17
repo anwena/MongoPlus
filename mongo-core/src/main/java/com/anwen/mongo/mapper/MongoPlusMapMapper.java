@@ -37,17 +37,17 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
-    public List<Map<String, Object>> list(String collectionName, QueryChainWrapper<Map<String,Object>,LambdaQueryChainInjectWrapper> queryChainWrapper) {
+    public List<Map<String, Object>> list(String collectionName, QueryChainWrapper<Map<String,Object>,?> queryChainWrapper) {
         return sqlOperation.doList(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList());
     }
 
     @Override
-    public Map<String, Object> one(String collectionName, QueryChainWrapper<Map<String,Object>,LambdaQueryChainInjectWrapper> queryChainWrapper) {
+    public Map<String, Object> one(String collectionName, QueryChainWrapper<Map<String,Object>,?> queryChainWrapper) {
         return sqlOperation.doOne(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList());
     }
 
     @Override
-    public Map<String, Object> limitOne(String collectionName, QueryChainWrapper<Map<String, Object>, LambdaQueryChainInjectWrapper> queryChainWrapper) {
+    public Map<String, Object> limitOne(String collectionName, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
         return sqlOperation.doLimitOne(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList());
     }
 
@@ -58,7 +58,7 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
-    public PageResult<Map<String, Object>> page(String collectionName, PageParam pageParam, QueryChainWrapper<Map<String,Object>,LambdaQueryChainInjectWrapper> queryChainWrapper) {
+    public PageResult<Map<String, Object>> page(String collectionName, PageParam pageParam, QueryChainWrapper<Map<String,Object>,?> queryChainWrapper) {
         return sqlOperation.doPage(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),pageParam.getPageNum(),pageParam.getPageSize());
     }
 
@@ -68,7 +68,7 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
-    public PageResult<Map<String, Object>> page(String collectionName, Integer pageNum, Integer pageSize, QueryChainWrapper<Map<String,Object>,LambdaQueryChainInjectWrapper> queryChainWrapper) {
+    public PageResult<Map<String, Object>> page(String collectionName, Integer pageNum, Integer pageSize, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
         return sqlOperation.doPage(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),pageNum,pageSize);
     }
 
@@ -133,7 +133,7 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
-    public long count(String collectionName, QueryChainWrapper<Map<String,Object>,LambdaQueryChainInjectWrapper> queryChainWrapper) {
+    public long count(String collectionName, QueryChainWrapper<Map<String,Object>,?> queryChainWrapper) {
         return sqlOperation.doCount(collectionName,queryChainWrapper.getCompareList());
     }
 

@@ -16,7 +16,7 @@ public enum AggregateTypeEnum {
 
     LIMIT("limit"),
 
-    SKIP("skip["),
+    SKIP("skip"),
 
     SORT("sort"),
 

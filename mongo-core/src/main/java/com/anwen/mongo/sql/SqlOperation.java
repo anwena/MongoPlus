@@ -2,6 +2,7 @@ package com.anwen.mongo.sql;
 
 import cn.hutool.core.collection.CollUtil;
 import com.anwen.mongo.annotation.collection.CollectionName;
+import com.anwen.mongo.conditions.accumulator.Accumulator;
 import com.anwen.mongo.conditions.interfaces.aggregate.project.Projection;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.interfaces.condition.Order;
@@ -446,6 +447,8 @@ public class SqlOperation<T> {
         aggregateList.forEach(aggregate -> {
             if (Objects.equals(aggregate.getType(), AggregateTypeEnum.MATCH.getType())){
                 basicDBObjectList.add(new BasicDBObject("$" + aggregate.getType(), buildQueryCondition(((BaseMatchAggregate) aggregate.getBasePipeline()).getCompareConditionList())));
+            }else if (Objects.equals(aggregate.getType(),AggregateTypeEnum.GROUP.getType())){
+                basicDBObjectList.add(new BasicDBObject("$" + aggregate.getType(),buildGroup(((BaseGroupAggregate) aggregate.getBasePipeline()).getAccumulatorList())));
             }
         });
         AggregateIterable<Document> aggregateIterable = getCollection().aggregate(basicDBObjectList);
@@ -588,6 +591,16 @@ public class SqlOperation<T> {
                 put(compare.getColumn(), compare.getValue());
             });
         }};
+    }
+
+    private BasicDBObject buildGroup(List<Accumulator> accumulatorList){
+        BasicDBObject basicDBObject = new BasicDBObject();
+        accumulatorList.forEach(accumulator -> {
+            basicDBObject.put(accumulator.getResultMappingField(),new BasicDBObject(){{
+                put("$"+accumulator.getCondition(),"$"+accumulator.getField());
+            }});
+        });
+        return basicDBObject;
     }
 
     private MongoCollection<Document> getCollection(T entity) {

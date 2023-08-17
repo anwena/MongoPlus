@@ -19,11 +19,11 @@ import java.util.Map;
  **/
 public interface InjectQuery extends CommInjectQuery {
 
-    List<Map<String,Object>> list(String collectionName, QueryChainWrapper<Map<String,Object>,LambdaQueryChainInjectWrapper> queryChainWrapper);
+    List<Map<String,Object>> list(String collectionName, QueryChainWrapper<Map<String,Object>,?> queryChainWrapper);
 
-    PageResult<Map<String,Object>> page(String collectionName,PageParam pageParam,QueryChainWrapper<Map<String,Object>,LambdaQueryChainInjectWrapper> queryChainWrapper);
+    PageResult<Map<String,Object>> page(String collectionName,PageParam pageParam,QueryChainWrapper<Map<String,Object>,?> queryChainWrapper);
 
-    PageResult<Map<String,Object>> page(String collectionName , Integer pageNum, Integer pageSize,QueryChainWrapper<Map<String,Object>,LambdaQueryChainInjectWrapper> queryChainWrapper);
+    PageResult<Map<String,Object>> page(String collectionName , Integer pageNum, Integer pageSize,QueryChainWrapper<Map<String,Object>,?> queryChainWrapper);
 
     Map<String,Object> getById(String collectionName ,Serializable id);
 
@@ -141,7 +141,7 @@ public interface InjectQuery extends CommInjectQuery {
      * @author JiaChaoYang
      * @date 2023/7/20 23:19
      */
-    Map<String,Object> one(String collectionName, QueryChainWrapper<Map<String,Object>,LambdaQueryChainInjectWrapper> queryChainWrapper);
+    Map<String,Object> one(String collectionName, QueryChainWrapper<Map<String,Object>,?> queryChainWrapper);
 
     /**
      * 获取单个，返回T类型的对象
@@ -151,15 +151,15 @@ public interface InjectQuery extends CommInjectQuery {
      * @author JiaChaoYang
      * @date 2023/7/20 23:20
      */
-    Map<String,Object> limitOne(String collectionName, QueryChainWrapper<Map<String,Object>,LambdaQueryChainInjectWrapper> queryChainWrapper);
+    Map<String,Object> limitOne(String collectionName, QueryChainWrapper<Map<String,Object>,?> queryChainWrapper);
 
     /**
      * 获取总行数
      * @param collectionName 集合名
-     * @param lambdaQueryChainInjectWrapper 条件构造器
+     * @param queryChainWrapper 条件构造器
      * @return {@link long}
      * @author JiaChaoYang
      * @date 2023/7/27 13:12
      */
-    long count(String collectionName, QueryChainWrapper<Map<String,Object>,LambdaQueryChainInjectWrapper> queryChainWrapper);
+    long count(String collectionName, QueryChainWrapper<Map<String,Object>,?> queryChainWrapper);
 }

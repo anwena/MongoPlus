@@ -1,9 +1,15 @@
 package com.anwen.mongo.model;
 
+import com.anwen.mongo.conditions.accumulator.Accumulator;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * 分组操作
@@ -15,30 +21,19 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class BaseGroupAggregate extends BasePipeline {
+
     /**
-     * 返回字段名
+     * group条件
      * @author JiaChaoYang
-     * @date 2023/8/13 23:53
+     * @date 2023/8/17 22:48
     */
-    /**
-     * 返回字段名
-     * @author JiaChaoYang
-     * @date 2023/8/13 23:53
-     */
-    private String field;
+    private List<Accumulator> accumulatorList;
 
-    /**
-     * 累计操作符
-     * @author JiaChaoYang
-     * @date 2023/8/13 23:53
-     */
-    private String accumulator;
+    public BaseGroupAggregate(Accumulator accumulator) {
+        this.accumulatorList = new ArrayList<>(Collections.singleton(accumulator));
+    }
 
-    /**
-     * 表达式
-     * @author JiaChaoYang
-     * @date 2023/8/13 23:54
-     */
-    private String expression;
-
+    public BaseGroupAggregate(Accumulator[] accumulators) {
+        this.accumulatorList = new ArrayList<>(Arrays.asList(accumulators));
+    }
 }
