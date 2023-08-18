@@ -1,15 +1,8 @@
-package com.anwen.mongo.sql;
+package com.anwen.mongo.execute;
 
-import com.anwen.mongo.conditions.inject.query.LambdaQueryChainInjectWrapper;
-import com.anwen.mongo.conditions.inject.update.LambdaUpdateChainInjectWrapper;
 import com.anwen.mongo.conditions.interfaces.Inject.InjectQuery;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
-import com.anwen.mongo.model.PageParam;
-import com.anwen.mongo.model.PageResult;
 
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 /**

@@ -15,7 +15,7 @@ import java.util.List;
  *
  * @author JiaChaoYang
  **/
-public interface Aggregate<T,Children> extends Serializable {
+public interface Aggregate<T,Children> extends Serializable{
 
     /**
      * 过滤文档记录，只将匹配的文档记录传递到管道中的下一个步骤
@@ -116,7 +116,18 @@ public interface Aggregate<T,Children> extends Serializable {
      * @author JiaChaoYang
      * @date 2023/8/12 21:07
      */
-    Children group(List<Accumulator> accumulatorList);
+    Children group(SFunction<T,Object> _id , List<Accumulator> accumulatorList);
+
+    /**
+     * 对所有文档记录进行分组，然后计算聚合结果
+     *
+     * @param
+     * @param accumulatorList
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/8/12 21:07
+     */
+    Children group(String _id , List<Accumulator> accumulatorList);
 
     /**
      * 对所有文档记录进行分组，然后计算聚合结果
@@ -127,18 +138,7 @@ public interface Aggregate<T,Children> extends Serializable {
      * @author JiaChaoYang
      * @date 2023/8/17 22:51
     */
-    Children group(String resultMappingField,String operator,String field);
-
-    /**
-     * 对所有文档记录进行分组，然后计算聚合结果
-     * @param resultMappingField 结果映射字段
-     * @param operator Group条件枚举
-     * @param field 列名、字段名
-     * @return Children
-     * @author JiaChaoYang
-     * @date 2023/8/17 22:51
-     */
-    Children group(String resultMappingField, GroupTypeEnum operator, String field);
+    Children group(SFunction<T,Object> _id , String resultMappingField,String operator,String field);
 
     /**
      * 对所有文档记录进行分组，然后计算聚合结果
@@ -149,7 +149,20 @@ public interface Aggregate<T,Children> extends Serializable {
      * @author JiaChaoYang
      * @date 2023/8/17 22:51
      */
-    Children group(SFunction<T,Object> resultMappingField, String operator, SFunction<T,Object> field);
+    Children group(String _id , String resultMappingField,String operator,String field);
+
+    /**
+     * 对所有文档记录进行分组，然后计算聚合结果
+     *
+     * @param _id
+     * @param resultMappingField 结果映射字段
+     * @param operator           Group条件枚举
+     * @param field              列名、字段名
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/8/17 22:51
+     */
+    Children group(SFunction<T,Object> _id , String resultMappingField, GroupTypeEnum operator, String field);
 
     /**
      * 对所有文档记录进行分组，然后计算聚合结果
@@ -160,7 +173,51 @@ public interface Aggregate<T,Children> extends Serializable {
      * @author JiaChaoYang
      * @date 2023/8/17 22:51
      */
-    Children group(SFunction<T,Object> resultMappingField, GroupTypeEnum operator, SFunction<T,Object> field);
+    Children group(String _id , String resultMappingField, GroupTypeEnum operator, String field);
+
+    /**
+     * 对所有文档记录进行分组，然后计算聚合结果
+     * @param resultMappingField 结果映射字段
+     * @param operator 操作，参考{@link com.anwen.mongo.enums.GroupTypeEnum}枚举
+     * @param field 列名、字段名
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/8/17 22:51
+     */
+    Children group(SFunction<T,Object> _id , SFunction<T,Object> resultMappingField, String operator, SFunction<T,Object> field);
+
+    /**
+     * 对所有文档记录进行分组，然后计算聚合结果
+     * @param resultMappingField 结果映射字段
+     * @param operator 操作，参考{@link com.anwen.mongo.enums.GroupTypeEnum}枚举
+     * @param field 列名、字段名
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/8/17 22:51
+     */
+    Children group(String _id , SFunction<T,Object> resultMappingField, String operator, SFunction<T,Object> field);
+
+    /**
+     * 对所有文档记录进行分组，然后计算聚合结果
+     * @param resultMappingField 结果映射字段
+     * @param operator Group条件枚举
+     * @param field 列名、字段名
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/8/17 22:51
+     */
+    Children group(String _id , SFunction<T,Object> resultMappingField, GroupTypeEnum operator, SFunction<T,Object> field);
+
+    /**
+     * 对所有文档记录进行分组，然后计算聚合结果
+     * @param resultMappingField 结果映射字段
+     * @param operator Group条件枚举
+     * @param field 列名、字段名
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/8/17 22:51
+     */
+    Children group(SFunction<T,Object> _id , SFunction<T,Object> resultMappingField, GroupTypeEnum operator, SFunction<T,Object> field);
 
     /**
      * 实现集合之间的join操作

@@ -1,6 +1,5 @@
 package com.anwen.mongo.conditions.query;
 
-import com.anwen.mongo.conditions.AbstractChainWrapper;
 import com.anwen.mongo.toolkit.ChainWrappers;
 
 /**

@@ -1,7 +1,7 @@
 package com.anwen.mongo.conditions.update;
 
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
-import com.anwen.mongo.sql.SqlOperation;
+import com.anwen.mongo.execute.SqlOperation;
 
 import java.util.ArrayList;
 import java.util.List;

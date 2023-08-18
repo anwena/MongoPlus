@@ -7,7 +7,6 @@ import com.anwen.mongo.enums.OrderEnum;
 import com.anwen.mongo.support.SFunction;
 
 import java.util.List;
-import java.util.Properties;
 
 public class QueryChainWrapper<T,Children extends QueryChainWrapper<T,Children>> extends AbstractChainWrapper<T,Children> implements Query<T,Children> {
 

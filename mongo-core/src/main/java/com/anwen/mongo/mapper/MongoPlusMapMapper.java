@@ -4,9 +4,9 @@ import com.anwen.mongo.conditions.inject.query.LambdaQueryChainInjectWrapper;
 import com.anwen.mongo.conditions.inject.update.LambdaUpdateChainInjectWrapper;
 import com.anwen.mongo.conditions.interfaces.Inject.InjectQuery;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
+import com.anwen.mongo.execute.SqlOperation;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
-import com.anwen.mongo.sql.SqlOperation;
 
 import java.io.Serializable;
 import java.util.Collection;

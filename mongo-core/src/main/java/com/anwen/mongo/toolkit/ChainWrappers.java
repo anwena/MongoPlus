@@ -1,5 +1,6 @@
 package com.anwen.mongo.toolkit;
 
+import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.aggregate.AggregateWrapper;
 import com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper;
 import com.anwen.mongo.conditions.inject.query.InjectWrapper;
@@ -7,7 +8,7 @@ import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conditions.query.Wrapper;
 import com.anwen.mongo.conditions.update.LambdaUpdateChainWrapper;
-import com.anwen.mongo.sql.SqlOperation;
+import com.anwen.mongo.execute.SqlOperation;
 
 import java.util.Map;
 
@@ -38,8 +39,8 @@ public final class ChainWrappers {
         return new QueryChainWrapper<>();
     }
 
-    public static <T> QueryChainWrapper<T, AggregateWrapper<T>> lambdaAggregateChain(){
-        return new QueryChainWrapper<>();
+    public static <T> AggregateChainWrapper<T, AggregateWrapper<T>> lambdaAggregateChain(){
+        return new AggregateChainWrapper<>();
     }
 
 }

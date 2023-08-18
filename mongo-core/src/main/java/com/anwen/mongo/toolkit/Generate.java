@@ -3,7 +3,6 @@ package com.anwen.mongo.toolkit;
 import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.id.IdWorker;
 import com.anwen.mongo.id.ObjectId;
-import com.anwen.mongo.id.Sequence;
 import com.github.f4b6a3.ulid.UlidCreator;
 
 import java.util.UUID;

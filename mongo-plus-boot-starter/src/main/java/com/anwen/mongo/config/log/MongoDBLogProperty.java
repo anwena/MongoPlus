@@ -23,6 +23,6 @@ public class MongoDBLogProperty {
      * @author: JiaChaoYang
      * @date: 2023/6/7 23:08
      **/
-    private Boolean log;
+    private Boolean log = false;
 
 }

@@ -1,9 +1,9 @@
 package com.anwen.mongo.conditions.inject.query;
 
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
+import com.anwen.mongo.execute.SqlOperation;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
-import com.anwen.mongo.sql.SqlOperation;
 
 import java.util.List;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package com.anwen.mongo.sql;
+package com.anwen.mongo.execute;
 
 import cn.hutool.core.collection.CollUtil;
 import com.anwen.mongo.annotation.collection.CollectionName;
@@ -13,7 +13,10 @@ import com.anwen.mongo.convert.Converter;
 import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.domain.InitMongoCollectionException;
 import com.anwen.mongo.domain.MongoQueryException;
-import com.anwen.mongo.enums.*;
+import com.anwen.mongo.enums.CompareEnum;
+import com.anwen.mongo.enums.LogicTypeEnum;
+import com.anwen.mongo.enums.QueryOperatorEnum;
+import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.model.*;
 import com.anwen.mongo.support.SFunction;
 import com.anwen.mongo.toolkit.BeanMapUtilByReflect;
@@ -21,7 +24,10 @@ import com.anwen.mongo.toolkit.StringUtils;
 import com.anwen.mongo.toolkit.codec.RegisterCodecUtil;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
-import com.mongodb.client.*;
+import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
@@ -444,13 +450,7 @@ public class SqlOperation<T> {
 
     public List<T> doAggregateList(List<BaseAggregate> aggregateList){
         List<BasicDBObject> basicDBObjectList = new ArrayList<>();
-        aggregateList.forEach(aggregate -> {
-            if (Objects.equals(aggregate.getType(), AggregateTypeEnum.MATCH.getType())){
-                basicDBObjectList.add(new BasicDBObject("$" + aggregate.getType(), buildQueryCondition(((BaseMatchAggregate) aggregate.getBasePipeline()).getCompareConditionList())));
-            }else if (Objects.equals(aggregate.getType(),AggregateTypeEnum.GROUP.getType())){
-                basicDBObjectList.add(new BasicDBObject("$" + aggregate.getType(),buildGroup(((BaseGroupAggregate) aggregate.getBasePipeline()).getAccumulatorList())));
-            }
-        });
+        aggregateList.forEach(aggregate -> basicDBObjectList.add(new BasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate())));
         AggregateIterable<Document> aggregateIterable = getCollection().aggregate(basicDBObjectList);
         return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),mongoEntity);
     }
@@ -516,6 +516,11 @@ public class SqlOperation<T> {
         return pageResult;
     }
 
+    /**
+     * 构建projection条件
+     * @author JiaChaoYang
+     * @date 2023/8/19 0:11
+    */
     private BasicDBObject buildProjection(List<Projection> projectionList){
         return new BasicDBObject(){{
             projectionList.forEach(projection -> {
@@ -593,6 +598,11 @@ public class SqlOperation<T> {
         }};
     }
 
+    /**
+     * 构建group条件
+     * @author JiaChaoYang
+     * @date 2023/8/19 0:11
+    */
     private BasicDBObject buildGroup(List<Accumulator> accumulatorList){
         BasicDBObject basicDBObject = new BasicDBObject();
         accumulatorList.forEach(accumulator -> {

@@ -1,12 +1,12 @@
 package com.anwen.mongo.service.impl;
 
-import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
+import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.event.SqlOperationInitializedEvent;
+import com.anwen.mongo.execute.SqlOperation;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 import com.anwen.mongo.service.IService;
-import com.anwen.mongo.sql.SqlOperation;
 import com.anwen.mongo.support.SFunction;
 import org.springframework.context.ApplicationListener;
 
@@ -157,6 +157,12 @@ public class ServiceImpl<T> implements IService<T>, ApplicationListener<SqlOpera
     public List<T> list(QueryChainWrapper<T,?> queryChainWrapper) {
         sqlOperation.setMongoEntity(getEClass());
         return sqlOperation.doList(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList());
+    }
+
+    @Override
+    public List<T> list(AggregateChainWrapper<T,?> queryChainWrapper) {
+        sqlOperation.setMongoEntity(getEClass());
+        return sqlOperation.doAggregateList(queryChainWrapper.getBaseAggregateList());
     }
 
     @Override

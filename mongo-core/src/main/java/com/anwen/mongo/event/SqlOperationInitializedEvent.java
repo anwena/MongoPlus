@@ -1,7 +1,7 @@
 package com.anwen.mongo.event;
 
 
-import com.anwen.mongo.sql.SqlOperation;
+import com.anwen.mongo.execute.SqlOperation;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
