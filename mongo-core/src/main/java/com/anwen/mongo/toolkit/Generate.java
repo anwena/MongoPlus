@@ -2,8 +2,8 @@ package com.anwen.mongo.toolkit;
 
 import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.id.IdWorker;
-import com.anwen.mongo.id.ObjectId;
 import com.github.f4b6a3.ulid.UlidCreator;
+import org.bson.types.ObjectId;
 
 import java.util.UUID;
 
@@ -15,7 +15,7 @@ public class Generate {
 
     public static String generateId(IdTypeEnum idTypeEnum){
         if (idTypeEnum.getKey() == IdTypeEnum.OBJECT_ID.getKey()){
-            return ObjectId.next(false);
+            return ObjectId.get().toHexString();
         }
         if (idTypeEnum.getKey() == IdTypeEnum.ASSIGN_UUID.getKey()){
             return UUID.randomUUID().toString().replaceAll("-","");

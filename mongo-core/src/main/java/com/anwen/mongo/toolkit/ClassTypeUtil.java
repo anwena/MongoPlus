@@ -111,5 +111,16 @@ public class ClassTypeUtil {
         return result;
     }
 
+    public static <T> Object getClassFieldValue(T entity,String field){
+        Field declaredField;
+        try {
+            declaredField = entity.getClass().getDeclaredField(field);
+            declaredField.setAccessible(true);
+            return declaredField.get(entity);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }
 

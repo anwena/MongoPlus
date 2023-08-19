@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 public class Order {
 
     /**
-     * 排序类型 1升序  2降序
+     * 排序类型 1升序  -1降序
      * @since 2023/2/10 11:59
     */
     private Integer type;

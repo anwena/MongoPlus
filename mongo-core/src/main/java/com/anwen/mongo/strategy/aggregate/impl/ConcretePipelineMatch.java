@@ -8,6 +8,7 @@ import com.mongodb.BasicDBObject;
 import java.util.List;
 
 /**
+ * match策略实现类
  * @author JiaChaoYang
  **/
 public class ConcretePipelineMatch implements PipelineStrategy {

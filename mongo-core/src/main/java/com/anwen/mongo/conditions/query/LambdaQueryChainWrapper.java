@@ -36,7 +36,6 @@ public class LambdaQueryChainWrapper<T> extends QueryChainWrapper<T,LambdaQueryC
         return sqlOperation.doList(getCompareList(), getOrderList(),getProjectionList());
     }
 
-
     @Override
     public T one() {
         return sqlOperation.doOne(getCompareList(),getProjectionList());

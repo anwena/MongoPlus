@@ -1,6 +1,5 @@
 package com.anwen.mongo.conditions.aggregate;
 
-import com.anwen.mongo.conditions.query.ChainQuery;
 import com.anwen.mongo.execute.SqlOperation;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
@@ -11,7 +10,7 @@ import java.util.List;
 /**
  * @author JiaChaoYang
  **/
-public class LambdaAggregateChainWrapper<T> extends AggregateChainWrapper<T,LambdaAggregateChainWrapper<T>> implements ChainQuery<T> {
+public class LambdaAggregateChainWrapper<T> extends AggregateChainWrapper<T,LambdaAggregateChainWrapper<T>> implements ChainAggregate<T> {
 
     private final SqlOperation<T> sqlOperation;
 
@@ -29,6 +28,11 @@ public class LambdaAggregateChainWrapper<T> extends AggregateChainWrapper<T,Lamb
     @Override
     public List<T> list() {
         return sqlOperation.doAggregateList(super.baseAggregateList);
+    }
+
+    @Override
+    public <E> List<E> list(Class<E> clazz) {
+        return sqlOperation.doAggregateList(super.baseAggregateList,clazz);
     }
 
     @Override

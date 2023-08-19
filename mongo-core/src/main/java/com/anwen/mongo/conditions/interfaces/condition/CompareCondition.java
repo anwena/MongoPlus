@@ -28,6 +28,10 @@ public class CompareCondition {
      */
     private String condition;
 
+    public static void main(String[] args) {
+
+    }
+
     /**
      * 字段
      * @since 2023/2/10 10:16

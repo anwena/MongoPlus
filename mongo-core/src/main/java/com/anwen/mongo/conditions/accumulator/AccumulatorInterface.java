@@ -4,11 +4,11 @@ import com.anwen.mongo.enums.GroupTypeEnum;
 import com.anwen.mongo.support.SFunction;
 
 /**
- * 累加器接口，可实现
+ * 构建累加器
  *
  * @author JiaChaoYang
  **/
-public interface AccumulatorInterface<T> {
+public class AccumulatorInterface<T> {
 
     /**
      * 获取指定字段在分组中的第一个文档的值
@@ -17,7 +17,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:15
     */
-    default Accumulator first(SFunction<T,Object> field){
+    public Accumulator first(SFunction<T,Object> field){
         return new Accumulator(GroupTypeEnum.FIRST.getOperator(),field.getFieldNameLine());
     }
 
@@ -28,7 +28,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:15
      */
-    default Accumulator first(SFunction<T,Object> resultMappingField,SFunction<T,Object> field){
+    public Accumulator first(SFunction<T,Object> resultMappingField,SFunction<T,Object> field){
         return new Accumulator(resultMappingField.getFieldNameLine(),GroupTypeEnum.FIRST.getOperator(),field.getFieldNameLine());
     }
 
@@ -39,7 +39,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:15
      */
-    default Accumulator first(String resultMappingField,SFunction<T,Object> field){
+    public Accumulator first(String resultMappingField,SFunction<T,Object> field){
         return new Accumulator(resultMappingField,GroupTypeEnum.FIRST.getOperator(),field.getFieldNameLine());
     }
 
@@ -50,7 +50,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:16
     */
-    default Accumulator last(SFunction<T,Object> field){
+    public Accumulator last(SFunction<T,Object> field){
         return new Accumulator(GroupTypeEnum.LAST.getOperator(), field.getFieldNameLine());
     }
 
@@ -61,7 +61,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:16
      */
-    default Accumulator last(SFunction<T,Object> resultMappingField , SFunction<T,Object> field){
+    public Accumulator last(SFunction<T,Object> resultMappingField , SFunction<T,Object> field){
         return new Accumulator(resultMappingField.getFieldNameLine(),GroupTypeEnum.LAST.getOperator(), field.getFieldNameLine());
     }
 
@@ -72,7 +72,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:16
      */
-    default Accumulator last(String resultMappingField,SFunction<T,Object> field){
+    public Accumulator last(String resultMappingField,SFunction<T,Object> field){
         return new Accumulator(resultMappingField,GroupTypeEnum.LAST.getOperator(), field.getFieldNameLine());
     }
 
@@ -83,7 +83,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:16
     */
-    default Accumulator sum(SFunction<T,Object> field){
+    public Accumulator sum(SFunction<T,Object> field){
         return new Accumulator(GroupTypeEnum.SUM.getOperator(), field.getFieldNameLine());
     }
 
@@ -94,7 +94,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:16
      */
-    default Accumulator sum(SFunction<T,Object> resultMappingField,SFunction<T,Object> field){
+    public Accumulator sum(SFunction<T,Object> resultMappingField,SFunction<T,Object> field){
         return new Accumulator(resultMappingField.getFieldNameLine(),GroupTypeEnum.SUM.getOperator(), field.getFieldNameLine());
     }
 
@@ -105,7 +105,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:16
      */
-    default Accumulator sum(String resultMappingField,SFunction<T,Object> field){
+    public Accumulator sum(String resultMappingField,SFunction<T,Object> field){
         return new Accumulator(resultMappingField,GroupTypeEnum.SUM.getOperator(), field.getFieldNameLine());
     }
 
@@ -116,7 +116,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:16
     */
-    default Accumulator avg(SFunction<T,Object> field){
+    public Accumulator avg(SFunction<T,Object> field){
         return new Accumulator(GroupTypeEnum.AVG.getOperator(), field.getFieldNameLine());
     }
 
@@ -127,7 +127,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:16
      */
-    default Accumulator avg(SFunction<T,Object> resultMappingField,SFunction<T,Object> field){
+    public Accumulator avg(SFunction<T,Object> resultMappingField,SFunction<T,Object> field){
         return new Accumulator(resultMappingField.getFieldNameLine(),GroupTypeEnum.AVG.getOperator(), field.getFieldNameLine());
     }
 
@@ -138,7 +138,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:16
      */
-    default Accumulator avg(String resultMappingField,SFunction<T,Object> field){
+    public Accumulator avg(String resultMappingField,SFunction<T,Object> field){
         return new Accumulator(resultMappingField,GroupTypeEnum.AVG.getOperator(), field.getFieldNameLine());
     }
 
@@ -149,7 +149,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:17
     */
-    default Accumulator max(SFunction<T,Object> field){
+    public Accumulator max(SFunction<T,Object> field){
         return new Accumulator(GroupTypeEnum.MAX.getOperator(), field.getFieldNameLine());
     }
 
@@ -160,7 +160,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:17
      */
-    default Accumulator max(SFunction<T,Object> resultMappingField,SFunction<T,Object> field){
+    public Accumulator max(SFunction<T,Object> resultMappingField,SFunction<T,Object> field){
         return new Accumulator(resultMappingField.getFieldNameLine(),GroupTypeEnum.MAX.getOperator(), field.getFieldNameLine());
     }
 
@@ -171,7 +171,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:17
      */
-    default Accumulator max(String resultMappingField,SFunction<T,Object> field){
+    public Accumulator max(String resultMappingField,SFunction<T,Object> field){
         return new Accumulator(resultMappingField,GroupTypeEnum.MAX.getOperator(), field.getFieldNameLine());
     }
 
@@ -182,7 +182,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:18
     */
-    default Accumulator min(SFunction<T,Object> field){
+    public Accumulator min(SFunction<T,Object> field){
         return new Accumulator(GroupTypeEnum.MIN.getOperator(), field.getFieldNameLine());
     }
 
@@ -193,7 +193,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:18
      */
-    default Accumulator min(SFunction<T,Object> resultMappingField,SFunction<T,Object> field){
+    public Accumulator min(SFunction<T,Object> resultMappingField,SFunction<T,Object> field){
         return new Accumulator(resultMappingField.getFieldNameLine(),GroupTypeEnum.MIN.getOperator(), field.getFieldNameLine());
     }
 
@@ -204,7 +204,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:18
      */
-    default Accumulator min(String resultMappingField,SFunction<T,Object> field){
+    public Accumulator min(String resultMappingField,SFunction<T,Object> field){
         return new Accumulator(resultMappingField,GroupTypeEnum.MIN.getOperator(), field.getFieldNameLine());
     }
 
@@ -215,7 +215,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:18
     */
-    default Accumulator push(SFunction<T,Object> field){
+    public Accumulator push(SFunction<T,Object> field){
         return new Accumulator(GroupTypeEnum.PUSH.getOperator(), field.getFieldNameLine());
     }
 
@@ -226,7 +226,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:18
      */
-    default Accumulator push(SFunction<T,Object> resultMappingField,SFunction<T,Object> field){
+    public Accumulator push(SFunction<T,Object> resultMappingField,SFunction<T,Object> field){
         return new Accumulator(resultMappingField.getFieldNameLine(),GroupTypeEnum.PUSH.getOperator(), field.getFieldNameLine());
     }
 
@@ -237,7 +237,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:18
      */
-    default Accumulator push(String resultMappingField,SFunction<T,Object> field){
+    public Accumulator push(String resultMappingField,SFunction<T,Object> field){
         return new Accumulator(resultMappingField,GroupTypeEnum.PUSH.getOperator(), field.getFieldNameLine());
     }
 
@@ -248,7 +248,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:18
     */
-    default Accumulator addToSet(SFunction<T,Object> field){
+    public Accumulator addToSet(SFunction<T,Object> field){
         return new Accumulator(GroupTypeEnum.ADD_TO_SET.getOperator(), field.getFieldNameLine());
     }
 
@@ -259,7 +259,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:18
      */
-    default Accumulator addToSet(SFunction<T,Object> resultMappingField,SFunction<T,Object> field){
+    public Accumulator addToSet(SFunction<T,Object> resultMappingField,SFunction<T,Object> field){
         return new Accumulator(resultMappingField.getFieldNameLine(),GroupTypeEnum.ADD_TO_SET.getOperator(), field.getFieldNameLine());
     }
 
@@ -270,7 +270,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:18
      */
-    default Accumulator addToSet(String resultMappingField,SFunction<T,Object> field){
+    public Accumulator addToSet(String resultMappingField,SFunction<T,Object> field){
         return new Accumulator(resultMappingField,GroupTypeEnum.ADD_TO_SET.getOperator(), field.getFieldNameLine());
     }
 
@@ -281,7 +281,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:18
     */
-    default Accumulator count(SFunction<T,Object> field){
+    public Accumulator count(SFunction<T,Object> field){
         return new Accumulator(GroupTypeEnum.COUNT.getOperator(), field.getFieldNameLine());
     }
 
@@ -292,7 +292,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:18
      */
-    default Accumulator count(SFunction<T,Object> resultMappingField,SFunction<T,Object> field){
+    public Accumulator count(SFunction<T,Object> resultMappingField,SFunction<T,Object> field){
         return new Accumulator(resultMappingField.getFieldNameLine(),GroupTypeEnum.COUNT.getOperator(), field.getFieldNameLine());
     }
 
@@ -303,7 +303,7 @@ public interface AccumulatorInterface<T> {
      * @author JiaChaoYang
      * @date 2023/8/17 20:18
      */
-    default Accumulator count(String resultMappingField,SFunction<T,Object> field){
+    public Accumulator count(String resultMappingField,SFunction<T,Object> field){
         return new Accumulator(resultMappingField,GroupTypeEnum.COUNT.getOperator(), field.getFieldNameLine());
     }
 

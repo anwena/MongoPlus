@@ -2,8 +2,8 @@ package com.anwen.mongo.execute;
 
 import cn.hutool.core.collection.CollUtil;
 import com.anwen.mongo.annotation.collection.CollectionName;
-import com.anwen.mongo.conditions.accumulator.Accumulator;
-import com.anwen.mongo.conditions.interfaces.aggregate.project.Projection;
+import com.anwen.mongo.conditions.BuildCondition;
+import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.conn.ConnectMongoDB;
@@ -13,13 +13,12 @@ import com.anwen.mongo.convert.Converter;
 import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.domain.InitMongoCollectionException;
 import com.anwen.mongo.domain.MongoQueryException;
-import com.anwen.mongo.enums.CompareEnum;
-import com.anwen.mongo.enums.LogicTypeEnum;
 import com.anwen.mongo.enums.QueryOperatorEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.model.*;
 import com.anwen.mongo.support.SFunction;
 import com.anwen.mongo.toolkit.BeanMapUtilByReflect;
+import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.anwen.mongo.toolkit.codec.RegisterCodecUtil;
 import com.mongodb.BasicDBObject;
@@ -45,6 +44,7 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.anwen.mongo.toolkit.BeanMapUtilByReflect.checkTableField;
@@ -214,11 +214,15 @@ public class SqlOperation<T> {
     public Boolean doUpdateById(T entity) {
         UpdateResult updateResult;
         Document document = new Document(checkTableField(entity));
-        BasicDBObject filter = new BasicDBObject(SqlOperationConstant._ID, new ObjectId(String.valueOf(document.get(SqlOperationConstant._ID))));
+        if (!document.containsKey(SqlOperationConstant._ID)){
+            throw new MongoException("_id undefined");
+        }
+        Object _idValue = document.get(SqlOperationConstant._ID);
+        BasicDBObject filter = new BasicDBObject(SqlOperationConstant._ID, ObjectId.isValid(String.valueOf(_idValue)) ? new ObjectId(String.valueOf(document.get(SqlOperationConstant._ID))) : String.valueOf(_idValue));
         document.remove(SqlOperationConstant._ID);
         BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
         updateResult = getCollection(entity).updateOne(filter, update);
-        return updateResult.getModifiedCount() != 0;
+        return updateResult.getModifiedCount() >= 1;
     }
 
     public Boolean doUpdateById(String collectionName, Map<String, Object> entityMap) {
@@ -226,14 +230,15 @@ public class SqlOperation<T> {
             throw new MongoException("_id undefined");
         }
         UpdateResult updateResult;
-        BasicDBObject filter = new BasicDBObject(SqlOperationConstant._ID, new ObjectId(String.valueOf(entityMap.get(SqlOperationConstant._ID))));
+        Object _idValue = entityMap.get(SqlOperationConstant._ID);
+        BasicDBObject filter = new BasicDBObject(SqlOperationConstant._ID, ObjectId.isValid(String.valueOf(_idValue)) ? new ObjectId(String.valueOf(entityMap.get(SqlOperationConstant._ID))) : String.valueOf(_idValue));
         entityMap.remove(SqlOperationConstant._ID);
         BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), new Document(entityMap));
         updateResult = getCollection(collectionName).updateOne(filter, update);
-        return updateResult.getModifiedCount() != 0;
+        return updateResult.getModifiedCount() >= 1;
     }
 
-
+    @Deprecated
     public Boolean doUpdateBatchByIds(Collection<T> entityList) {
         for (T entity : entityList) {
             UpdateResult updateResult;
@@ -247,6 +252,7 @@ public class SqlOperation<T> {
         return false;
     }
 
+    @Deprecated
     public Boolean doUpdateBatchByIds(String collectionName, Collection<Map<String, Object>> entityList) {
         for (Map<String, Object> entity : entityList) {
             UpdateResult updateResult = getCollection(collectionName).updateOne(Filters.eq(SqlOperationConstant._ID, new ObjectId(String.valueOf(entity.get(SqlOperationConstant._ID)))), new Document(entity));
@@ -258,8 +264,10 @@ public class SqlOperation<T> {
 
     public Boolean doUpdateByColumn(T entity, SFunction<T, Object> column) {
         try {
-            UpdateResult updateResult = getCollection(entity).updateOne(Filters.eq(column.getFieldName(), entity.getClass().getMethod(column.getFieldName()).invoke(entity)), new Document(checkTableField(entity)));
-            return updateResult.getModifiedCount() > 0;
+            String filterCondition = column.getFieldNameLine();
+            String filterValue = String.valueOf(entity.getClass().getMethod(column.getFieldName()).invoke(entity));
+            UpdateResult updateResult = getCollection(entity).updateOne(Filters.eq(filterCondition, ObjectId.isValid(filterValue) ? new ObjectId(filterValue) : filterValue), new Document(checkTableField(entity)));
+            return updateResult.getModifiedCount() >= 1;
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             log.error("update fail , fail info : {}", e.getMessage(), e);
             return false;
@@ -268,50 +276,74 @@ public class SqlOperation<T> {
 
 
     public Boolean doUpdateByColumn(T entity, String column) {
-        try {
-            UpdateResult updateResult = getCollection(entity).updateOne(Filters.eq(column, entity.getClass().getMethod("get"+Character.toUpperCase(column.charAt(0))+column.substring(1)).invoke(entity)), new Document(checkTableField(entity)));
-            return updateResult.getModifiedCount() > 0;
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            log.error("update fail , fail info : {}", e.getMessage(), e);
-            return false;
-        }
+        String filterValue = String.valueOf(ClassTypeUtil.getClassFieldValue(entity,column));
+        UpdateResult updateResult = getCollection(entity).updateOne(Filters.eq(column, ObjectId.isValid(filterValue) ? new ObjectId(filterValue) : filterValue), new Document(checkTableField(entity)));
+        return updateResult.getModifiedCount() >= 1;
     }
 
     public Boolean doUpdateByColumn(String collectionName,Map<String,Object> entityMap, String column) {
-        UpdateResult updateResult = getCollection(collectionName).updateOne(Filters.eq(column, entityMap.get(column)), new Document(entityMap));
-        return updateResult.getModifiedCount() > 0;
+        if (!entityMap.containsKey(column)){
+            throw new MongoException(column+" undefined");
+        }
+        String columnValue = String.valueOf(entityMap.get(column));
+        UpdateResult updateResult = getCollection(collectionName).updateOne(Filters.eq(column, ObjectId.isValid(String.valueOf(columnValue)) ? new ObjectId(columnValue) : columnValue), new Document(entityMap));
+        return updateResult.getModifiedCount() >= 1;
     }
 
 
     public Boolean doRemoveById(Serializable id) {
-        return getCollection().deleteOne(Filters.eq(SqlOperationConstant._ID, id)).getDeletedCount() != 0;
+        return getCollection().deleteOne(Filters.eq(SqlOperationConstant._ID, ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id))).getDeletedCount() >= 1;
     }
 
     public Boolean doRemoveById(String collectionName,Serializable id) {
-        return getCollection(collectionName).deleteOne(Filters.eq(SqlOperationConstant._ID, new ObjectId(String.valueOf(id)))).getDeletedCount() != 0;
+        return getCollection(collectionName).deleteOne(Filters.eq(SqlOperationConstant._ID, ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id))).getDeletedCount() >= 1;
     }
 
 
     public Boolean doRemoveByColumn(SFunction<T, Object> column, String value) {
-        return getCollection().deleteOne(Filters.eq(column.getFieldNameLine(), value)).getDeletedCount() != 0;
+        return getCollection().deleteOne(Filters.eq(column.getFieldNameLine(), ObjectId.isValid(value) ? new ObjectId(value) : value)).getDeletedCount() >= 1;
     }
 
 
     public Boolean doRemoveByColumn(String column, String value) {
-        return getCollection().deleteOne(Filters.eq(column, value)).getDeletedCount() != 0;
+        return getCollection().deleteOne(Filters.eq(column, ObjectId.isValid(value) ? new ObjectId(value) : value)).getDeletedCount() >= 1;
     }
 
     public Boolean doRemoveByColumn(String collectionName,String column, String value) {
-        return getCollection(collectionName).deleteOne(Filters.eq(column, value)).getDeletedCount() != 0;
+        return getCollection(collectionName).deleteOne(Filters.eq(column, ObjectId.isValid(value) ? new ObjectId(value) : value)).getDeletedCount() >= 1;
     }
 
 
     public Boolean doRemoveBatchByIds(Collection<Serializable> idList) {
-        return getCollection().deleteMany(Filters.in(SqlOperationConstant._ID, idList)).getDeletedCount() != 0;
+        List<Serializable> serializableList = idList.stream().filter(id -> ObjectId.isValid(String.valueOf(id))).collect(Collectors.toList());
+        if (idList.size() == serializableList.size()){
+            return getCollection().deleteMany(Filters.in(SqlOperationConstant._ID, idList.stream().map(id -> new ObjectId(String.valueOf(id))).collect(Collectors.toList()))).getDeletedCount() >= 1;
+        } else if (CollUtil.isEmpty(serializableList)){
+            return getCollection().deleteMany(Filters.in(SqlOperationConstant._ID, idList.stream().map(String::valueOf))).getDeletedCount() >= 1;
+        } else {
+            int ling = 0;
+            for (Serializable serializable : idList) {
+                Boolean _b = doRemoveById(serializable);
+                if (_b) ling++;
+            }
+            return ling >= 1;
+        }
     }
 
     public Boolean doRemoveBatchByIds(String collectionName,Collection<Serializable> idList) {
-        return getCollection(collectionName).deleteMany(Filters.in(SqlOperationConstant._ID, idList)).getDeletedCount() != 0;
+        List<Serializable> serializableList = idList.stream().filter(id -> ObjectId.isValid(String.valueOf(id))).collect(Collectors.toList());
+        if (idList.size() == serializableList.size()){
+            return getCollection(collectionName).deleteMany(Filters.in(SqlOperationConstant._ID, idList.stream().map(id -> new ObjectId(String.valueOf(id))).collect(Collectors.toList()))).getDeletedCount() >= 1;
+        } else if (CollUtil.isEmpty(serializableList)){
+            return getCollection(collectionName).deleteMany(Filters.in(SqlOperationConstant._ID, idList.stream().map(String::valueOf))).getDeletedCount() >= 1;
+        } else {
+            int ling = 0;
+            for (Serializable serializable : idList) {
+                Boolean _b = doRemoveById(serializable);
+                if (_b) ling++;
+            }
+            return ling >= 1;
+        }
     }
 
     public List<T> doList() {
@@ -363,6 +395,18 @@ public class SqlOperation<T> {
     }
 
     public List<T> doGetByIds(String collectionName, Collection<Serializable> ids) {
+        List<Serializable> serializableList = ids.stream().filter(id -> ObjectId.isValid(String.valueOf(id))).collect(Collectors.toList());
+        if (ids.size() == serializableList.size()){
+            ids = ids.stream().map(id -> new ObjectId(String.valueOf(id))).collect(Collectors.toList());
+        } else if (CollUtil.isEmpty(serializableList)){
+            ids = ids.stream().map(String::valueOf).collect(Collectors.toList());
+        }else {
+            List<Serializable> idList = new ArrayList<>();
+            ids.forEach(id -> {
+                idList.add(ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id));
+            });
+            ids = idList;
+        }
         BasicDBObject query = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.IN.getCondition(), ids));
         FindIterable<Document> iterable = getCollection(collectionName).find(query);
         return DocumentMapperConvert.mapDocumentList(iterable, mongoEntity);
@@ -391,49 +435,50 @@ public class SqlOperation<T> {
     }
 
     public T doGetById(Serializable id) {
-        BasicDBObject byId = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), id));
+        BasicDBObject byId = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id)));
         FindIterable<Document> iterable = getCollection().find(byId);
-        return (T) iterable.first();
+        return DocumentMapperConvert.mapDocument(iterable.first(),mongoEntity);
     }
 
     public List<T> doGetByIds(Collection<Serializable> ids) {
+
         BasicDBObject query = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.IN.getCondition(), ids));
         FindIterable<Document> iterable = getCollection().find(query);
         return DocumentMapperConvert.mapDocumentList(iterable, mongoEntity);
     }
 
     public Boolean doUpdate(List<CompareCondition> compareConditionList) {
-        BasicDBObject queryBasic = buildQueryCondition(compareConditionList);
-        BasicDBObject updateBasic = buildUpdateValue(compareConditionList);
+        BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareConditionList);
+        BasicDBObject updateBasic = BuildCondition.buildUpdateValue(compareConditionList);
         UpdateResult updateResult = getCollection().updateMany(queryBasic, new BasicDBObject() {{
             append(SpecialConditionEnum.SET.getCondition(), updateBasic);
         }});
-        return updateResult.getModifiedCount() > 0;
+        return updateResult.getModifiedCount() >= 1;
     }
 
     public Boolean doUpdate(String collectionName,List<CompareCondition> compareConditionList){
-        BasicDBObject queryBasic = buildQueryCondition(compareConditionList);
-        BasicDBObject updateBasic = buildUpdateValue(compareConditionList);
+        BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareConditionList);
+        BasicDBObject updateBasic = BuildCondition.buildUpdateValue(compareConditionList);
         UpdateResult updateResult = getCollection(collectionName).updateMany(queryBasic, new BasicDBObject() {{
             append(SpecialConditionEnum.SET.getCondition(), updateBasic);
         }});
-        return updateResult.getModifiedCount() > 0;
+        return updateResult.getModifiedCount() >= 1;
     }
 
     public Boolean doRemove(List<CompareCondition> compareConditionList) {
-        BasicDBObject deleteBasic = buildQueryCondition(compareConditionList);
+        BasicDBObject deleteBasic = BuildCondition.buildQueryCondition(compareConditionList);
         DeleteResult deleteResult = getCollection().deleteMany(deleteBasic);
-        return deleteResult.getDeletedCount() > 0;
+        return deleteResult.getDeletedCount() >= 1;
     }
 
     public Boolean doRemove(String collectionName,List<CompareCondition> compareConditionList){
-        BasicDBObject deleteBasic = buildQueryCondition(compareConditionList);
+        BasicDBObject deleteBasic = BuildCondition.buildQueryCondition(compareConditionList);
         DeleteResult deleteResult = getCollection(collectionName).deleteMany(deleteBasic);
-        return deleteResult.getDeletedCount() > 0;
+        return deleteResult.getDeletedCount() >= 1;
     }
 
     public long doCount(String collectionName,List<CompareCondition> compareConditionList){
-        return getCollection(collectionName).countDocuments(buildQueryCondition(compareConditionList));
+        return getCollection(collectionName).countDocuments(BuildCondition.buildQueryCondition(compareConditionList));
     }
 
     public long doCount(String collectionName){
@@ -445,14 +490,25 @@ public class SqlOperation<T> {
     }
 
     public long doCount(List<CompareCondition> compareConditionList){
-        return getCollection().countDocuments(buildQueryCondition(compareConditionList));
+        return getCollection().countDocuments(BuildCondition.buildQueryCondition(compareConditionList));
     }
 
     public List<T> doAggregateList(List<BaseAggregate> aggregateList){
-        List<BasicDBObject> basicDBObjectList = new ArrayList<>();
-        aggregateList.forEach(aggregate -> basicDBObjectList.add(new BasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate())));
-        AggregateIterable<Document> aggregateIterable = getCollection().aggregate(basicDBObjectList);
+        AggregateIterable<Document> aggregateIterable = getCollection().aggregate(
+                new ArrayList<BasicDBObject>(){{
+                    aggregateList.forEach(aggregate -> add(new BasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate())));
+                }}
+        );
         return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),mongoEntity);
+    }
+
+    public <E> List<E> doAggregateList(List<BaseAggregate> aggregateList,Class<E> clazz){
+        AggregateIterable<Document> aggregateIterable = getCollection().aggregate(
+                new ArrayList<BasicDBObject>(){{
+                    aggregateList.forEach(aggregate -> add(new BasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate())));
+                }}
+        );
+        return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),clazz != null ? clazz : mongoEntity);
     }
 
 
@@ -474,22 +530,22 @@ public class SqlOperation<T> {
         BasicDBObject sortCond = new BasicDBObject();
         orderList.forEach(order -> sortCond.put(order.getColumn(), order.getType()));
         MongoCollection<Document> collection = getCollection();
-        BasicDBObject basicDBObject = buildQueryCondition(compareConditionList);
+        BasicDBObject basicDBObject = BuildCondition.buildQueryCondition(compareConditionList);
         if (StringUtils.isNotBlank(createIndex)) {
             collection.createIndex(new Document(createIndex, QueryOperatorEnum.TEXT.getValue()));
         }
-        return collection.find(basicDBObject).projection(buildProjection(projectionList)).sort(sortCond);
+        return collection.find(basicDBObject).projection(BuildCondition.buildProjection(projectionList)).sort(sortCond);
     }
 
     private FindIterable<Map> baseLambdaQuery(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList) {
         BasicDBObject sortCond = new BasicDBObject();
         orderList.forEach(order -> sortCond.put(order.getColumn(), order.getType()));
         MongoCollection<Document> collection = getCollection(collectionName);
-        BasicDBObject basicDBObject = buildQueryCondition(compareConditionList);
+        BasicDBObject basicDBObject = BuildCondition.buildQueryCondition(compareConditionList);
         if (StringUtils.isNotBlank(createIndex)) {
             collection.createIndex(new Document(createIndex, QueryOperatorEnum.TEXT.getValue()));
         }
-        return collection.find(basicDBObject,Map.class).projection(buildProjection(projectionList)).sort(sortCond);
+        return collection.find(basicDBObject,Map.class).projection(BuildCondition.buildProjection(projectionList)).sort(sortCond);
     }
 
     private PageResult<T> getLambdaQueryResultPage(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList, PageParam pageParams) {
@@ -514,103 +570,6 @@ public class SqlOperation<T> {
         pageResult.setTotalPages((totalSize + pageParams.getPageSize() - 1) / pageParams.getPageSize());
         pageResult.setContentData(Converter.convertDocumentToMap(documentFindIterable.skip((pageParams.getPageNum() - 1) * pageParams.getPageSize()).limit(pageParams.getPageSize())));
         return pageResult;
-    }
-
-    /**
-     * 构建projection条件
-     * @author JiaChaoYang
-     * @date 2023/8/19 0:11
-    */
-    private BasicDBObject buildProjection(List<Projection> projectionList){
-        return new BasicDBObject(){{
-            projectionList.forEach(projection -> {
-                put(projection.getColumn(),projection.getValue());
-            });
-        }};
-    }
-
-    /**
-     * 构建查询条件
-     *
-     * @author JiaChaoYang
-     * @date 2023/6/25/025 1:48
-     */
-    private BasicDBObject buildQueryCondition(List<CompareCondition> compareConditionList) {
-        return new BasicDBObject() {{
-            compareConditionList.stream().filter(compareCondition -> compareCondition.getType() == CompareEnum.QUERY.getKey()).collect(Collectors.toList()).forEach(compare -> {
-                if (Objects.equals(compare.getCondition(), QueryOperatorEnum.LIKE.getValue()) && StringUtils.isNotBlank(String.valueOf(compare.getValue()))) {
-                    put(compare.getColumn(), new BasicDBObject(SpecialConditionEnum.REGEX.getCondition(), compare.getValue()));
-                } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.OR.getKey())) {
-                    if (CollUtil.isEmpty(compare.getChildCondition())) {
-                        compare.setChildCondition(Collections.singletonList(compare));
-                    }
-                    put(SpecialConditionEnum.OR.getCondition(), buildOrQueryCondition(compare.getChildCondition()));
-                } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.NOR.getKey())) {
-                    put(SpecialConditionEnum.NOR.getCondition(), buildQueryCondition(compare.getChildCondition()));
-                } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.ELEMMATCH.getKey())) {
-                    put(SpecialConditionEnum.ELEM_MATCH.getCondition(), buildOrQueryCondition(compare.getChildCondition()));
-                } else if (Objects.equals(compare.getCondition(), QueryOperatorEnum.TEXT.getValue())) {
-                    put(SpecialConditionEnum.TEXT.getCondition(), new BasicDBObject(SpecialConditionEnum.SEARCH.getCondition(), compare.getValue()));
-                    createIndex = compare.getColumn();
-                } else {
-                    put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), compare.getValue()));
-                }
-            });
-        }};
-    }
-
-    /**
-     * 构建子条件
-     *
-     * @author JiaChaoYang
-     * @date 2023/7/16 19:59
-     */
-    private List<BasicDBObject> buildOrQueryCondition(List<CompareCondition> compareConditionList) {
-        List<BasicDBObject> basicDBObjectList = new ArrayList<>();
-        compareConditionList.forEach(compare -> {
-            BasicDBObject basicDBObject = new BasicDBObject();
-            if (Objects.equals(compare.getCondition(), QueryOperatorEnum.LIKE.getValue()) && StringUtils.isNotBlank(String.valueOf(compare.getValue()))) {
-                basicDBObject.put(compare.getColumn(), new BasicDBObject(SpecialConditionEnum.REGEX.getCondition(), compare.getValue()));
-            } else if (Objects.equals(compare.getCondition(), QueryOperatorEnum.AND.getValue())) {
-                basicDBObjectList.add(buildQueryCondition(compare.getChildCondition()));
-            } else if (Objects.equals(compare.getCondition(), QueryOperatorEnum.TEXT.getValue())) {
-                basicDBObject.put(SpecialConditionEnum.TEXT.getCondition(), new BasicDBObject(SpecialConditionEnum.SEARCH.getCondition(), compare.getValue()));
-                createIndex = compare.getColumn();
-            }else {
-                basicDBObject.put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), compare.getValue()));
-            }
-            basicDBObjectList.add(basicDBObject);
-        });
-        return basicDBObjectList;
-    }
-
-    /**
-     * 构建更新值
-     *
-     * @author JiaChaoYang
-     * @date 2023/7/9 22:16
-     */
-    private BasicDBObject buildUpdateValue(List<CompareCondition> compareConditionList) {
-        return new BasicDBObject() {{
-            compareConditionList.stream().filter(compareCondition -> compareCondition.getType() == CompareEnum.UPDATE.getKey()).collect(Collectors.toList()).forEach(compare -> {
-                put(compare.getColumn(), compare.getValue());
-            });
-        }};
-    }
-
-    /**
-     * 构建group条件
-     * @author JiaChaoYang
-     * @date 2023/8/19 0:11
-    */
-    private BasicDBObject buildGroup(List<Accumulator> accumulatorList){
-        BasicDBObject basicDBObject = new BasicDBObject();
-        accumulatorList.forEach(accumulator -> {
-            basicDBObject.put(accumulator.getResultMappingField(),new BasicDBObject(){{
-                put("$"+accumulator.getCondition(),"$"+accumulator.getField());
-            }});
-        });
-        return basicDBObject;
     }
 
     private MongoCollection<Document> getCollection(T entity) {
@@ -672,5 +631,4 @@ public class SqlOperation<T> {
     private List<Document> processIdFieldList(Collection<T> entityList){
         return entityList.stream().map(this::processIdField).collect(Collectors.toList());
     }
-
 }

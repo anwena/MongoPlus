@@ -162,7 +162,7 @@ public class ServiceImpl<T> implements IService<T>, ApplicationListener<SqlOpera
     @Override
     public List<T> list(AggregateChainWrapper<T,?> queryChainWrapper) {
         sqlOperation.setMongoEntity(getEClass());
-        return sqlOperation.doAggregateList(queryChainWrapper.getBaseAggregateList());
+        return sqlOperation.doAggregateList(queryChainWrapper.getBaseAggregateList(),null);
     }
 
     @Override

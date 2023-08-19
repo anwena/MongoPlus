@@ -4,6 +4,7 @@ import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.convert.factory.DocumentFieldMapperFactory;
+import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import org.bson.Document;
@@ -55,10 +56,10 @@ public class DocumentMapperConvert {
         return list;
     }
 
-    public static <T> List<T> mapDocumentList(MongoCursor<Document> cursor, Class<T> clazz) {
+    public static <T> List<T> mapDocumentList(MongoCursor<Document> cursor, Class<?> clazz) {
         List<T> list = new ArrayList<>();
         while (cursor.hasNext()) {
-            list.add(mapDocument(cursor.next(), clazz));
+            list.add((T) mapDocument(cursor.next(), clazz));
         }
         return list;
     }
@@ -74,7 +75,7 @@ public class DocumentMapperConvert {
             field.setAccessible(true);
             CollectionField collectionField = field.getAnnotation(CollectionField.class);
             ID id = field.getAnnotation(ID.class);
-            String fieldName = collectionField != null ? collectionField.value() : field.getName();
+            String fieldName = collectionField != null && StringUtils.isNotBlank(collectionField.value()) ? collectionField.value() : field.getName();
             if (id != null) fieldName = SqlOperationConstant._ID;
             if (collectionField != null && !collectionField.exist()) {
                 continue;

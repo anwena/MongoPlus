@@ -2,20 +2,22 @@ package com.anwen.mongo.conditions;
 
 import cn.hutool.core.collection.CollUtil;
 import com.anwen.mongo.conditions.accumulator.Accumulator;
-import com.anwen.mongo.conditions.interfaces.aggregate.project.Projection;
+import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.AddFields;
+import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
+import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.ReplaceRoot;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.constant.IndexConstant;
+import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.enums.CompareEnum;
 import com.anwen.mongo.enums.LogicTypeEnum;
 import com.anwen.mongo.enums.QueryOperatorEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.BasicDBObject;
+import com.sun.org.apache.xpath.internal.operations.Bool;
+import org.bson.types.ObjectId;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -23,7 +25,7 @@ import java.util.stream.Collectors;
  *
  * @author JiaChaoYang
  **/
-public class BuildCondition<T> {
+public class BuildCondition {
 
     /**
      * 构建projection条件
@@ -61,7 +63,14 @@ public class BuildCondition<T> {
                 } else if (Objects.equals(compare.getCondition(), QueryOperatorEnum.TEXT.getValue())) {
                     put(SpecialConditionEnum.TEXT.getCondition(), new BasicDBObject(SpecialConditionEnum.SEARCH.getCondition(), compare.getValue()));
                     IndexConstant.createIndex = compare.getColumn();
-                } else {
+                } else if (Objects.equals(compare.getColumn(), SqlOperationConstant._ID)){
+                    //如果是objectId
+                    if (ObjectId.isValid(String.valueOf(compare.getValue()))){
+                        put(compare.getColumn(),new BasicDBObject("$"+compare.getCondition(),new org.bson.types.ObjectId(String.valueOf(compare.getValue()))));
+                    } else {
+                        put(compare.getColumn(),new BasicDBObject("$"+compare.getCondition(),String.valueOf(compare.getValue())));
+                    }
+                }else {
                     put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), compare.getValue()));
                 }
             });
@@ -85,7 +94,14 @@ public class BuildCondition<T> {
             } else if (Objects.equals(compare.getCondition(), QueryOperatorEnum.TEXT.getValue())) {
                 basicDBObject.put(SpecialConditionEnum.TEXT.getCondition(), new BasicDBObject(SpecialConditionEnum.SEARCH.getCondition(), compare.getValue()));
                 IndexConstant.createIndex = compare.getColumn();
-            }else {
+            } else if (Objects.equals(compare.getColumn(), SqlOperationConstant._ID)){
+                //如果是objectId
+                if (ObjectId.isValid(String.valueOf(compare.getValue()))){
+                    basicDBObject.put(compare.getColumn(),new BasicDBObject("$"+compare.getCondition(),new org.bson.types.ObjectId(String.valueOf(compare.getValue()))));
+                } else {
+                    basicDBObject.put(compare.getColumn(),new BasicDBObject("$"+compare.getCondition(),String.valueOf(compare.getValue())));
+                }
+            } else {
                 basicDBObject.put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), compare.getValue()));
             }
             basicDBObjectList.add(basicDBObject);
@@ -94,18 +110,98 @@ public class BuildCondition<T> {
     }
 
     /**
+     * 构建更新值
+     *
+     * @author JiaChaoYang
+     * @date 2023/7/9 22:16
+     */
+    public static BasicDBObject buildUpdateValue(List<CompareCondition> compareConditionList) {
+        return new BasicDBObject() {{
+            compareConditionList.stream().filter(compareCondition -> compareCondition.getType() == CompareEnum.UPDATE.getKey()).collect(Collectors.toList()).forEach(compare -> {
+                put(compare.getColumn(), compare.getValue());
+            });
+        }};
+    }
+
+    public static BasicDBObject buildReplaceRoot(Boolean reserveOriginalDocument,List<ReplaceRoot> replaceRootList){
+        return new BasicDBObject(){{
+            if (replaceRootList.size() == 1 && !reserveOriginalDocument){
+                put("newRoot","$"+replaceRootList.get(0).getField());
+            }else {
+                put("newRoot",new BasicDBObject(){{
+                    put("$mergeObjects",new ArrayList<Object>(){{
+                        if (reserveOriginalDocument){
+                            add("$$ROOT");
+                        }
+                        for (ReplaceRoot replaceRoot : replaceRootList) {
+                            add(new BasicDBObject(){{
+                                put(replaceRoot.getResultMappingField(),"$"+replaceRoot.getField());
+                            }});
+                        }
+                    }});
+                }});
+            }
+        }};
+    }
+
+    /**
      * 构建group条件
      * @author JiaChaoYang
      * @date 2023/8/19 0:11
      */
     public static BasicDBObject buildGroup(List<Accumulator> accumulatorList){
-        BasicDBObject basicDBObject = new BasicDBObject();
-        accumulatorList.forEach(accumulator -> {
-            basicDBObject.put(accumulator.getResultMappingField(),new BasicDBObject(){{
-                put("$"+accumulator.getCondition(),"$"+accumulator.getField());
-            }});
-        });
-        return basicDBObject;
+        return new BasicDBObject(){{
+            accumulatorList.forEach(accumulator -> {
+                put(accumulator.getResultMappingField(),new BasicDBObject(){{
+                    put("$"+accumulator.getCondition(),accumulator.getField());
+                }});
+            });
+        }};
+    }
+
+    /**
+     * 构建addFields
+     * @author JiaChaoYang
+     * @date 2023/8/20 1:08
+    */
+    public static BasicDBObject buildAddFields(List<AddFields> addFieldsList){
+        return new BasicDBObject(){{
+           addFieldsList.forEach(addFields -> {
+               put(addFields.getResultMappingField(),addFields.getField());
+           });
+        }};
+    }
+
+    /**
+     * 构建unwind
+     * @author JiaChaoYang
+     * @date 2023/8/20 1:11
+    */
+    public static BasicDBObject buildUnwind(Boolean preserveNullAndEmptyArrays,String field){
+        return new BasicDBObject(){{
+           put("path","$"+field);
+           put("preserveNullAndEmptyArrays",preserveNullAndEmptyArrays);
+        }};
+    }
+
+    public static BasicDBObject buildSample(long size){
+        return new BasicDBObject(){{
+            put("size",size());
+        }};
+    }
+
+    /**
+     * 构建out
+     * @author JiaChaoYang
+     * @date 2023/8/20 1:38
+    */
+    public static BasicDBObject buildOut(String db,String coll){
+        return new BasicDBObject(){{
+           if (StringUtils.isNotBlank(db)){
+               put("db",db);
+               put("coll",coll);
+           }
+        }};
     }
 
 }

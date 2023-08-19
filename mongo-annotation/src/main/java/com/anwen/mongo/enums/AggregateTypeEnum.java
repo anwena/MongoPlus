@@ -26,6 +26,12 @@ public enum AggregateTypeEnum {
 
     ADD_FIELDS("addFields"),
 
+    UNWIND("unwind"),
+
+    REPLACE_ROOT("replaceRoot"),
+
+    SAMPLE("sample"),
+
     OUT("out")
 
     ;

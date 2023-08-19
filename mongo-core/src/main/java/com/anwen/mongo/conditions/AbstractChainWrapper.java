@@ -1,7 +1,7 @@
 package com.anwen.mongo.conditions;
 
 import com.anwen.mongo.conditions.interfaces.Compare;
-import com.anwen.mongo.conditions.interfaces.aggregate.project.Projection;
+import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
@@ -32,7 +32,7 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
      * 构建条件对象
      * @since 2023/2/10 12:00
      */
-    private List<CompareCondition> compareList = new ArrayList<>();
+    private final List<CompareCondition> compareList = new ArrayList<>();
 
     /**
      * 构建排序对象
@@ -555,14 +555,16 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
         return typedThis;
     }
 
-    public Children getBaseProjectDisplay(SFunction<T, Object>... columns){
+    @SafeVarargs
+    public final Children getBaseProjectDisplay(SFunction<T, Object>... columns){
         for (SFunction<T, Object> column : columns) {
             projectionList.add(Projection.builder().column(column.getFieldNameLine()).value(ProjectionEnum.DISPLAY.getValue()).build());
         }
         return typedThis;
     }
 
-    public Children getBaseProjectNone(SFunction<T, Object>... columns){
+    @SafeVarargs
+    public final Children getBaseProjectNone(SFunction<T, Object>... columns){
         for (SFunction<T, Object> column : columns) {
             projectionList.add(Projection.builder().column(column.getFieldNameLine()).value(ProjectionEnum.NONE.getValue()).build());
         }

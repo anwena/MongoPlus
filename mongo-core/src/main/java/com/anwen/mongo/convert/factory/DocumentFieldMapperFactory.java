@@ -6,6 +6,7 @@ import org.bson.types.ObjectId;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Date;
 
 /**
@@ -16,15 +17,18 @@ import java.util.Date;
 public class DocumentFieldMapperFactory {
 
     public static <T> DocumentFieldMapper<T> getMapper(Field field, Object fieldValue) {
-        if (field.getType().equals(Date.class)) {
+        Class<?> fieldType = field.getType();
+        if (fieldType.equals(Date.class)) {
             return new DateFieldMapper<>(fieldValue);
-        } else if (field.getType().equals(LocalDateTime.class)) {
+        } else if (fieldType.equals(LocalDateTime.class)) {
             return new LocalDateTimeFieldMapper<>(fieldValue);
-        } else if (!isPrimitive(field.getType())) {
+        } else if (fieldType.isArray() || Collection.class.isAssignableFrom(fieldType)) {
+            return new CollectionFieldMapper<>(fieldValue);
+        } else if (!isPrimitive(fieldType)) {
             return new ObjectFieldMapper<>(fieldValue);
-        } else if (field.getType().equals(ObjectId.class)){
+        } else if (fieldType.equals(ObjectId.class)) {
             return new ObjectIdFieldMapper<>(fieldValue);
-        }else {
+        } else {
             return new DefaultFieldMapper<>(fieldValue);
         }
     }
