@@ -5,20 +5,20 @@ import com.anwen.mongo.strategy.aggregate.PipelineStrategy;
 import com.mongodb.BasicDBObject;
 
 /**
- * limit策略实现类
+ * skip策略实现类
  *
  * @author JiaChaoYang
  **/
-public class ConcretePipelineLimit implements PipelineStrategy {
+public class SkipConcretePipeline implements PipelineStrategy {
 
-    private final Long limit;
+    private final Long skip;
 
-    public ConcretePipelineLimit(Long limit) {
-        this.limit = limit;
+    public SkipConcretePipeline(Long skip) {
+        this.skip = skip;
     }
 
     @Override
     public BasicDBObject buildAggregate() {
-        return new BasicDBObject(AggregateTypeEnum.LIMIT.getType(),limit);
+        return new BasicDBObject(AggregateTypeEnum.SKIP.getType(),skip);
     }
 }

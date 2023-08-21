@@ -15,7 +15,7 @@
  */
 package com.anwen.mongo.incrementer;
 
-import com.anwen.mongo.id.IdWorker;
+import com.anwen.mongo.incrementer.id.IdWorker;
 import com.anwen.mongo.toolkit.StringUtils;
 
 /**

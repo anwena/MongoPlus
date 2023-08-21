@@ -44,7 +44,6 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.anwen.mongo.toolkit.BeanMapUtilByReflect.checkTableField;
@@ -362,28 +361,28 @@ public class SqlOperation<T> {
         return Converter.convertDocumentToMap(collection.find(Map.class), Math.toIntExact(doCount(collectionName)));
     }
 
-    public List<Map<String, Object>> doList(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList, List<Projection> projectionList) {
-        return getLambdaQueryResult(collectionName, compareConditionList, orderList,projectionList);
+    public List<Map<String, Object>> doList(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList, List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
+        return getLambdaQueryResult(collectionName, compareConditionList, orderList,projectionList,basicDBObjectList);
     }
 
-    public PageResult<Map<String, Object>> doPage(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList, Integer pageNum, Integer pageSize) {
-        return getLambdaQueryResultPage(collectionName, compareConditionList, orderList,projectionList, new PageParam(pageNum, pageSize));
+    public PageResult<Map<String, Object>> doPage(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, Integer pageNum, Integer pageSize) {
+        return getLambdaQueryResultPage(collectionName, compareConditionList, orderList,projectionList, basicDBObjectList,new PageParam(pageNum, pageSize));
     }
 
     public PageResult<Map<String,Object>> doPage(String collectionName,Integer pageNum,Integer pageSize){
-        return getLambdaQueryResultPage(collectionName,new ArrayList<>(),new ArrayList<>(),new ArrayList<>(),new PageParam(pageNum,pageSize));
+        return getLambdaQueryResultPage(collectionName,null,null,null,null,new PageParam(pageNum,pageSize));
     }
 
-    public Map<String, Object> doOne(String collectionName, List<CompareCondition> compareConditionList,List<Projection> projectionList) {
-        List<Map<String, Object>> result = getLambdaQueryResult(collectionName, compareConditionList, new ArrayList<>(),projectionList);
+    public Map<String, Object> doOne(String collectionName, List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
+        List<Map<String, Object>> result = getLambdaQueryResult(collectionName, compareConditionList, null,projectionList,basicDBObjectList);
         if (result.size() > 1) {
             throw new MongoQueryException("query result greater than one line");
         }
         return !result.isEmpty() ? result.get(0) : new HashMap<>();
     }
 
-    public Map<String, Object> doLimitOne(String collectionName, List<CompareCondition> compareConditionList,List<Projection> projectionList) {
-        List<Map<String, Object>> result = getLambdaQueryResult(collectionName, compareConditionList, new ArrayList<>(),projectionList);
+    public Map<String, Object> doLimitOne(String collectionName, List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
+        List<Map<String, Object>> result = getLambdaQueryResult(collectionName, compareConditionList, null,projectionList,basicDBObjectList);
         return !result.isEmpty() ? result.get(0) : new HashMap<>();
     }
 
@@ -413,25 +412,25 @@ public class SqlOperation<T> {
     }
 
 
-    public List<T> doList(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList) {
-        return getLambdaQueryResult(compareConditionList, orderList,projectionList);
+    public List<T> doList(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
+        return getLambdaQueryResult(compareConditionList, orderList,projectionList,basicDBObjectList);
     }
 
-    public T doOne(List<CompareCondition> compareConditionList,List<Projection> projectionList) {
-        List<T> result = getLambdaQueryResult(compareConditionList, new ArrayList<>(),projectionList);
+    public T doOne(List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
+        List<T> result = getLambdaQueryResult(compareConditionList, null,projectionList,basicDBObjectList);
         if (result.size() > 1) {
             throw new MongoQueryException("query result greater than one line");
         }
         return !result.isEmpty() ? result.get(0) : null;
     }
 
-    public T doLimitOne(List<CompareCondition> compareConditionList,List<Projection> projectionList) {
-        List<T> result = getLambdaQueryResult(compareConditionList, new ArrayList<>(),projectionList);
+    public T doLimitOne(List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
+        List<T> result = getLambdaQueryResult(compareConditionList, null,projectionList,basicDBObjectList);
         return !result.isEmpty() ? result.get(0) : null;
     }
 
-    public PageResult<T> doPage(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList, Integer pageNum, Integer pageSize) {
-        return getLambdaQueryResultPage(compareConditionList, orderList,projectionList, new PageParam(pageNum, pageSize));
+    public PageResult<T> doPage(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, Integer pageNum, Integer pageSize) {
+        return getLambdaQueryResultPage(compareConditionList, orderList,projectionList, basicDBObjectList,new PageParam(pageNum, pageSize));
     }
 
     public T doGetById(Serializable id) {
@@ -493,31 +492,52 @@ public class SqlOperation<T> {
         return getCollection().countDocuments(BuildCondition.buildQueryCondition(compareConditionList));
     }
 
-    public List<T> doAggregateList(List<BaseAggregate> aggregateList){
+    public List<T> doAggregateList(List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList){
         AggregateIterable<Document> aggregateIterable = getCollection().aggregate(
                 new ArrayList<BasicDBObject>(){{
                     aggregateList.forEach(aggregate -> add(new BasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate())));
+                    addAll(basicDBObjectList);
                 }}
         );
         return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),mongoEntity);
     }
 
-    public <E> List<E> doAggregateList(List<BaseAggregate> aggregateList,Class<E> clazz){
+    public List<Map<String,Object>> doAggregateList(String collectionName,List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList){
+        AggregateIterable<Map> aggregateIterable = getCollection(collectionName).aggregate(
+                new ArrayList<BasicDBObject>(){{
+                    aggregateList.forEach(aggregate -> add(new BasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate())));
+                    addAll(basicDBObjectList);
+                }}, Map.class);
+        return Converter.convertDocumentToMap(aggregateIterable.iterator());
+    }
+
+    public <E> List<E> doAggregateList(List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,Class<E> clazz){
         AggregateIterable<Document> aggregateIterable = getCollection().aggregate(
                 new ArrayList<BasicDBObject>(){{
                     aggregateList.forEach(aggregate -> add(new BasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate())));
+                    addAll(basicDBObjectList);
+                }}
+        );
+        return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),clazz != null ? clazz : mongoEntity);
+    }
+
+    public <E> List<E> doAggregateList(String collectionName,List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,Class<E> clazz){
+        AggregateIterable<Document> aggregateIterable = getCollection(collectionName).aggregate(
+                new ArrayList<BasicDBObject>(){{
+                    aggregateList.forEach(aggregate -> add(new BasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate())));
+                    addAll(basicDBObjectList);
                 }}
         );
         return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),clazz != null ? clazz : mongoEntity);
     }
 
 
-    private List<T> getLambdaQueryResult(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList) {
-        return DocumentMapperConvert.mapDocumentList(baseLambdaQuery(compareConditionList, orderList,projectionList), mongoEntity);
+    private List<T> getLambdaQueryResult(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
+        return DocumentMapperConvert.mapDocumentList(baseLambdaQuery(compareConditionList, orderList,projectionList,basicDBObjectList), mongoEntity);
     }
 
-    private List<Map<String, Object>> getLambdaQueryResult(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList) {
-        return Converter.convertDocumentToMap(baseLambdaQuery(collectionName, compareConditionList, orderList,projectionList), Math.toIntExact(doCount(collectionName, compareConditionList)));
+    private List<Map<String, Object>> getLambdaQueryResult(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
+        return Converter.convertDocumentToMap(baseLambdaQuery(collectionName, compareConditionList, orderList,projectionList,basicDBObjectList), Math.toIntExact(doCount(collectionName, compareConditionList)));
     }
 
     /**
@@ -526,18 +546,23 @@ public class SqlOperation<T> {
      * @author JiaChaoYang
      * @date 2023/6/25/025 1:51
      */
-    private FindIterable<Document> baseLambdaQuery(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList) {
+    private FindIterable<Document> baseLambdaQuery(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
         BasicDBObject sortCond = new BasicDBObject();
         orderList.forEach(order -> sortCond.put(order.getColumn(), order.getType()));
         MongoCollection<Document> collection = getCollection();
         BasicDBObject basicDBObject = BuildCondition.buildQueryCondition(compareConditionList);
+        if (CollUtil.isNotEmpty(basicDBObjectList)){
+            basicDBObjectList.forEach(basic -> {
+                basicDBObject.putAll(basic.toMap());
+            });
+        }
         if (StringUtils.isNotBlank(createIndex)) {
             collection.createIndex(new Document(createIndex, QueryOperatorEnum.TEXT.getValue()));
         }
         return collection.find(basicDBObject).projection(BuildCondition.buildProjection(projectionList)).sort(sortCond);
     }
 
-    private FindIterable<Map> baseLambdaQuery(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList) {
+    private FindIterable<Map> baseLambdaQuery(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
         BasicDBObject sortCond = new BasicDBObject();
         orderList.forEach(order -> sortCond.put(order.getColumn(), order.getType()));
         MongoCollection<Document> collection = getCollection(collectionName);
@@ -545,12 +570,17 @@ public class SqlOperation<T> {
         if (StringUtils.isNotBlank(createIndex)) {
             collection.createIndex(new Document(createIndex, QueryOperatorEnum.TEXT.getValue()));
         }
+        if (CollUtil.isNotEmpty(basicDBObjectList)){
+            basicDBObjectList.forEach(basic -> {
+                basicDBObject.putAll(basic.toMap());
+            });
+        }
         return collection.find(basicDBObject,Map.class).projection(BuildCondition.buildProjection(projectionList)).sort(sortCond);
     }
 
-    private PageResult<T> getLambdaQueryResultPage(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList, PageParam pageParams) {
+    private PageResult<T> getLambdaQueryResultPage(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, PageParam pageParams) {
         PageResult<T> pageResult = new PageResult<>();
-        FindIterable<Document> documentFindIterable = baseLambdaQuery(compareConditionList, orderList,projectionList);
+        FindIterable<Document> documentFindIterable = baseLambdaQuery(compareConditionList, orderList,projectionList,basicDBObjectList);
         long totalSize = doCount(compareConditionList);
         pageResult.setPageNum(pageParams.getPageNum());
         pageResult.setPageSize(pageParams.getPageSize());
@@ -560,9 +590,9 @@ public class SqlOperation<T> {
         return pageResult;
     }
 
-    private PageResult<Map<String, Object>> getLambdaQueryResultPage(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList, PageParam pageParams) {
+    private PageResult<Map<String, Object>> getLambdaQueryResultPage(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, PageParam pageParams) {
         PageResult<Map<String, Object>> pageResult = new PageResult<>();
-        FindIterable<Map> documentFindIterable = baseLambdaQuery(collectionName, compareConditionList, orderList,projectionList);
+        FindIterable<Map> documentFindIterable = baseLambdaQuery(collectionName, compareConditionList, orderList,projectionList,basicDBObjectList);
         long totalSize = doCount(collectionName,compareConditionList);
         pageResult.setPageNum(pageParams.getPageNum());
         pageResult.setPageSize(pageParams.getPageSize());

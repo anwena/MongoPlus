@@ -14,10 +14,12 @@ import com.anwen.mongo.enums.QueryOperatorEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.BasicDBObject;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.bson.types.ObjectId;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -186,7 +188,7 @@ public class BuildCondition {
 
     public static BasicDBObject buildSample(long size){
         return new BasicDBObject(){{
-            put("size",size());
+            put("size",size);
         }};
     }
 

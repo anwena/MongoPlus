@@ -4,9 +4,12 @@ import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.enums.TypeEnum;
 import com.anwen.mongo.support.SFunction;
+import com.mongodb.BasicDBObject;
+import org.bson.conversions.Bson;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * 查询条件封装
@@ -904,4 +907,10 @@ public interface Compare<T,Children> extends Serializable {
      * @date 2023/7/30 1:06
      */
     Children text(String column, Object value);
+
+    Children custom(BasicDBObject basicDBObject);
+
+    Children custom(Bson bson);
+
+    Children custom(List<BasicDBObject> basicDBObjectList);
 }

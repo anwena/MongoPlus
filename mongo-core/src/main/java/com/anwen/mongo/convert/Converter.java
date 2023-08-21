@@ -29,6 +29,14 @@ public class Converter {
         return resultList;
     }
 
+    public static List<Map<String, Object>> convertDocumentToMap(MongoCursor<Map> cursor) {
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        while (cursor.hasNext()) {
+            resultList.add(cursor.next());
+        }
+        return resultList;
+    }
+
     public static List<Map<String, Object>> convertDocumentToMap(FindIterable<Map> iterable,Integer total) {
         List<Map<String, Object>> resultList = new ArrayList<>(total);
         for (Map<String,Object> map : iterable.batchSize(total)) {

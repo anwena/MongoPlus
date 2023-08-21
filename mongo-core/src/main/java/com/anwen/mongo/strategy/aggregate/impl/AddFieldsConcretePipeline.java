@@ -14,15 +14,15 @@ import java.util.List;
  *
  * @author JiaChaoYang
  **/
-public class ConcretePipelineAddFields implements PipelineStrategy {
+public class AddFieldsConcretePipeline implements PipelineStrategy {
 
     private final List<AddFields> addFieldsList;
 
-    public ConcretePipelineAddFields(AddFields... addFields) {
+    public AddFieldsConcretePipeline(AddFields... addFields) {
         this.addFieldsList = new ArrayList<>(Arrays.asList(addFields));
     }
 
-    public ConcretePipelineAddFields(List<AddFields> addFieldsList) {
+    public AddFieldsConcretePipeline(List<AddFields> addFieldsList) {
         this.addFieldsList = addFieldsList;
     }
 

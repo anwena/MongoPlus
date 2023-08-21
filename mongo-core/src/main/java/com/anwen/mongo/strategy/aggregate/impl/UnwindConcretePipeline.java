@@ -9,13 +9,13 @@ import com.mongodb.BasicDBObject;
  *
  * @author JiaChaoYang
  **/
-public class ConcretePipelineUnwind implements PipelineStrategy {
+public class UnwindConcretePipeline implements PipelineStrategy {
 
     private final String field;
 
     private final Boolean preserveNullAndEmptyArrays;
 
-    public ConcretePipelineUnwind(String field, Boolean preserveNullAndEmptyArrays) {
+    public UnwindConcretePipeline(String field, Boolean preserveNullAndEmptyArrays) {
         this.field = field;
         this.preserveNullAndEmptyArrays = preserveNullAndEmptyArrays;
     }

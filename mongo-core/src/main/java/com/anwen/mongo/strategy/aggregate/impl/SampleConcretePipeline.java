@@ -5,23 +5,20 @@ import com.anwen.mongo.strategy.aggregate.PipelineStrategy;
 import com.mongodb.BasicDBObject;
 
 /**
- * out策略实现类
+ * sample策略实现类
  *
  * @author JiaChaoYang
  **/
-public class ConcretePipelineOut implements PipelineStrategy {
+public class SampleConcretePipeline implements PipelineStrategy {
 
-    private final String db;
+    private final Long size;
 
-    private final String coll;
-
-    public ConcretePipelineOut(String db, String coll) {
-        this.db = db;
-        this.coll = coll;
+    public SampleConcretePipeline(Long size) {
+        this.size = size;
     }
 
     @Override
     public BasicDBObject buildAggregate() {
-        return BuildCondition.buildOut(db,coll);
+        return BuildCondition.buildSample(size);
     }
 }

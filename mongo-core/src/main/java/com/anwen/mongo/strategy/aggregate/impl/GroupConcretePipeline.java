@@ -18,7 +18,7 @@ import java.util.List;
  *
  * @author JiaChaoYang
  **/
-public class ConcretePipelineGroup implements PipelineStrategy {
+public class GroupConcretePipeline implements PipelineStrategy {
 
     private List<Accumulator> accumulatorList;
 
@@ -26,31 +26,31 @@ public class ConcretePipelineGroup implements PipelineStrategy {
 
     private List<Accumulator> _idAccumulator;
 
-    public ConcretePipelineGroup(String _id,Accumulator accumulator) {
+    public GroupConcretePipeline(String _id, Accumulator accumulator) {
         this._id = _id;
         this.accumulatorList = Collections.singletonList(accumulator);
     }
 
-    public ConcretePipelineGroup(String _id,Accumulator... accumulators) {
+    public GroupConcretePipeline(String _id, Accumulator... accumulators) {
         this._id = _id;
         this.accumulatorList = new ArrayList<>(Arrays.asList(accumulators));
     }
 
-    public ConcretePipelineGroup(String _id , List<Accumulator> accumulatorList) {
+    public GroupConcretePipeline(String _id , List<Accumulator> accumulatorList) {
         this._id = _id;
         this.accumulatorList = accumulatorList;
     }
 
-    public ConcretePipelineGroup(String _id, String resultMappingField, String operator, String field) {
+    public GroupConcretePipeline(String _id, String resultMappingField, String operator, String field) {
         this._id = _id;
         this.accumulatorList = Collections.singletonList(new Accumulator(resultMappingField, operator, field));
     }
 
-    public ConcretePipelineGroup(String _id){
+    public GroupConcretePipeline(String _id){
         this._id = _id;
     }
 
-    public ConcretePipelineGroup(List<Accumulator> _idAccumulator){
+    public GroupConcretePipeline(List<Accumulator> _idAccumulator){
         this._idAccumulator = _idAccumulator;
     }
 

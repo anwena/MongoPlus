@@ -15,7 +15,7 @@
  */
 package com.anwen.mongo.incrementer;
 
-import com.anwen.mongo.id.Sequence;
+import com.anwen.mongo.incrementer.id.Sequence;
 
 import java.net.InetAddress;
 

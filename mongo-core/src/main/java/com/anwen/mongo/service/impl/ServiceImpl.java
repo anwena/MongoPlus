@@ -14,7 +14,6 @@ import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -144,25 +143,25 @@ public class ServiceImpl<T> implements IService<T>, ApplicationListener<SqlOpera
     @Override
     public T one(QueryChainWrapper<T,?> queryChainWrapper) {
         sqlOperation.setMongoEntity(getEClass());
-        return sqlOperation.doOne(queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList());
+        return sqlOperation.doOne(queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
     }
 
     @Override
     public T limitOne(QueryChainWrapper<T, ?> queryChainWrapper) {
         sqlOperation.setMongoEntity(getEClass());
-        return sqlOperation.doLimitOne(queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList());
+        return sqlOperation.doLimitOne(queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
     }
 
     @Override
     public List<T> list(QueryChainWrapper<T,?> queryChainWrapper) {
         sqlOperation.setMongoEntity(getEClass());
-        return sqlOperation.doList(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList());
+        return sqlOperation.doList(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
     }
 
     @Override
     public List<T> list(AggregateChainWrapper<T,?> queryChainWrapper) {
         sqlOperation.setMongoEntity(getEClass());
-        return sqlOperation.doAggregateList(queryChainWrapper.getBaseAggregateList(),null);
+        return sqlOperation.doAggregateList(queryChainWrapper.getBaseAggregateList(),queryChainWrapper.getBasicDBObjectList());
     }
 
     @Override
@@ -180,7 +179,7 @@ public class ServiceImpl<T> implements IService<T>, ApplicationListener<SqlOpera
     @Override
     public PageResult<T> page(QueryChainWrapper<T,?> queryChainWrapper, Integer pageNum, Integer pageSize){
         sqlOperation.setMongoEntity(getEClass());
-        return sqlOperation.doPage(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(), pageNum,pageSize);
+        return sqlOperation.doPage(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(), pageNum,pageSize);
     }
 
     @Override
@@ -191,7 +190,7 @@ public class ServiceImpl<T> implements IService<T>, ApplicationListener<SqlOpera
     @Override
     public PageResult<T> page(Integer pageNum, Integer pageSize) {
         sqlOperation.setMongoEntity(getEClass());
-        return sqlOperation.doPage(new ArrayList<>(),new ArrayList<>(),new ArrayList<>(),pageNum,pageSize);
+        return sqlOperation.doPage(null,null,null,null,pageNum,pageSize);
     }
 
     @Override

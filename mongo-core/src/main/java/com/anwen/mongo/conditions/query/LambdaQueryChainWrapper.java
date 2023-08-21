@@ -33,27 +33,27 @@ public class LambdaQueryChainWrapper<T> extends QueryChainWrapper<T,LambdaQueryC
 
     @Override
     public List<T> list() {
-        return sqlOperation.doList(getCompareList(), getOrderList(),getProjectionList());
+        return sqlOperation.doList(getCompareList(), getOrderList(),getProjectionList(),getBasicDBObjectList());
     }
 
     @Override
     public T one() {
-        return sqlOperation.doOne(getCompareList(),getProjectionList());
+        return sqlOperation.doOne(getCompareList(),getProjectionList(),getBasicDBObjectList());
     }
 
     @Override
     public T limitOne() {
-        return sqlOperation.doLimitOne(getCompareList(),getProjectionList());
+        return sqlOperation.doLimitOne(getCompareList(),getProjectionList(),getBasicDBObjectList());
     }
 
     @Override
     public PageResult<T> page(PageParam pageParam) {
-        return sqlOperation.doPage(getCompareList(),getOrderList(),getProjectionList(),pageParam.getPageNum(),pageParam.getPageSize());
+        return sqlOperation.doPage(getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList(),pageParam.getPageNum(),pageParam.getPageSize());
     }
 
     @Override
     public PageResult<T> page(Integer pageNum, Integer pageSize) {
-        return sqlOperation.doPage(getCompareList(),getOrderList(),getProjectionList(),pageNum,pageSize);
+        return sqlOperation.doPage(getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList(),pageNum,pageSize);
     }
 
     @Override

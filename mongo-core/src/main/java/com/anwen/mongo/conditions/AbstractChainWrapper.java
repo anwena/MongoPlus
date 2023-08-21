@@ -11,7 +11,9 @@ import com.anwen.mongo.enums.LogicTypeEnum;
 import com.anwen.mongo.enums.ProjectionEnum;
 import com.anwen.mongo.enums.TypeEnum;
 import com.anwen.mongo.support.SFunction;
+import com.mongodb.BasicDBObject;
 import lombok.Getter;
+import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,6 +48,14 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
      * @date 2023/7/30 20:34
     */
     List<Projection> projectionList = new ArrayList<>();
+
+    /**
+     * 自定义条件语句
+     * @author JiaChaoYang
+     * @date 2023/8/20 19:40
+    */
+    List<BasicDBObject> basicDBObjectList = new ArrayList<>();
+
     @Override
     public Children eq(boolean condition, SFunction<T, Object> column, Object value) {
         return condition ? eq(column,value) : typedThis;
@@ -485,6 +495,24 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
     @Override
     public Children text(String column, Object value) {
         return getBaseCondition(column,value);
+    }
+
+    @Override
+    public Children custom(BasicDBObject basicDBObject) {
+        this.basicDBObjectList.add(basicDBObject);
+        return typedThis;
+    }
+
+    @Override
+    public Children custom(Bson bson) {
+        this.basicDBObjectList.add(BasicDBObject.parse(bson.toBsonDocument().toJson()));
+        return typedThis;
+    }
+
+    @Override
+    public Children custom(List<BasicDBObject> basicDBObjectList) {
+        this.basicDBObjectList.addAll(basicDBObjectList);
+        return typedThis;
     }
 
     public Children getBaseCondition(String column, Object value){

@@ -24,27 +24,27 @@ public class LambdaQueryChainInjectWrapper extends QueryChainWrapper<Map<String,
 
     @Override
     public List<Map<String, Object>> list(String collection) {
-        return sqlOperation.doList(collection,getCompareList(),getOrderList(),getProjectionList());
+        return sqlOperation.doList(collection,getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList());
     }
 
     @Override
     public Map<String, Object> limitOne(String collectionName) {
-        return sqlOperation.doLimitOne(collectionName,getCompareList(),getProjectionList());
+        return sqlOperation.doLimitOne(collectionName,getCompareList(),getProjectionList(),getBasicDBObjectList());
     }
 
     @Override
     public PageResult<Map<String, Object>> page(String collectionName, PageParam pageParam) {
-        return sqlOperation.doPage(collectionName,getCompareList(),getOrderList(),getProjectionList(),pageParam.getPageNum(),pageParam.getPageSize());
+        return sqlOperation.doPage(collectionName,getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList(),pageParam.getPageNum(),pageParam.getPageSize());
     }
 
     @Override
     public PageResult<Map<String, Object>> page(String collectionName, Integer pageNum, Integer pageSize) {
-        return sqlOperation.doPage(collectionName,getCompareList(),getOrderList(),getProjectionList(),pageNum,pageSize);
+        return sqlOperation.doPage(collectionName,getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList(),pageNum,pageSize);
     }
 
     @Override
     public Map<String, Object> one(String collectionName) {
-        return sqlOperation.doOne(collectionName,getCompareList(),getProjectionList());
+        return sqlOperation.doOne(collectionName,getCompareList(),getProjectionList(),getBasicDBObjectList());
     }
 
     @Override

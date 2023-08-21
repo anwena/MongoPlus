@@ -11,11 +11,11 @@ import java.util.List;
  * match策略实现类
  * @author JiaChaoYang
  **/
-public class ConcretePipelineMatch implements PipelineStrategy {
+public class MatchConcretePipeline implements PipelineStrategy {
 
     private final List<CompareCondition> compareList;
 
-    public ConcretePipelineMatch(List<CompareCondition> compareList) {
+    public MatchConcretePipeline(List<CompareCondition> compareList) {
         this.compareList = compareList;
     }
 

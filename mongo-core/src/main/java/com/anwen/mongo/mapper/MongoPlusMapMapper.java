@@ -1,5 +1,6 @@
 package com.anwen.mongo.mapper;
 
+import com.anwen.mongo.conditions.inject.aggregate.LambdaAggregateChainInjectWrapper;
 import com.anwen.mongo.conditions.inject.query.LambdaQueryChainInjectWrapper;
 import com.anwen.mongo.conditions.inject.update.LambdaUpdateChainInjectWrapper;
 import com.anwen.mongo.conditions.interfaces.Inject.InjectQuery;
@@ -27,6 +28,10 @@ public class MongoPlusMapMapper implements InjectQuery {
         return new LambdaQueryChainInjectWrapper(sqlOperation);
     }
 
+    public LambdaAggregateChainInjectWrapper lambdaAggregate(){
+        return new LambdaAggregateChainInjectWrapper(sqlOperation);
+    }
+
     public LambdaUpdateChainInjectWrapper lambdaUpdate(){
         return new LambdaUpdateChainInjectWrapper(sqlOperation);
     }
@@ -38,17 +43,17 @@ public class MongoPlusMapMapper implements InjectQuery {
 
     @Override
     public List<Map<String, Object>> list(String collectionName, QueryChainWrapper<Map<String,Object>,?> queryChainWrapper) {
-        return sqlOperation.doList(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList());
+        return sqlOperation.doList(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
     }
 
     @Override
     public Map<String, Object> one(String collectionName, QueryChainWrapper<Map<String,Object>,?> queryChainWrapper) {
-        return sqlOperation.doOne(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList());
+        return sqlOperation.doOne(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
     }
 
     @Override
     public Map<String, Object> limitOne(String collectionName, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
-        return sqlOperation.doLimitOne(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList());
+        return sqlOperation.doLimitOne(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
     }
 
 
@@ -59,7 +64,7 @@ public class MongoPlusMapMapper implements InjectQuery {
 
     @Override
     public PageResult<Map<String, Object>> page(String collectionName, PageParam pageParam, QueryChainWrapper<Map<String,Object>,?> queryChainWrapper) {
-        return sqlOperation.doPage(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),pageParam.getPageNum(),pageParam.getPageSize());
+        return sqlOperation.doPage(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),pageParam.getPageNum(),pageParam.getPageSize());
     }
 
     @Override
@@ -69,7 +74,7 @@ public class MongoPlusMapMapper implements InjectQuery {
 
     @Override
     public PageResult<Map<String, Object>> page(String collectionName, Integer pageNum, Integer pageSize, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
-        return sqlOperation.doPage(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),pageNum,pageSize);
+        return sqlOperation.doPage(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),pageNum,pageSize);
     }
 
     @Override

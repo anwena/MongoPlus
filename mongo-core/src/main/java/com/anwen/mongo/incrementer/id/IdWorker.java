@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.anwen.mongo.id;
+package com.anwen.mongo.incrementer.id;
 
 import com.anwen.mongo.incrementer.DefaultIdentifierGenerator;
 import com.anwen.mongo.incrementer.IdentifierGenerator;
@@ -121,4 +121,5 @@ public class IdWorker {
         ThreadLocalRandom random = ThreadLocalRandom.current();
         return new UUID(random.nextLong(), random.nextLong()).toString().replace(StringPool.DASH, StringPool.EMPTY);
     }
+
 }

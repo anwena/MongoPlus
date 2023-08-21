@@ -1,4 +1,4 @@
-package com.anwen.mongo.id;
+package com.anwen.mongo.incrementer.id;
 
 import java.sql.Timestamp;
 import java.util.concurrent.Executors;

@@ -1,8 +1,6 @@
 package com.anwen.mongo.conditions.aggregate;
 
 import com.anwen.mongo.execute.SqlOperation;
-import com.anwen.mongo.model.PageParam;
-import com.anwen.mongo.model.PageResult;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -27,36 +25,11 @@ public class LambdaAggregateChainWrapper<T> extends AggregateChainWrapper<T,Lamb
 
     @Override
     public List<T> list() {
-        return sqlOperation.doAggregateList(super.baseAggregateList);
+        return sqlOperation.doAggregateList(super.baseAggregateList,super.getBasicDBObjectList());
     }
 
     @Override
     public <E> List<E> list(Class<E> clazz) {
-        return sqlOperation.doAggregateList(super.baseAggregateList,clazz);
-    }
-
-    @Override
-    public T one() {
-        return null;
-    }
-
-    @Override
-    public T limitOne() {
-        return null;
-    }
-
-    @Override
-    public PageResult<T> page(PageParam pageParam) {
-        return null;
-    }
-
-    @Override
-    public PageResult<T> page(Integer pageNum, Integer pageSize) {
-        return null;
-    }
-
-    @Override
-    public long count() {
-        return 0;
+        return sqlOperation.doAggregateList(super.baseAggregateList,super.getBasicDBObjectList(),clazz);
     }
 }

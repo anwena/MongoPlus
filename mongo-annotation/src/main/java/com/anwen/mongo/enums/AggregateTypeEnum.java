@@ -32,6 +32,8 @@ public enum AggregateTypeEnum {
 
     SAMPLE("sample"),
 
+    UNION_WITH("unionWith"),
+
     OUT("out")
 
     ;

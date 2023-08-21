@@ -3,16 +3,13 @@ package com.anwen.mongo.convert.mapper;
 import com.alibaba.fastjson.JSON;
 import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.convert.DocumentFieldMapper;
-import com.mongodb.MongoException;
 import org.bson.Document;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * 集合字段

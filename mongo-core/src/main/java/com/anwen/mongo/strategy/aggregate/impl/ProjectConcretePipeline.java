@@ -16,22 +16,22 @@ import java.util.List;
  *
  * @author JiaChaoYang
  **/
-public class ConcretePipelineProject implements PipelineStrategy {
+public class ProjectConcretePipeline implements PipelineStrategy {
 
     private final List<Projection> projectionList;
 
-    public ConcretePipelineProject(Projection... projection) {
+    public ProjectConcretePipeline(Projection... projection) {
         this.projectionList = new ArrayList<>(Arrays.asList(projection));
     }
 
-    public ConcretePipelineProject(boolean displayId,Projection... projection) {
+    public ProjectConcretePipeline(boolean displayId, Projection... projection) {
         this.projectionList = new ArrayList<>(Arrays.asList(projection));
         if (!displayId) {
             this.projectionList.add(Projection.builder().column(SqlOperationConstant._ID).value(ProjectionEnum.NONE.getValue()).build());
         }
     }
 
-    public ConcretePipelineProject(List<Projection> projectionList) {
+    public ProjectConcretePipeline(List<Projection> projectionList) {
         this.projectionList = projectionList;
     }
 

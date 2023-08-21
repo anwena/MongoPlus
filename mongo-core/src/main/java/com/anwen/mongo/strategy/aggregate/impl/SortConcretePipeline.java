@@ -13,15 +13,15 @@ import java.util.List;
  *
  * @author JiaChaoYang
  **/
-public class ConcretePipelineSort implements PipelineStrategy {
+public class SortConcretePipeline implements PipelineStrategy {
 
     private final List<Order> orderList;
 
-    public ConcretePipelineSort(Order... orders) {
+    public SortConcretePipeline(Order... orders) {
         this.orderList = new ArrayList<>(Arrays.asList(orders));
     }
 
-    public ConcretePipelineSort(List<Order> orderList) {
+    public SortConcretePipeline(List<Order> orderList) {
         this.orderList = orderList;
     }
 

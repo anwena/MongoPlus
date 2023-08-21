@@ -1,15 +1,18 @@
 package com.anwen.mongo.conditions.interfaces.aggregate;
 
 import com.anwen.mongo.conditions.accumulator.Accumulator;
+import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.interfaces.Project;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.AddFields;
+import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Let;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.ReplaceRoot;
 import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.enums.GroupTypeEnum;
 import com.anwen.mongo.support.SFunction;
+import com.mongodb.BasicDBObject;
+import org.bson.conversions.Bson;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -27,6 +30,24 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * @date 2023/8/12 21:03
     */
     Children match(QueryChainWrapper<T, ?> queryChainWrapper);
+
+    /**
+     * 过滤文档记录，只将匹配的文档记录传递到管道中的下一个步骤
+     * @param basicDBObject 条件
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/8/12 21:03
+     */
+    Children match(BasicDBObject basicDBObject);
+
+    /**
+     * 过滤文档记录，只将匹配的文档记录传递到管道中的下一个步骤
+     * @param bson 条件
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/8/12 21:03
+     */
+    Children match(Bson bson);
 
     /**
      * 对所有输出的文档记录进行排序
@@ -83,22 +104,40 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
     Children sortDesc(String... field);
 
     /**
+     * 对所有输出的文档记录进行排序
+     * @param basicDBObject 排序条件
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/8/12 21:05
+     */
+    Children sort(BasicDBObject basicDBObject);
+
+    /**
+     * 对所有输出的文档记录进行排序
+     * @param bson 排序条件
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/8/12 21:05
+     */
+    Children sort(Bson bson);
+
+    /**
      * 限制管道中文档记录的数量(每页显示行数)
-     * @param l 数量
+     * @param limit 数量
      * @return Children
      * @author JiaChaoYang
      * @date 2023/8/12 21:05
     */
-    Children limit(long l);
+    Children limit(long limit);
 
     /**
      * 跳过指定数量的文档记录，返回剩下的文档记录（当前页）
-     * @param s 数量
+     * @param skip 数量
      * @return Children
      * @author JiaChaoYang
      * @date 2023/8/12 21:06
     */
-    Children skip(long s);
+    Children skip(long skip);
 
     /**
      * 对所有文档记录进行分组，然后计算聚合结果
@@ -286,13 +325,37 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
     Children group(SFunction<T,Object> _id , SFunction<T,Object> resultMappingField, GroupTypeEnum operator, SFunction<T,Object> field);
 
     /**
-     * 实现集合之间的join操作
-     * @param
+     * 对所有文档记录进行分组，然后计算聚合结果
+     * @param basicDBObject 分组依据
      * @return Children
      * @author JiaChaoYang
      * @date 2023/8/12 21:07
-    */
-    Children lookup();
+     */
+    Children group(BasicDBObject basicDBObject);
+
+    /**
+     * 对所有文档记录进行分组，然后计算聚合结果
+     * @param bson 分组依据
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/8/12 21:07
+     */
+    Children group(Bson bson);
+
+    /**
+     * 实现集合之间的join操作
+     *
+     * @param from 目标集合名称
+     * @param localField 当前集合用于关联的字段
+     * @param foreignField 指定目标集合用于关联的字段
+     * @param as 输出结果中保存关联值的字段名
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/8/12 21:07
+     */
+    Children lookup(String from,String localField,String foreignField,String as);
+
+    Children lookup(String from, List<Let> letList, AggregateChainWrapper<T,?> pipeline, String as);
 
     /**
      * 向集合中添加新字段
@@ -353,6 +416,24 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
     Children addFields(List<AddFields> addFieldsList);
 
     /**
+     * 向集合中添加新字段
+     * @param basicDBObject 自定义
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/8/20 0:15
+     */
+    Children addFields(BasicDBObject basicDBObject);
+
+    /**
+     * 向集合中添加新字段
+     * @param bson 自定义
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/8/20 0:15
+     */
+    Children addFields(Bson bson);
+
+    /**
      * 展开数组字段，生成一个文档副本，每个副本只包含一个数组元素
      * @param field 需要展开的字段
      * @return Children
@@ -389,6 +470,24 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * @date 2023/8/20 0:56
      */
     Children unwind(Boolean preserveNullAndEmptyArrays,String field);
+
+    /**
+     * 展开数组字段，生成一个文档副本，每个副本只包含一个数组元素
+     * @param basicDBObject 自定义
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/8/20 0:56
+     */
+    Children unwind(BasicDBObject basicDBObject);
+
+    /**
+     * 展开数组字段，生成一个文档副本，每个副本只包含一个数组元素
+     * @param bson 自定义
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/8/20 0:56
+     */
+    Children unwind(Bson bson);
 
     /**
      * 随机选择指定数量的文档
@@ -449,6 +548,46 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
     Children replaceRoot(Boolean reserveOriginalDocument,String... field);
 
     /**
+     * 使用指定字段替换根文档
+     * @param basicDBObject 自定义
+     * @author JiaChaoYang
+     * @date 2023/8/20 0:37
+     */
+    Children replaceRoot(BasicDBObject basicDBObject);
+
+    /**
+     * 使用指定字段替换根文档
+     * @param bson 自定义
+     * @author JiaChaoYang
+     * @date 2023/8/20 0:37
+     */
+    Children replaceRoot(Bson bson);
+
+    /**
+     * unionAll
+     * @param collectionName 集合名
+     * @author JiaChaoYang
+     * @date 2023/8/20 20:16
+    */
+    Children unionWith(String collectionName);
+
+    /**
+     * unionAll
+     * @param basicDBObject 自定义
+     * @author JiaChaoYang
+     * @date 2023/8/20 20:16
+     */
+    Children unionWith(BasicDBObject basicDBObject);
+
+    /**
+     * unionAll
+     * @param bson 自定义
+     * @author JiaChaoYang
+     * @date 2023/8/20 20:16
+     */
+    Children unionWith(Bson bson);
+
+    /**
      * 将管道中的文档记录输出到一个具体的集合中，不存在则自动创建
      * <p style='color:red'>这个必须是管道操作中的最后一步，如果输出到现有集合，会覆盖原数据</p>
      * @param coll 集合名
@@ -469,5 +608,39 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * @date 2023/8/12 21:08
      */
     Children out(String db,String coll);
+
+    /**
+     * 将管道中的文档记录输出到一个具体的集合中，不存在则自动创建
+     * <p style='color:red'>这个必须是管道操作中的最后一步，如果输出到现有集合，会覆盖原数据</p>
+     * @param basicDBObject 自定义
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/8/12 21:08
+     */
+    Children out(BasicDBObject basicDBObject);
+
+    /**
+     * 将管道中的文档记录输出到一个具体的集合中，不存在则自动创建
+     * <p style='color:red'>这个必须是管道操作中的最后一步，如果输出到现有集合，会覆盖原数据</p>
+     * @param bson 自定义
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/8/12 21:08
+     */
+    Children out(Bson bson);
+
+    /**
+     * 自定义管道操作
+     * @author JiaChaoYang
+     * @date 2023/8/20 20:46
+    */
+    Children custom(BasicDBObject basicDBObject);
+
+    /**
+     * 自定义管道操作
+     * @author JiaChaoYang
+     * @date 2023/8/20 20:46
+    */
+    Children custom(Bson bson);
 
 }

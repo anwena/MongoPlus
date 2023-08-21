@@ -15,18 +15,18 @@ import java.util.List;
  *
  * @author JiaChaoYang
  **/
-public class ConcretePipelineReplaceRoot implements PipelineStrategy {
+public class RootConcretePipelineReplace implements PipelineStrategy {
 
     private final Boolean reserveOriginalDocument;
 
     private final List<ReplaceRoot> replaceRootList;
 
-    public ConcretePipelineReplaceRoot(Boolean reserveOriginalDocument, ReplaceRoot... replaceRoot) {
+    public RootConcretePipelineReplace(Boolean reserveOriginalDocument, ReplaceRoot... replaceRoot) {
         this.reserveOriginalDocument = reserveOriginalDocument;
         this.replaceRootList = new ArrayList<>(Arrays.asList(replaceRoot));
     }
 
-    public ConcretePipelineReplaceRoot(Boolean reserveOriginalDocument, String... field) {
+    public RootConcretePipelineReplace(Boolean reserveOriginalDocument, String... field) {
         this.reserveOriginalDocument = reserveOriginalDocument;
         this.replaceRootList = new ArrayList<ReplaceRoot>(){{
             for (String col : field) {
@@ -36,7 +36,7 @@ public class ConcretePipelineReplaceRoot implements PipelineStrategy {
     }
 
     @SafeVarargs
-    public <T> ConcretePipelineReplaceRoot(Boolean reserveOriginalDocument, SFunction<T,Object>... field) {
+    public <T> RootConcretePipelineReplace(Boolean reserveOriginalDocument, SFunction<T,Object>... field) {
         this.reserveOriginalDocument = reserveOriginalDocument;
         this.replaceRootList = new ArrayList<ReplaceRoot>(){{
             for (SFunction<T,Object> col : field) {
@@ -45,7 +45,7 @@ public class ConcretePipelineReplaceRoot implements PipelineStrategy {
         }};
     }
 
-    public ConcretePipelineReplaceRoot(Boolean reserveOriginalDocument, List<ReplaceRoot> replaceRootList) {
+    public RootConcretePipelineReplace(Boolean reserveOriginalDocument, List<ReplaceRoot> replaceRootList) {
         this.reserveOriginalDocument = reserveOriginalDocument;
         this.replaceRootList = replaceRootList;
     }
