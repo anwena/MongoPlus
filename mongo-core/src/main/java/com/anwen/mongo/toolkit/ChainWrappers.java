@@ -3,6 +3,7 @@ package com.anwen.mongo.toolkit;
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.aggregate.AggregateWrapper;
 import com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper;
+import com.anwen.mongo.conditions.inject.aggregate.InjectAggregateWrapper;
 import com.anwen.mongo.conditions.inject.query.InjectWrapper;
 import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
@@ -40,6 +41,10 @@ public final class ChainWrappers {
     }
 
     public static <T> AggregateChainWrapper<T, AggregateWrapper<T>> lambdaAggregateChain(){
+        return new AggregateChainWrapper<>();
+    }
+
+    public static AggregateChainWrapper<Map<String,Object>, InjectAggregateWrapper> lambdaAggregateChainInject(){
         return new AggregateChainWrapper<>();
     }
 

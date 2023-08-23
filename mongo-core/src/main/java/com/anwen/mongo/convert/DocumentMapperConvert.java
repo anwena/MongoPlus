@@ -4,6 +4,7 @@ import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.convert.factory.DocumentFieldMapperFactory;
+import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
@@ -11,7 +12,9 @@ import org.bson.Document;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @Description: Document转对象
@@ -22,8 +25,6 @@ import java.util.*;
  * @Version: 1.0
  */
 public class DocumentMapperConvert {
-
-    private static final Map<Class<?>, List<Field>> FIELD_CACHE = new HashMap<>();
 
     /**
      * 将一个 Document 对象转换成指定类型的对象
@@ -70,7 +71,7 @@ public class DocumentMapperConvert {
      * @date: 2023/6/7 21:26
      **/
     private static void mapDocumentFields(Document doc, Object obj, Class<?> clazz) throws IllegalAccessException, InstantiationException {
-        List<Field> fields = getFields(clazz);
+        List<Field> fields = ClassTypeUtil.getFields(clazz);
         for (Field field : fields) {
             field.setAccessible(true);
             CollectionField collectionField = field.getAnnotation(CollectionField.class);
@@ -94,21 +95,4 @@ public class DocumentMapperConvert {
         }
     }
 
-    /**
-     * 获取类的所有字段，包括父类中的字段
-     * @author: JiaChaoYang
-     * @date: 2023/6/7 21:27
-     **/
-    private static List<Field> getFields(Class<?> clazz) {
-        List<Field> fields = FIELD_CACHE.get(clazz);
-        if (fields == null) {
-            fields = new ArrayList<>();
-            while (clazz != null && !clazz.equals(Object.class)) {
-                fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
-                clazz = clazz.getSuperclass();
-            }
-            FIELD_CACHE.put(clazz, fields);
-        }
-        return fields;
-    }
 }

@@ -1,5 +1,6 @@
 package com.anwen.mongo.mapper;
 
+import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.inject.aggregate.LambdaAggregateChainInjectWrapper;
 import com.anwen.mongo.conditions.inject.query.LambdaQueryChainInjectWrapper;
 import com.anwen.mongo.conditions.inject.update.LambdaUpdateChainInjectWrapper;
@@ -44,6 +45,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public List<Map<String, Object>> list(String collectionName, QueryChainWrapper<Map<String,Object>,?> queryChainWrapper) {
         return sqlOperation.doList(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
+    }
+
+    @Override
+    public List<Map<String, Object>> aggregateList(String collectionName, AggregateChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
+        return sqlOperation.doAggregateList(collectionName, queryChainWrapper.getBaseAggregateList(), queryChainWrapper.getBasicDBObjectList());
     }
 
     @Override

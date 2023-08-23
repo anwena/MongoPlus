@@ -1,6 +1,7 @@
 package com.anwen.mongo.conditions.interfaces.Inject;
 
 import com.anwen.mongo.annotation.CutInID;
+import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
@@ -19,6 +20,8 @@ import java.util.Map;
 public interface InjectQuery extends CommInjectQuery {
 
     List<Map<String,Object>> list(String collectionName, QueryChainWrapper<Map<String,Object>,?> queryChainWrapper);
+
+    List<Map<String,Object>> aggregateList(String collectionName, AggregateChainWrapper<Map<String,Object>,?> queryChainWrapper);
 
     PageResult<Map<String,Object>> page(String collectionName,PageParam pageParam,QueryChainWrapper<Map<String,Object>,?> queryChainWrapper);
 

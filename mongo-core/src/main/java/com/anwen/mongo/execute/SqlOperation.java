@@ -1,6 +1,7 @@
 package com.anwen.mongo.execute;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.json.JSONUtil;
 import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
@@ -22,11 +23,9 @@ import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.anwen.mongo.toolkit.codec.RegisterCodecUtil;
 import com.mongodb.BasicDBObject;
+import com.mongodb.ClientSessionOptions;
 import com.mongodb.MongoException;
-import com.mongodb.client.AggregateIterable;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoCollection;
+import com.mongodb.client.*;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
@@ -36,6 +35,7 @@ import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
+import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.types.ObjectId;
@@ -79,6 +79,8 @@ public class SqlOperation<T> {
 
     private Boolean isItAutoId;
 
+    private ClientSession clientSession;
+
     public void setMongoEntity(Class<T> mongoEntity) {
         this.mongoEntity = mongoEntity;
     }
@@ -116,7 +118,10 @@ public class SqlOperation<T> {
 
     public Boolean doSave(T entity) {
         try {
-            InsertOneResult insertOneResult = getCollection(entity).insertOne(processIdField(entity));
+            BsonDocument document = clientSession.getServerSession().getIdentifier();
+            System.out.println("添加时候的session："+JSONUtil.toJsonStr(document));
+            ClientSessionOptions.builder().causallyConsistent(true).build();
+            InsertOneResult insertOneResult = getCollection(entity).insertOne(clientSession,processIdField(entity));
             return insertOneResult.wasAcknowledged();
         } catch (Exception e) {
             log.error("save fail , error info : {}", e.getMessage(), e);
@@ -653,7 +658,6 @@ public class SqlOperation<T> {
                 num = Long.parseLong(String.valueOf(document.get(SqlOperationConstant.AUTO_NUM)));
             }
             tableFieldMap.put(SqlOperationConstant._ID,num);
-            tableFieldMap.remove(SqlOperationConstant.IS_IT_AUTO_ID);
         }
         return new Document(tableFieldMap);
     }

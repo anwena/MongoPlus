@@ -31,7 +31,7 @@ public class ConnectMongoDB {
 
     public MongoCollection<Document> open(){
         mongoDatabase = mongoClient.getDatabase(database);
-        return mongoDatabase.getCollection(collection);
+        return mongoDatabase.getCollection(collection,Document.class);
     }
 
     public boolean isSame(String database, String collection) {

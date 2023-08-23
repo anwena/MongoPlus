@@ -37,10 +37,10 @@ public class BeanMapUtilByReflect {
         //获取实体class
         Class<?> entityClass = entity.getClass();
         //获取所有字段
-        Field[] fields = entityClass.getDeclaredFields();
+        List<Field> fieldList = ClassTypeUtil.getFields(entityClass);
         //设置所有属性可访问
-        AccessibleObject.setAccessible(fields,true);
-        for (Field field : fields) {
+        AccessibleObject.setAccessible(fieldList.toArray(new Field[0]),true);
+        for (Field field : fieldList) {
             //获取CollectionField注解
             CollectionField collectionField = field.getAnnotation(CollectionField.class);
             //判断是否跳过该属性

@@ -21,11 +21,4 @@ public class SqlOperationConstant {
     */
     public static final String AUTO_NUM = "autoNum";
 
-    /**
-     * 是否使用了自增id
-     * @author JiaChaoYang
-     * @date 2023/8/9 23:53
-    */
-    public static final String IS_IT_AUTO_ID = "isItAutoId";
-
 }

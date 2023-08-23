@@ -3,10 +3,7 @@ package com.anwen.mongo.toolkit;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -21,6 +18,8 @@ public class ClassTypeUtil {
 
     // 内部缓存，存储已经处理过的对象类型及其字段的类型
     private static Map<Class<?>, List<Class<?>>> cacheMap = new ConcurrentHashMap<>();
+
+    private static final Map<Class<?>, List<Field>> FIELD_CACHE = new HashMap<>();
 
     private static volatile ClassTypeUtil instance;
 
@@ -119,6 +118,31 @@ public class ClassTypeUtil {
             return declaredField.get(entity);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * 获取类的所有字段，包括父类中的字段
+     * @author: JiaChaoYang
+     * @date: 2023/6/7 21:27
+     **/
+    public static List<Field> getFields(Class<?> clazz) {
+        List<Field> fields = FIELD_CACHE.get(clazz);
+        if (fields == null) {
+            fields = new ArrayList<>();
+            if (!clazz.equals(Object.class)){
+                fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
+                getSupperFields(fields,clazz.getSuperclass());
+            }
+            FIELD_CACHE.put(clazz, fields);
+        }
+        return fields;
+    }
+
+    private static void getSupperFields(List<Field> fieldList,Class<?> clazz){
+        if (clazz != null && clazz.equals(Object.class)){
+            fieldList.addAll(Arrays.asList(clazz.getDeclaredFields()));
+            getSupperFields(fieldList,clazz.getSuperclass());
         }
     }
 

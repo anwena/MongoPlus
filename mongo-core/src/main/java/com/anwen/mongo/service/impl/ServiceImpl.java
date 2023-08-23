@@ -16,7 +16,6 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author JiaChaoYang
@@ -136,8 +135,9 @@ public class ServiceImpl<T> implements IService<T>, ApplicationListener<SqlOpera
     }
 
     @Override
-    public List<Map<String, Object>> list(String tableName) {
-        return sqlOperation.doList(tableName);
+    public List<T> aggregateList(AggregateChainWrapper<T, ?> queryChainWrapper) {
+        sqlOperation.setMongoEntity(getEClass());
+        return sqlOperation.doAggregateList(queryChainWrapper.getBaseAggregateList(),queryChainWrapper.getBasicDBObjectList());
     }
 
     @Override

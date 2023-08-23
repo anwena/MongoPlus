@@ -15,7 +15,6 @@ import com.anwen.mongo.toolkit.ChainWrappers;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -131,7 +130,7 @@ public interface IService<T> {
     */
     List<T> list();
 
-    List<Map<String,Object>> list(String tableName);
+    List<T> aggregateList(AggregateChainWrapper<T,?> queryChainWrapper);
 
     T one(QueryChainWrapper<T,?> queryChainWrapper);
 

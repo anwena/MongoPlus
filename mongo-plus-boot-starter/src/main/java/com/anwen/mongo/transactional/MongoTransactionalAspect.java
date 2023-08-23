@@ -1,12 +1,12 @@
 package com.anwen.mongo.transactional;
 
-import com.mongodb.ClientSessionOptions;
+import cn.hutool.json.JSONUtil;
 import com.mongodb.client.ClientSession;
-import com.mongodb.client.MongoClient;
 import lombok.extern.log4j.Log4j2;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.bson.BsonDocument;
 
 /**
  * @author JiaChaoYang
@@ -14,14 +14,11 @@ import org.aspectj.lang.annotation.Aspect;
 @Aspect
 @Log4j2
 public class MongoTransactionalAspect {
-
-    private final MongoClient mongoClient;
-
-    public MongoTransactionalAspect(MongoClient mongoClient) {
-        this.mongoClient = mongoClient;
+    public MongoTransactionalAspect(ClientSession session) {
+        this.session = session;
     }
 
-    private ClientSession session;
+    private final ClientSession session;
 
     @Around("@annotation(com.anwen.mongo.annotation.transactional.MongoTransactional)")
     public Object manageTransaction(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -44,7 +41,8 @@ public class MongoTransactionalAspect {
      * @date 2023/7/30 18:15
     */
     private void startTransaction() {
-        session = mongoClient.startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
+        BsonDocument document = session.getServerSession().getIdentifier();
+        System.out.println("开启时候的session："+ JSONUtil.toJsonStr(document));
         session.startTransaction();
     }
 
@@ -54,6 +52,8 @@ public class MongoTransactionalAspect {
      * @date 2023/7/30 18:15
     */
     private void commitTransaction() {
+        BsonDocument document = session.getServerSession().getIdentifier();
+        System.out.println("提交时候的session："+ JSONUtil.toJsonStr(document));
         session.commitTransaction();
     }
 
@@ -63,10 +63,14 @@ public class MongoTransactionalAspect {
      * @date 2023/7/30 18:16
     */
     private void rollbackTransaction() {
+        BsonDocument document = session.getServerSession().getIdentifier();
+        System.out.println("回滚时候的session："+ JSONUtil.toJsonStr(document));
         session.abortTransaction();
     }
 
     private void closeSession() {
+        BsonDocument document = session.getServerSession().getIdentifier();
+        System.out.println("关闭时候的session："+ JSONUtil.toJsonStr(document));
         session.close();
     }
 }
