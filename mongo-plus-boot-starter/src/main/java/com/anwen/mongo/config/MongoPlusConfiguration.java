@@ -4,13 +4,12 @@ import com.anwen.mongo.config.log.MongoDBLogProperty;
 import com.anwen.mongo.event.SqlOperationInitializedEvent;
 import com.anwen.mongo.execute.SqlOperation;
 import com.anwen.mongo.log.CustomMongoDriverLogger;
+import com.anwen.mongo.mapper.MongoPlusBeanMapper;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
 import com.anwen.mongo.toolkit.UrlJoint;
 import com.anwen.mongo.transactional.MongoTransactionalAspect;
-import com.mongodb.ClientSessionOptions;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
-import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import lombok.extern.log4j.Log4j2;
@@ -50,8 +49,6 @@ public class MongoPlusConfiguration extends MongoAutoConfiguration{
 
     private MongoClient mongoClient;
 
-    private ClientSession clientSession;
-
     private SqlOperation<?> sqlOperation;
 
     @Override
@@ -74,7 +71,6 @@ public class MongoPlusConfiguration extends MongoAutoConfiguration{
         SqlOperation<T> sqlOperation = new SqlOperation<>();
         sqlOperation.setSlaveDataSources(mongoDBConnectProperty.getSlaveDataSource());
         sqlOperation.setBaseProperty(mongoDBConnectProperty);
-//        sqlOperation.setIsItAutoId(mongoDBLogProperty.getIsItAutoId());
         UrlJoint urlJoint = new UrlJoint(mongoDBConnectProperty);
         MongoClientSettings.Builder builder = MongoClientSettings.builder()
                 .applyConnectionString(new ConnectionString(urlJoint.jointMongoUrl()));
@@ -82,23 +78,25 @@ public class MongoPlusConfiguration extends MongoAutoConfiguration{
             builder.addCommandListener(new CustomMongoDriverLogger());
         }
         this.mongoClient = MongoClients.create(builder.build());
-        this.clientSession = this.mongoClient.startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
-        sqlOperation.setClientSession(this.clientSession);
         sqlOperation.setMongoClient(this.mongoClient);
         // 发布自定义事件通知其他类，sqlOperation已完成初始化
         eventPublisher.publishEvent(new SqlOperationInitializedEvent(sqlOperation));
         this.sqlOperation = sqlOperation;
         return sqlOperation;
     }
-
     @Bean
     public MongoPlusMapMapper mongoPlusMapMapper(SqlOperation<Map<String,Object>> sqlOperation){
         return new MongoPlusMapMapper(sqlOperation);
     }
 
     @Bean
+    public <T> MongoPlusBeanMapper<T> mongoPlusBeanMapper(){
+        return new MongoPlusBeanMapper<T>((SqlOperation<T>) this.sqlOperation);
+    }
+
+    @Bean
     public MongoTransactionalAspect mongoTransactionalAspect(){
-        return new MongoTransactionalAspect(this.clientSession);
+        return new MongoTransactionalAspect(this.mongoClient);
     }
 
 }

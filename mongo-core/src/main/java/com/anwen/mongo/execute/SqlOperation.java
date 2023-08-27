@@ -1,7 +1,6 @@
 package com.anwen.mongo.execute;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.json.JSONUtil;
 import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
@@ -23,9 +22,11 @@ import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.anwen.mongo.toolkit.codec.RegisterCodecUtil;
 import com.mongodb.BasicDBObject;
-import com.mongodb.ClientSessionOptions;
 import com.mongodb.MongoException;
-import com.mongodb.client.*;
+import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
@@ -35,7 +36,6 @@ import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
-import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.types.ObjectId;
@@ -77,10 +77,6 @@ public class SqlOperation<T> {
 
     private String collectionName;
 
-    private Boolean isItAutoId;
-
-    private ClientSession clientSession;
-
     public void setMongoEntity(Class<T> mongoEntity) {
         this.mongoEntity = mongoEntity;
     }
@@ -118,10 +114,7 @@ public class SqlOperation<T> {
 
     public Boolean doSave(T entity) {
         try {
-            BsonDocument document = clientSession.getServerSession().getIdentifier();
-            System.out.println("添加时候的session："+JSONUtil.toJsonStr(document));
-            ClientSessionOptions.builder().causallyConsistent(true).build();
-            InsertOneResult insertOneResult = getCollection(entity).insertOne(clientSession,processIdField(entity));
+            InsertOneResult insertOneResult = getCollection(entity).insertOne(processIdField(entity));
             return insertOneResult.wasAcknowledged();
         } catch (Exception e) {
             log.error("save fail , error info : {}", e.getMessage(), e);
@@ -242,27 +235,26 @@ public class SqlOperation<T> {
         return updateResult.getModifiedCount() >= 1;
     }
 
-    @Deprecated
     public Boolean doUpdateBatchByIds(Collection<T> entityList) {
+        int line = 0;
         for (T entity : entityList) {
-            UpdateResult updateResult;
-            try {
-                updateResult = getCollection(entity).updateMany(Filters.eq(SqlOperationConstant._ID, entity.getClass().getSuperclass().getMethod("getId").invoke(entity)), new Document(checkTableField(entity)));
-            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                throw new RuntimeException(e);
+            Boolean b = doUpdateById(entity);
+            if (b){
+                line++;
             }
-            return updateResult.getModifiedCount() == entityList.size();
         }
-        return false;
+        return line == entityList.size();
     }
 
-    @Deprecated
     public Boolean doUpdateBatchByIds(String collectionName, Collection<Map<String, Object>> entityList) {
+        int line = 0;
         for (Map<String, Object> entity : entityList) {
-            UpdateResult updateResult = getCollection(collectionName).updateOne(Filters.eq(SqlOperationConstant._ID, new ObjectId(String.valueOf(entity.get(SqlOperationConstant._ID)))), new Document(entity));
-            return updateResult.getModifiedCount() == entityList.size();
+            Boolean b = doUpdateById(collectionName, entity);
+            if (b){
+                line++;
+            }
         }
-        return false;
+        return line == entityList.size();
     }
 
 

@@ -1,7 +1,5 @@
 package com.anwen.mongo.toolkit;
 
-import cn.hutool.core.convert.Convert;
-import com.alibaba.fastjson.JSON;
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.constant.IdAutoConstant;
@@ -77,21 +75,7 @@ public class BeanMapUtilByReflect {
     }
 
     private static void setFieldValue(Field field,Object fieldValue,String fieldName,Map<String,Object> resultMap){
-        //如果是自定义类，需要特殊处理，不然会修改该字段的所有值
-        if (ClassTypeUtil.isItCustomType(field)){
-            //获取类型
-            Class<?> fieldType = field.getType();
-            if (fieldType.isArray() || Collection.class.isAssignableFrom(fieldType)){
-                List<Map> mapList = JSON.parseArray(JSON.toJSONString(fieldValue), Map.class);
-                mapList.forEach(childMap -> {
-                    setChildFieldValue(fieldName,childMap,resultMap);
-                });
-            }else {
-                setChildFieldValue(fieldName,Convert.convert(Map.class, fieldValue),resultMap);
-            }
-        }else {
-            resultMap.put(fieldName, fieldValue);
-        }
+        resultMap.put(fieldName, fieldValue);
     }
 
     private static void setChildFieldValue(String fieldName , Map<String,Object> childMap,Map<String,Object> resultMap){

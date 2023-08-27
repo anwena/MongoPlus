@@ -1,7 +1,9 @@
 package com.anwen.mongo.transactional;
 
 import cn.hutool.json.JSONUtil;
+import com.mongodb.ClientSessionOptions;
 import com.mongodb.client.ClientSession;
+import com.mongodb.client.MongoClient;
 import lombok.extern.log4j.Log4j2;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -14,11 +16,14 @@ import org.bson.BsonDocument;
 @Aspect
 @Log4j2
 public class MongoTransactionalAspect {
-    public MongoTransactionalAspect(ClientSession session) {
-        this.session = session;
+
+    public MongoTransactionalAspect(MongoClient mongoClient) {
+        this.mongoClient = mongoClient;
     }
 
-    private final ClientSession session;
+    private final MongoClient mongoClient;
+
+    private ClientSession session;
 
     @Around("@annotation(com.anwen.mongo.annotation.transactional.MongoTransactional)")
     public Object manageTransaction(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -41,8 +46,7 @@ public class MongoTransactionalAspect {
      * @date 2023/7/30 18:15
     */
     private void startTransaction() {
-        BsonDocument document = session.getServerSession().getIdentifier();
-        System.out.println("开启时候的session："+ JSONUtil.toJsonStr(document));
+        this.session = mongoClient.startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
         session.startTransaction();
     }
 

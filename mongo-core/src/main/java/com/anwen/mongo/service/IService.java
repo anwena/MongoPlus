@@ -1,6 +1,5 @@
 package com.anwen.mongo.service;
 
-import com.anwen.mongo.annotation.CutInID;
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper;
 import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
@@ -31,7 +30,6 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @since 2023/2/9 13:27
     */
-    @CutInID
     Boolean save(T entity);
 
 
