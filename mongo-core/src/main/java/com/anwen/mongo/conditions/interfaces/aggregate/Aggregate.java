@@ -355,7 +355,20 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      */
     Children lookup(String from,String localField,String foreignField,String as);
 
+    /**
+     * 实现集合之间的join操作
+     *
+     * @param from 目标集合名称
+     * @param as 输出结果中保存关联值的字段名
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/8/12 21:07
+     */
     Children lookup(String from, List<Let> letList, AggregateChainWrapper<T,?> pipeline, String as);
+
+    Children lookup(BasicDBObject basicDBObject);
+
+    Children lookup(Bson bson);
 
     /**
      * 向集合中添加新字段

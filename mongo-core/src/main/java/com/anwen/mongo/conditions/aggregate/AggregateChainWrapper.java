@@ -416,6 +416,18 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
     }
 
     @Override
+    public Children lookup(BasicDBObject basicDBObject) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.LOOKUP.getType(), new DefaultConcretePipeline(basicDBObject)));
+        return typedThis;
+    }
+
+    @Override
+    public Children lookup(Bson bson) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.LOOKUP.getType(), new DefaultConcretePipeline(BasicDBObject.parse(bson.toBsonDocument().toJson()))));
+        return typedThis;
+    }
+
+    @Override
     public Children addFields(String resultMappingField, SFunction<T, Object> field) {
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.ADD_FIELDS.getType(), new AddFieldsConcretePipeline(new AddFields(resultMappingField,field.getFieldNameLine()))));
         return typedThis;

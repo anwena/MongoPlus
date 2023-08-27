@@ -192,7 +192,7 @@ public interface IService<T> {
         return ChainWrappers.lambdaQueryChain(getEClass(),getSqlOperation());
     }
 
-    default LambdaAggregateChainWrapper<T> lambdaAggregateChain(){
+    default LambdaAggregateChainWrapper<T> lambdaAggregate(){
         return ChainWrappers.lambdaAggregateChain(getEClass(),getSqlOperation());
     }
 

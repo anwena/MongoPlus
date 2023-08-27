@@ -4,7 +4,6 @@ import com.anwen.mongo.config.log.MongoDBLogProperty;
 import com.anwen.mongo.event.SqlOperationInitializedEvent;
 import com.anwen.mongo.execute.SqlOperation;
 import com.anwen.mongo.log.CustomMongoDriverLogger;
-import com.anwen.mongo.mapper.MongoPlusBeanMapper;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
 import com.anwen.mongo.toolkit.UrlJoint;
 import com.anwen.mongo.transactional.MongoTransactionalAspect;
@@ -87,11 +86,6 @@ public class MongoPlusConfiguration extends MongoAutoConfiguration{
     @Bean
     public MongoPlusMapMapper mongoPlusMapMapper(SqlOperation<Map<String,Object>> sqlOperation){
         return new MongoPlusMapMapper(sqlOperation);
-    }
-
-    @Bean
-    public <T> MongoPlusBeanMapper<T> mongoPlusBeanMapper(){
-        return new MongoPlusBeanMapper<T>((SqlOperation<T>) this.sqlOperation);
     }
 
     @Bean
