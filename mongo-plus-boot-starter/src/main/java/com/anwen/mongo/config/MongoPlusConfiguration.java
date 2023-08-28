@@ -1,11 +1,11 @@
 package com.anwen.mongo.config;
 
 import com.anwen.mongo.config.log.MongoDBLogProperty;
-import com.anwen.mongo.event.ApplicationEventPublisher;
-import com.anwen.mongo.event.SqlOperationInitializedEvent;
 import com.anwen.mongo.execute.SqlOperation;
 import com.anwen.mongo.log.CustomMongoDriverLogger;
+import com.anwen.mongo.mapper.MongoPlusBeanMapper;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
+import com.anwen.mongo.service.impl.ServiceImpl;
 import com.anwen.mongo.toolkit.UrlJoint;
 import com.anwen.mongo.transactional.MongoTransactionalAspect;
 import com.mongodb.ConnectionString;
@@ -13,6 +13,7 @@ import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import lombok.extern.log4j.Log4j2;
+import org.reflections.Reflections;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
@@ -22,6 +23,7 @@ import org.springframework.context.annotation.Bean;
 
 import javax.annotation.PostConstruct;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author JiaChaoYang
@@ -44,7 +46,7 @@ public class MongoPlusConfiguration extends MongoAutoConfiguration {
 
     private MongoClient mongoClient;
 
-    private SqlOperation<?> sqlOperation;
+    private SqlOperation sqlOperation;
 
     @Override
     public MongoClient mongo(ObjectProvider<MongoClientSettingsBuilderCustomizer> builderCustomizers, MongoClientSettings settings) {
@@ -59,28 +61,27 @@ public class MongoPlusConfiguration extends MongoAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @PostConstruct
-    public <T> SqlOperation<T> sqlOperation() {
+    public SqlOperation sqlOperation() {
         if (sqlOperation != null){
-            return (SqlOperation<T>) this.sqlOperation;
+            return this.sqlOperation;
         }
-        SqlOperation<T> sqlOperation = new SqlOperation<>();
+        SqlOperation sqlOperation = new SqlOperation();
         sqlOperation.setSlaveDataSources(mongoDBConnectProperty.getSlaveDataSource());
         sqlOperation.setBaseProperty(mongoDBConnectProperty);
         UrlJoint urlJoint = new UrlJoint(mongoDBConnectProperty);
         MongoClientSettings.Builder builder = MongoClientSettings.builder()
                 .applyConnectionString(new ConnectionString(urlJoint.jointMongoUrl()));
         if (mongoDBLogProperty.getLog()){
-            builder.addCommandListener(new CustomMongoDriverLogger());
+            builder.addCommandListener(new CustomMongoDriverLogger(mongoDBLogProperty.getFormat()));
         }
         this.mongoClient = MongoClients.create(builder.build());
         sqlOperation.setMongoClient(this.mongoClient);
         // 发布自定义事件通知其他类，sqlOperation已完成初始化
-        ApplicationEventPublisher.getInstance().publishEvent(new SqlOperationInitializedEvent(sqlOperation));
         this.sqlOperation = sqlOperation;
         return sqlOperation;
     }
     @Bean
-    public MongoPlusMapMapper mongoPlusMapMapper(SqlOperation<Map<String,Object>> sqlOperation){
+    public MongoPlusMapMapper mongoPlusMapMapper(SqlOperation sqlOperation){
         return new MongoPlusMapMapper(sqlOperation);
     }
 

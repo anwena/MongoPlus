@@ -8,9 +8,9 @@ import java.util.List;
 
 public class LambdaUpdateChainWrapper<T> extends UpdateChainWrapper<T,LambdaUpdateChainWrapper<T>> implements ChainUpdate {
 
-    private final SqlOperation<T> sqlOperation;
+    private final SqlOperation sqlOperation;
 
-    public LambdaUpdateChainWrapper(SqlOperation<T> sqlOperation) {
+    public LambdaUpdateChainWrapper(SqlOperation sqlOperation) {
         this.sqlOperation = sqlOperation;
     }
 

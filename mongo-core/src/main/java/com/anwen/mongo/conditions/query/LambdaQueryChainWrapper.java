@@ -14,20 +14,9 @@ import java.util.List;
 */
 public class LambdaQueryChainWrapper<T> extends QueryChainWrapper<T,LambdaQueryChainWrapper<T>> implements ChainQuery<T> {
 
-    private final SqlOperation<T> sqlOperation;
+    private final SqlOperation sqlOperation;
 
-    public LambdaQueryChainWrapper(Class<T> clazz , SqlOperation<T> sqlOperation) {
-        this.sqlOperation = sqlOperation;
-        T tClass;
-        try {
-            tClass = clazz.getDeclaredConstructor().newInstance();
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        }
-        sqlOperation.init(tClass.getClass());
-    }
-
-    public LambdaQueryChainWrapper(SqlOperation<T> sqlOperation){
+    public LambdaQueryChainWrapper(SqlOperation sqlOperation){
         this.sqlOperation = sqlOperation;
     }
 

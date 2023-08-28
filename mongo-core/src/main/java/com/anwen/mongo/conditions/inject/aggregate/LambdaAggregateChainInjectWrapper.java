@@ -11,9 +11,9 @@ import java.util.Map;
  **/
 public class LambdaAggregateChainInjectWrapper extends AggregateChainWrapper<Map<String,Object>, LambdaAggregateChainInjectWrapper> implements ChainInjectAggregate {
 
-    private final SqlOperation<Map<String,Object>> sqlOperation;
+    private final SqlOperation sqlOperation;
 
-    public LambdaAggregateChainInjectWrapper(SqlOperation<Map<String,Object>> sqlOperation) {
+    public LambdaAggregateChainInjectWrapper(SqlOperation sqlOperation) {
         this.sqlOperation = sqlOperation;
     }
 

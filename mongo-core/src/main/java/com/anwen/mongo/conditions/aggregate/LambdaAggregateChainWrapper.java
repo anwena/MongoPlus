@@ -10,17 +10,10 @@ import java.util.List;
  **/
 public class LambdaAggregateChainWrapper<T> extends AggregateChainWrapper<T,LambdaAggregateChainWrapper<T>> implements ChainAggregate<T> {
 
-    private final SqlOperation<T> sqlOperation;
+    private final SqlOperation sqlOperation;
 
-    public LambdaAggregateChainWrapper(Class<T> clazz , SqlOperation<T> sqlOperation) {
+    public LambdaAggregateChainWrapper(SqlOperation sqlOperation) {
         this.sqlOperation = sqlOperation;
-        T tClass;
-        try {
-            tClass = clazz.getDeclaredConstructor().newInstance();
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        }
-        sqlOperation.init(tClass.getClass());
     }
 
     @Override

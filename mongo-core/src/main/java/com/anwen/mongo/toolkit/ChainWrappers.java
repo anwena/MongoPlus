@@ -20,15 +20,15 @@ import java.util.Map;
 */ 
 public final class ChainWrappers {
 
-    public static <T> LambdaQueryChainWrapper<T> lambdaQueryChain(Class<T> clazz, SqlOperation<T> sqlOperation){
-        return new LambdaQueryChainWrapper<>(clazz,sqlOperation);
+    public static <T> LambdaQueryChainWrapper<T> lambdaQueryChain(SqlOperation sqlOperation){
+        return new LambdaQueryChainWrapper<>(sqlOperation);
     }
 
-    public static <T> LambdaAggregateChainWrapper<T> lambdaAggregateChain(Class<T> clazz, SqlOperation<T> sqlOperation){
-        return new LambdaAggregateChainWrapper<>(clazz,sqlOperation);
+    public static <T> LambdaAggregateChainWrapper<T> lambdaAggregateChain(SqlOperation sqlOperation){
+        return new LambdaAggregateChainWrapper<>(sqlOperation);
     }
 
-    public static <T> LambdaUpdateChainWrapper<T> lambdaUpdateChain(SqlOperation<T> sqlOperation){
+    public static <T> LambdaUpdateChainWrapper<T> lambdaUpdateChain(SqlOperation sqlOperation){
         return new LambdaUpdateChainWrapper<>(sqlOperation);
     }
 

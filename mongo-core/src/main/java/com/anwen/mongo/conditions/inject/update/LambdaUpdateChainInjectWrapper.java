@@ -23,9 +23,9 @@ public class LambdaUpdateChainInjectWrapper extends AbstractChainWrapper<String,
 
     private final List<CompareCondition> updateCompareList = new ArrayList<>();
 
-    private final SqlOperation<Map<String,Object>> sqlOperation;
+    private final SqlOperation sqlOperation;
 
-    public LambdaUpdateChainInjectWrapper(SqlOperation<Map<String,Object>> sqlOperation) {
+    public LambdaUpdateChainInjectWrapper(SqlOperation sqlOperation) {
         this.sqlOperation = sqlOperation;
     }
 

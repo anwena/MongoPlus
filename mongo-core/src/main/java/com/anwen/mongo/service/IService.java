@@ -181,19 +181,17 @@ public interface IService<T> {
 
     List<T> getByIds(Collection<Serializable> ids);
 
-    SqlOperation<T> getSqlOperation();
+    SqlOperation getSqlOperation();
 
-    SqlOperation<T> setSqlOperation(SqlOperation<T> sqlOperation);
-
-    Class<T> getEClass();
+    Class<T> getGenericityClazz();
 
 
     default LambdaQueryChainWrapper<T> lambdaQuery(){
-        return ChainWrappers.lambdaQueryChain(getEClass(),getSqlOperation());
+        return ChainWrappers.lambdaQueryChain(getSqlOperation());
     }
 
     default LambdaAggregateChainWrapper<T> lambdaAggregate(){
-        return ChainWrappers.lambdaAggregateChain(getEClass(),getSqlOperation());
+        return ChainWrappers.lambdaAggregateChain(getSqlOperation());
     }
 
     default LambdaUpdateChainWrapper<T> lambdaUpdate(){

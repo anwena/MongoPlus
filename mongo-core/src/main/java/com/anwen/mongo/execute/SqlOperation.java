@@ -58,7 +58,7 @@ import static com.anwen.mongo.toolkit.BeanMapUtilByReflect.checkTableField;
  */
 @Data
 @Log4j2
-public class SqlOperation<T> {
+public class SqlOperation {
 
     private Map<String, MongoCollection<Document>> collectionMap = new HashMap<>();
 
@@ -71,20 +71,20 @@ public class SqlOperation<T> {
     // 实例化 ConnectMongoDB 对象，用于保存连接
     private ConnectMongoDB connectMongoDB;
 
-    private Class<T> mongoEntity;
+    private Class<?> mongoEntity;
 
     private String createIndex = null;
 
     private String collectionName;
 
-    public void setMongoEntity(Class<T> mongoEntity) {
+    public void setMongoEntity(Class<?> mongoEntity) {
         this.mongoEntity = mongoEntity;
     }
 
-    public void init(Class<?> clazz) {
-        String tableName = clazz.getSimpleName().toLowerCase();
-        if (clazz.isAnnotationPresent(CollectionName.class)) {
-            CollectionName annotation = clazz.getAnnotation(CollectionName.class);
+    public void init() {
+        String tableName = mongoEntity.getSimpleName().toLowerCase();
+        if (mongoEntity.isAnnotationPresent(CollectionName.class)) {
+            CollectionName annotation = mongoEntity.getAnnotation(CollectionName.class);
             tableName = annotation.value();
             String dataSource = annotation.dataSource();
             if (StringUtils.isNotBlank(dataSource)) {
@@ -112,7 +112,7 @@ public class SqlOperation<T> {
         }
     }
 
-    public Boolean doSave(T entity) {
+    public <T> Boolean doSave(T entity) {
         try {
             InsertOneResult insertOneResult = getCollection(entity).insertOne(processIdField(entity));
             return insertOneResult.wasAcknowledged();
@@ -132,7 +132,7 @@ public class SqlOperation<T> {
         }
     }
 
-    public Boolean doSaveBatch(Collection<T> entityList) {
+    public <T> Boolean doSaveBatch(Collection<T> entityList) {
         try {
             InsertManyResult insertManyResult = getCollection(entityList.iterator().next()).insertMany(processIdFieldList(entityList));
             return insertManyResult.getInsertedIds().size() == entityList.size();
@@ -153,7 +153,7 @@ public class SqlOperation<T> {
     }
 
 
-    public Boolean doSaveOrUpdate(T entity) {
+    public <T> Boolean doSaveOrUpdate(T entity) {
         try {
             Class<?> entityClass = entity.getClass().getSuperclass();
             Field field = entityClass.getFields()[0];
@@ -173,7 +173,7 @@ public class SqlOperation<T> {
     }
 
 
-    public Boolean doSaveOrUpdateBatch(Collection<T> entityList) {
+    public <T> Boolean doSaveOrUpdateBatch(Collection<T> entityList) {
         List<T> insertList = new ArrayList<>();
         for (Document document : getCollection(entityList.iterator().next()).find(
                 Filters.in(SqlOperationConstant._ID, entityList.stream().map(entity -> {
@@ -208,7 +208,7 @@ public class SqlOperation<T> {
     }
 
 
-    public Boolean doUpdateById(T entity) {
+    public <T> Boolean doUpdateById(T entity) {
         UpdateResult updateResult;
         Document document = new Document(checkTableField(entity));
         if (!document.containsKey(SqlOperationConstant._ID)){
@@ -235,7 +235,7 @@ public class SqlOperation<T> {
         return updateResult.getModifiedCount() >= 1;
     }
 
-    public Boolean doUpdateBatchByIds(Collection<T> entityList) {
+    public <T> Boolean doUpdateBatchByIds(Collection<T> entityList) {
         int line = 0;
         for (T entity : entityList) {
             Boolean b = doUpdateById(entity);
@@ -258,7 +258,7 @@ public class SqlOperation<T> {
     }
 
 
-    public Boolean doUpdateByColumn(T entity, SFunction<T, Object> column) {
+    public <T> Boolean doUpdateByColumn(T entity, SFunction<T, Object> column) {
         try {
             String filterCondition = column.getFieldNameLine();
             String filterValue = String.valueOf(entity.getClass().getMethod(column.getFieldName()).invoke(entity));
@@ -271,7 +271,7 @@ public class SqlOperation<T> {
     }
 
 
-    public Boolean doUpdateByColumn(T entity, String column) {
+    public <T> Boolean doUpdateByColumn(T entity, String column) {
         String filterValue = String.valueOf(ClassTypeUtil.getClassFieldValue(entity,column));
         UpdateResult updateResult = getCollection(entity).updateOne(Filters.eq(column, ObjectId.isValid(filterValue) ? new ObjectId(filterValue) : filterValue), new Document(checkTableField(entity)));
         return updateResult.getModifiedCount() >= 1;
@@ -296,7 +296,7 @@ public class SqlOperation<T> {
     }
 
 
-    public Boolean doRemoveByColumn(SFunction<T, Object> column, String value) {
+    public <T> Boolean doRemoveByColumn(SFunction<T, Object> column, String value) {
         return getCollection().deleteOne(Filters.eq(column.getFieldNameLine(), ObjectId.isValid(value) ? new ObjectId(value) : value)).getDeletedCount() >= 1;
     }
 
@@ -342,12 +342,12 @@ public class SqlOperation<T> {
         }
     }
 
-    public List<T> doList() {
+    public <T> List<T> doList() {
         MongoCollection<Document> collection = getCollection();
         if (StringUtils.isNotBlank(createIndex)) {
             collection.createIndex(new Document(createIndex, QueryOperatorEnum.TEXT.getValue()));
         }
-        return DocumentMapperConvert.mapDocumentList(collection.find(),mongoEntity);
+        return (List<T>) DocumentMapperConvert.mapDocumentList(collection.find(),mongoEntity);
     }
 
     public List<Map<String, Object>> doList(String collectionName) {
@@ -384,13 +384,13 @@ public class SqlOperation<T> {
     }
 
 
-    public T doGetById(String collectionName, Serializable id) {
+    public <T> T doGetById(String collectionName, Serializable id) {
         BasicDBObject byId = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), id));
         FindIterable<Document> iterable = getCollection(collectionName).find(byId);
         return (T) iterable.first();
     }
 
-    public List<T> doGetByIds(String collectionName, Collection<Serializable> ids) {
+    public <T> List<T> doGetByIds(String collectionName, Collection<Serializable> ids) {
         List<Serializable> serializableList = ids.stream().filter(id -> ObjectId.isValid(String.valueOf(id))).collect(Collectors.toList());
         if (ids.size() == serializableList.size()){
             ids = ids.stream().map(id -> new ObjectId(String.valueOf(id))).collect(Collectors.toList());
@@ -405,15 +405,15 @@ public class SqlOperation<T> {
         }
         BasicDBObject query = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.IN.getCondition(), ids));
         FindIterable<Document> iterable = getCollection(collectionName).find(query);
-        return DocumentMapperConvert.mapDocumentList(iterable, mongoEntity);
+        return (List<T>) DocumentMapperConvert.mapDocumentList(iterable, mongoEntity);
     }
 
 
-    public List<T> doList(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
+    public <T> List<T> doList(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
         return getLambdaQueryResult(compareConditionList, orderList,projectionList,basicDBObjectList);
     }
 
-    public T doOne(List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
+    public <T> T doOne(List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
         List<T> result = getLambdaQueryResult(compareConditionList, null,projectionList,basicDBObjectList);
         if (result.size() > 1) {
             throw new MongoQueryException("query result greater than one line");
@@ -421,26 +421,26 @@ public class SqlOperation<T> {
         return !result.isEmpty() ? result.get(0) : null;
     }
 
-    public T doLimitOne(List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
+    public <T> T doLimitOne(List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
         List<T> result = getLambdaQueryResult(compareConditionList, null,projectionList,basicDBObjectList);
         return !result.isEmpty() ? result.get(0) : null;
     }
 
-    public PageResult<T> doPage(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, Integer pageNum, Integer pageSize) {
+    public <T> PageResult<T> doPage(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, Integer pageNum, Integer pageSize) {
         return getLambdaQueryResultPage(compareConditionList, orderList,projectionList, basicDBObjectList,new PageParam(pageNum, pageSize));
     }
 
-    public T doGetById(Serializable id) {
+    public <T> T doGetById(Serializable id) {
         BasicDBObject byId = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id)));
         FindIterable<Document> iterable = getCollection().find(byId);
-        return DocumentMapperConvert.mapDocument(iterable.first(),mongoEntity);
+        return (T) DocumentMapperConvert.mapDocument(iterable.first(),mongoEntity);
     }
 
-    public List<T> doGetByIds(Collection<Serializable> ids) {
+    public <T> List<T> doGetByIds(Collection<Serializable> ids) {
 
         BasicDBObject query = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.IN.getCondition(), ids));
         FindIterable<Document> iterable = getCollection().find(query);
-        return DocumentMapperConvert.mapDocumentList(iterable, mongoEntity);
+        return (List<T>) DocumentMapperConvert.mapDocumentList(iterable, mongoEntity);
     }
 
     public Boolean doUpdate(List<CompareCondition> compareConditionList) {
@@ -489,7 +489,7 @@ public class SqlOperation<T> {
         return getCollection().countDocuments(BuildCondition.buildQueryCondition(compareConditionList));
     }
 
-    public List<T> doAggregateList(List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList){
+    public <T> List<T> doAggregateList(List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList){
         AggregateIterable<Document> aggregateIterable = getCollection().aggregate(
                 new ArrayList<BasicDBObject>(){{
                     aggregateList.forEach(aggregate -> add(new BasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate())));
@@ -529,8 +529,8 @@ public class SqlOperation<T> {
     }
 
 
-    private List<T> getLambdaQueryResult(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
-        return DocumentMapperConvert.mapDocumentList(baseLambdaQuery(compareConditionList, orderList,projectionList,basicDBObjectList), mongoEntity);
+    private <T> List<T> getLambdaQueryResult(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
+        return (List<T>) DocumentMapperConvert.mapDocumentList(baseLambdaQuery(compareConditionList, orderList,projectionList,basicDBObjectList), mongoEntity);
     }
 
     private List<Map<String, Object>> getLambdaQueryResult(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
@@ -575,7 +575,7 @@ public class SqlOperation<T> {
         return collection.find(basicDBObject,Map.class).projection(BuildCondition.buildProjection(projectionList)).sort(sortCond);
     }
 
-    private PageResult<T> getLambdaQueryResultPage(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, PageParam pageParams) {
+    private <T> PageResult<T> getLambdaQueryResultPage(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, PageParam pageParams) {
         PageResult<T> pageResult = new PageResult<>();
         FindIterable<Document> documentFindIterable = baseLambdaQuery(compareConditionList, orderList,projectionList,basicDBObjectList);
         long totalSize = doCount(compareConditionList);
@@ -583,7 +583,7 @@ public class SqlOperation<T> {
         pageResult.setPageSize(pageParams.getPageSize());
         pageResult.setTotalSize(totalSize);
         pageResult.setTotalPages((totalSize + pageParams.getPageSize() - 1) / pageParams.getPageSize());
-        pageResult.setContentData(DocumentMapperConvert.mapDocumentList(documentFindIterable.skip((pageParams.getPageNum() - 1) * pageParams.getPageSize()).limit(pageParams.getPageSize()), mongoEntity));
+        pageResult.setContentData((List<T>) DocumentMapperConvert.mapDocumentList(documentFindIterable.skip((pageParams.getPageNum() - 1) * pageParams.getPageSize()).limit(pageParams.getPageSize()), mongoEntity));
         return pageResult;
     }
 
@@ -599,7 +599,7 @@ public class SqlOperation<T> {
         return pageResult;
     }
 
-    private MongoCollection<Document> getCollection(T entity) {
+    private <T> MongoCollection<Document> getCollection(T entity) {
         return getCollection().withCodecRegistry(CodecRegistries.fromRegistries(RegisterCodecUtil.registerCodec(entity)));
     }
 
@@ -632,7 +632,7 @@ public class SqlOperation<T> {
         return this.collectionMap.get(collectionName);
     }
 
-    private Document processIdField(T entity){
+    private <T> Document processIdField(T entity){
         Map<String, Object> tableFieldMap = checkTableField(entity);
         if (IdAutoConstant.IS_IT_AUTO_ID){
             long num = 1L;
@@ -654,7 +654,7 @@ public class SqlOperation<T> {
         return new Document(tableFieldMap);
     }
 
-    private List<Document> processIdFieldList(Collection<T> entityList){
+    private <T> List<Document> processIdFieldList(Collection<T> entityList){
         return entityList.stream().map(this::processIdField).collect(Collectors.toList());
     }
 }

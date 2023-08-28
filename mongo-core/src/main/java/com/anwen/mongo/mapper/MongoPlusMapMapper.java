@@ -19,9 +19,9 @@ import java.util.Map;
  * @author JiaChaoYang
  **/
 public class MongoPlusMapMapper implements InjectQuery {
-    private final SqlOperation<Map<String,Object>> sqlOperation;
+    private final SqlOperation sqlOperation;
 
-    public MongoPlusMapMapper(SqlOperation<Map<String, Object>> sqlOperation) {
+    public MongoPlusMapMapper(SqlOperation sqlOperation) {
         this.sqlOperation = sqlOperation;
     }
 

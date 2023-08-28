@@ -16,9 +16,9 @@ import java.util.Map;
  **/
 public class LambdaQueryChainInjectWrapper extends QueryChainWrapper<Map<String,Object>, LambdaQueryChainInjectWrapper> implements ChainInject {
 
-    private final SqlOperation<Map<String,Object>> sqlOperation;
+    private final SqlOperation sqlOperation;
 
-    public LambdaQueryChainInjectWrapper(SqlOperation<Map<String, Object>> sqlOperation) {
+    public LambdaQueryChainInjectWrapper(SqlOperation sqlOperation) {
         this.sqlOperation = sqlOperation;
     }
 
