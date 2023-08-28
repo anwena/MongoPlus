@@ -1,6 +1,7 @@
 package com.anwen.mongo.config;
 
 import com.anwen.mongo.config.log.MongoDBLogProperty;
+import com.anwen.mongo.event.ApplicationEventPublisher;
 import com.anwen.mongo.event.SqlOperationInitializedEvent;
 import com.anwen.mongo.execute.SqlOperation;
 import com.anwen.mongo.log.CustomMongoDriverLogger;
@@ -17,11 +18,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoClientSettingsBuilderCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import java.util.Map;
 
 /**
@@ -31,16 +30,13 @@ import java.util.Map;
  **/
 @Log4j2
 @EnableConfigurationProperties(value = {MongoDBConnectProperty.class, MongoDBLogProperty.class})
-public class MongoPlusConfiguration extends MongoAutoConfiguration{
+public class MongoPlusConfiguration extends MongoAutoConfiguration {
 
     /**
      * 自定义事件
      * @author JiaChaoYang
      * @date 2023/6/26/026 22:06
      */
-    @Resource
-    private ApplicationEventPublisher eventPublisher;
-
     private final MongoDBLogProperty mongoDBLogProperty;
 
     final
@@ -79,7 +75,7 @@ public class MongoPlusConfiguration extends MongoAutoConfiguration{
         this.mongoClient = MongoClients.create(builder.build());
         sqlOperation.setMongoClient(this.mongoClient);
         // 发布自定义事件通知其他类，sqlOperation已完成初始化
-        eventPublisher.publishEvent(new SqlOperationInitializedEvent(sqlOperation));
+        ApplicationEventPublisher.getInstance().publishEvent(new SqlOperationInitializedEvent(sqlOperation));
         this.sqlOperation = sqlOperation;
         return sqlOperation;
     }
@@ -92,5 +88,4 @@ public class MongoPlusConfiguration extends MongoAutoConfiguration{
     public MongoTransactionalAspect mongoTransactionalAspect(){
         return new MongoTransactionalAspect(this.mongoClient);
     }
-
 }

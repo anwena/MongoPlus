@@ -2,13 +2,13 @@ package com.anwen.mongo.service.impl;
 
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
+import com.anwen.mongo.event.ApplicationEventListener;
 import com.anwen.mongo.event.SqlOperationInitializedEvent;
 import com.anwen.mongo.execute.SqlOperation;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 import com.anwen.mongo.service.IService;
 import com.anwen.mongo.support.SFunction;
-import org.springframework.context.ApplicationListener;
 
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
@@ -22,18 +22,21 @@ import java.util.List;
  * 接口实现
  * @since 2023-02-09 14:13
  **/
-public class ServiceImpl<T> implements IService<T>, ApplicationListener<SqlOperationInitializedEvent> {
+public class ServiceImpl<T> implements IService<T>, ApplicationEventListener<SqlOperationInitializedEvent> {
 
     private SqlOperation<T> sqlOperation;
 
     private Class<T> eClass;
 
+    public ServiceImpl() {
+    }
+
     @Override
     public void onApplicationEvent(SqlOperationInitializedEvent event) {
+        System.out.println("收到发布事件啦啦啦啦啦啦");
         sqlOperation = (SqlOperation<T>) event.getSqlOperation();
         sqlOperation.init(getEClass());
     }
-
     @Override
     public Class<T> getEClass() {
         if (eClass != null) {
@@ -221,5 +224,4 @@ public class ServiceImpl<T> implements IService<T>, ApplicationListener<SqlOpera
         // 根据实际情况进行设置
         sqlOperation.setMongoEntity(actualTypeArgument);
     }
-
 }
