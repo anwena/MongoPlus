@@ -33,7 +33,6 @@ public class ServiceImpl<T> implements IService<T>, ApplicationEventListener<Sql
 
     @Override
     public void onApplicationEvent(SqlOperationInitializedEvent event) {
-        System.out.println("收到发布事件啦啦啦啦啦啦");
         sqlOperation = (SqlOperation<T>) event.getSqlOperation();
         sqlOperation.init(getEClass());
     }

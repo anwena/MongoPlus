@@ -2,6 +2,7 @@ package com.anwen.mongo.event;
 
 import com.anwen.mongo.service.impl.ServiceImpl;
 import lombok.extern.log4j.Log4j2;
+import org.reflections.Reflections;
 
 import java.io.File;
 import java.net.URL;
@@ -26,13 +27,10 @@ public class ApplicationEventPublisher {
     private ApplicationEventPublisher() {
         super();
         try {
-            List<Class> classes = loadClassByLoader(this.getClass().getClassLoader());
+            Set<Class<? extends ServiceImpl>> classes = loadClassByLoader(this.getClass().getClassLoader());
             classes.forEach(it -> {
                 try {
-                    if (Arrays.stream(it.getInterfaces()).anyMatch(i -> i == ApplicationEventListener.class || i == ServiceImpl.class)) {
-                        log.info("{} is implements ApplicationEventListener", it);
-                        map.put(it.getName(), (ApplicationEventListener) it.newInstance());
-                    }
+                    map.put(it.getName(), it.newInstance());
                 } catch (Exception e) {
                     log.error("error -> ", e);
                 }
@@ -63,30 +61,39 @@ public class ApplicationEventPublisher {
      * @param event
      */
     public void publishEvent(ApplicationEvent event) {
-        map.values().forEach(it -> {
+        for (ApplicationEventListener value : map.values()) {
+            value.onApplicationEvent(event);
+        }
+        /*map.values().forEach(it -> {
             // 这里可以通过判断是否有注解使用线程池
             CompletableFuture.runAsync(() -> {
-                it.onApplicationEvent(event);
+
             });
-        });
+        });*/
     }
 
 
     /***********    以下代码百度的，可以用    ***********/
     //通过loader加载所有类
-    private List<Class> loadClassByLoader(ClassLoader load) throws Exception{
-        Enumeration<URL> urls = load.getResources("");
-        //放所有类型
-        List<Class> classes = new ArrayList<Class>();
-        while (urls.hasMoreElements()) {
-            URL url = urls.nextElement();
-            //文件类型（其实是文件夹）
-            if (url.getProtocol().equals("file")) {
-                loadClassByPath(null, url.getPath(), classes, load);
-            }
-        }
-        return classes;
+    private Set<Class<? extends ServiceImpl>> loadClassByLoader(ClassLoader load) throws Exception{
+        Reflections reflections = new Reflections("");
+        return reflections.getSubTypesOf(ServiceImpl.class);
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     //通过文件路径加载所有类 root 主要用来替换path中前缀（除包路径以外的路径）
     private void loadClassByPath(String root, String path, List<Class> list, ClassLoader load) {
         File f = new File(path);
