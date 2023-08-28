@@ -4,19 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.6.15</version>
-        <relativePath/>
-    </parent>
-
     <groupId>com.gitee.anwena</groupId>
-    <artifactId>mongo-plus-boot-starter</artifactId>
-    <name>mongo-plus-boot-starter</name>
+    <artifactId>mongo-plus-core</artifactId>
     <packaging>jar</packaging>
+    <name>mongo-plus-core</name>
     <version>2.0.5</version>
-    <description>mongo-plus-boot-starter主程序</description>
+    <description>mongo-plus核心代码</description>
     <url>https://gitee.com/jia-chaoyang/mongo-plus</url>
     <inceptionYear>2023</inceptionYear>
 
@@ -46,65 +39,57 @@
         <url>https://gitee.com/anwena/mongo-plus</url>
     </scm>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aop</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.yaml</groupId>
-                    <artifactId>snakeyaml</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-            <version>2.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-web</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>spring-webmvc</artifactId>
-                </exclusion>
-            </exclusions>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-web</artifactId>
-            <version>6.0.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-webmvc</artifactId>
-            <version>6.0.9</version>
-        </dependency>
-        <dependency>
-            <groupId>com.gitee.anwena</groupId>
-            <artifactId>mongo-plus-core</artifactId>
-            <version>2.0.5</version>
-        </dependency>
-        <dependency>
-            <groupId>org.mongodb</groupId>
-            <artifactId>mongodb-driver-sync</artifactId>
-            <version>4.9.0</version>
-        </dependency>
-    </dependencies>
-
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.test.skip>true</maven.test.skip>
     </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-sync</artifactId>
+            <version>4.9.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.83</version>
+        </dependency>
+        <dependency>
+            <groupId>com.gitee.anwena</groupId>
+            <artifactId>mongo-plus-annotation</artifactId>
+            <version>2.0.5</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+            <version>2.1.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>30.1-jre</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-core</artifactId>
+            <version>4.4.2</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.f4b6a3</groupId>
+            <artifactId>ulid-creator</artifactId>
+            <version>5.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.9.12</version>
+        </dependency>
+    </dependencies>
 
     <profiles>
         <profile>
@@ -145,9 +130,14 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
                         <version>2.9.1</version>
+                        <configuration>
+                            <additionalJOptions>
+                                <additionalJOption>-Xdoclint:none</additionalJOption>
+                            </additionalJOptions>
+                        </configuration>
                         <executions>
                             <execution>
-                                <id>attach-javadocs</id>
+                                <phase>package</phase>
                                 <goals>
                                     <goal>jar</goal>
                                 </goals>

@@ -4,13 +4,20 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <groupId>org.noear</groupId>
+        <artifactId>solon-parent</artifactId>
+        <version>2.4.5</version>
+        <relativePath />
+    </parent>
+
     <groupId>com.gitee.anwena</groupId>
-    <artifactId>mongo-core</artifactId>
+    <artifactId>mongo-plus-solon-plugin</artifactId>
+    <name>mongo-plus-solon-plugin</name>
     <packaging>jar</packaging>
-    <name>mongo-core</name>
-    <version>2.0.5</version>
-    <description>mongo-plus核心代码</description>
-    <url>https://gitee.com/jia-chaoyang/mongo-plus</url>
+    <version>1.0.0</version>
+    <description>mongo-plus-solon-plugin主程序</description>
+    <url>https://gitee.com/anwena/mongo-plus-solon</url>
     <inceptionYear>2023</inceptionYear>
 
     <licenses>
@@ -34,61 +41,26 @@
     </developers>
 
     <scm>
-        <connection>https://gitee.com/anwena/mongo-plus.git</connection>
+        <connection>https://gitee.com/anwena/mongo-plus-solon.git</connection>
         <developerConnection>scm:git:ssh://git@gitee.com:anwena/mongo-plus.git</developerConnection>
-        <url>https://gitee.com/anwena/mongo-plus</url>
+        <url>https://gitee.com/anwena/mongo-plus-solon</url>
     </scm>
 
     <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.test.skip>true</maven.test.skip>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>org.mongodb</groupId>
-            <artifactId>mongodb-driver-sync</artifactId>
-            <version>4.9.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>1.2.83</version>
+            <groupId>org.noear</groupId>
+            <artifactId>solon-api</artifactId>
         </dependency>
         <dependency>
             <groupId>com.gitee.anwena</groupId>
-            <artifactId>mongo-annotation</artifactId>
+            <artifactId>mongo-plus-core</artifactId>
             <version>2.0.5</version>
-        </dependency>
-        <dependency>
-            <groupId>jakarta.annotation</groupId>
-            <artifactId>jakarta.annotation-api</artifactId>
-            <version>2.1.0</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>30.1-jre</version>
-        </dependency>
-        <dependency>
-            <groupId>org.mongodb</groupId>
-            <artifactId>mongodb-driver-core</artifactId>
-            <version>4.4.2</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.f4b6a3</groupId>
-            <artifactId>ulid-creator</artifactId>
-            <version>5.1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections</artifactId>
-            <version>0.9.12</version>
         </dependency>
     </dependencies>
 
@@ -131,14 +103,9 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
                         <version>2.9.1</version>
-                        <configuration>
-                            <additionalJOptions>
-                                <additionalJOption>-Xdoclint:none</additionalJOption>
-                            </additionalJOptions>
-                        </configuration>
                         <executions>
                             <execution>
-                                <phase>package</phase>
+                                <id>attach-javadocs</id>
                                 <goals>
                                     <goal>jar</goal>
                                 </goals>
