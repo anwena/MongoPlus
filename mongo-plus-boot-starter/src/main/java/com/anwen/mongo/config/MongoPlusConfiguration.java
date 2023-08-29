@@ -3,17 +3,13 @@ package com.anwen.mongo.config;
 import com.anwen.mongo.config.log.MongoDBLogProperty;
 import com.anwen.mongo.execute.SqlOperation;
 import com.anwen.mongo.log.CustomMongoDriverLogger;
-import com.anwen.mongo.mapper.MongoPlusBeanMapper;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
-import com.anwen.mongo.service.impl.ServiceImpl;
 import com.anwen.mongo.toolkit.UrlJoint;
 import com.anwen.mongo.transactional.MongoTransactionalAspect;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
-import lombok.extern.log4j.Log4j2;
-import org.reflections.Reflections;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
@@ -22,23 +18,15 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 
 import javax.annotation.PostConstruct;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author JiaChaoYang
  * 连接配置
  * @since 2023-02-09 14:27
  **/
-@Log4j2
 @EnableConfigurationProperties(value = {MongoDBConnectProperty.class, MongoDBLogProperty.class})
 public class MongoPlusConfiguration extends MongoAutoConfiguration {
 
-    /**
-     * 自定义事件
-     * @author JiaChaoYang
-     * @date 2023/6/26/026 22:06
-     */
     private final MongoDBLogProperty mongoDBLogProperty;
 
     final

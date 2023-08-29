@@ -1,43 +1,40 @@
 package com.anwen.mongo.config;
 
 import com.anwen.mongo.execute.SqlOperation;
-import com.anwen.mongo.mapper.MongoPlusBeanMapper;
 import com.anwen.mongo.service.impl.ServiceImpl;
+import org.noear.solon.Solon;
+import org.noear.solon.annotation.Configuration;
+import org.noear.solon.annotation.Inject;
+import org.noear.solon.core.AopContext;
+import org.noear.solon.core.BeanWrap;
 import org.reflections.Reflections;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.Resource;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.Set;
 
 /**
  * MongoPlus自动注入配置
  * @author JiaChaoYang
  **/
-public class MongoPlusAutoConfiguration implements InitializingBean {
+public class MongoPlusAutoConfiguration {
 
-    @Resource
-    private SqlOperation sqlOperation;
-
-    @Resource
-    private ApplicationContext applicationContext;
+    private final SqlOperation sqlOperation;
 
     private Set<Class<? extends ServiceImpl>> loadClassByLoader(){
         Reflections reflections = new Reflections("");
         return reflections.getSubTypesOf(ServiceImpl.class);
     }
 
-    @Override
-    public void afterPropertiesSet() {
+    public MongoPlusAutoConfiguration(SqlOperation sqlOperation){
+        this.sqlOperation = sqlOperation;
+        AopContext context = Solon.context();
         loadClassByLoader().forEach(clazz -> {
             String className = clazz.getSimpleName();
             String firstChar = className.substring(0, 1).toLowerCase();
-            ServiceImpl<?> serviceImpl = (ServiceImpl<?>) applicationContext.getBean(firstChar + className.substring(1));
+            ServiceImpl<?> serviceImpl = context.getBean(firstChar + className.substring(1));
+            if (null == serviceImpl){
+                BeanWrap beanWrap = context.beanMake(clazz);
+                serviceImpl = beanWrap.get();
+            }
             Class<?> genericityClass = serviceImpl.getGenericityClazz();
             setOperation(serviceImpl,genericityClass);
         });

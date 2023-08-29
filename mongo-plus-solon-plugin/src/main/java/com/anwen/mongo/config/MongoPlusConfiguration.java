@@ -14,9 +14,6 @@ import org.noear.solon.annotation.Bean;
 import org.noear.solon.annotation.Configuration;
 import org.noear.solon.annotation.Inject;
 
-import javax.annotation.PostConstruct;
-import java.util.Map;
-
 /**
  * @author JiaChaoYang
  * 连接配置
@@ -26,33 +23,8 @@ import java.util.Map;
 @Configuration
 public class MongoPlusConfiguration {
 
-    /**
-     * 自定义事件
-     * @author JiaChaoYang
-     * @date 2023/6/26/026 22:06
-     */
-
-    @Inject
-    private MongoDBLogProperty mongoDBLogProperty;
-
-    @Inject
-    private MongoDBConnectProperty mongoDBConnectProperty;
-
-    private MongoClient mongoClient;
-
-    private SqlOperation sqlOperation;
-
-    public MongoPlusConfiguration(MongoDBConnectProperty mongoDBConnectProperty,MongoDBLogProperty mongoDBLogProperty) {
-        this.mongoDBConnectProperty = mongoDBConnectProperty;
-        this.mongoDBLogProperty = mongoDBLogProperty;
-    }
-
     @Bean
-    @PostConstruct
-    public SqlOperation sqlOperation() {
-        if (sqlOperation != null){
-            return this.sqlOperation;
-        }
+    public SqlOperation sqlOperation(@Inject("${mongo-plus.data.mongodb}") MongoDBConnectProperty mongoDBConnectProperty,@Inject("${mongo-plus}") MongoDBLogProperty mongoDBLogProperty) {
         SqlOperation sqlOperation = new SqlOperation();
         sqlOperation.setSlaveDataSources(mongoDBConnectProperty.getSlaveDataSource());
         sqlOperation.setBaseProperty(mongoDBConnectProperty);
@@ -60,17 +32,22 @@ public class MongoPlusConfiguration {
         MongoClientSettings.Builder builder = MongoClientSettings.builder()
                 .applyConnectionString(new ConnectionString(urlJoint.jointMongoUrl()));
         if (mongoDBLogProperty.getLog()){
-            builder.addCommandListener(new CustomMongoDriverLogger(mongoDBLogProperty.getLog()));
+            builder.addCommandListener(new CustomMongoDriverLogger(mongoDBLogProperty.getFormat()));
         }
-        this.mongoClient = MongoClients.create(builder.build());
-        sqlOperation.setMongoClient(this.mongoClient);
-        this.sqlOperation = sqlOperation;
+        MongoClient mongoClient = MongoClients.create(builder.build());
+        sqlOperation.setMongoClient(mongoClient);
         return sqlOperation;
     }
 
+
     @Bean
-    public MongoPlusMapMapper mongoPlusMapMapper(SqlOperation sqlOperation){
-        return new MongoPlusMapMapper(sqlOperation);
+    public MongoPlusAutoConfiguration mongoPlusAutoConfiguration(@Inject SqlOperation sqlOperation){
+        return new MongoPlusAutoConfiguration(sqlOperation);
     }
 
+
+    @Bean
+    public MongoPlusMapMapper mongoPlusMapMapper(@Inject SqlOperation sqlOperation){
+        return new MongoPlusMapMapper(sqlOperation);
+    }
 }

@@ -36,6 +36,7 @@ import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.types.ObjectId;
@@ -57,7 +58,7 @@ import static com.anwen.mongo.toolkit.BeanMapUtilByReflect.checkTableField;
  * @Version: 1.0
  */
 @Data
-@Log4j2
+@Slf4j
 public class SqlOperation {
 
     private Map<String, MongoCollection<Document>> collectionMap = new HashMap<>();

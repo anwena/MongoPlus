@@ -2,7 +2,7 @@ package com.anwen.mongo.toolkit;
 
 import com.anwen.mongo.domain.InitMongoCollectionException;
 import com.anwen.mongo.model.BaseProperty;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @Description: 拼接mongodb连接
@@ -12,7 +12,7 @@ import lombok.extern.log4j.Log4j2;
  * @CreateTime: 2023-02-26 21:56
  * @Version: 1.0
  */
-@Log4j2
+@Slf4j
 public class UrlJoint {
 
     private final BaseProperty baseProperty;

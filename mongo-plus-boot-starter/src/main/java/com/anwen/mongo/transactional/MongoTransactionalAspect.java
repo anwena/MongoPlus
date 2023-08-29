@@ -4,7 +4,6 @@ import cn.hutool.json.JSONUtil;
 import com.mongodb.ClientSessionOptions;
 import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoClient;
-import lombok.extern.log4j.Log4j2;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -14,7 +13,6 @@ import org.bson.BsonDocument;
  * @author JiaChaoYang
  **/
 @Aspect
-@Log4j2
 public class MongoTransactionalAspect {
 
     public MongoTransactionalAspect(MongoClient mongoClient) {

@@ -17,7 +17,7 @@
     <packaging>jar</packaging>
     <version>1.0.0</version>
     <description>mongo-plus-solon-plugin主程序</description>
-    <url>https://gitee.com/anwena/mongo-plus-solon</url>
+    <url>https://gitee.com/anwena/mongo-plus</url>
     <inceptionYear>2023</inceptionYear>
 
     <licenses>
@@ -41,7 +41,7 @@
     </developers>
 
     <scm>
-        <connection>https://gitee.com/anwena/mongo-plus-solon.git</connection>
+        <connection>https://gitee.com/anwena/mongo-plus.git</connection>
         <developerConnection>scm:git:ssh://git@gitee.com:anwena/mongo-plus.git</developerConnection>
         <url>https://gitee.com/anwena/mongo-plus-solon</url>
     </scm>

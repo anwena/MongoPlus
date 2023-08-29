@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.noear.solon.annotation.Configuration;
 import org.noear.solon.annotation.Inject;
+import org.noear.solon.annotation.ProxyComponent;
 
 /**
  * @author JiaChaoYang
@@ -16,8 +17,6 @@ import org.noear.solon.annotation.Inject;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Configuration
-@Inject("${mongo-plus}")
 public class MongoDBLogProperty {
 
     /**
@@ -31,7 +30,7 @@ public class MongoDBLogProperty {
      * 是否开启格式化sql<p style="color:red;">格式化之后，sql会很长很长<p/>
      * @author JiaChaoYang
      * @date 2023/8/29 0:52
-     */
+    */
     private Boolean format = false;
 
 }
