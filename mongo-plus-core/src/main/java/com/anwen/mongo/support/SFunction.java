@@ -4,7 +4,6 @@ import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.toolkit.StringUtils;
-import lombok.SneakyThrows;
 
 import java.io.Serializable;
 import java.lang.invoke.SerializedLambda;
@@ -25,7 +24,6 @@ public interface SFunction<T,R> extends Function<T,R>, Serializable {
     String defaultSplit = "";
     Integer defaultToType = 0;
 
-    @SneakyThrows
     default String getFieldName() {
         String methodName = getMethodName();
         if (methodName.startsWith("get")) {
@@ -92,21 +90,27 @@ public interface SFunction<T,R> extends Function<T,R>, Serializable {
     }
 
 
-    @SneakyThrows
     default String getMethodName() {
         return getSerializedLambda().getImplMethodName();
     }
 
-    @SneakyThrows
     default Class<?> getFieldClass() {
         return getReturnType();
     }
 
-    @SneakyThrows
     default SerializedLambda getSerializedLambda() {
-        Method method = getClass().getDeclaredMethod("writeReplace");
+        Method method = null;
+        try {
+            method = getClass().getDeclaredMethod("writeReplace");
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
         method.setAccessible(true);
-        return (SerializedLambda) method.invoke(this);
+        try {
+            return (SerializedLambda) method.invoke(this);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     default SerializedLambda getSerializedLambdaOne(SFunction<T, ?> fn) {
@@ -131,11 +135,20 @@ public interface SFunction<T,R> extends Function<T,R>, Serializable {
         return serializedLambda;
     }
 
-    @SneakyThrows
     default Class<?> getReturnType() {
         SerializedLambda lambda = getSerializedLambda();
-        Class<?> className = Class.forName(lambda.getImplClass().replace("/", "."));
-        Method method = className.getMethod(getMethodName());
+        Class<?> className = null;
+        try {
+            className = Class.forName(lambda.getImplClass().replace("/", "."));
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        Method method = null;
+        try {
+            method = className.getMethod(getMethodName());
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
         return method.getReturnType();
     }
 

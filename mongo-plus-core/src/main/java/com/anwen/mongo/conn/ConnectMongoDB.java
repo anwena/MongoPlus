@@ -3,7 +3,6 @@ package com.anwen.mongo.conn;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import lombok.Getter;
 import org.bson.Document;
 
 
@@ -12,7 +11,6 @@ import org.bson.Document;
  * 连接工具类
  * @since 2023-02-09 14:47
  **/
-@Getter
 public class ConnectMongoDB {
 
     private final MongoClient mongoClient;
@@ -22,6 +20,22 @@ public class ConnectMongoDB {
     private final String collection;
 
     private MongoDatabase mongoDatabase;
+
+    public MongoClient getMongoClient() {
+        return mongoClient;
+    }
+
+    public String getDatabase() {
+        return database;
+    }
+
+    public String getCollection() {
+        return collection;
+    }
+
+    public MongoDatabase getMongoDatabase() {
+        return mongoDatabase;
+    }
 
     public ConnectMongoDB(MongoClient mongoClient, String database, String collectionValue) {
         this.mongoClient = mongoClient;

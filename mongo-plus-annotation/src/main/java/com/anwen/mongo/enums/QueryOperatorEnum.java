@@ -1,15 +1,10 @@
 package com.anwen.mongo.enums;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 /**
  * 条件枚举
  * @author JiaChaoYang
  * @date 2023/7/30 0:32
 */
-@Getter
-@AllArgsConstructor
 public enum QueryOperatorEnum {
 
     MOD("mod"),
@@ -56,4 +51,11 @@ public enum QueryOperatorEnum {
 
     private final String value;
 
+    public String getValue() {
+        return value;
+    }
+
+    QueryOperatorEnum(String value) {
+        this.value = value;
+    }
 }

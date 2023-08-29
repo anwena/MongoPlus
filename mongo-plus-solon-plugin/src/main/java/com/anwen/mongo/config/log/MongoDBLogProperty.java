@@ -1,22 +1,10 @@
 package com.anwen.mongo.config.log;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.noear.solon.annotation.Configuration;
-import org.noear.solon.annotation.Inject;
-import org.noear.solon.annotation.ProxyComponent;
-
 /**
  * @author JiaChaoYang
  * 日志属性
  * @since 2023-06-07 23:07
  **/
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
 public class MongoDBLogProperty {
 
     /**
@@ -32,5 +20,29 @@ public class MongoDBLogProperty {
      * @date 2023/8/29 0:52
     */
     private Boolean format = false;
+
+    public Boolean getLog() {
+        return this.log;
+    }
+
+    public Boolean getFormat() {
+        return this.format;
+    }
+
+    public void setLog(final Boolean log) {
+        this.log = log;
+    }
+
+    public void setFormat(final Boolean format) {
+        this.format = format;
+    }
+
+    public MongoDBLogProperty(final Boolean log, final Boolean format) {
+        this.log = log;
+        this.format = format;
+    }
+
+    public MongoDBLogProperty() {
+    }
 
 }

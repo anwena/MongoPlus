@@ -1,15 +1,10 @@
 package com.anwen.mongo.enums;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 /**
  * group条件枚举
  * @author JiaChaoYang
  * @date 2023/8/17 20:01
 */
-@Getter
-@AllArgsConstructor
 public enum GroupTypeEnum {
     // 计算指定字段的总和
     SUM("sum"),
@@ -40,4 +35,11 @@ public enum GroupTypeEnum {
 
     private final String operator;
 
+    GroupTypeEnum(String operator) {
+        this.operator = operator;
+    }
+
+    public String getOperator() {
+        return operator;
+    }
 }

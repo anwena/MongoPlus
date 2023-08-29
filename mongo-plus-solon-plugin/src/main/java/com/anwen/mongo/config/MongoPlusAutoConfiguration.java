@@ -19,18 +19,11 @@ public class MongoPlusAutoConfiguration {
 
     private final SqlOperation sqlOperation;
 
-    private Set<Class<? extends ServiceImpl>> loadClassByLoader(){
-        Reflections reflections = new Reflections("");
-        return reflections.getSubTypesOf(ServiceImpl.class);
-    }
-
     public MongoPlusAutoConfiguration(SqlOperation sqlOperation){
         this.sqlOperation = sqlOperation;
         AopContext context = Solon.context();
-        loadClassByLoader().forEach(clazz -> {
-            String className = clazz.getSimpleName();
-            String firstChar = className.substring(0, 1).toLowerCase();
-            ServiceImpl<?> serviceImpl = context.getBean(firstChar + className.substring(1));
+        new Reflections("").getSubTypesOf(ServiceImpl.class).forEach(clazz -> {
+            ServiceImpl<?> serviceImpl = context.getBean(clazz);
             if (null == serviceImpl){
                 BeanWrap beanWrap = context.beanMake(clazz);
                 serviceImpl = beanWrap.get();

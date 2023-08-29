@@ -12,7 +12,6 @@ import com.anwen.mongo.enums.ProjectionEnum;
 import com.anwen.mongo.enums.TypeEnum;
 import com.anwen.mongo.support.SFunction;
 import com.mongodb.BasicDBObject;
-import lombok.Getter;
 import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
@@ -25,7 +24,6 @@ import java.util.List;
  * @author JiaChaoYang
  * @date 2023/6/24/024 0:49
 */
-@Getter
 public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Children>> implements Compare<T,Children> {
 
     protected final Children typedThis = (Children) this;
@@ -55,6 +53,26 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
      * @date 2023/8/20 19:40
     */
     List<BasicDBObject> basicDBObjectList = new ArrayList<>();
+
+    public Children getTypedThis() {
+        return typedThis;
+    }
+
+    public List<CompareCondition> getCompareList() {
+        return compareList;
+    }
+
+    public List<Order> getOrderList() {
+        return orderList;
+    }
+
+    public List<Projection> getProjectionList() {
+        return projectionList;
+    }
+
+    public List<BasicDBObject> getBasicDBObjectList() {
+        return basicDBObjectList;
+    }
 
     @Override
     public Children eq(boolean condition, SFunction<T, Object> column, Object value) {

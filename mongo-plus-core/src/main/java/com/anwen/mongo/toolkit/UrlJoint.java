@@ -2,7 +2,8 @@ package com.anwen.mongo.toolkit;
 
 import com.anwen.mongo.domain.InitMongoCollectionException;
 import com.anwen.mongo.model.BaseProperty;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @Description: 拼接mongodb连接
@@ -12,8 +13,9 @@ import lombok.extern.slf4j.Slf4j;
  * @CreateTime: 2023-02-26 21:56
  * @Version: 1.0
  */
-@Slf4j
 public class UrlJoint {
+
+    private static final Logger logger = LoggerFactory.getLogger(UrlJoint.class);
 
     private final BaseProperty baseProperty;
 
@@ -155,7 +157,7 @@ public class UrlJoint {
         if (!mongodbUrl.contains("?")){
             mongodbUrl = mongodbUrl.replaceFirst("&", "?");
         }
-        log.info("get connected：{}",mongodbUrl);
+        logger.info("get connected：{}",mongodbUrl);
         return mongodbUrl;
     }
 

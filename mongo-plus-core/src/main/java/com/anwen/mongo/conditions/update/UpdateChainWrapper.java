@@ -6,7 +6,6 @@ import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.enums.CompareEnum;
 import com.anwen.mongo.enums.LogicTypeEnum;
 import com.anwen.mongo.support.SFunction;
-import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,8 +19,11 @@ public class UpdateChainWrapper<T,Children extends UpdateChainWrapper<T,Children
 
     protected final Children typedThis = (Children) this;
 
-    @Getter
     private List<CompareCondition> updateCompareList = new ArrayList<>();
+
+    public List<CompareCondition> getUpdateCompareList() {
+        return updateCompareList;
+    }
 
     @Override
     public Children set(boolean condition, SFunction<T, Object> column, Object value) {

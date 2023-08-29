@@ -1,16 +1,11 @@
 package com.anwen.mongo.enums;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 /**
  * @author JiaChaoYang
  * @project mongo
  * @description
  * @date 2023-07-18 00:04
  **/
-@Getter
-@AllArgsConstructor
 public enum TypeEnum {
 
     // 双精度浮点数
@@ -54,4 +49,11 @@ public enum TypeEnum {
 
     private final int typeCode;
 
+    public int getTypeCode() {
+        return typeCode;
+    }
+
+    TypeEnum(int typeCode) {
+        this.typeCode = typeCode;
+    }
 }

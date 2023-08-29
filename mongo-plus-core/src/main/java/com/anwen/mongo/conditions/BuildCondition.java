@@ -1,6 +1,5 @@
 package com.anwen.mongo.conditions;
 
-import cn.hutool.core.collection.CollUtil;
 import com.anwen.mongo.conditions.accumulator.Accumulator;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.AddFields;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
@@ -54,7 +53,7 @@ public class BuildCondition {
                 if (Objects.equals(compare.getCondition(), QueryOperatorEnum.LIKE.getValue()) && StringUtils.isNotBlank(String.valueOf(compare.getValue()))) {
                     put(compare.getColumn(), new BasicDBObject(SpecialConditionEnum.REGEX.getCondition(), compare.getValue()));
                 } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.OR.getKey())) {
-                    if (CollUtil.isEmpty(compare.getChildCondition())) {
+                    if (null == compare.getChildCondition() || compare.getChildCondition().isEmpty()) {
                         compare.setChildCondition(Collections.singletonList(compare));
                     }
                     put(SpecialConditionEnum.OR.getCondition(), buildOrQueryCondition(compare.getChildCondition()));

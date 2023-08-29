@@ -9,7 +9,6 @@ import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
-import lombok.extern.log4j.Log4j2;
 import org.noear.solon.annotation.Bean;
 import org.noear.solon.annotation.Configuration;
 import org.noear.solon.annotation.Inject;
@@ -19,7 +18,6 @@ import org.noear.solon.annotation.Inject;
  * 连接配置
  * @since 2023-02-09 14:27
  **/
-@Log4j2
 @Configuration
 public class MongoPlusConfiguration {
 

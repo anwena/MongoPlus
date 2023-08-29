@@ -1,6 +1,5 @@
 package com.anwen.mongo.strategy.aggregate.impl;
 
-import cn.hutool.core.collection.CollUtil;
 import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.accumulator.Accumulator;
 import com.anwen.mongo.constant.SqlOperationConstant;
@@ -63,7 +62,7 @@ public class GroupConcretePipeline implements PipelineStrategy {
         if (StringUtils.isNotBlank(_id)) {
             basicDBObject.put(SqlOperationConstant._ID, "$" + _id);
         }
-        if (CollUtil.isNotEmpty(_idAccumulator)){
+        if (null != _idAccumulator && !_idAccumulator.isEmpty()){
             basicDBObject.put(SqlOperationConstant._ID,BuildCondition.buildGroup(_idAccumulator));
         }
         return basicDBObject;

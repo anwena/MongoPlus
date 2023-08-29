@@ -27,17 +27,10 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
     @Resource
     private ApplicationContext applicationContext;
 
-    private Set<Class<? extends ServiceImpl>> loadClassByLoader(){
-        Reflections reflections = new Reflections("");
-        return reflections.getSubTypesOf(ServiceImpl.class);
-    }
-
     @Override
     public void afterPropertiesSet() {
-        loadClassByLoader().forEach(clazz -> {
-            String className = clazz.getSimpleName();
-            String firstChar = className.substring(0, 1).toLowerCase();
-            ServiceImpl<?> serviceImpl = (ServiceImpl<?>) applicationContext.getBean(firstChar + className.substring(1));
+        new Reflections("").getSubTypesOf(ServiceImpl.class).forEach(clazz -> {
+            ServiceImpl<?> serviceImpl = (ServiceImpl<?>) applicationContext.getBean(clazz);
             Class<?> genericityClass = serviceImpl.getGenericityClazz();
             setOperation(serviceImpl,genericityClass);
         });

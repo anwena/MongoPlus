@@ -1,15 +1,10 @@
 package com.anwen.mongo.enums;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 /**
  * @author JiaChaoYang
  * id生成类型
  * @since 2023-02-13 15:59
  **/
-@Getter
-@AllArgsConstructor
 public enum IdTypeEnum {
 
     /**
@@ -49,4 +44,12 @@ public enum IdTypeEnum {
     ;
 
     private final int key;
+
+    public int getKey() {
+        return key;
+    }
+
+    IdTypeEnum(int key) {
+        this.key = key;
+    }
 }

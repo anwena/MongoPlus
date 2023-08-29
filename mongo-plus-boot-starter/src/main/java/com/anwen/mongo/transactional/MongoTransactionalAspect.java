@@ -1,6 +1,6 @@
 package com.anwen.mongo.transactional;
 
-import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson.JSON;
 import com.mongodb.ClientSessionOptions;
 import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoClient;
@@ -55,7 +55,7 @@ public class MongoTransactionalAspect {
     */
     private void commitTransaction() {
         BsonDocument document = session.getServerSession().getIdentifier();
-        System.out.println("提交时候的session："+ JSONUtil.toJsonStr(document));
+        System.out.println("提交时候的session："+ JSON.toJSONString(document));
         session.commitTransaction();
     }
 
@@ -66,13 +66,13 @@ public class MongoTransactionalAspect {
     */
     private void rollbackTransaction() {
         BsonDocument document = session.getServerSession().getIdentifier();
-        System.out.println("回滚时候的session："+ JSONUtil.toJsonStr(document));
+        System.out.println("回滚时候的session："+ JSON.toJSONString(document));
         session.abortTransaction();
     }
 
     private void closeSession() {
         BsonDocument document = session.getServerSession().getIdentifier();
-        System.out.println("关闭时候的session："+ JSONUtil.toJsonStr(document));
+        System.out.println("关闭时候的session："+ JSON.toJSONString(document));
         session.close();
     }
 }

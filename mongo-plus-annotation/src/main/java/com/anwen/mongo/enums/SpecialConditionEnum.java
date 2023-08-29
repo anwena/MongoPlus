@@ -1,10 +1,5 @@
 package com.anwen.mongo.enums;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-@Getter
-@AllArgsConstructor
 public enum SpecialConditionEnum {
 
 
@@ -31,4 +26,11 @@ public enum SpecialConditionEnum {
 
     private final String condition;
 
+    public String getCondition() {
+        return condition;
+    }
+
+    SpecialConditionEnum(String condition) {
+        this.condition = condition;
+    }
 }

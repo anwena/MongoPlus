@@ -7,8 +7,6 @@ import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 import com.anwen.mongo.service.IService;
 import com.anwen.mongo.support.SFunction;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -21,7 +19,6 @@ import java.util.List;
  * 接口实现
  * @since 2023-02-09 14:13
  **/
-@Data
 public class ServiceImpl<T> implements IService<T>{
 
     private SqlOperation sqlOperation;
@@ -184,5 +181,9 @@ public class ServiceImpl<T> implements IService<T>{
     @Override
     public SqlOperation getSqlOperation() {
         return sqlOperation;
+    }
+
+    public Class<T> getClazz() {
+        return clazz;
     }
 }

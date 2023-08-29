@@ -6,11 +6,9 @@ import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.enums.CompareEnum;
 import com.anwen.mongo.enums.LogicTypeEnum;
 import com.anwen.mongo.execute.SqlOperation;
-import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author JiaChaoYang
@@ -18,7 +16,6 @@ import java.util.Map;
  * @description
  * @date 2023-07-23 22:23
  **/
-@Getter
 public class LambdaUpdateChainInjectWrapper extends AbstractChainWrapper<String, LambdaUpdateChainInjectWrapper> implements InjectUpdate<LambdaUpdateChainInjectWrapper> {
 
     private final List<CompareCondition> updateCompareList = new ArrayList<>();
@@ -53,5 +50,13 @@ public class LambdaUpdateChainInjectWrapper extends AbstractChainWrapper<String,
 
     public boolean remove(String collectionName) {
         return sqlOperation.doRemove(collectionName,getCompareList());
+    }
+
+    public List<CompareCondition> getUpdateCompareList() {
+        return updateCompareList;
+    }
+
+    public SqlOperation getSqlOperation() {
+        return sqlOperation;
     }
 }

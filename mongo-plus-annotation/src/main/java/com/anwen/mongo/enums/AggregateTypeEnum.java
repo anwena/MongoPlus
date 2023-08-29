@@ -1,13 +1,8 @@
 package com.anwen.mongo.enums;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 /**
  * @author JiaChaoYang
  **/
-@Getter
-@AllArgsConstructor
 public enum AggregateTypeEnum {
 
     PROJECT("project"),
@@ -39,5 +34,13 @@ public enum AggregateTypeEnum {
     ;
 
     private final String type;
+
+    AggregateTypeEnum(String type) {
+        this.type = type;
+    }
+
+    public String getType() {
+        return type;
+    }
 
 }

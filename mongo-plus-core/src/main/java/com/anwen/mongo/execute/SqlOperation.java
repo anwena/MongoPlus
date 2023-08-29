@@ -1,6 +1,5 @@
 package com.anwen.mongo.execute;
 
-import cn.hutool.core.collection.CollUtil;
 import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
@@ -34,12 +33,11 @@ import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.InsertManyResult;
 import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
-import lombok.Data;
-import lombok.extern.log4j.Log4j2;
-import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -57,9 +55,9 @@ import static com.anwen.mongo.toolkit.BeanMapUtilByReflect.checkTableField;
  * @CreateTime: 2023-02-16 20:35
  * @Version: 1.0
  */
-@Data
-@Slf4j
 public class SqlOperation {
+
+    private static final Logger logger = LoggerFactory.getLogger(SqlOperation.class);
 
     private Map<String, MongoCollection<Document>> collectionMap = new HashMap<>();
 
@@ -109,7 +107,7 @@ public class SqlOperation {
             MongoCollection<Document> collection = connectMongoDB.open();
             collectionMap.put(tableName, collection);
         } catch (MongoException e) {
-            log.error("Failed to connect to MongoDB: {}", e.getMessage(), e);
+            logger.error("Failed to connect to MongoDB: {}", e.getMessage(), e);
         }
     }
 
@@ -118,7 +116,7 @@ public class SqlOperation {
             InsertOneResult insertOneResult = getCollection(entity).insertOne(processIdField(entity));
             return insertOneResult.wasAcknowledged();
         } catch (Exception e) {
-            log.error("save fail , error info : {}", e.getMessage(), e);
+            logger.error("save fail , error info : {}", e.getMessage(), e);
             return false;
         }
     }
@@ -128,7 +126,7 @@ public class SqlOperation {
             InsertOneResult insertOneResult = getCollection(collectionName).insertOne(new Document(entityMap));
             return insertOneResult.wasAcknowledged();
         } catch (Exception e) {
-            log.error("save fail , error info : {}", e.getMessage(), e);
+            logger.error("save fail , error info : {}", e.getMessage(), e);
             return false;
         }
     }
@@ -138,7 +136,7 @@ public class SqlOperation {
             InsertManyResult insertManyResult = getCollection(entityList.iterator().next()).insertMany(processIdFieldList(entityList));
             return insertManyResult.getInsertedIds().size() == entityList.size();
         } catch (Exception e) {
-            log.error("saveBatch fail , error info : {}", e.getMessage(), e);
+            logger.error("saveBatch fail , error info : {}", e.getMessage(), e);
             return false;
         }
     }
@@ -148,7 +146,7 @@ public class SqlOperation {
             InsertManyResult insertManyResult = getCollection(collectionName).insertMany(BeanMapUtilByReflect.mapListToDocumentList(entityList));
             return insertManyResult.getInsertedIds().size() == entityList.size();
         } catch (Exception e) {
-            log.error("saveBatch fail , error info : {}", e.getMessage(), e);
+            logger.error("saveBatch fail , error info : {}", e.getMessage(), e);
             return false;
         }
     }
@@ -266,7 +264,7 @@ public class SqlOperation {
             UpdateResult updateResult = getCollection(entity).updateOne(Filters.eq(filterCondition, ObjectId.isValid(filterValue) ? new ObjectId(filterValue) : filterValue), new Document(checkTableField(entity)));
             return updateResult.getModifiedCount() >= 1;
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            log.error("update fail , fail info : {}", e.getMessage(), e);
+            logger.error("update fail , fail info : {}", e.getMessage(), e);
             return false;
         }
     }
@@ -315,7 +313,7 @@ public class SqlOperation {
         List<Serializable> serializableList = idList.stream().filter(id -> ObjectId.isValid(String.valueOf(id))).collect(Collectors.toList());
         if (idList.size() == serializableList.size()){
             return getCollection().deleteMany(Filters.in(SqlOperationConstant._ID, idList.stream().map(id -> new ObjectId(String.valueOf(id))).collect(Collectors.toList()))).getDeletedCount() >= 1;
-        } else if (CollUtil.isEmpty(serializableList)){
+        } else if (serializableList.isEmpty()){
             return getCollection().deleteMany(Filters.in(SqlOperationConstant._ID, idList.stream().map(String::valueOf))).getDeletedCount() >= 1;
         } else {
             int ling = 0;
@@ -331,7 +329,7 @@ public class SqlOperation {
         List<Serializable> serializableList = idList.stream().filter(id -> ObjectId.isValid(String.valueOf(id))).collect(Collectors.toList());
         if (idList.size() == serializableList.size()){
             return getCollection(collectionName).deleteMany(Filters.in(SqlOperationConstant._ID, idList.stream().map(id -> new ObjectId(String.valueOf(id))).collect(Collectors.toList()))).getDeletedCount() >= 1;
-        } else if (CollUtil.isEmpty(serializableList)){
+        } else if (serializableList.isEmpty()){
             return getCollection(collectionName).deleteMany(Filters.in(SqlOperationConstant._ID, idList.stream().map(String::valueOf))).getDeletedCount() >= 1;
         } else {
             int ling = 0;
@@ -395,7 +393,7 @@ public class SqlOperation {
         List<Serializable> serializableList = ids.stream().filter(id -> ObjectId.isValid(String.valueOf(id))).collect(Collectors.toList());
         if (ids.size() == serializableList.size()){
             ids = ids.stream().map(id -> new ObjectId(String.valueOf(id))).collect(Collectors.toList());
-        } else if (CollUtil.isEmpty(serializableList)){
+        } else if (serializableList.isEmpty()){
             ids = ids.stream().map(String::valueOf).collect(Collectors.toList());
         }else {
             List<Serializable> idList = new ArrayList<>();
@@ -549,7 +547,7 @@ public class SqlOperation {
         orderList.forEach(order -> sortCond.put(order.getColumn(), order.getType()));
         MongoCollection<Document> collection = getCollection();
         BasicDBObject basicDBObject = BuildCondition.buildQueryCondition(compareConditionList);
-        if (CollUtil.isNotEmpty(basicDBObjectList)){
+        if (null != basicDBObjectList && !basicDBObjectList.isEmpty()){
             basicDBObjectList.forEach(basic -> {
                 basicDBObject.putAll(basic.toMap());
             });
@@ -568,7 +566,7 @@ public class SqlOperation {
         if (StringUtils.isNotBlank(createIndex)) {
             collection.createIndex(new Document(createIndex, QueryOperatorEnum.TEXT.getValue()));
         }
-        if (CollUtil.isNotEmpty(basicDBObjectList)){
+        if (null != basicDBObjectList && !basicDBObjectList.isEmpty()){
             basicDBObjectList.forEach(basic -> {
                 basicDBObject.putAll(basic.toMap());
             });
@@ -657,5 +655,65 @@ public class SqlOperation {
 
     private <T> List<Document> processIdFieldList(Collection<T> entityList){
         return entityList.stream().map(this::processIdField).collect(Collectors.toList());
+    }
+
+    public Map<String, MongoCollection<Document>> getCollectionMap() {
+        return collectionMap;
+    }
+
+    public void setCollectionMap(Map<String, MongoCollection<Document>> collectionMap) {
+        this.collectionMap = collectionMap;
+    }
+
+    public List<SlaveDataSource> getSlaveDataSources() {
+        return slaveDataSources;
+    }
+
+    public void setSlaveDataSources(List<SlaveDataSource> slaveDataSources) {
+        this.slaveDataSources = slaveDataSources;
+    }
+
+    public BaseProperty getBaseProperty() {
+        return baseProperty;
+    }
+
+    public void setBaseProperty(BaseProperty baseProperty) {
+        this.baseProperty = baseProperty;
+    }
+
+    public MongoClient getMongoClient() {
+        return mongoClient;
+    }
+
+    public void setMongoClient(MongoClient mongoClient) {
+        this.mongoClient = mongoClient;
+    }
+
+    public ConnectMongoDB getConnectMongoDB() {
+        return connectMongoDB;
+    }
+
+    public void setConnectMongoDB(ConnectMongoDB connectMongoDB) {
+        this.connectMongoDB = connectMongoDB;
+    }
+
+    public Class<?> getMongoEntity() {
+        return mongoEntity;
+    }
+
+    public String getCreateIndex() {
+        return createIndex;
+    }
+
+    public void setCreateIndex(String createIndex) {
+        this.createIndex = createIndex;
+    }
+
+    public String getCollectionName() {
+        return collectionName;
+    }
+
+    public void setCollectionName(String collectionName) {
+        this.collectionName = collectionName;
     }
 }

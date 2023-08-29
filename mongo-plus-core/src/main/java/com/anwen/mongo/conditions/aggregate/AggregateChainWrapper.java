@@ -17,7 +17,6 @@ import com.anwen.mongo.model.BaseAggregate;
 import com.anwen.mongo.strategy.aggregate.impl.*;
 import com.anwen.mongo.support.SFunction;
 import com.mongodb.BasicDBObject;
-import lombok.Getter;
 import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
@@ -27,7 +26,6 @@ import java.util.List;
 /**
  * @author JiaChaoYang
  **/
-@Getter
 public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children> {
 
     List<BaseAggregate> baseAggregateList = new ArrayList<>();
@@ -619,5 +617,13 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
     public Children custom(Bson bson) {
         this.basicDBObjectList.add(BasicDBObject.parse(bson.toBsonDocument().toJson()));
         return typedThis;
+    }
+
+    public List<BaseAggregate> getBaseAggregateList() {
+        return baseAggregateList;
+    }
+
+    public List<BasicDBObject> getBasicDBObjectList() {
+        return basicDBObjectList;
     }
 }
