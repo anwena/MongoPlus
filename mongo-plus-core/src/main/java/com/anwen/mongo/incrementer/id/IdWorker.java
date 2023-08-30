@@ -122,4 +122,13 @@ public class IdWorker {
         return new UUID(random.nextLong(), random.nextLong()).toString().replace(StringPool.DASH, StringPool.EMPTY);
     }
 
+    /**
+     * 生成一个ULID
+     * @author JiaChaoYang
+     * @date 2023/8/30 13:47
+    */
+    public static String get26ULID(){
+        return new ULID().nextULID();
+    }
+
 }

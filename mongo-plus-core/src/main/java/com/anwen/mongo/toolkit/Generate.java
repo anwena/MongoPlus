@@ -2,7 +2,6 @@ package com.anwen.mongo.toolkit;
 
 import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.incrementer.id.IdWorker;
-import com.github.f4b6a3.ulid.UlidCreator;
 import org.bson.types.ObjectId;
 
 /**
@@ -19,7 +18,7 @@ public class Generate {
             return IdWorker.get32UUID();
         }
         if (idTypeEnum.getKey() == IdTypeEnum.ASSIGN_ULID.getKey()){
-            return UlidCreator.getMonotonicUlid().toLowerCase();
+            return IdWorker.get26ULID();
         }
         if (idTypeEnum.getKey() == IdTypeEnum.ASSIGN_ID.getKey()){
             return IdWorker.getIdStr();

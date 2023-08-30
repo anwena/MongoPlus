@@ -4,11 +4,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.gitee.anwena</groupId>
+    <parent>
+        <groupId>com.gitee.anwena</groupId>
+        <artifactId>mongo-plus-parent</artifactId>
+        <version>2.0.5</version>
+    </parent>
+
     <artifactId>mongo-plus-core</artifactId>
     <packaging>jar</packaging>
     <name>mongo-plus-core</name>
-    <version>2.0.5</version>
+    <version>${mongoplus.version}</version>
     <description>mongo-plus核心代码</description>
     <url>https://gitee.com/jia-chaoyang/mongo-plus</url>
     <inceptionYear>2023</inceptionYear>
@@ -63,14 +68,26 @@
             <version>2.0.5</version>
         </dependency>
         <dependency>
-            <groupId>com.github.f4b6a3</groupId>
-            <artifactId>ulid-creator</artifactId>
-            <version>5.1.0</version>
-        </dependency>
-        <dependency>
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
             <version>0.9.12</version>
+        </dependency>
+        <!-- SLF4J API -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.36</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+            <version>2.6.15</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.yaml</groupId>
+                    <artifactId>snakeyaml</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
