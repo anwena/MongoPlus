@@ -1,7 +1,7 @@
 package com.anwen.mongo.config;
 
 import com.anwen.mongo.config.log.MongoDBLogProperty;
-import com.anwen.mongo.execute.SqlOperation;
+import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.log.CustomMongoDriverLogger;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
 import com.anwen.mongo.toolkit.UrlJoint;
@@ -34,7 +34,7 @@ public class MongoPlusConfiguration extends MongoAutoConfiguration {
 
     private MongoClient mongoClient;
 
-    private SqlOperation sqlOperation;
+    private SqlExecute sqlExecute;
 
     @Override
     public MongoClient mongo(ObjectProvider<MongoClientSettingsBuilderCustomizer> builderCustomizers, MongoClientSettings settings) {
@@ -49,13 +49,13 @@ public class MongoPlusConfiguration extends MongoAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @PostConstruct
-    public SqlOperation sqlOperation() {
-        if (sqlOperation != null){
-            return this.sqlOperation;
+    public SqlExecute sqlExecute() {
+        if (this.sqlExecute != null){
+            return this.sqlExecute;
         }
-        SqlOperation sqlOperation = new SqlOperation();
-        sqlOperation.setSlaveDataSources(mongoDBConnectProperty.getSlaveDataSource());
-        sqlOperation.setBaseProperty(mongoDBConnectProperty);
+        SqlExecute sqlExecute = new SqlExecute();
+        sqlExecute.setSlaveDataSources(mongoDBConnectProperty.getSlaveDataSource());
+        sqlExecute.setBaseProperty(mongoDBConnectProperty);
         UrlJoint urlJoint = new UrlJoint(mongoDBConnectProperty);
         MongoClientSettings.Builder builder = MongoClientSettings.builder()
                 .applyConnectionString(new ConnectionString(urlJoint.jointMongoUrl()));
@@ -63,14 +63,14 @@ public class MongoPlusConfiguration extends MongoAutoConfiguration {
             builder.addCommandListener(new CustomMongoDriverLogger(mongoDBLogProperty.getFormat()));
         }
         this.mongoClient = MongoClients.create(builder.build());
-        sqlOperation.setMongoClient(this.mongoClient);
+        sqlExecute.setMongoClient(this.mongoClient);
         // 发布自定义事件通知其他类，sqlOperation已完成初始化
-        this.sqlOperation = sqlOperation;
-        return sqlOperation;
+        this.sqlExecute = sqlExecute;
+        return sqlExecute;
     }
     @Bean
-    public MongoPlusMapMapper mongoPlusMapMapper(SqlOperation sqlOperation){
-        return new MongoPlusMapMapper(sqlOperation);
+    public MongoPlusMapMapper mongoPlusMapMapper(SqlExecute sqlExecute){
+        return new MongoPlusMapMapper(sqlExecute);
     }
 
     @Bean

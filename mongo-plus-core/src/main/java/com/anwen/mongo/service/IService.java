@@ -5,7 +5,7 @@ import com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper;
 import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conditions.update.LambdaUpdateChainWrapper;
-import com.anwen.mongo.execute.SqlOperation;
+import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 import com.anwen.mongo.support.SFunction;
@@ -181,7 +181,7 @@ public interface IService<T> {
 
     List<T> getByIds(Collection<Serializable> ids);
 
-    SqlOperation getSqlOperation();
+    SqlExecute getSqlOperation();
 
     Class<T> getGenericityClazz();
 

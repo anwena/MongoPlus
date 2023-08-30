@@ -1,15 +1,11 @@
 package com.anwen.mongo.config;
 
-import com.anwen.mongo.execute.SqlOperation;
+import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.service.impl.ServiceImpl;
 import org.noear.solon.Solon;
-import org.noear.solon.annotation.Configuration;
-import org.noear.solon.annotation.Inject;
 import org.noear.solon.core.AopContext;
 import org.noear.solon.core.BeanWrap;
 import org.reflections.Reflections;
-
-import java.util.Set;
 
 /**
  * MongoPlus自动注入配置
@@ -17,10 +13,10 @@ import java.util.Set;
  **/
 public class MongoPlusAutoConfiguration {
 
-    private final SqlOperation sqlOperation;
+    private final SqlExecute sqlExecute;
 
-    public MongoPlusAutoConfiguration(SqlOperation sqlOperation){
-        this.sqlOperation = sqlOperation;
+    public MongoPlusAutoConfiguration(SqlExecute sqlExecute){
+        this.sqlExecute = sqlExecute;
         AopContext context = Solon.context();
         new Reflections("").getSubTypesOf(ServiceImpl.class).forEach(clazz -> {
             ServiceImpl<?> serviceImpl = context.getBean(clazz);
@@ -29,15 +25,15 @@ public class MongoPlusAutoConfiguration {
                 serviceImpl = beanWrap.get();
             }
             Class<?> genericityClass = serviceImpl.getGenericityClazz();
-            setOperation(serviceImpl,genericityClass);
+            setSqlExecute(serviceImpl,genericityClass);
         });
     }
 
-    private void setOperation(ServiceImpl<?> serviceImpl,Class clazz) {
-        sqlOperation.setMongoEntity(clazz);
-        sqlOperation.init();
+    private void setSqlExecute(ServiceImpl<?> serviceImpl,Class clazz) {
+        sqlExecute.setMongoEntity(clazz);
+        sqlExecute.init();
         serviceImpl.setClazz(clazz);
-        serviceImpl.setSqlOperation(sqlOperation);
+        serviceImpl.setSqlOperation(sqlExecute);
     }
 
 }

@@ -1,10 +1,9 @@
 package com.anwen.mongo.conditions.query;
 
-import com.anwen.mongo.execute.SqlOperation;
+import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 /**
@@ -14,39 +13,39 @@ import java.util.List;
 */
 public class LambdaQueryChainWrapper<T> extends QueryChainWrapper<T,LambdaQueryChainWrapper<T>> implements ChainQuery<T> {
 
-    private final SqlOperation sqlOperation;
+    private final SqlExecute sqlExecute;
 
-    public LambdaQueryChainWrapper(SqlOperation sqlOperation){
-        this.sqlOperation = sqlOperation;
+    public LambdaQueryChainWrapper(SqlExecute sqlExecute){
+        this.sqlExecute = sqlExecute;
     }
 
     @Override
     public List<T> list() {
-        return sqlOperation.doList(getCompareList(), getOrderList(),getProjectionList(),getBasicDBObjectList());
+        return sqlExecute.doList(getCompareList(), getOrderList(),getProjectionList(),getBasicDBObjectList());
     }
 
     @Override
     public T one() {
-        return sqlOperation.doOne(getCompareList(),getProjectionList(),getBasicDBObjectList());
+        return sqlExecute.doOne(getCompareList(),getProjectionList(),getBasicDBObjectList());
     }
 
     @Override
     public T limitOne() {
-        return sqlOperation.doLimitOne(getCompareList(),getProjectionList(),getBasicDBObjectList());
+        return sqlExecute.doLimitOne(getCompareList(),getProjectionList(),getBasicDBObjectList());
     }
 
     @Override
     public PageResult<T> page(PageParam pageParam) {
-        return sqlOperation.doPage(getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList(),pageParam.getPageNum(),pageParam.getPageSize());
+        return sqlExecute.doPage(getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList(),pageParam.getPageNum(),pageParam.getPageSize());
     }
 
     @Override
     public PageResult<T> page(Integer pageNum, Integer pageSize) {
-        return sqlOperation.doPage(getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList(),pageNum,pageSize);
+        return sqlExecute.doPage(getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList(),pageNum,pageSize);
     }
 
     @Override
     public long count() {
-        return sqlOperation.doCount(getCompareList());
+        return sqlExecute.doCount(getCompareList());
     }
 }

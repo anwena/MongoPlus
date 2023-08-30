@@ -9,7 +9,7 @@ import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conditions.query.Wrapper;
 import com.anwen.mongo.conditions.update.LambdaUpdateChainWrapper;
-import com.anwen.mongo.execute.SqlOperation;
+import com.anwen.mongo.execute.SqlExecute;
 
 import java.util.Map;
 
@@ -20,16 +20,16 @@ import java.util.Map;
 */ 
 public final class ChainWrappers {
 
-    public static <T> LambdaQueryChainWrapper<T> lambdaQueryChain(SqlOperation sqlOperation){
-        return new LambdaQueryChainWrapper<>(sqlOperation);
+    public static <T> LambdaQueryChainWrapper<T> lambdaQueryChain(SqlExecute sqlExecute){
+        return new LambdaQueryChainWrapper<>(sqlExecute);
     }
 
-    public static <T> LambdaAggregateChainWrapper<T> lambdaAggregateChain(SqlOperation sqlOperation){
-        return new LambdaAggregateChainWrapper<>(sqlOperation);
+    public static <T> LambdaAggregateChainWrapper<T> lambdaAggregateChain(SqlExecute sqlExecute){
+        return new LambdaAggregateChainWrapper<>(sqlExecute);
     }
 
-    public static <T> LambdaUpdateChainWrapper<T> lambdaUpdateChain(SqlOperation sqlOperation){
-        return new LambdaUpdateChainWrapper<>(sqlOperation);
+    public static <T> LambdaUpdateChainWrapper<T> lambdaUpdateChain(SqlExecute sqlExecute){
+        return new LambdaUpdateChainWrapper<>(sqlExecute);
     }
 
     public static <T> QueryChainWrapper<T, Wrapper<T>> lambdaQueryChain(){

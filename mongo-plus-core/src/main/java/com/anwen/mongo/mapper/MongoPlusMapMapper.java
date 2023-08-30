@@ -6,7 +6,7 @@ import com.anwen.mongo.conditions.inject.query.LambdaQueryChainInjectWrapper;
 import com.anwen.mongo.conditions.inject.update.LambdaUpdateChainInjectWrapper;
 import com.anwen.mongo.conditions.interfaces.Inject.InjectQuery;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
-import com.anwen.mongo.execute.SqlOperation;
+import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 
@@ -19,137 +19,137 @@ import java.util.Map;
  * @author JiaChaoYang
  **/
 public class MongoPlusMapMapper implements InjectQuery {
-    private final SqlOperation sqlOperation;
+    private final SqlExecute sqlExecute;
 
-    public MongoPlusMapMapper(SqlOperation sqlOperation) {
-        this.sqlOperation = sqlOperation;
+    public MongoPlusMapMapper(SqlExecute sqlExecute) {
+        this.sqlExecute = sqlExecute;
     }
 
     public LambdaQueryChainInjectWrapper lambdaQuery(){
-        return new LambdaQueryChainInjectWrapper(sqlOperation);
+        return new LambdaQueryChainInjectWrapper(sqlExecute);
     }
 
     public LambdaAggregateChainInjectWrapper lambdaAggregate(){
-        return new LambdaAggregateChainInjectWrapper(sqlOperation);
+        return new LambdaAggregateChainInjectWrapper(sqlExecute);
     }
 
     public LambdaUpdateChainInjectWrapper lambdaUpdate(){
-        return new LambdaUpdateChainInjectWrapper(sqlOperation);
+        return new LambdaUpdateChainInjectWrapper(sqlExecute);
     }
 
     @Override
     public List<Map<String, Object>> list(String collectionName) {
-        return sqlOperation.doList(collectionName);
+        return sqlExecute.doList(collectionName);
     }
 
     @Override
     public List<Map<String, Object>> list(String collectionName, QueryChainWrapper<Map<String,Object>,?> queryChainWrapper) {
-        return sqlOperation.doList(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
+        return sqlExecute.doList(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
     }
 
     @Override
     public List<Map<String, Object>> aggregateList(String collectionName, AggregateChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
-        return sqlOperation.doAggregateList(collectionName, queryChainWrapper.getBaseAggregateList(), queryChainWrapper.getBasicDBObjectList());
+        return sqlExecute.doAggregateList(collectionName, queryChainWrapper.getBaseAggregateList(), queryChainWrapper.getBasicDBObjectList());
     }
 
     @Override
     public Map<String, Object> one(String collectionName, QueryChainWrapper<Map<String,Object>,?> queryChainWrapper) {
-        return sqlOperation.doOne(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
+        return sqlExecute.doOne(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
     }
 
     @Override
     public Map<String, Object> limitOne(String collectionName, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
-        return sqlOperation.doLimitOne(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
+        return sqlExecute.doLimitOne(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
     }
 
 
     @Override
     public PageResult<Map<String, Object>> page(String collectionName, PageParam pageParam) {
-        return sqlOperation.doPage(collectionName,pageParam.getPageNum(),pageParam.getPageSize());
+        return sqlExecute.doPage(collectionName,pageParam.getPageNum(),pageParam.getPageSize());
     }
 
     @Override
     public PageResult<Map<String, Object>> page(String collectionName, PageParam pageParam, QueryChainWrapper<Map<String,Object>,?> queryChainWrapper) {
-        return sqlOperation.doPage(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),pageParam.getPageNum(),pageParam.getPageSize());
+        return sqlExecute.doPage(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),pageParam.getPageNum(),pageParam.getPageSize());
     }
 
     @Override
     public PageResult<Map<String, Object>> page(String collectionName, Integer pageNum, Integer pageSize) {
-        return sqlOperation.doPage(collectionName,pageNum,pageSize);
+        return sqlExecute.doPage(collectionName,pageNum,pageSize);
     }
 
     @Override
     public PageResult<Map<String, Object>> page(String collectionName, Integer pageNum, Integer pageSize, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
-        return sqlOperation.doPage(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),pageNum,pageSize);
+        return sqlExecute.doPage(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),pageNum,pageSize);
     }
 
     @Override
     public Map<String, Object> getById(String collectionName , Serializable id) {
-        return sqlOperation.doGetById(collectionName,id);
+        return sqlExecute.doGetById(collectionName,id);
     }
 
     @Override
     public List<Map<String, Object>> getByIds(String collectionName , Collection<Serializable> ids) {
-        return sqlOperation.doGetByIds(collectionName,ids);
+        return sqlExecute.doGetByIds(collectionName,ids);
     }
 
     @Override
     public Boolean save(String collectionName, Map<String, Object> entityMap) {
-        return sqlOperation.doSave(collectionName,entityMap);
+        return sqlExecute.doSave(collectionName,entityMap);
     }
 
     @Override
     public Boolean saveBatch(String collectionName, Collection<Map<String, Object>> entityMapList) {
-        return sqlOperation.doSaveBatch(collectionName,entityMapList);
+        return sqlExecute.doSaveBatch(collectionName,entityMapList);
     }
 
     @Override
     public Boolean saveOrUpdate(String collectionName, Map<String, Object> entityMap) {
-        return sqlOperation.doSaveOrUpdate(collectionName,entityMap);
+        return sqlExecute.doSaveOrUpdate(collectionName,entityMap);
     }
 
     @Override
     public Boolean saveOrUpdateBatch(String collectionName, Collection<Map<String, Object>> entityMapList) {
-        return sqlOperation.doSaveOrUpdateBatch(collectionName,entityMapList);
+        return sqlExecute.doSaveOrUpdateBatch(collectionName,entityMapList);
     }
 
     @Override
     public Boolean updateById(String collectionName, Map<String, Object> entityMap) {
-        return sqlOperation.doUpdateById(collectionName,entityMap);
+        return sqlExecute.doUpdateById(collectionName,entityMap);
     }
 
     @Override
     public Boolean updateBatchByIds(String collectionName, Collection<Map<String, Object>> entityMapList) {
-        return sqlOperation.doUpdateBatchByIds(collectionName,entityMapList);
+        return sqlExecute.doUpdateBatchByIds(collectionName,entityMapList);
     }
 
     @Override
     public Boolean updateByColumn(String collectionName, Map<String, Object> entityMap, String column) {
-        return sqlOperation.doUpdateByColumn(collectionName,entityMap,column);
+        return sqlExecute.doUpdateByColumn(collectionName,entityMap,column);
     }
 
     @Override
     public Boolean removeById(String collectionName, Serializable id) {
-        return sqlOperation.doRemoveById(collectionName,id);
+        return sqlExecute.doRemoveById(collectionName,id);
     }
 
     @Override
     public Boolean removeByColumn(String collectionName, String column, String value) {
-        return sqlOperation.doRemoveByColumn(collectionName,column,value);
+        return sqlExecute.doRemoveByColumn(collectionName,column,value);
     }
 
     @Override
     public Boolean removeBatchByIds(String collectionName, Collection<Serializable> idList) {
-        return sqlOperation.doRemoveBatchByIds(collectionName,idList);
+        return sqlExecute.doRemoveBatchByIds(collectionName,idList);
     }
 
     @Override
     public long count(String collectionName, QueryChainWrapper<Map<String,Object>,?> queryChainWrapper) {
-        return sqlOperation.doCount(collectionName,queryChainWrapper.getCompareList());
+        return sqlExecute.doCount(collectionName,queryChainWrapper.getCompareList());
     }
 
     @Override
     public long count(String collectionName) {
-        return sqlOperation.doCount(collectionName);
+        return sqlExecute.doCount(collectionName);
     }
 }

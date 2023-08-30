@@ -1,7 +1,7 @@
 package com.anwen.mongo.config;
 
 import com.anwen.mongo.config.log.MongoDBLogProperty;
-import com.anwen.mongo.execute.SqlOperation;
+import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.log.CustomMongoDriverLogger;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
 import com.anwen.mongo.toolkit.UrlJoint;
@@ -22,10 +22,10 @@ import org.noear.solon.annotation.Inject;
 public class MongoPlusConfiguration {
 
     @Bean
-    public SqlOperation sqlOperation(@Inject("${mongo-plus.data.mongodb}") MongoDBConnectProperty mongoDBConnectProperty,@Inject("${mongo-plus}") MongoDBLogProperty mongoDBLogProperty) {
-        SqlOperation sqlOperation = new SqlOperation();
-        sqlOperation.setSlaveDataSources(mongoDBConnectProperty.getSlaveDataSource());
-        sqlOperation.setBaseProperty(mongoDBConnectProperty);
+    public SqlExecute sqlExecute(@Inject("${mongo-plus.data.mongodb}") MongoDBConnectProperty mongoDBConnectProperty, @Inject("${mongo-plus}") MongoDBLogProperty mongoDBLogProperty) {
+        SqlExecute sqlExecute = new SqlExecute();
+        sqlExecute.setSlaveDataSources(mongoDBConnectProperty.getSlaveDataSource());
+        sqlExecute.setBaseProperty(mongoDBConnectProperty);
         UrlJoint urlJoint = new UrlJoint(mongoDBConnectProperty);
         MongoClientSettings.Builder builder = MongoClientSettings.builder()
                 .applyConnectionString(new ConnectionString(urlJoint.jointMongoUrl()));
@@ -33,19 +33,19 @@ public class MongoPlusConfiguration {
             builder.addCommandListener(new CustomMongoDriverLogger(mongoDBLogProperty.getFormat()));
         }
         MongoClient mongoClient = MongoClients.create(builder.build());
-        sqlOperation.setMongoClient(mongoClient);
-        return sqlOperation;
+        sqlExecute.setMongoClient(mongoClient);
+        return sqlExecute;
     }
 
 
     @Bean
-    public MongoPlusAutoConfiguration mongoPlusAutoConfiguration(@Inject SqlOperation sqlOperation){
-        return new MongoPlusAutoConfiguration(sqlOperation);
+    public MongoPlusAutoConfiguration mongoPlusAutoConfiguration(@Inject SqlExecute sqlExecute){
+        return new MongoPlusAutoConfiguration(sqlExecute);
     }
 
 
     @Bean
-    public MongoPlusMapMapper mongoPlusMapMapper(@Inject SqlOperation sqlOperation){
-        return new MongoPlusMapMapper(sqlOperation);
+    public MongoPlusMapMapper mongoPlusMapMapper(@Inject SqlExecute sqlExecute){
+        return new MongoPlusMapMapper(sqlExecute);
     }
 }

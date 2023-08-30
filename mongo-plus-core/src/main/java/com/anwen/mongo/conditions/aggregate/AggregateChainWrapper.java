@@ -9,14 +9,16 @@ import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.ReplaceRoot;
 import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.constant.SqlOperationConstant;
-import com.anwen.mongo.enums.AggregateTypeEnum;
-import com.anwen.mongo.enums.GroupTypeEnum;
-import com.anwen.mongo.enums.OrderEnum;
-import com.anwen.mongo.enums.ProjectionEnum;
+import com.anwen.mongo.enums.*;
 import com.anwen.mongo.model.BaseAggregate;
 import com.anwen.mongo.strategy.aggregate.impl.*;
 import com.anwen.mongo.support.SFunction;
 import com.mongodb.BasicDBObject;
+import com.mongodb.ReadConcern;
+import com.mongodb.ReadConcernLevel;
+import com.mongodb.WriteConcern;
+import com.mongodb.client.model.Collation;
+import com.mongodb.client.model.CollationStrength;
 import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
@@ -31,6 +33,8 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
     List<BaseAggregate> baseAggregateList = new ArrayList<>();
 
     List<BasicDBObject> basicDBObjectList = new ArrayList<>();
+
+    BasicDBObject optionsBasicDBObject;
 
     protected final Children typedThis = (Children) this;
 
@@ -619,11 +623,63 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
         return typedThis;
     }
 
+    @Override
+    public Children allowDiskUse(boolean allowDiskUse) {
+        this.optionsBasicDBObject.append(AggregateOptionsEnum.ALLOW_DISK_USE.getOptions(), allowDiskUse);
+        return typedThis;
+    }
+
+    @Override
+    public Children batchSize(Integer size) {
+        this.optionsBasicDBObject.append(AggregateOptionsEnum.BATCH_SIZE.getOptions(), size);
+        return typedThis;
+    }
+
+    @Override
+    public Children collation(CollationStrength collationStrength) {
+        this.optionsBasicDBObject.append(AggregateOptionsEnum.COLLATION.getOptions(), Collation.builder().collationStrength(collationStrength).build().asDocument());
+        return typedThis;
+    }
+
+    @Override
+    public Children maxTimeMS(long time) {
+        this.optionsBasicDBObject.append(AggregateOptionsEnum.MAX_TIME_MS.getOptions(), time);
+        return typedThis;
+    }
+
+    @Override
+    public Children readConcern(ReadConcernLevel readConcernLevel) {
+        this.optionsBasicDBObject.append(AggregateOptionsEnum.READ_CONCERN.getOptions(), new ReadConcern(readConcernLevel).asDocument());
+        return typedThis;
+    }
+
+    @Override
+    public Children writeConcern(WriteConcern writeConcern) {
+        this.optionsBasicDBObject.append(AggregateOptionsEnum.WRITE_CONCERN.getOptions(), writeConcern.asDocument());
+        return typedThis;
+    }
+
+    @Override
+    public Children options(BasicDBObject basicDBObject) {
+        this.optionsBasicDBObject.putAll(basicDBObject.toBsonDocument());
+        return typedThis;
+    }
+
+    @Override
+    public Children options(Bson bson) {
+        this.optionsBasicDBObject.putAll(bson.toBsonDocument());
+        return typedThis;
+    }
+
     public List<BaseAggregate> getBaseAggregateList() {
         return baseAggregateList;
     }
 
     public List<BasicDBObject> getBasicDBObjectList() {
         return basicDBObjectList;
+    }
+
+    public BasicDBObject getOptionsBasicDBObject() {
+        return optionsBasicDBObject;
     }
 }

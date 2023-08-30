@@ -1,8 +1,7 @@
 package com.anwen.mongo.conditions.aggregate;
 
-import com.anwen.mongo.execute.SqlOperation;
+import com.anwen.mongo.execute.SqlExecute;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 /**
@@ -10,19 +9,19 @@ import java.util.List;
  **/
 public class LambdaAggregateChainWrapper<T> extends AggregateChainWrapper<T,LambdaAggregateChainWrapper<T>> implements ChainAggregate<T> {
 
-    private final SqlOperation sqlOperation;
+    private final SqlExecute sqlExecute;
 
-    public LambdaAggregateChainWrapper(SqlOperation sqlOperation) {
-        this.sqlOperation = sqlOperation;
+    public LambdaAggregateChainWrapper(SqlExecute sqlExecute) {
+        this.sqlExecute = sqlExecute;
     }
 
     @Override
     public List<T> list() {
-        return sqlOperation.doAggregateList(super.baseAggregateList,super.getBasicDBObjectList());
+        return sqlExecute.doAggregateList(super.baseAggregateList,super.getBasicDBObjectList());
     }
 
     @Override
     public <E> List<E> list(Class<E> clazz) {
-        return sqlOperation.doAggregateList(super.baseAggregateList,super.getBasicDBObjectList(),clazz);
+        return sqlExecute.doAggregateList(super.baseAggregateList,super.getBasicDBObjectList(),clazz);
     }
 }

@@ -12,6 +12,7 @@ import com.anwen.mongo.convert.Converter;
 import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.domain.InitMongoCollectionException;
 import com.anwen.mongo.domain.MongoQueryException;
+import com.anwen.mongo.enums.AggregateOptionsEnum;
 import com.anwen.mongo.enums.QueryOperatorEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.model.*;
@@ -26,6 +27,7 @@ import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Collation;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
@@ -40,9 +42,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.anwen.mongo.toolkit.BeanMapUtilByReflect.checkTableField;
@@ -55,9 +57,9 @@ import static com.anwen.mongo.toolkit.BeanMapUtilByReflect.checkTableField;
  * @CreateTime: 2023-02-16 20:35
  * @Version: 1.0
  */
-public class SqlOperation {
+public class SqlExecute {
 
-    private static final Logger logger = LoggerFactory.getLogger(SqlOperation.class);
+    private static final Logger logger = LoggerFactory.getLogger(SqlExecute.class);
 
     private Map<String, MongoCollection<Document>> collectionMap = new HashMap<>();
 
@@ -153,57 +155,64 @@ public class SqlOperation {
 
 
     public <T> Boolean doSaveOrUpdate(T entity) {
-        try {
-            Class<?> entityClass = entity.getClass().getSuperclass();
-            Field field = entityClass.getFields()[0];
-            String id = String.valueOf(field.get(entity));
-            if (doGetById(id) == null) return doSave(entity);
-            return doUpdateById(entity);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
+        String idByEntity = ClassTypeUtil.getIdByEntity(entity, true);
+        if (StringUtils.isBlank(idByEntity)){
+            return doSave(entity);
         }
+        return doIsExist(idByEntity) ? doUpdateById(entity) : doSave(entity);
     }
 
     public Boolean doSaveOrUpdate(String collectionName, Map<String, Object> entityMap) {
-        if (entityMap.containsKey(SqlOperationConstant._ID)) {
-            return doUpdateById(collectionName, entityMap);
+        String idValue = String.valueOf(entityMap.getOrDefault(SqlOperationConstant._ID,""));
+        if (StringUtils.isBlank(idValue)) {
+            return doSave(collectionName, entityMap);
         }
-        return doSave(collectionName, entityMap);
+        return doIsExist(collectionName,idValue) ? doUpdateById(collectionName,entityMap) : doSave(collectionName,entityMap);
     }
 
 
     public <T> Boolean doSaveOrUpdateBatch(Collection<T> entityList) {
-        List<T> insertList = new ArrayList<>();
-        for (Document document : getCollection(entityList.iterator().next()).find(
-                Filters.in(SqlOperationConstant._ID, entityList.stream().map(entity -> {
-                    try {
-                        return String.valueOf(entity.getClass().getSuperclass().getMethod("getId").invoke(entity));
-                    } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                        throw new RuntimeException(e);
-                    }
-                }).collect(Collectors.toList()))
-        )) {
-            insertList.add((T) document);
-            entityList.remove(document);
+        List<T> saveList = new ArrayList<>();
+        List<T> updateList = new ArrayList<>();
+        entityList.parallelStream().forEach(entity -> {
+            String idByEntity = ClassTypeUtil.getIdByEntity(entity, true);
+            if ((StringUtils.isBlank(idByEntity) || !doIsExist(idByEntity))) {
+                saveList.add(entity);
+            } else {
+                updateList.addAll(entityList);
+            }
+        });
+        boolean save = false;
+        boolean update = false;
+        if (!saveList.isEmpty()){
+            save = doSaveBatch(saveList);
         }
-        if (!insertList.isEmpty()) {
-            return doSaveBatch(insertList);
+        if (!updateList.isEmpty()){
+            update = doUpdateBatchByIds(updateList);
         }
-        return doUpdateBatchByIds(entityList);
+        return save == update;
     }
 
     public Boolean doSaveOrUpdateBatch(String collectionName, Collection<Map<String, Object>> entityList) {
-        List<Map<String,Object>> insertList = new ArrayList<>();
-        for (Document document : getCollection(collectionName).find(
-                Filters.in(SqlOperationConstant._ID, entityList.stream().map(entity -> entity.get(SqlOperationConstant._ID)).collect(Collectors.toList()))
-        )) {
-            insertList.add(document);
-            entityList.remove(document);
+        List<Map<String,Object>> saveList = new ArrayList<>();
+        List<Map<String,Object>> updateList = new ArrayList<>();
+        entityList.parallelStream().forEach(entity -> {
+            String idByEntity = ClassTypeUtil.getIdByEntity(entity, true);
+            if ((StringUtils.isBlank(idByEntity) || !doIsExist(idByEntity))) {
+                saveList.add(entity);
+            } else {
+                updateList.addAll(entityList);
+            }
+        });
+        boolean save = false;
+        boolean update = false;
+        if (!saveList.isEmpty()){
+            save = doSaveBatch(saveList);
         }
-        if (!insertList.isEmpty()) {
-            return doSaveBatch(collectionName,insertList);
+        if (!updateList.isEmpty()){
+            update = doUpdateBatchByIds(updateList);
         }
-        return doUpdateBatchByIds(collectionName,entityList);
+        return save == update;
     }
 
 
@@ -237,21 +246,15 @@ public class SqlOperation {
     public <T> Boolean doUpdateBatchByIds(Collection<T> entityList) {
         int line = 0;
         for (T entity : entityList) {
-            Boolean b = doUpdateById(entity);
-            if (b){
-                line++;
-            }
+            line+=doUpdateById(entity) ? 1 : 0;
         }
         return line == entityList.size();
     }
 
     public Boolean doUpdateBatchByIds(String collectionName, Collection<Map<String, Object>> entityList) {
         int line = 0;
-        for (Map<String, Object> entity : entityList) {
-            Boolean b = doUpdateById(collectionName, entity);
-            if (b){
-                line++;
-            }
+        for (Map<String,Object> entity : entityList) {
+            line+=doUpdateById(entity) ? 1 : 0;
         }
         return line == entityList.size();
     }
@@ -316,12 +319,11 @@ public class SqlOperation {
         } else if (serializableList.isEmpty()){
             return getCollection().deleteMany(Filters.in(SqlOperationConstant._ID, idList.stream().map(String::valueOf))).getDeletedCount() >= 1;
         } else {
-            int ling = 0;
+            int line = 0;
             for (Serializable serializable : idList) {
-                Boolean _b = doRemoveById(serializable);
-                if (_b) ling++;
+                line+= doRemoveById(serializable) ? 1 : 0;
             }
-            return ling >= 1;
+            return line >= 1;
         }
     }
 
@@ -332,12 +334,11 @@ public class SqlOperation {
         } else if (serializableList.isEmpty()){
             return getCollection(collectionName).deleteMany(Filters.in(SqlOperationConstant._ID, idList.stream().map(String::valueOf))).getDeletedCount() >= 1;
         } else {
-            int ling = 0;
+            int line = 0;
             for (Serializable serializable : idList) {
-                Boolean _b = doRemoveById(serializable);
-                if (_b) ling++;
+                line+=doRemoveById(serializable) ? 1 : 0;
             }
-            return ling >= 1;
+            return line >= 1;
         }
     }
 
@@ -383,28 +384,18 @@ public class SqlOperation {
     }
 
 
-    public <T> T doGetById(String collectionName, Serializable id) {
-        BasicDBObject byId = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), id));
-        FindIterable<Document> iterable = getCollection(collectionName).find(byId);
-        return (T) iterable.first();
+    public Map<String, Object> doGetById(String collectionName, Serializable id) {
+        BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id)));
+        return getCollection(collectionName).find(queryBasic,Map.class).first();
     }
 
-    public <T> List<T> doGetByIds(String collectionName, Collection<Serializable> ids) {
-        List<Serializable> serializableList = ids.stream().filter(id -> ObjectId.isValid(String.valueOf(id))).collect(Collectors.toList());
-        if (ids.size() == serializableList.size()){
-            ids = ids.stream().map(id -> new ObjectId(String.valueOf(id))).collect(Collectors.toList());
-        } else if (serializableList.isEmpty()){
-            ids = ids.stream().map(String::valueOf).collect(Collectors.toList());
-        }else {
-            List<Serializable> idList = new ArrayList<>();
-            ids.forEach(id -> {
-                idList.add(ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id));
-            });
-            ids = idList;
-        }
-        BasicDBObject query = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.IN.getCondition(), ids));
-        FindIterable<Document> iterable = getCollection(collectionName).find(query);
-        return (List<T>) DocumentMapperConvert.mapDocumentList(iterable, mongoEntity);
+    public boolean doIsExist(String collectionName, Serializable id){
+        BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id)));
+        return getCollection(collectionName).countDocuments(queryBasic) >= 1;
+    }
+
+    public List<Map<String,Object>> doGetByIds(String collectionName, Collection<Serializable> ids) {
+        return Converter.convertDocumentToMap(getCollection(collectionName).find(checkIdType(ids),Map.class));
     }
 
 
@@ -430,16 +421,35 @@ public class SqlOperation {
     }
 
     public <T> T doGetById(Serializable id) {
-        BasicDBObject byId = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id)));
-        FindIterable<Document> iterable = getCollection().find(byId);
+        BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id)));
+        FindIterable<Document> iterable = getCollection().find(queryBasic);
         return (T) DocumentMapperConvert.mapDocument(iterable.first(),mongoEntity);
     }
 
-    public <T> List<T> doGetByIds(Collection<Serializable> ids) {
+    public boolean doIsExist(Serializable id){
+        BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id)));
+        return getCollection().countDocuments(queryBasic) >= 1;
+    }
 
-        BasicDBObject query = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.IN.getCondition(), ids));
-        FindIterable<Document> iterable = getCollection().find(query);
+    public <T> List<T> doGetByIds(Collection<Serializable> ids) {
+        FindIterable<Document> iterable = getCollection().find(checkIdType(ids));
         return (List<T>) DocumentMapperConvert.mapDocumentList(iterable, mongoEntity);
+    }
+
+    private BasicDBObject checkIdType(Collection<Serializable> ids) {
+        List<Serializable> serializableList = ids.stream().filter(id -> ObjectId.isValid(String.valueOf(id))).collect(Collectors.toList());
+        if (ids.size() == serializableList.size()){
+            ids = ids.stream().map(id -> new ObjectId(String.valueOf(id))).collect(Collectors.toList());
+        } else if (serializableList.isEmpty()){
+            ids = ids.stream().map(String::valueOf).collect(Collectors.toList());
+        }else {
+            List<Serializable> idList = new ArrayList<>();
+            ids.forEach(id -> {
+                idList.add(ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id));
+            });
+            ids = idList;
+        }
+        return new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.IN.getCondition(), ids));
     }
 
     public Boolean doUpdate(List<CompareCondition> compareConditionList) {
@@ -517,13 +527,30 @@ public class SqlOperation {
         return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),clazz != null ? clazz : mongoEntity);
     }
 
-    public <E> List<E> doAggregateList(String collectionName,List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,Class<E> clazz){
+    public <E> List<E> doAggregateList(String collectionName,List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject,Class<E> clazz){
         AggregateIterable<Document> aggregateIterable = getCollection(collectionName).aggregate(
                 new ArrayList<BasicDBObject>(){{
                     aggregateList.forEach(aggregate -> add(new BasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate())));
                     addAll(basicDBObjectList);
                 }}
         );
+        Set<String> keyedSet = optionsBasicDBObject.keySet();
+        for (String key : keyedSet) {
+            AggregateOptionsEnum aggregateOptionsEnum = AggregateOptionsEnum.valueOf(key);
+            switch (aggregateOptionsEnum){
+                case ALLOW_DISK_USE:
+                    aggregateIterable = aggregateIterable.allowDiskUse(optionsBasicDBObject.getBoolean(key));
+                    break;
+                case COLLATION:
+                    aggregateIterable = aggregateIterable.collation((Collation) optionsBasicDBObject.get(key));
+                    break;
+                case BATCH_SIZE:
+                    aggregateIterable = aggregateIterable.batchSize(optionsBasicDBObject.getInt(key));
+                    break;
+                case MAX_TIME_MS:
+                    aggregateIterable = aggregateIterable.maxTime(optionsBasicDBObject.getLong(key),TimeUnit.MILLISECONDS);
+            }
+        }
         return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),clazz != null ? clazz : mongoEntity);
     }
 

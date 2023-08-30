@@ -7,6 +7,7 @@ import com.mongodb.event.CommandFailedEvent;
 import com.mongodb.event.CommandListener;
 import com.mongodb.event.CommandStartedEvent;
 import com.mongodb.event.CommandSucceededEvent;
+
 import java.util.Objects;
 
 public class CustomMongoDriverLogger implements CommandListener {
@@ -30,7 +31,7 @@ public class CustomMongoDriverLogger implements CommandListener {
     @Override
     public void commandStarted(CommandStartedEvent event) {
         System.out.println(event.getCommandName()+" Statement Execution ==> ");
-        System.out.println(formattingStatement(JSON.toJSONString(event.getCommand())));
+        System.out.println(formattingStatement(event.getCommand().toJson()));
     }
 
     /**
@@ -42,7 +43,7 @@ public class CustomMongoDriverLogger implements CommandListener {
     public void commandSucceeded(CommandSucceededEvent event) {
         if (Objects.equals(event.getCommandName(), "find")){
             System.out.println(event.getCommandName()+" results of execution ==> ");
-            System.out.println(formattingStatement(JSON.toJSONString(event.getResponse().getDocument("cursor").get("firstBatch").asArray().getValues())));
+            System.out.println(event.getResponse().getDocument("cursor").get("firstBatch").asArray().getValues().size());
         } else if (Objects.equals(event.getCommandName(), "insert")) {
             System.out.println(event.getCommandName()+" results of execution ==> ");
             System.out.println(event.getResponse().get("n").asInt32().getValue());
@@ -64,8 +65,8 @@ public class CustomMongoDriverLogger implements CommandListener {
     }
 
     private String formattingStatement(String statement){
-        return format ? JSON.toJSONString(JSONObject.parse(statement), SerializerFeature.PrettyFormat, SerializerFeature.WriteMapNullValue,
-                SerializerFeature.WriteDateUseDateFormat) : statement;
+        return format ? statement : JSON.toJSONString(JSONObject.parse(statement), SerializerFeature.PrettyFormat, SerializerFeature.WriteMapNullValue,
+                SerializerFeature.WriteDateUseDateFormat);
     }
 
 }

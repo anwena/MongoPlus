@@ -1,7 +1,7 @@
 package com.anwen.mongo.conditions.inject.query;
 
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
-import com.anwen.mongo.execute.SqlOperation;
+import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 
@@ -16,39 +16,39 @@ import java.util.Map;
  **/
 public class LambdaQueryChainInjectWrapper extends QueryChainWrapper<Map<String,Object>, LambdaQueryChainInjectWrapper> implements ChainInject {
 
-    private final SqlOperation sqlOperation;
+    private final SqlExecute sqlExecute;
 
-    public LambdaQueryChainInjectWrapper(SqlOperation sqlOperation) {
-        this.sqlOperation = sqlOperation;
+    public LambdaQueryChainInjectWrapper(SqlExecute sqlExecute) {
+        this.sqlExecute = sqlExecute;
     }
 
     @Override
     public List<Map<String, Object>> list(String collection) {
-        return sqlOperation.doList(collection,getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList());
+        return sqlExecute.doList(collection,getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList());
     }
 
     @Override
     public Map<String, Object> limitOne(String collectionName) {
-        return sqlOperation.doLimitOne(collectionName,getCompareList(),getProjectionList(),getBasicDBObjectList());
+        return sqlExecute.doLimitOne(collectionName,getCompareList(),getProjectionList(),getBasicDBObjectList());
     }
 
     @Override
     public PageResult<Map<String, Object>> page(String collectionName, PageParam pageParam) {
-        return sqlOperation.doPage(collectionName,getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList(),pageParam.getPageNum(),pageParam.getPageSize());
+        return sqlExecute.doPage(collectionName,getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList(),pageParam.getPageNum(),pageParam.getPageSize());
     }
 
     @Override
     public PageResult<Map<String, Object>> page(String collectionName, Integer pageNum, Integer pageSize) {
-        return sqlOperation.doPage(collectionName,getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList(),pageNum,pageSize);
+        return sqlExecute.doPage(collectionName,getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList(),pageNum,pageSize);
     }
 
     @Override
     public Map<String, Object> one(String collectionName) {
-        return sqlOperation.doOne(collectionName,getCompareList(),getProjectionList(),getBasicDBObjectList());
+        return sqlExecute.doOne(collectionName,getCompareList(),getProjectionList(),getBasicDBObjectList());
     }
 
     @Override
     public long count(String collectionName) {
-        return sqlOperation.doCount(collectionName,getCompareList());
+        return sqlExecute.doCount(collectionName,getCompareList());
     }
 }

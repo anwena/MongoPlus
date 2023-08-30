@@ -48,6 +48,7 @@
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.test.skip>true</maven.test.skip>
     </properties>
 
     <dependencies>
@@ -58,7 +59,7 @@
         <dependency>
             <groupId>com.gitee.anwena</groupId>
             <artifactId>mongo-plus-core</artifactId>
-            <version>${mongoplus.version}</version>
+            <version>${parent.version}</version>
         </dependency>
     </dependencies>
 

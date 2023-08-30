@@ -5,7 +5,7 @@ import com.anwen.mongo.conditions.interfaces.Inject.InjectUpdate;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.enums.CompareEnum;
 import com.anwen.mongo.enums.LogicTypeEnum;
-import com.anwen.mongo.execute.SqlOperation;
+import com.anwen.mongo.execute.SqlExecute;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,10 +20,10 @@ public class LambdaUpdateChainInjectWrapper extends AbstractChainWrapper<String,
 
     private final List<CompareCondition> updateCompareList = new ArrayList<>();
 
-    private final SqlOperation sqlOperation;
+    private final SqlExecute sqlExecute;
 
-    public LambdaUpdateChainInjectWrapper(SqlOperation sqlOperation) {
-        this.sqlOperation = sqlOperation;
+    public LambdaUpdateChainInjectWrapper(SqlExecute sqlExecute) {
+        this.sqlExecute = sqlExecute;
     }
 
     @Override
@@ -45,18 +45,18 @@ public class LambdaUpdateChainInjectWrapper extends AbstractChainWrapper<String,
         List<CompareCondition> compareConditionList = new ArrayList<>();
         compareConditionList.addAll(getCompareList());
         compareConditionList.addAll(getUpdateCompareList());
-        return sqlOperation.doUpdate(collectionName,compareConditionList);
+        return sqlExecute.doUpdate(collectionName,compareConditionList);
     }
 
     public boolean remove(String collectionName) {
-        return sqlOperation.doRemove(collectionName,getCompareList());
+        return sqlExecute.doRemove(collectionName,getCompareList());
     }
 
     public List<CompareCondition> getUpdateCompareList() {
         return updateCompareList;
     }
 
-    public SqlOperation getSqlOperation() {
-        return sqlOperation;
+    public SqlExecute getSqlOperation() {
+        return sqlExecute;
     }
 }

@@ -11,6 +11,9 @@ import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.enums.GroupTypeEnum;
 import com.anwen.mongo.support.SFunction;
 import com.mongodb.BasicDBObject;
+import com.mongodb.ReadConcernLevel;
+import com.mongodb.WriteConcern;
+import com.mongodb.client.model.CollationStrength;
 import org.bson.conversions.Bson;
 
 import java.util.List;
@@ -655,5 +658,71 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * @date 2023/8/20 20:46
     */
     Children custom(Bson bson);
+
+    /**
+     * 设置为 true，表示允许在磁盘上存储临时数据。默认值为 false。
+     * @author JiaChaoYang
+     * @date 2023/8/31 0:49
+    */
+    Children allowDiskUse(boolean allowDiskUse);
+
+    /**
+     * 设置每个批次大小
+     * @param size 大小
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/8/31 0:49
+    */
+    Children batchSize(Integer size);
+
+    /**
+     * 用于指定排序规则、语言特性等。使用CollationStrength枚举设置
+     * @param collationStrength 枚举
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/8/31 0:56
+    */
+    Children collation(CollationStrength collationStrength);
+
+    /**
+     * 设置查询的最大执行时间（以毫秒为单位）。超过设定的时间限制将导致查询被中断。默认值为无限制。
+     * @param time 执行时间
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/8/31 0:55
+    */
+    Children maxTimeMS(long time);
+
+    /**
+     * 设置读取级别。使用 ReadConcernLevel 枚举来设置。
+     * @param readConcernLevel 枚举
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/8/31 0:59
+    */
+    Children readConcern(ReadConcernLevel readConcernLevel);
+
+    /**
+     * 设置写入级别。通过提供一个 WriteConcern 对象来设置。
+     * @param writeConcern WriteConcern类，可以使用WriteConcern.MAJORITY、WriteConcern.JOURNALED等等实现
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/8/31 1:02
+    */
+    Children writeConcern(WriteConcern writeConcern);
+
+    /**
+     * 自定义操作
+     * @author JiaChaoYang
+     * @date 2023/8/31 1:11
+    */
+    Children options(BasicDBObject basicDBObject);
+
+    /**
+     * 自定义操作
+     * @author JiaChaoYang
+     * @date 2023/8/31 1:11
+    */
+    Children options(Bson bson);
 
 }

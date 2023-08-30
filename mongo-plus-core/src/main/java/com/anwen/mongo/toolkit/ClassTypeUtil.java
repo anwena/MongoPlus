@@ -1,5 +1,11 @@
 package com.anwen.mongo.toolkit;
 
+import com.anwen.mongo.annotation.ID;
+import com.anwen.mongo.model.BaseModelID;
+import com.anwen.mongo.model.PageResult;
+import com.mongodb.MongoException;
+import org.bson.types.ObjectId;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -117,6 +123,26 @@ public class ClassTypeUtil {
             declaredField.setAccessible(true);
             return declaredField.get(entity);
         } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * 获取实体类中，ID注解的值的值
+     * @author JiaChaoYang
+     * @date 2023/8/30 22:05
+    */
+    public static <T> String getIdByEntity(T entity,boolean exception){
+        Optional<Field> fieldOptional = getFields(entity.getClass()).stream().filter(field -> field.getAnnotation(ID.class) != null).findFirst();
+        if (!fieldOptional.isPresent()){
+            if (exception){
+                return null;
+            }
+            throw new MongoException("_id undefined");
+        }
+        try {
+            return String.valueOf(fieldOptional.get().get(entity));
+        } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
     }
