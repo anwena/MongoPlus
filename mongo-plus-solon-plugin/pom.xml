@@ -5,13 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.noear</groupId>
-        <artifactId>solon-parent</artifactId>
-        <version>2.4.5</version>
-        <relativePath />
+        <groupId>com.gitee.anwena</groupId>
+        <artifactId>mongo-plus-parent</artifactId>
+        <version>2.0.5</version>
     </parent>
 
-    <groupId>com.gitee.anwena</groupId>
     <artifactId>mongo-plus-solon-plugin</artifactId>
     <name>mongo-plus-solon-plugin</name>
     <packaging>jar</packaging>
@@ -60,7 +58,7 @@
         <dependency>
             <groupId>com.gitee.anwena</groupId>
             <artifactId>mongo-plus-core</artifactId>
-            <version>2.0.5</version>
+            <version>${mongoplus.version}</version>
         </dependency>
     </dependencies>
 
