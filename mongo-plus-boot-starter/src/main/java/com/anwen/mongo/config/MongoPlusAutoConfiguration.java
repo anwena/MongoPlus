@@ -4,9 +4,8 @@ import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.service.impl.ServiceImpl;
 import org.reflections.Reflections;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-
-import javax.annotation.Resource;
 
 /**
  * MongoPlus自动注入配置
@@ -14,10 +13,10 @@ import javax.annotation.Resource;
  **/
 public class MongoPlusAutoConfiguration implements InitializingBean {
 
-    @Resource
+    @Autowired
     private SqlExecute sqlExecute;
 
-    @Resource
+    @Autowired
     private ApplicationContext applicationContext;
 
     @Override

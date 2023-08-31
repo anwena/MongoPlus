@@ -166,7 +166,7 @@ public class ClassTypeUtil {
     }
 
     private static void getSupperFields(List<Field> fieldList,Class<?> clazz){
-        if (clazz != null && clazz.equals(Object.class)){
+        if (clazz != null && !clazz.equals(Object.class)){
             fieldList.addAll(Arrays.asList(clazz.getDeclaredFields()));
             getSupperFields(fieldList,clazz.getSuperclass());
         }
