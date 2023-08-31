@@ -27,7 +27,6 @@ import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.Collation;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
@@ -44,7 +43,6 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.anwen.mongo.toolkit.BeanMapUtilByReflect.checkTableField;
@@ -499,11 +497,12 @@ public class SqlExecute {
     }
 
     public <T> List<T> doAggregateList(List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDbObject){
-        AggregateIterable<Document> aggregateIterable = getCollection().aggregate(
+        //BasicDBObject optionsBasicDbObject   ---->    this is My `options` param，I cannot use it
+        MongoCollection<Document> collection = getCollection();
+        AggregateIterable<Document> aggregateIterable = collection.aggregate(
                 new ArrayList<BasicDBObject>(){{
                     aggregateList.forEach(aggregate -> add(new BasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate())));
                     addAll(basicDBObjectList);
-                    add(optionsBasicDbObject);
                 }}
         );
         return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),mongoEntity);

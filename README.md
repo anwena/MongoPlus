@@ -12,6 +12,9 @@
   <img src='https://gitee.com/anwena/mongo-plus/badge/fork.svg?theme=dark' alt='fork'/>
 </a>
 </p>
+<p style="text-align: center;">
+<img style="width: 300px;display: inline-block;" src="logo.png" alt="MongoPlusLogo">
+</p>
 
 ### 介绍：
 

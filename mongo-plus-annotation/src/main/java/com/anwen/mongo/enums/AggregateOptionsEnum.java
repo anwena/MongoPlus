@@ -1,7 +1,5 @@
 package com.anwen.mongo.enums;
 
-import java.util.Objects;
-
 /**
  * @author JiaChaoYang
  **/

@@ -17,8 +17,6 @@ import org.springframework.boot.autoconfigure.mongo.MongoClientSettingsBuilderCu
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
-import javax.annotation.PostConstruct;
-
 /**
  * @author JiaChaoYang
  * 连接配置
@@ -48,7 +46,6 @@ public class MongoPlusConfiguration extends MongoAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    @PostConstruct
     public SqlExecute sqlExecute() {
         if (this.sqlExecute != null){
             return this.sqlExecute;

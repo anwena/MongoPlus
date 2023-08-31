@@ -34,7 +34,7 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
 
     List<BasicDBObject> basicDBObjectList = new ArrayList<>();
 
-    BasicDBObject optionsBasicDBObject;
+    BasicDBObject optionsBasicDBObject = new BasicDBObject();
 
     protected final Children typedThis = (Children) this;
 
