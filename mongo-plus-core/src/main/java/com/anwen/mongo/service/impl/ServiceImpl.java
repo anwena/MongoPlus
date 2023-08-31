@@ -121,7 +121,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public List<T> aggregateList(AggregateChainWrapper<T, ?> queryChainWrapper) {
-        return sqlExecute.doAggregateList(queryChainWrapper.getBaseAggregateList(),queryChainWrapper.getBasicDBObjectList());
+        return sqlExecute.doAggregateList(queryChainWrapper.getBaseAggregateList(),queryChainWrapper.getBasicDBObjectList(),queryChainWrapper.getOptionsBasicDBObject());
     }
 
     @Override
@@ -141,7 +141,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public List<T> list(AggregateChainWrapper<T,?> queryChainWrapper) {
-        return sqlExecute.doAggregateList(queryChainWrapper.getBaseAggregateList(),queryChainWrapper.getBasicDBObjectList());
+        return sqlExecute.doAggregateList(queryChainWrapper.getBaseAggregateList(),queryChainWrapper.getBasicDBObjectList(),queryChainWrapper.getOptionsBasicDBObject());
     }
 
     @Override

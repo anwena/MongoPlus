@@ -17,11 +17,11 @@ public class LambdaAggregateChainWrapper<T> extends AggregateChainWrapper<T,Lamb
 
     @Override
     public List<T> list() {
-        return sqlExecute.doAggregateList(super.baseAggregateList,super.getBasicDBObjectList());
+        return sqlExecute.doAggregateList(super.baseAggregateList,super.getBasicDBObjectList(),super.getOptionsBasicDBObject());
     }
 
     @Override
     public <E> List<E> list(Class<E> clazz) {
-        return sqlExecute.doAggregateList(super.baseAggregateList,super.getBasicDBObjectList(),clazz);
+        return sqlExecute.doAggregateList(super.baseAggregateList,super.getBasicDBObjectList(),super.getOptionsBasicDBObject(),clazz);
     }
 }

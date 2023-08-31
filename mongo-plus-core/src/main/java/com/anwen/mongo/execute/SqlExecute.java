@@ -498,30 +498,33 @@ public class SqlExecute {
         return getCollection().countDocuments(BuildCondition.buildQueryCondition(compareConditionList));
     }
 
-    public <T> List<T> doAggregateList(List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList){
+    public <T> List<T> doAggregateList(List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDbObject){
         AggregateIterable<Document> aggregateIterable = getCollection().aggregate(
                 new ArrayList<BasicDBObject>(){{
                     aggregateList.forEach(aggregate -> add(new BasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate())));
                     addAll(basicDBObjectList);
+                    add(optionsBasicDbObject);
                 }}
         );
         return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),mongoEntity);
     }
 
-    public List<Map<String,Object>> doAggregateList(String collectionName,List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList){
+    public List<Map<String,Object>> doAggregateList(String collectionName,List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDbObject){
         AggregateIterable<Map> aggregateIterable = getCollection(collectionName).aggregate(
                 new ArrayList<BasicDBObject>(){{
                     aggregateList.forEach(aggregate -> add(new BasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate())));
                     addAll(basicDBObjectList);
+                    add(optionsBasicDbObject);
                 }}, Map.class);
         return Converter.convertDocumentToMap(aggregateIterable.iterator());
     }
 
-    public <E> List<E> doAggregateList(List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,Class<E> clazz){
+    public <E> List<E> doAggregateList(List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDbObject,Class<E> clazz){
         AggregateIterable<Document> aggregateIterable = getCollection().aggregate(
                 new ArrayList<BasicDBObject>(){{
                     aggregateList.forEach(aggregate -> add(new BasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate())));
                     addAll(basicDBObjectList);
+                    add(optionsBasicDbObject);
                 }}
         );
         return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),clazz != null ? clazz : mongoEntity);
@@ -532,12 +535,13 @@ public class SqlExecute {
                 new ArrayList<BasicDBObject>(){{
                     aggregateList.forEach(aggregate -> add(new BasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate())));
                     addAll(basicDBObjectList);
+                    add(optionsBasicDBObject);
                 }}
         );
         Set<String> keyedSet = optionsBasicDBObject.keySet();
         for (String key : keyedSet) {
             AggregateOptionsEnum aggregateOptionsEnum = AggregateOptionsEnum.valueOf(key);
-            switch (aggregateOptionsEnum){
+            /*switch (aggregateOptionsEnum){
                 case ALLOW_DISK_USE:
                     aggregateIterable = aggregateIterable.allowDiskUse(optionsBasicDBObject.getBoolean(key));
                     break;
@@ -549,7 +553,7 @@ public class SqlExecute {
                     break;
                 case MAX_TIME_MS:
                     aggregateIterable = aggregateIterable.maxTime(optionsBasicDBObject.getLong(key),TimeUnit.MILLISECONDS);
-            }
+            }*/
         }
         return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),clazz != null ? clazz : mongoEntity);
     }

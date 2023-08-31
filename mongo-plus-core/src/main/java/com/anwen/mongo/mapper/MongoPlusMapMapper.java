@@ -49,7 +49,7 @@ public class MongoPlusMapMapper implements InjectQuery {
 
     @Override
     public List<Map<String, Object>> aggregateList(String collectionName, AggregateChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
-        return sqlExecute.doAggregateList(collectionName, queryChainWrapper.getBaseAggregateList(), queryChainWrapper.getBasicDBObjectList());
+        return sqlExecute.doAggregateList(collectionName, queryChainWrapper.getBaseAggregateList(), queryChainWrapper.getBasicDBObjectList(),queryChainWrapper.getOptionsBasicDBObject());
     }
 
     @Override

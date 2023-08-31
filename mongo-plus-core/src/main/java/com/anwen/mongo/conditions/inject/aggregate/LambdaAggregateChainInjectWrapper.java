@@ -24,6 +24,6 @@ public class LambdaAggregateChainInjectWrapper extends AggregateChainWrapper<Map
 
     @Override
     public List<Map<String, Object>> list(String collectionName) {
-        return sqlExecute.doAggregateList(collectionName,super.getBaseAggregateList(),super.getBasicDBObjectList());
+        return sqlExecute.doAggregateList(collectionName,super.getBaseAggregateList(),super.getBasicDBObjectList(),super.getOptionsBasicDBObject());
     }
 }
