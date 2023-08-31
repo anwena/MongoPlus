@@ -13,7 +13,7 @@
 </a>
 </p>
 <p style="text-align: center;">
-<img style="width: 300px;display: inline-block;" src="logo.png" alt="MongoPlusLogo">
+<img style="width: 200px;display: inline-block;" src="logo.png" alt="MongoPlusLogo">
 </p>
 
 ### 介绍：
