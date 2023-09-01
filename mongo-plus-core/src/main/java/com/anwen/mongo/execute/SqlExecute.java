@@ -151,7 +151,6 @@ public class SqlExecute {
         }
     }
 
-
     public <T> Boolean doSaveOrUpdate(T entity) {
         String idByEntity = ClassTypeUtil.getIdByEntity(entity, true);
         if (StringUtils.isBlank(idByEntity)){
@@ -167,7 +166,6 @@ public class SqlExecute {
         }
         return doIsExist(collectionName,idValue) ? doUpdateById(collectionName,entityMap) : doSave(collectionName,entityMap);
     }
-
 
     public <T> Boolean doSaveOrUpdateBatch(Collection<T> entityList) {
         List<T> saveList = new ArrayList<>();
@@ -252,7 +250,7 @@ public class SqlExecute {
     public Boolean doUpdateBatchByIds(String collectionName, Collection<Map<String, Object>> entityList) {
         int line = 0;
         for (Map<String,Object> entity : entityList) {
-            line+=doUpdateById(entity) ? 1 : 0;
+            line+=doUpdateById(collectionName,entity) ? 1 : 0;
         }
         return line == entityList.size();
     }
@@ -574,7 +572,9 @@ public class SqlExecute {
      */
     private FindIterable<Document> baseLambdaQuery(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
         BasicDBObject sortCond = new BasicDBObject();
-        orderList.forEach(order -> sortCond.put(order.getColumn(), order.getType()));
+        if (orderList != null && !orderList.isEmpty()) {
+            orderList.forEach(order -> sortCond.put(order.getColumn(), order.getType()));
+        }
         MongoCollection<Document> collection = getCollection();
         BasicDBObject basicDBObject = BuildCondition.buildQueryCondition(compareConditionList);
         if (null != basicDBObjectList && !basicDBObjectList.isEmpty()){
@@ -590,7 +590,9 @@ public class SqlExecute {
 
     private FindIterable<Map> baseLambdaQuery(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
         BasicDBObject sortCond = new BasicDBObject();
-        orderList.forEach(order -> sortCond.put(order.getColumn(), order.getType()));
+        if (orderList != null && !orderList.isEmpty()) {
+            orderList.forEach(order -> sortCond.put(order.getColumn(), order.getType()));
+        }
         MongoCollection<Document> collection = getCollection(collectionName);
         BasicDBObject basicDBObject = BuildCondition.buildQueryCondition(compareConditionList);
         if (StringUtils.isNotBlank(createIndex)) {

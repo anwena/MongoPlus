@@ -35,9 +35,11 @@ public class BuildCondition {
      */
     public static BasicDBObject buildProjection(List<Projection> projectionList){
         return new BasicDBObject(){{
-            projectionList.forEach(projection -> {
-                put(projection.getColumn(),projection.getValue());
-            });
+            if (projectionList != null && !projectionList.isEmpty()) {
+                projectionList.forEach(projection -> {
+                    put(projection.getColumn(), projection.getValue());
+                });
+            }
         }};
     }
 
@@ -49,32 +51,34 @@ public class BuildCondition {
      */
     public static BasicDBObject buildQueryCondition(List<CompareCondition> compareConditionList) {
         return new BasicDBObject() {{
-            compareConditionList.stream().filter(compareCondition -> compareCondition.getType() == CompareEnum.QUERY.getKey()).collect(Collectors.toList()).forEach(compare -> {
-                if (Objects.equals(compare.getCondition(), QueryOperatorEnum.LIKE.getValue()) && StringUtils.isNotBlank(String.valueOf(compare.getValue()))) {
-                    put(compare.getColumn(), new BasicDBObject(SpecialConditionEnum.REGEX.getCondition(), compare.getValue()));
-                } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.OR.getKey())) {
-                    if (null == compare.getChildCondition() || compare.getChildCondition().isEmpty()) {
-                        compare.setChildCondition(Collections.singletonList(compare));
-                    }
-                    put(SpecialConditionEnum.OR.getCondition(), buildOrQueryCondition(compare.getChildCondition()));
-                } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.NOR.getKey())) {
-                    put(SpecialConditionEnum.NOR.getCondition(), buildQueryCondition(compare.getChildCondition()));
-                } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.ELEMMATCH.getKey())) {
-                    put(SpecialConditionEnum.ELEM_MATCH.getCondition(), buildOrQueryCondition(compare.getChildCondition()));
-                } else if (Objects.equals(compare.getCondition(), QueryOperatorEnum.TEXT.getValue())) {
-                    put(SpecialConditionEnum.TEXT.getCondition(), new BasicDBObject(SpecialConditionEnum.SEARCH.getCondition(), compare.getValue()));
-                    IndexConstant.createIndex = compare.getColumn();
-                } else if (Objects.equals(compare.getColumn(), SqlOperationConstant._ID)){
-                    //如果是objectId
-                    if (ObjectId.isValid(String.valueOf(compare.getValue()))){
-                        put(compare.getColumn(),new BasicDBObject("$"+compare.getCondition(),new org.bson.types.ObjectId(String.valueOf(compare.getValue()))));
+            if (compareConditionList != null && !compareConditionList.isEmpty()) {
+                compareConditionList.stream().filter(compareCondition -> compareCondition.getType() == CompareEnum.QUERY.getKey()).collect(Collectors.toList()).forEach(compare -> {
+                    if (Objects.equals(compare.getCondition(), QueryOperatorEnum.LIKE.getValue()) && StringUtils.isNotBlank(String.valueOf(compare.getValue()))) {
+                        put(compare.getColumn(), new BasicDBObject(SpecialConditionEnum.REGEX.getCondition(), compare.getValue()));
+                    } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.OR.getKey())) {
+                        if (null == compare.getChildCondition() || compare.getChildCondition().isEmpty()) {
+                            compare.setChildCondition(Collections.singletonList(compare));
+                        }
+                        put(SpecialConditionEnum.OR.getCondition(), buildOrQueryCondition(compare.getChildCondition()));
+                    } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.NOR.getKey())) {
+                        put(SpecialConditionEnum.NOR.getCondition(), buildQueryCondition(compare.getChildCondition()));
+                    } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.ELEMMATCH.getKey())) {
+                        put(SpecialConditionEnum.ELEM_MATCH.getCondition(), buildOrQueryCondition(compare.getChildCondition()));
+                    } else if (Objects.equals(compare.getCondition(), QueryOperatorEnum.TEXT.getValue())) {
+                        put(SpecialConditionEnum.TEXT.getCondition(), new BasicDBObject(SpecialConditionEnum.SEARCH.getCondition(), compare.getValue()));
+                        IndexConstant.createIndex = compare.getColumn();
+                    } else if (Objects.equals(compare.getColumn(), SqlOperationConstant._ID)) {
+                        //如果是objectId
+                        if (ObjectId.isValid(String.valueOf(compare.getValue()))) {
+                            put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), new org.bson.types.ObjectId(String.valueOf(compare.getValue()))));
+                        } else {
+                            put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), String.valueOf(compare.getValue())));
+                        }
                     } else {
-                        put(compare.getColumn(),new BasicDBObject("$"+compare.getCondition(),String.valueOf(compare.getValue())));
+                        put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), compare.getValue()));
                     }
-                }else {
-                    put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), compare.getValue()));
-                }
-            });
+                });
+            }
         }};
     }
 
