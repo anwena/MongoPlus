@@ -495,7 +495,6 @@ public class SqlExecute {
     }
 
     public <T> List<T> doAggregateList(List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDbObject){
-        //BasicDBObject optionsBasicDbObject   ---->    this is My `options` param，I cannot use it
         MongoCollection<Document> collection = getCollection();
         AggregateIterable<Document> aggregateIterable = collection.aggregate(
                 new ArrayList<BasicDBObject>(){{

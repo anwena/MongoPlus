@@ -1,6 +1,7 @@
 package com.anwen.mongo.convert.mapper;
 
 import com.anwen.mongo.convert.DocumentFieldMapper;
+import com.mongodb.MongoException;
 import org.bson.Document;
 
 import java.lang.reflect.Field;
@@ -20,6 +21,10 @@ public class DefaultFieldMapper<T> implements DocumentFieldMapper<T> {
 
     @Override
     public void mapField(Document doc, Field field, T obj) throws IllegalAccessException {
-        field.set(obj, fieldValue);
+        if (field.getType().isAssignableFrom(fieldValue.getClass())){
+            field.set(obj, fieldValue);
+        }else {
+            throw new MongoException("Database field and entity class field types do not match : "+field.getName());
+        }
     }
 }

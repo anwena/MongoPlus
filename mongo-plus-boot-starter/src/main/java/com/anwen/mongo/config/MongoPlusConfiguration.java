@@ -16,6 +16,10 @@ import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoClientSettingsBuilderCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.DependsOn;
+
+import javax.annotation.PostConstruct;
+import java.math.BigInteger;
 
 /**
  * @author JiaChaoYang
@@ -46,6 +50,7 @@ public class MongoPlusConfiguration extends MongoAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
+    @PostConstruct
     public SqlExecute sqlExecute() {
         if (this.sqlExecute != null){
             return this.sqlExecute;
