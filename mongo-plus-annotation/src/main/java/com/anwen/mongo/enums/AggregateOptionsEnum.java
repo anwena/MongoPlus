@@ -1,5 +1,7 @@
 package com.anwen.mongo.enums;
 
+import java.util.Objects;
+
 /**
  * @author JiaChaoYang
  **/
@@ -13,9 +15,19 @@ public enum AggregateOptionsEnum {
 
     MAX_TIME_MS("maxTimeMS"),
 
-    READ_CONCERN("readConcern"),
+    MAX_AWAIT_TIME_MS("maxAwaitTimeMS"),
 
-    WRITE_CONCERN("writeConcern"),
+    BYPASS_DOCUMENT_VALIDATION("bypassDocumentValidation"),
+
+    COMMENT("comment"),
+
+    COMMENT_STR("comment_str"),
+
+    HINT("hint"),
+
+    HINT_STR("hint"),
+
+    LET("let"),
 
     ;
 
@@ -29,13 +41,13 @@ public enum AggregateOptionsEnum {
         this.options = options;
     }
 
-/*    public static AggregateOptionsEnum valueOf(String options){
+    public static AggregateOptionsEnum getByOptions(String options){
         for(AggregateOptionsEnum aggregateOptionsEnum:values()) {
             if(Objects.equals(aggregateOptionsEnum.options, options)) {
                 return aggregateOptionsEnum;
             }
         }
         return null;
-    }*/
+    }
 
 }

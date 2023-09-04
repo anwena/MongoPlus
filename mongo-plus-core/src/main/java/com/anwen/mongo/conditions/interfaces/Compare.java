@@ -644,12 +644,17 @@ public interface Compare<T,Children> extends Serializable {
     Children not(boolean condition,CompareCondition compareCondition);
 
     /**
-     * 暂不可用
+     * 进行计算的表达式
      * @author JiaChaoYang
      * @date 2023/7/19 23:04
     */
     Children expr(CompareCondition compareCondition);
 
+    /**
+     * 进行计算的表达式
+     * @author JiaChaoYang
+     * @date 2023/7/19 23:04
+     */
     Children expr(boolean condition,CompareCondition compareCondition);
 
     /**

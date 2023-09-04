@@ -19,6 +19,7 @@ import com.mongodb.ReadConcernLevel;
 import com.mongodb.WriteConcern;
 import com.mongodb.client.model.Collation;
 import com.mongodb.client.model.CollationStrength;
+import org.bson.BsonValue;
 import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
@@ -648,26 +649,44 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
     }
 
     @Override
-    public Children readConcern(ReadConcernLevel readConcernLevel) {
-        this.optionsBasicDBObject.append(AggregateOptionsEnum.READ_CONCERN.getOptions(), new ReadConcern(readConcernLevel).asDocument());
+    public Children maxAwaitTimeMS(long maxAwaitTime) {
+        this.optionsBasicDBObject.append(AggregateOptionsEnum.MAX_AWAIT_TIME_MS.getOptions(), maxAwaitTime);
         return typedThis;
     }
 
     @Override
-    public Children writeConcern(WriteConcern writeConcern) {
-        this.optionsBasicDBObject.append(AggregateOptionsEnum.WRITE_CONCERN.getOptions(), writeConcern.asDocument());
+    public Children bypassDocumentValidation(boolean bypassDocumentValidation) {
+        this.optionsBasicDBObject.append(AggregateOptionsEnum.BYPASS_DOCUMENT_VALIDATION.getOptions(), bypassDocumentValidation);
         return typedThis;
     }
 
     @Override
-    public Children options(BasicDBObject basicDBObject) {
-        this.optionsBasicDBObject.putAll(basicDBObject.toBsonDocument());
+    public Children comment(BsonValue comment) {
+        this.optionsBasicDBObject.append(AggregateOptionsEnum.COMMENT.getOptions(), comment);
         return typedThis;
     }
 
     @Override
-    public Children options(Bson bson) {
-        this.optionsBasicDBObject.putAll(bson.toBsonDocument());
+    public Children comment(String comment) {
+        this.optionsBasicDBObject.append(AggregateOptionsEnum.COMMENT_STR.getOptions(), comment);
+        return typedThis;
+    }
+
+    @Override
+    public Children hint(Bson hint) {
+        this.optionsBasicDBObject.append(AggregateOptionsEnum.HINT.getOptions(), hint);
+        return typedThis;
+    }
+
+    @Override
+    public Children hint(String hint) {
+        this.optionsBasicDBObject.append(AggregateOptionsEnum.HINT_STR.getOptions(), hint);
+        return typedThis;
+    }
+
+    @Override
+    public Children let(Bson variables) {
+        this.optionsBasicDBObject.append(AggregateOptionsEnum.LET.getOptions(), variables);
         return typedThis;
     }
 
