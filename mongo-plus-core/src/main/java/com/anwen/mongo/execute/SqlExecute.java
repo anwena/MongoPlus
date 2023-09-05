@@ -27,6 +27,7 @@ import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Collation;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
@@ -34,8 +35,10 @@ import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.InsertManyResult;
 import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
+import org.bson.BsonValue;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +46,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.anwen.mongo.toolkit.BeanMapUtilByReflect.checkTableField;
@@ -494,8 +498,7 @@ public class SqlExecute {
         return getCollection().countDocuments(BuildCondition.buildQueryCondition(compareConditionList));
     }
 
-    public <T> List<T> doAggregateList(List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDbObject){
-        //BasicDBObject optionsBasicDbObject   ---->    this is My `options` param，I cannot use it
+    public <T> List<T> doAggregateList(List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject){
         MongoCollection<Document> collection = getCollection();
         AggregateIterable<Document> aggregateIterable = collection.aggregate(
                 new ArrayList<BasicDBObject>(){{
@@ -503,27 +506,28 @@ public class SqlExecute {
                     addAll(basicDBObjectList);
                 }}
         );
+        aggregateOptions(aggregateIterable,optionsBasicDBObject);
         return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),mongoEntity);
     }
 
-    public List<Map<String,Object>> doAggregateList(String collectionName,List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDbObject){
+    public List<Map<String,Object>> doAggregateList(String collectionName,List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject){
         AggregateIterable<Map> aggregateIterable = getCollection(collectionName).aggregate(
                 new ArrayList<BasicDBObject>(){{
                     aggregateList.forEach(aggregate -> add(new BasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate())));
                     addAll(basicDBObjectList);
-                    add(optionsBasicDbObject);
                 }}, Map.class);
+        aggregateOptions(aggregateIterable,optionsBasicDBObject);
         return Converter.convertDocumentToMap(aggregateIterable.iterator());
     }
 
-    public <E> List<E> doAggregateList(List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDbObject,Class<E> clazz){
+    public <E> List<E> doAggregateList(List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject,Class<E> clazz){
         AggregateIterable<Document> aggregateIterable = getCollection().aggregate(
                 new ArrayList<BasicDBObject>(){{
                     aggregateList.forEach(aggregate -> add(new BasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate())));
                     addAll(basicDBObjectList);
-                    add(optionsBasicDbObject);
                 }}
         );
+        aggregateOptions(aggregateIterable,optionsBasicDBObject);
         return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),clazz != null ? clazz : mongoEntity);
     }
 
@@ -532,27 +536,49 @@ public class SqlExecute {
                 new ArrayList<BasicDBObject>(){{
                     aggregateList.forEach(aggregate -> add(new BasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate())));
                     addAll(basicDBObjectList);
-                    add(optionsBasicDBObject);
                 }}
         );
+        aggregateOptions(aggregateIterable,optionsBasicDBObject);
+        return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),clazz != null ? clazz : mongoEntity);
+    }
+
+    private void aggregateOptions(AggregateIterable<?> aggregateIterable,BasicDBObject optionsBasicDBObject){
         Set<String> keyedSet = optionsBasicDBObject.keySet();
         for (String key : keyedSet) {
-            AggregateOptionsEnum aggregateOptionsEnum = AggregateOptionsEnum.valueOf(key);
-            /*switch (aggregateOptionsEnum){
+            AggregateOptionsEnum aggregateOptionsEnum = AggregateOptionsEnum.getByOptions(key);
+            switch (Objects.requireNonNull(aggregateOptionsEnum)){
                 case ALLOW_DISK_USE:
-                    aggregateIterable = aggregateIterable.allowDiskUse(optionsBasicDBObject.getBoolean(key));
+                    aggregateIterable.allowDiskUse(optionsBasicDBObject.getBoolean(key));
                     break;
                 case COLLATION:
-                    aggregateIterable = aggregateIterable.collation((Collation) optionsBasicDBObject.get(key));
+                    aggregateIterable.collation((Collation) optionsBasicDBObject.get(key));
                     break;
                 case BATCH_SIZE:
-                    aggregateIterable = aggregateIterable.batchSize(optionsBasicDBObject.getInt(key));
+                    aggregateIterable.batchSize(optionsBasicDBObject.getInt(key));
                     break;
                 case MAX_TIME_MS:
-                    aggregateIterable = aggregateIterable.maxTime(optionsBasicDBObject.getLong(key),TimeUnit.MILLISECONDS);
-            }*/
+                    aggregateIterable.maxTime(optionsBasicDBObject.getLong(key), TimeUnit.MILLISECONDS);
+                    break;
+                case MAX_AWAIT_TIME_MS:
+                    aggregateIterable.maxAwaitTime(optionsBasicDBObject.getLong(key),TimeUnit.MILLISECONDS);
+                    break;
+                case BYPASS_DOCUMENT_VALIDATION:
+                    aggregateIterable.bypassDocumentValidation(optionsBasicDBObject.getBoolean(key));
+                    break;
+                case COMMENT:
+                    aggregateIterable.comment((BsonValue) optionsBasicDBObject.get(key));
+                    break;
+                case COMMENT_STR:
+                    aggregateIterable.comment(optionsBasicDBObject.getString(key));
+                    break;
+                case HINT:
+                    aggregateIterable.hint((Bson) optionsBasicDBObject.get(key));
+                    break;
+                case LET:
+                    aggregateIterable.let((Bson) optionsBasicDBObject.get(key));
+                    break;
+            }
         }
-        return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),clazz != null ? clazz : mongoEntity);
     }
 
 
