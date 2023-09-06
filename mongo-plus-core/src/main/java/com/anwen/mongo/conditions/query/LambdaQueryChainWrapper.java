@@ -15,37 +15,40 @@ public class LambdaQueryChainWrapper<T> extends QueryChainWrapper<T,LambdaQueryC
 
     private final SqlExecute sqlExecute;
 
-    public LambdaQueryChainWrapper(SqlExecute sqlExecute){
+    private final Class<T> clazz;
+
+    public LambdaQueryChainWrapper(SqlExecute sqlExecute, Class<T> clazz){
         this.sqlExecute = sqlExecute;
+        this.clazz = clazz;
     }
 
     @Override
     public List<T> list() {
-        return sqlExecute.doList(getCompareList(), getOrderList(),getProjectionList(),getBasicDBObjectList());
+        return sqlExecute.doList(getCompareList(), getOrderList(),getProjectionList(),getBasicDBObjectList(),clazz);
     }
 
     @Override
     public T one() {
-        return sqlExecute.doOne(getCompareList(),getProjectionList(),getBasicDBObjectList());
+        return sqlExecute.doOne(getCompareList(),getProjectionList(),getBasicDBObjectList(),clazz);
     }
 
     @Override
     public T limitOne() {
-        return sqlExecute.doLimitOne(getCompareList(),getProjectionList(),getBasicDBObjectList());
+        return sqlExecute.doLimitOne(getCompareList(),getProjectionList(),getBasicDBObjectList(),clazz);
     }
 
     @Override
     public PageResult<T> page(PageParam pageParam) {
-        return sqlExecute.doPage(getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList(),pageParam.getPageNum(),pageParam.getPageSize());
+        return sqlExecute.doPage(getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList(),pageParam.getPageNum(),pageParam.getPageSize(),clazz);
     }
 
     @Override
     public PageResult<T> page(Integer pageNum, Integer pageSize) {
-        return sqlExecute.doPage(getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList(),pageNum,pageSize);
+        return sqlExecute.doPage(getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList(),pageNum,pageSize,clazz);
     }
 
     @Override
     public long count() {
-        return sqlExecute.doCount(getCompareList());
+        return sqlExecute.doCount(getCompareList(),clazz);
     }
 }

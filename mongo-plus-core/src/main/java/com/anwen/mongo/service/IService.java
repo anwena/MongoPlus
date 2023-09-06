@@ -186,16 +186,10 @@ public interface IService<T> {
     Class<T> getGenericityClazz();
 
 
-    default LambdaQueryChainWrapper<T> lambdaQuery(){
-        return ChainWrappers.lambdaQueryChain(getSqlOperation());
-    }
+    LambdaQueryChainWrapper<T> lambdaQuery();
 
-    default LambdaAggregateChainWrapper<T> lambdaAggregate(){
-        return ChainWrappers.lambdaAggregateChain(getSqlOperation());
-    }
+    LambdaAggregateChainWrapper<T> lambdaAggregate();
 
-    default LambdaUpdateChainWrapper<T> lambdaUpdate(){
-        return ChainWrappers.lambdaUpdateChain(getSqlOperation());
-    }
+    LambdaUpdateChainWrapper<T> lambdaUpdate();
 
 }

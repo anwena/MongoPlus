@@ -22,11 +22,9 @@ import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.anwen.mongo.toolkit.codec.RegisterCodecUtil;
 import com.mongodb.BasicDBObject;
+import com.mongodb.ClientSessionOptions;
 import com.mongodb.MongoException;
-import com.mongodb.client.AggregateIterable;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoCollection;
+import com.mongodb.client.*;
 import com.mongodb.client.model.Collation;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
@@ -74,20 +72,14 @@ public class SqlExecute {
     // 实例化 ConnectMongoDB 对象，用于保存连接
     private ConnectMongoDB connectMongoDB;
 
-    private Class<?> mongoEntity;
-
     private String createIndex = null;
 
     private String collectionName;
 
-    public void setMongoEntity(Class<?> mongoEntity) {
-        this.mongoEntity = mongoEntity;
-    }
-
-    public void init() {
-        String tableName = mongoEntity.getSimpleName().toLowerCase();
-        if (mongoEntity.isAnnotationPresent(CollectionName.class)) {
-            CollectionName annotation = mongoEntity.getAnnotation(CollectionName.class);
+    public void init(Class<?> clazz) {
+        String tableName = clazz.getSimpleName().toLowerCase();
+        if (clazz.isAnnotationPresent(CollectionName.class)) {
+            CollectionName annotation = clazz.getAnnotation(CollectionName.class);
             tableName = annotation.value();
             String dataSource = annotation.dataSource();
             if (StringUtils.isNotBlank(dataSource)) {
@@ -117,7 +109,10 @@ public class SqlExecute {
 
     public <T> Boolean doSave(T entity) {
         try {
-            InsertOneResult insertOneResult = getCollection(entity).insertOne(processIdField(entity));
+            ClientSession session = mongoClient.startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
+            session.startTransaction();
+            InsertOneResult insertOneResult = getCollection(entity).insertOne(session,processIdField(entity));
+            session.abortTransaction();
             return insertOneResult.wasAcknowledged();
         } catch (Exception e) {
             logger.error("save fail , error info : {}", e.getMessage(), e);
@@ -160,7 +155,7 @@ public class SqlExecute {
         if (StringUtils.isBlank(idByEntity)){
             return doSave(entity);
         }
-        return doIsExist(idByEntity) ? doUpdateById(entity) : doSave(entity);
+        return doIsExist(idByEntity,entity.getClass()) ? doUpdateById(entity) : doSave(entity);
     }
 
     public Boolean doSaveOrUpdate(String collectionName, Map<String, Object> entityMap) {
@@ -168,7 +163,7 @@ public class SqlExecute {
         if (StringUtils.isBlank(idValue)) {
             return doSave(collectionName, entityMap);
         }
-        return doIsExist(collectionName,idValue) ? doUpdateById(collectionName,entityMap) : doSave(collectionName,entityMap);
+        return doIsExistMap(collectionName,idValue) ? doUpdateById(collectionName,entityMap) : doSave(collectionName,entityMap);
     }
 
     public <T> Boolean doSaveOrUpdateBatch(Collection<T> entityList) {
@@ -176,7 +171,7 @@ public class SqlExecute {
         List<T> updateList = new ArrayList<>();
         entityList.parallelStream().forEach(entity -> {
             String idByEntity = ClassTypeUtil.getIdByEntity(entity, true);
-            if ((StringUtils.isBlank(idByEntity) || !doIsExist(idByEntity))) {
+            if ((StringUtils.isBlank(idByEntity) || !doIsExist(idByEntity, entity.getClass()))) {
                 saveList.add(entity);
             } else {
                 updateList.addAll(entityList);
@@ -198,7 +193,7 @@ public class SqlExecute {
         List<Map<String,Object>> updateList = new ArrayList<>();
         entityList.parallelStream().forEach(entity -> {
             String idByEntity = ClassTypeUtil.getIdByEntity(entity, true);
-            if ((StringUtils.isBlank(idByEntity) || !doIsExist(idByEntity))) {
+            if ((StringUtils.isBlank(idByEntity) || !doIsExistMap(collectionName,idByEntity))) {
                 saveList.add(entity);
             } else {
                 updateList.addAll(entityList);
@@ -289,8 +284,8 @@ public class SqlExecute {
     }
 
 
-    public Boolean doRemoveById(Serializable id) {
-        return getCollection().deleteOne(Filters.eq(SqlOperationConstant._ID, ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id))).getDeletedCount() >= 1;
+    public Boolean doRemoveById(Serializable id,Class<?> clazz) {
+        return getCollection(clazz).deleteOne(Filters.eq(SqlOperationConstant._ID, ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id))).getDeletedCount() >= 1;
     }
 
     public Boolean doRemoveById(String collectionName,Serializable id) {
@@ -298,13 +293,13 @@ public class SqlExecute {
     }
 
 
-    public <T> Boolean doRemoveByColumn(SFunction<T, Object> column, String value) {
-        return getCollection().deleteOne(Filters.eq(column.getFieldNameLine(), ObjectId.isValid(value) ? new ObjectId(value) : value)).getDeletedCount() >= 1;
+    public <T> Boolean doRemoveByColumn(SFunction<T, Object> column, String value,Class<T> clazz) {
+        return getCollection(clazz).deleteOne(Filters.eq(column.getFieldNameLine(), ObjectId.isValid(value) ? new ObjectId(value) : value)).getDeletedCount() >= 1;
     }
 
 
-    public Boolean doRemoveByColumn(String column, String value) {
-        return getCollection().deleteOne(Filters.eq(column, ObjectId.isValid(value) ? new ObjectId(value) : value)).getDeletedCount() >= 1;
+    public Boolean doRemoveByColumn(String column, String value,Class<?> clazz) {
+        return getCollection(clazz).deleteOne(Filters.eq(column, ObjectId.isValid(value) ? new ObjectId(value) : value)).getDeletedCount() >= 1;
     }
 
     public Boolean doRemoveByColumn(String collectionName,String column, String value) {
@@ -312,16 +307,16 @@ public class SqlExecute {
     }
 
 
-    public Boolean doRemoveBatchByIds(Collection<Serializable> idList) {
+    public Boolean doRemoveBatchByIds(Collection<Serializable> idList,Class<?> clazz) {
         List<Serializable> serializableList = idList.stream().filter(id -> ObjectId.isValid(String.valueOf(id))).collect(Collectors.toList());
         if (idList.size() == serializableList.size()){
-            return getCollection().deleteMany(Filters.in(SqlOperationConstant._ID, idList.stream().map(id -> new ObjectId(String.valueOf(id))).collect(Collectors.toList()))).getDeletedCount() >= 1;
+            return getCollection(clazz).deleteMany(Filters.in(SqlOperationConstant._ID, idList.stream().map(id -> new ObjectId(String.valueOf(id))).collect(Collectors.toList()))).getDeletedCount() >= 1;
         } else if (serializableList.isEmpty()){
-            return getCollection().deleteMany(Filters.in(SqlOperationConstant._ID, idList.stream().map(String::valueOf))).getDeletedCount() >= 1;
+            return getCollection(clazz).deleteMany(Filters.in(SqlOperationConstant._ID, idList.stream().map(String::valueOf))).getDeletedCount() >= 1;
         } else {
             int line = 0;
             for (Serializable serializable : idList) {
-                line+= doRemoveById(serializable) ? 1 : 0;
+                line+= doRemoveById(serializable,clazz) ? 1 : 0;
             }
             return line >= 1;
         }
@@ -336,18 +331,18 @@ public class SqlExecute {
         } else {
             int line = 0;
             for (Serializable serializable : idList) {
-                line+=doRemoveById(serializable) ? 1 : 0;
+                line+=doRemoveById(collectionName,serializable) ? 1 : 0;
             }
             return line >= 1;
         }
     }
 
-    public <T> List<T> doList() {
-        MongoCollection<Document> collection = getCollection();
+    public <T> List<T> doList(Class<T> clazz) {
+        MongoCollection<Document> collection = getCollection(clazz);
         if (StringUtils.isNotBlank(createIndex)) {
             collection.createIndex(new Document(createIndex, QueryOperatorEnum.TEXT.getValue()));
         }
-        return (List<T>) DocumentMapperConvert.mapDocumentList(collection.find(),mongoEntity);
+        return DocumentMapperConvert.mapDocumentList(collection.find(),clazz);
     }
 
     public List<Map<String, Object>> doList(String collectionName) {
@@ -389,7 +384,7 @@ public class SqlExecute {
         return getCollection(collectionName).find(queryBasic,Map.class).first();
     }
 
-    public boolean doIsExist(String collectionName, Serializable id){
+    public boolean doIsExistMap(String collectionName, Serializable id){
         BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id)));
         return getCollection(collectionName).countDocuments(queryBasic) >= 1;
     }
@@ -399,41 +394,41 @@ public class SqlExecute {
     }
 
 
-    public <T> List<T> doList(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
-        return getLambdaQueryResult(compareConditionList, orderList,projectionList,basicDBObjectList);
+    public <T> List<T> doList(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,Class<T> clazz) {
+        return getLambdaQueryResult(compareConditionList, orderList,projectionList,basicDBObjectList,clazz);
     }
 
-    public <T> T doOne(List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
-        List<T> result = getLambdaQueryResult(compareConditionList, null,projectionList,basicDBObjectList);
+    public <T> T doOne(List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,Class<T> clazz) {
+        List<T> result = getLambdaQueryResult(compareConditionList, null,projectionList,basicDBObjectList,clazz);
         if (result.size() > 1) {
             throw new MongoQueryException("query result greater than one line");
         }
         return !result.isEmpty() ? result.get(0) : null;
     }
 
-    public <T> T doLimitOne(List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
-        List<T> result = getLambdaQueryResult(compareConditionList, null,projectionList,basicDBObjectList);
+    public <T> T doLimitOne(List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,Class<T> clazz) {
+        List<T> result = getLambdaQueryResult(compareConditionList, null,projectionList,basicDBObjectList,clazz);
         return !result.isEmpty() ? result.get(0) : null;
     }
 
-    public <T> PageResult<T> doPage(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, Integer pageNum, Integer pageSize) {
-        return getLambdaQueryResultPage(compareConditionList, orderList,projectionList, basicDBObjectList,new PageParam(pageNum, pageSize));
+    public <T> PageResult<T> doPage(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, Integer pageNum, Integer pageSize,Class<T> clazz) {
+        return getLambdaQueryResultPage(compareConditionList, orderList,projectionList, basicDBObjectList,new PageParam(pageNum, pageSize),clazz);
     }
 
-    public <T> T doGetById(Serializable id) {
+    public <T> T doGetById(Serializable id,Class<T> clazz) {
         BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id)));
-        FindIterable<Document> iterable = getCollection().find(queryBasic);
-        return (T) DocumentMapperConvert.mapDocument(iterable.first(),mongoEntity);
+        FindIterable<Document> iterable = getCollection(clazz).find(queryBasic);
+        return DocumentMapperConvert.mapDocument(iterable.first(),clazz);
     }
 
-    public boolean doIsExist(Serializable id){
+    public boolean doIsExist(Serializable id,Class<?> clazz){
         BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id)));
-        return getCollection().countDocuments(queryBasic) >= 1;
+        return getCollection(clazz).countDocuments(queryBasic) >= 1;
     }
 
-    public <T> List<T> doGetByIds(Collection<Serializable> ids) {
-        FindIterable<Document> iterable = getCollection().find(checkIdType(ids));
-        return (List<T>) DocumentMapperConvert.mapDocumentList(iterable, mongoEntity);
+    public <T> List<T> doGetByIds(Collection<Serializable> ids,Class<T> clazz) {
+        FindIterable<Document> iterable = getCollection(clazz).find(checkIdType(ids));
+        return DocumentMapperConvert.mapDocumentList(iterable, clazz);
     }
 
     private BasicDBObject checkIdType(Collection<Serializable> ids) {
@@ -452,10 +447,10 @@ public class SqlExecute {
         return new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.IN.getCondition(), ids));
     }
 
-    public Boolean doUpdate(List<CompareCondition> compareConditionList) {
+    public Boolean doUpdate(List<CompareCondition> compareConditionList,Class<?> clazz) {
         BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareConditionList);
         BasicDBObject updateBasic = BuildCondition.buildUpdateValue(compareConditionList);
-        UpdateResult updateResult = getCollection().updateMany(queryBasic, new BasicDBObject() {{
+        UpdateResult updateResult = getCollection(clazz).updateMany(queryBasic, new BasicDBObject() {{
             append(SpecialConditionEnum.SET.getCondition(), updateBasic);
         }});
         return updateResult.getModifiedCount() >= 1;
@@ -470,9 +465,9 @@ public class SqlExecute {
         return updateResult.getModifiedCount() >= 1;
     }
 
-    public Boolean doRemove(List<CompareCondition> compareConditionList) {
+    public Boolean doRemove(List<CompareCondition> compareConditionList,Class<?> clazz) {
         BasicDBObject deleteBasic = BuildCondition.buildQueryCondition(compareConditionList);
-        DeleteResult deleteResult = getCollection().deleteMany(deleteBasic);
+        DeleteResult deleteResult = getCollection(clazz).deleteMany(deleteBasic);
         return deleteResult.getDeletedCount() >= 1;
     }
 
@@ -490,16 +485,16 @@ public class SqlExecute {
         return getCollection(collectionName).countDocuments();
     }
 
-    public long doCount(){
-        return getCollection().countDocuments();
+    public long doCount(Class<?> clazz){
+        return getCollection(clazz).countDocuments();
     }
 
-    public long doCount(List<CompareCondition> compareConditionList){
-        return getCollection().countDocuments(BuildCondition.buildQueryCondition(compareConditionList));
+    public long doCount(List<CompareCondition> compareConditionList,Class<?> clazz){
+        return getCollection(clazz).countDocuments(BuildCondition.buildQueryCondition(compareConditionList));
     }
 
-    public <T> List<T> doAggregateList(List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject){
-        MongoCollection<Document> collection = getCollection();
+    public <T> List<T> doAggregateList(List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject,Class<T> clazz){
+        MongoCollection<Document> collection = getCollection(clazz);
         AggregateIterable<Document> aggregateIterable = collection.aggregate(
                 new ArrayList<BasicDBObject>(){{
                     aggregateList.forEach(aggregate -> add(new BasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate())));
@@ -507,7 +502,7 @@ public class SqlExecute {
                 }}
         );
         aggregateOptions(aggregateIterable,optionsBasicDBObject);
-        return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),mongoEntity);
+        return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),clazz);
     }
 
     public List<Map<String,Object>> doAggregateList(String collectionName,List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject){
@@ -520,17 +515,6 @@ public class SqlExecute {
         return Converter.convertDocumentToMap(aggregateIterable.iterator());
     }
 
-    public <E> List<E> doAggregateList(List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject,Class<E> clazz){
-        AggregateIterable<Document> aggregateIterable = getCollection().aggregate(
-                new ArrayList<BasicDBObject>(){{
-                    aggregateList.forEach(aggregate -> add(new BasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate())));
-                    addAll(basicDBObjectList);
-                }}
-        );
-        aggregateOptions(aggregateIterable,optionsBasicDBObject);
-        return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),clazz != null ? clazz : mongoEntity);
-    }
-
     public <E> List<E> doAggregateList(String collectionName,List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject,Class<E> clazz){
         AggregateIterable<Document> aggregateIterable = getCollection(collectionName).aggregate(
                 new ArrayList<BasicDBObject>(){{
@@ -539,7 +523,7 @@ public class SqlExecute {
                 }}
         );
         aggregateOptions(aggregateIterable,optionsBasicDBObject);
-        return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),clazz != null ? clazz : mongoEntity);
+        return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),clazz);
     }
 
     private void aggregateOptions(AggregateIterable<?> aggregateIterable,BasicDBObject optionsBasicDBObject){
@@ -582,8 +566,8 @@ public class SqlExecute {
     }
 
 
-    private <T> List<T> getLambdaQueryResult(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
-        return (List<T>) DocumentMapperConvert.mapDocumentList(baseLambdaQuery(compareConditionList, orderList,projectionList,basicDBObjectList), mongoEntity);
+    private <T> List<T> getLambdaQueryResult(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,Class<T> clazz) {
+        return DocumentMapperConvert.mapDocumentList(baseLambdaQuery(compareConditionList, orderList,projectionList,basicDBObjectList,clazz), clazz);
     }
 
     private List<Map<String, Object>> getLambdaQueryResult(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
@@ -596,12 +580,12 @@ public class SqlExecute {
      * @author JiaChaoYang
      * @date 2023/6/25/025 1:51
      */
-    private FindIterable<Document> baseLambdaQuery(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
+    private FindIterable<Document> baseLambdaQuery(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,Class<?> clazz) {
         BasicDBObject sortCond = new BasicDBObject();
         if (orderList != null && !orderList.isEmpty()) {
             orderList.forEach(order -> sortCond.put(order.getColumn(), order.getType()));
         }
-        MongoCollection<Document> collection = getCollection();
+        MongoCollection<Document> collection = getCollection(clazz);
         BasicDBObject basicDBObject = BuildCondition.buildQueryCondition(compareConditionList);
         if (null != basicDBObjectList && !basicDBObjectList.isEmpty()){
             basicDBObjectList.forEach(basic -> {
@@ -632,15 +616,15 @@ public class SqlExecute {
         return collection.find(basicDBObject,Map.class).projection(BuildCondition.buildProjection(projectionList)).sort(sortCond);
     }
 
-    private <T> PageResult<T> getLambdaQueryResultPage(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, PageParam pageParams) {
+    private <T> PageResult<T> getLambdaQueryResultPage(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, PageParam pageParams,Class<T> clazz) {
         PageResult<T> pageResult = new PageResult<>();
-        FindIterable<Document> documentFindIterable = baseLambdaQuery(compareConditionList, orderList,projectionList,basicDBObjectList);
-        long totalSize = doCount(compareConditionList);
+        FindIterable<Document> documentFindIterable = baseLambdaQuery(compareConditionList, orderList,projectionList,basicDBObjectList,clazz);
+        long totalSize = doCount(compareConditionList,clazz);
         pageResult.setPageNum(pageParams.getPageNum());
         pageResult.setPageSize(pageParams.getPageSize());
         pageResult.setTotalSize(totalSize);
         pageResult.setTotalPages((totalSize + pageParams.getPageSize() - 1) / pageParams.getPageSize());
-        pageResult.setContentData((List<T>) DocumentMapperConvert.mapDocumentList(documentFindIterable.skip((pageParams.getPageNum() - 1) * pageParams.getPageSize()).limit(pageParams.getPageSize()), mongoEntity));
+        pageResult.setContentData(DocumentMapperConvert.mapDocumentList(documentFindIterable.skip((pageParams.getPageNum() - 1) * pageParams.getPageSize()).limit(pageParams.getPageSize()), clazz));
         return pageResult;
     }
 
@@ -657,16 +641,15 @@ public class SqlExecute {
     }
 
     private <T> MongoCollection<Document> getCollection(T entity) {
-        return getCollection().withCodecRegistry(CodecRegistries.fromRegistries(RegisterCodecUtil.registerCodec(entity)));
+        return getCollection(entity.getClass()).withCodecRegistry(CodecRegistries.fromRegistries(RegisterCodecUtil.registerCodec(entity)));
     }
 
     private MongoCollection<Document> getCollection(Map<String, Object> entityMap, String collectionName) {
         return getCollection(collectionName).withCodecRegistry(CodecRegistries.fromRegistries(RegisterCodecUtil.registerCodec(entityMap)));
     }
 
-    private MongoCollection<Document> getCollection() {
+    private MongoCollection<Document> getCollection(Class<?> clazz) {
         createIndex = null;
-        Class<?> clazz = mongoEntity;
         String collectionName = clazz.getSimpleName().toLowerCase();
         if (clazz.isAnnotationPresent(CollectionName.class)) {
             collectionName = clazz.getAnnotation(CollectionName.class).value();
@@ -753,10 +736,6 @@ public class SqlExecute {
 
     public void setConnectMongoDB(ConnectMongoDB connectMongoDB) {
         this.connectMongoDB = connectMongoDB;
-    }
-
-    public Class<?> getMongoEntity() {
-        return mongoEntity;
     }
 
     public String getCreateIndex() {

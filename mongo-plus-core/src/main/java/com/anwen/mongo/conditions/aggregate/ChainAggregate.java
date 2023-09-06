@@ -12,6 +12,4 @@ public interface ChainAggregate<T> {
      */
     List<T> list();
 
-    <E> List<E> list(Class<E> clazz);
-
 }

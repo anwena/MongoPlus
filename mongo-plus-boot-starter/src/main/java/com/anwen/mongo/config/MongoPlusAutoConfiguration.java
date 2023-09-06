@@ -25,16 +25,13 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
     public void afterPropertiesSet() {
         new Reflections("").getSubTypesOf(ServiceImpl.class).forEach(clazz -> {
             ServiceImpl<?> serviceImpl = (ServiceImpl<?>) applicationContext.getBean(clazz);
-            MongoEntityDynamicProxy mongoEntityDynamicProxy = new MongoEntityDynamicProxy(serviceImpl,sqlExecute,clazz);
             Class<?> genericityClass = serviceImpl.getGenericityClazz();
-            serviceImpl = (ServiceImpl<?>) mongoEntityDynamicProxy.getInstance();
             setSqlExecute(serviceImpl,genericityClass);
         });
     }
 
     private void setSqlExecute(ServiceImpl<?> serviceImpl,Class<?> clazz) {
-        sqlExecute.setMongoEntity(clazz);
-        sqlExecute.init();
+        sqlExecute.init(clazz);
         serviceImpl.setClazz(clazz);
         serviceImpl.setSqlOperation(sqlExecute);
     }

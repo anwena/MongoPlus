@@ -34,7 +34,6 @@ public class MongoEntityDynamicProxy implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        sqlExecute.setMongoEntity(this.clazz);
         return method.invoke(proxy, args);
     }
 }

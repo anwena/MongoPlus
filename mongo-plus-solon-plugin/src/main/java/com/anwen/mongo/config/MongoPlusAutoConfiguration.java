@@ -29,9 +29,8 @@ public class MongoPlusAutoConfiguration {
         });
     }
 
-    private void setSqlExecute(ServiceImpl<?> serviceImpl,Class clazz) {
-        sqlExecute.setMongoEntity(clazz);
-        sqlExecute.init();
+    private void setSqlExecute(ServiceImpl<?> serviceImpl,Class<?> clazz) {
+        sqlExecute.init(clazz);
         serviceImpl.setClazz(clazz);
         serviceImpl.setSqlOperation(sqlExecute);
     }

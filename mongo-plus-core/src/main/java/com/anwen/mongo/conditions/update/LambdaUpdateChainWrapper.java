@@ -10,8 +10,11 @@ public class LambdaUpdateChainWrapper<T> extends UpdateChainWrapper<T,LambdaUpda
 
     private final SqlExecute sqlExecute;
 
-    public LambdaUpdateChainWrapper(SqlExecute sqlExecute) {
+    private final Class<T> clazz;
+
+    public LambdaUpdateChainWrapper(SqlExecute sqlExecute,Class<T> clazz) {
         this.sqlExecute = sqlExecute;
+        this.clazz = clazz;
     }
 
     @Override
@@ -19,12 +22,12 @@ public class LambdaUpdateChainWrapper<T> extends UpdateChainWrapper<T,LambdaUpda
         List<CompareCondition> compareConditionList = new ArrayList<>();
         compareConditionList.addAll(getCompareList());
         compareConditionList.addAll(getUpdateCompareList());
-        return sqlExecute.doUpdate(compareConditionList);
+        return sqlExecute.doUpdate(compareConditionList,clazz);
     }
 
     @Override
     public boolean remove() {
-        return sqlExecute.doRemove(getCompareList());
+        return sqlExecute.doRemove(getCompareList(),clazz);
     }
 
 }
