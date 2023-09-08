@@ -29,7 +29,7 @@ public class BeanMapUtilByReflect {
      * @param entity 对象实例
      * @return 属性值Map
      */
-    public static <T> Map<String, Object> checkTableField(T entity) {
+    public static <T> Map<String, Object> checkTableField(T entity,Boolean ... isAuto) {
         //定义返回结果Map
         Map<String,Object> resultMap = new HashMap<>();
         //获取实体class
@@ -55,14 +55,14 @@ public class BeanMapUtilByReflect {
             //获取id注解
             ID id = field.getAnnotation(ID.class);
             //如果使用了ID注解
-            if (id != null){
+            if (id != null && fieldValue != null){
                 //如果使用了自增id
-                if (id.type() == IdTypeEnum.AUTO){
+                if (id.type() == IdTypeEnum.AUTO && ArrayUtils.isNotEmpty(isAuto)){
                     //将此常量设置为true，表示需要自增处理
-                    IdAutoConstant.IS_IT_AUTO_ID = true;
+                    resultMap.put(SqlOperationConstant.AUTO_NUM,true);
                 }
                 //设置值
-                resultMap.put(SqlOperationConstant._ID,fieldValue == null ? Generate.generateId(id.type()) : fieldValue);
+                resultMap.put(SqlOperationConstant._ID, Generate.generateId(id.type()));
             }
             //获取属性名
             String fieldName = collectionField != null && StringUtils.isNotBlank(collectionField.value()) ? collectionField.value() : field.getName();

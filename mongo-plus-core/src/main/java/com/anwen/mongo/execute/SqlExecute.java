@@ -673,8 +673,8 @@ public class SqlExecute {
     }
 
     private <T> Document processIdField(T entity){
-        Map<String, Object> tableFieldMap = checkTableField(entity);
-        if (IdAutoConstant.IS_IT_AUTO_ID){
+        Map<String, Object> tableFieldMap = checkTableField(entity,true);
+        if (tableFieldMap.containsKey(SqlOperationConstant.AUTO_NUM)){
             long num = 1L;
             MongoCollection<Document> collection = getCollection("counters");
             Document query = new Document(SqlOperationConstant._ID, collectionName);
@@ -696,6 +696,10 @@ public class SqlExecute {
 
     private <T> List<Document> processIdFieldList(Collection<T> entityList){
         return entityList.stream().map(this::processIdField).collect(Collectors.toList());
+    }
+
+    public static void main(String[] args) {
+        System.out.println(ObjectId.isValid("64f999ce36eef12b447c5ef4"));
     }
 
     public Map<String, MongoCollection<Document>> getCollectionMap() {

@@ -15,7 +15,7 @@ public class BaseModelID {
      * mongoDB生成的id
      * @since 2023/2/13 11:52
     */
-    @ID(type = IdTypeEnum.ASSIGN_ID)
+    @ID(type = IdTypeEnum.OBJECT_ID)
     @CollectionField("_id")
     public String id;
 
