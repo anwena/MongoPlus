@@ -15,6 +15,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @Description: Document转对象
@@ -32,6 +33,9 @@ public class DocumentMapperConvert {
      * @date: 2023/6/7 20:58
      **/
     public static <T> T mapDocument(Document doc, Class<T> clazz) {
+        if (doc == null) {
+            return null;
+        }
         T obj = null;
         try {
             obj = clazz.getDeclaredConstructor().newInstance();
@@ -51,7 +55,7 @@ public class DocumentMapperConvert {
         List<T> list = new ArrayList<>();
         try (MongoCursor<Document> cursor = findIterable.iterator()) {
             while (cursor.hasNext()) {
-                list.add(mapDocument(cursor.next(), clazz));
+                Optional.ofNullable(mapDocument(cursor.next(), clazz)).ifPresent(list::add);
             }
         }
         return list;
@@ -60,7 +64,7 @@ public class DocumentMapperConvert {
     public static <T> List<T> mapDocumentList(MongoCursor<Document> cursor, Class<?> clazz) {
         List<T> list = new ArrayList<>();
         while (cursor.hasNext()) {
-            list.add((T) mapDocument(cursor.next(), clazz));
+            Optional.ofNullable(mapDocument(cursor.next(), clazz)).ifPresent(obj -> list.add((T) obj));
         }
         return list;
     }

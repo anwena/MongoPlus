@@ -4,15 +4,17 @@ import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.incrementer.id.IdWorker;
 import org.bson.types.ObjectId;
 
+import java.io.Serializable;
+
 /**
  * @author JiaChaoYang
  **/
 public class Generate {
 
 
-    public static String generateId(IdTypeEnum idTypeEnum){
+    public static Serializable generateId(IdTypeEnum idTypeEnum){
         if (idTypeEnum.getKey() == IdTypeEnum.OBJECT_ID.getKey()){
-            return ObjectId.get().toHexString();
+            return ObjectId.get();
         }
         if (idTypeEnum.getKey() == IdTypeEnum.ASSIGN_UUID.getKey()){
             return IdWorker.get32UUID();

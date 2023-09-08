@@ -109,10 +109,11 @@ public class SqlExecute {
 
     public <T> Boolean doSave(T entity) {
         try {
-            ClientSession session = mongoClient.startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
-            session.startTransaction();
-            InsertOneResult insertOneResult = getCollection(entity).insertOne(session,processIdField(entity));
-            session.abortTransaction();
+//            ClientSession session = mongoClient.startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
+//            session.startTransaction();
+            InsertOneResult insertOneResult = getCollection(entity).insertOne(processIdField(entity));
+//            InsertOneResult insertOneResult = getCollection(entity).insertOne(session,processIdField(entity));
+//            session.abortTransaction();
             return insertOneResult.wasAcknowledged();
         } catch (Exception e) {
             logger.error("save fail , error info : {}", e.getMessage(), e);
@@ -689,7 +690,7 @@ public class SqlExecute {
             }else {
                 num = Long.parseLong(String.valueOf(document.get(SqlOperationConstant.AUTO_NUM)));
             }
-            tableFieldMap.put(SqlOperationConstant._ID,num);
+            tableFieldMap.put(SqlOperationConstant._ID, String.valueOf(num));
         }
         return new Document(tableFieldMap);
     }
