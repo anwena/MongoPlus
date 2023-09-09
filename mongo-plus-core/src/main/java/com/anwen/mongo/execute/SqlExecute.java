@@ -6,7 +6,6 @@ import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.conn.ConnectMongoDB;
-import com.anwen.mongo.constant.IdAutoConstant;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.convert.Converter;
 import com.anwen.mongo.convert.DocumentMapperConvert;
@@ -22,7 +21,6 @@ import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.anwen.mongo.toolkit.codec.RegisterCodecUtil;
 import com.mongodb.BasicDBObject;
-import com.mongodb.ClientSessionOptions;
 import com.mongodb.MongoException;
 import com.mongodb.client.*;
 import com.mongodb.client.model.Collation;
@@ -30,8 +28,6 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.result.DeleteResult;
-import com.mongodb.client.result.InsertManyResult;
-import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.BsonValue;
 import org.bson.Document;
@@ -42,7 +38,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -108,13 +103,16 @@ public class SqlExecute {
     }
 
     public <T> Boolean doSave(T entity) {
+        return doSave(null,entity);
+    }
+
+    public <T> Boolean doSave(ClientSession clientSession,T entity) {
         try {
-//            ClientSession session = mongoClient.startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
-//            session.startTransaction();
-            InsertOneResult insertOneResult = getCollection(entity).insertOne(processIdField(entity));
-//            InsertOneResult insertOneResult = getCollection(entity).insertOne(session,processIdField(entity));
-//            session.abortTransaction();
-            return insertOneResult.wasAcknowledged();
+            MongoCollection<Document> collection = getCollection(entity);
+            Document document = processIdField(entity);
+            return Optional.ofNullable(clientSession)
+                    .map(session -> collection.insertOne(session, document))
+                    .orElseGet(() -> collection.insertOne(document)).wasAcknowledged();
         } catch (Exception e) {
             logger.error("save fail , error info : {}", e.getMessage(), e);
             return false;
@@ -122,9 +120,15 @@ public class SqlExecute {
     }
 
     public Boolean doSave(String collectionName, Map<String, Object> entityMap) {
+        return doSave(null,collectionName,entityMap);
+    }
+
+    public Boolean doSave(ClientSession clientSession,String collectionName, Map<String, Object> entityMap) {
         try {
-            InsertOneResult insertOneResult = getCollection(collectionName).insertOne(new Document(entityMap));
-            return insertOneResult.wasAcknowledged();
+            MongoCollection<Document> collection = getCollection(collectionName);
+            return Optional.ofNullable(clientSession)
+                    .map(session -> collection.insertOne(session, new Document(entityMap)))
+                    .orElseGet(() -> collection.insertOne(new Document(entityMap))).wasAcknowledged();
         } catch (Exception e) {
             logger.error("save fail , error info : {}", e.getMessage(), e);
             return false;
@@ -132,9 +136,16 @@ public class SqlExecute {
     }
 
     public <T> Boolean doSaveBatch(Collection<T> entityList) {
+        return doSaveBatch(null,entityList);
+    }
+
+    public <T> Boolean doSaveBatch(ClientSession clientSession,Collection<T> entityList) {
         try {
-            InsertManyResult insertManyResult = getCollection(entityList.iterator().next()).insertMany(processIdFieldList(entityList));
-            return insertManyResult.getInsertedIds().size() == entityList.size();
+            List<Document> documentList = processIdFieldList(entityList);
+            MongoCollection<Document> collection = getCollection(entityList.iterator().next());
+            return Optional.ofNullable(clientSession)
+                    .map(session -> collection.insertMany(session,documentList))
+                    .orElseGet(() -> collection.insertMany(documentList)).getInsertedIds().size() == entityList.size();
         } catch (Exception e) {
             logger.error("saveBatch fail , error info : {}", e.getMessage(), e);
             return false;
@@ -142,9 +153,16 @@ public class SqlExecute {
     }
 
     public Boolean doSaveBatch(String collectionName, Collection<Map<String, Object>> entityList) {
+        return doSaveBatch(null,collectionName,entityList);
+    }
+
+    public Boolean doSaveBatch(ClientSession clientSession,String collectionName, Collection<Map<String, Object>> entityList) {
         try {
-            InsertManyResult insertManyResult = getCollection(collectionName).insertMany(BeanMapUtilByReflect.mapListToDocumentList(entityList));
-            return insertManyResult.getInsertedIds().size() == entityList.size();
+            MongoCollection<Document> collection = getCollection(collectionName);
+            List<Document> documentList = BeanMapUtilByReflect.mapListToDocumentList(entityList);
+            return Optional.ofNullable(clientSession)
+                    .map(session -> collection.insertMany(session,documentList))
+                    .orElseGet(() -> collection.insertMany(documentList)).getInsertedIds().size() == entityList.size();
         } catch (Exception e) {
             logger.error("saveBatch fail , error info : {}", e.getMessage(), e);
             return false;
@@ -152,27 +170,49 @@ public class SqlExecute {
     }
 
     public <T> Boolean doSaveOrUpdate(T entity) {
+        return doSaveOrUpdate(null,entity);
+    }
+
+    public <T> Boolean doSaveOrUpdate(ClientSession clientSession,T entity) {
         String idByEntity = ClassTypeUtil.getIdByEntity(entity, true);
         if (StringUtils.isBlank(idByEntity)){
-            return doSave(entity);
+            return Optional.ofNullable(clientSession)
+                    .map(session -> doSave(session,entity))
+                    .orElseGet(() -> doSave(entity));
         }
-        return doIsExist(idByEntity,entity.getClass()) ? doUpdateById(entity) : doSave(entity);
+        if (clientSession == null){
+            return doIsExist(idByEntity,entity.getClass()) ? doUpdateById(entity) : doSave(entity);
+        }
+        return doIsExist(clientSession,idByEntity,entity.getClass()) ? doUpdateById(clientSession,entity) : doSave(clientSession,entity);
     }
 
     public Boolean doSaveOrUpdate(String collectionName, Map<String, Object> entityMap) {
+        return doSaveOrUpdate(null,collectionName,entityMap);
+    }
+
+    public Boolean doSaveOrUpdate(ClientSession clientSession,String collectionName, Map<String, Object> entityMap) {
         String idValue = String.valueOf(entityMap.getOrDefault(SqlOperationConstant._ID,""));
         if (StringUtils.isBlank(idValue)) {
-            return doSave(collectionName, entityMap);
+            return Optional.ofNullable(clientSession)
+                    .map(session -> doSave(session,collectionName,entityMap))
+                    .orElseGet(() -> doSave(collectionName,entityMap));
         }
-        return doIsExistMap(collectionName,idValue) ? doUpdateById(collectionName,entityMap) : doSave(collectionName,entityMap);
+        if (clientSession == null){
+            return doIsExistMap(collectionName,idValue) ? doUpdateById(collectionName,entityMap) : doSave(collectionName,entityMap);
+        }
+        return doIsExistMap(clientSession,collectionName,idValue) ? doUpdateById(clientSession,collectionName,entityMap) : doSave(clientSession,collectionName,entityMap);
     }
 
     public <T> Boolean doSaveOrUpdateBatch(Collection<T> entityList) {
+        return doSaveOrUpdateBatch(null,entityList);
+    }
+
+    public <T> Boolean doSaveOrUpdateBatch(ClientSession clientSession,Collection<T> entityList) {
         List<T> saveList = new ArrayList<>();
         List<T> updateList = new ArrayList<>();
         entityList.parallelStream().forEach(entity -> {
             String idByEntity = ClassTypeUtil.getIdByEntity(entity, true);
-            if ((StringUtils.isBlank(idByEntity) || !doIsExist(idByEntity, entity.getClass()))) {
+            if ((StringUtils.isBlank(idByEntity) || !doIsExist(clientSession,idByEntity, entity.getClass()))) {
                 saveList.add(entity);
             } else {
                 updateList.addAll(entityList);
@@ -181,20 +221,24 @@ public class SqlExecute {
         boolean save = false;
         boolean update = false;
         if (!saveList.isEmpty()){
-            save = doSaveBatch(saveList);
+            save = clientSession != null ? doSaveBatch(clientSession,saveList) : doSaveBatch(saveList);
         }
         if (!updateList.isEmpty()){
-            update = doUpdateBatchByIds(updateList);
+            update = clientSession != null ? doUpdateBatchByIds(clientSession,updateList) : doUpdateBatchByIds(updateList);
         }
         return save == update;
     }
 
     public Boolean doSaveOrUpdateBatch(String collectionName, Collection<Map<String, Object>> entityList) {
+        return doSaveOrUpdateBatch(null,collectionName,entityList);
+    }
+
+    public Boolean doSaveOrUpdateBatch(ClientSession clientSession,String collectionName, Collection<Map<String, Object>> entityList) {
         List<Map<String,Object>> saveList = new ArrayList<>();
         List<Map<String,Object>> updateList = new ArrayList<>();
         entityList.parallelStream().forEach(entity -> {
             String idByEntity = ClassTypeUtil.getIdByEntity(entity, true);
-            if ((StringUtils.isBlank(idByEntity) || !doIsExistMap(collectionName,idByEntity))) {
+            if ((StringUtils.isBlank(idByEntity) || !doIsExistMap(clientSession,collectionName,idByEntity))) {
                 saveList.add(entity);
             } else {
                 updateList.addAll(entityList);
@@ -203,97 +247,135 @@ public class SqlExecute {
         boolean save = false;
         boolean update = false;
         if (!saveList.isEmpty()){
-            save = doSaveBatch(saveList);
+            save = clientSession != null ? doSaveBatch(clientSession,collectionName,saveList) : doSaveBatch(saveList);
         }
         if (!updateList.isEmpty()){
-            update = doUpdateBatchByIds(updateList);
+            update = clientSession != null ? doUpdateBatchByIds(clientSession,collectionName,updateList) : doUpdateBatchByIds(updateList);
         }
         return save == update;
     }
 
 
     public <T> Boolean doUpdateById(T entity) {
-        UpdateResult updateResult;
+        return doUpdateById(null,entity);
+    }
+
+    public <T> Boolean doUpdateById(ClientSession clientSession,T entity) {
         Document document = new Document(checkTableField(entity));
-        if (!document.containsKey(SqlOperationConstant._ID)){
-            throw new MongoException("_id undefined");
-        }
-        Object _idValue = document.get(SqlOperationConstant._ID);
-        BasicDBObject filter = new BasicDBObject(SqlOperationConstant._ID, ObjectId.isValid(String.valueOf(_idValue)) ? new ObjectId(String.valueOf(document.get(SqlOperationConstant._ID))) : String.valueOf(_idValue));
-        document.remove(SqlOperationConstant._ID);
+        BasicDBObject filter = getFilter(document);
         BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
-        updateResult = getCollection(entity).updateOne(filter, update);
-        return updateResult.getModifiedCount() >= 1;
+        MongoCollection<Document> collection = getCollection(entity);
+        return Optional.ofNullable(clientSession)
+                .map(session -> collection.updateOne(session,filter,update))
+                .orElseGet(() -> collection.updateOne(filter,update)).getModifiedCount() >= 1;
     }
 
     public Boolean doUpdateById(String collectionName, Map<String, Object> entityMap) {
+        return doUpdateById(null,collectionName,entityMap);
+    }
+
+    public Boolean doUpdateById(ClientSession clientSession,String collectionName, Map<String, Object> entityMap) {
+        BasicDBObject filter = getFilter(entityMap);
+        BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), new Document(entityMap));
+        MongoCollection<Document> collection = getCollection(collectionName);
+        return Optional.ofNullable(clientSession)
+                .map(session -> collection.updateOne(session,filter,update))
+                .orElseGet(() -> collection.updateOne(filter,update)).getModifiedCount() >= 1;
+    }
+
+    private BasicDBObject getFilter(Map<String, Object> entityMap) {
         if (!entityMap.containsKey(SqlOperationConstant._ID)) {
             throw new MongoException("_id undefined");
         }
-        UpdateResult updateResult;
         Object _idValue = entityMap.get(SqlOperationConstant._ID);
         BasicDBObject filter = new BasicDBObject(SqlOperationConstant._ID, ObjectId.isValid(String.valueOf(_idValue)) ? new ObjectId(String.valueOf(entityMap.get(SqlOperationConstant._ID))) : String.valueOf(_idValue));
         entityMap.remove(SqlOperationConstant._ID);
-        BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), new Document(entityMap));
-        updateResult = getCollection(collectionName).updateOne(filter, update);
-        return updateResult.getModifiedCount() >= 1;
+        return filter;
     }
 
     public <T> Boolean doUpdateBatchByIds(Collection<T> entityList) {
+        return doUpdateBatchByIds(null,entityList);
+    }
+
+    public <T> Boolean doUpdateBatchByIds(ClientSession clientSession,Collection<T> entityList) {
         int line = 0;
         for (T entity : entityList) {
-            line+=doUpdateById(entity) ? 1 : 0;
+            line += Optional.ofNullable(clientSession).map(session -> doUpdateById(clientSession,entity)).orElseGet(() -> doUpdateById(entity)) ? 1 : 0;
         }
         return line == entityList.size();
     }
 
     public Boolean doUpdateBatchByIds(String collectionName, Collection<Map<String, Object>> entityList) {
+        return doUpdateBatchByIds(null,collectionName,entityList);
+    }
+
+    public Boolean doUpdateBatchByIds(ClientSession clientSession,String collectionName, Collection<Map<String, Object>> entityList) {
         int line = 0;
         for (Map<String,Object> entity : entityList) {
-            line+=doUpdateById(collectionName,entity) ? 1 : 0;
+            line += Optional.ofNullable(clientSession).map(session -> doUpdateById(clientSession,collectionName,entity)).orElseGet(() -> doUpdateById(collectionName,entity)) ? 1 : 0;
         }
         return line == entityList.size();
     }
 
-
     public <T> Boolean doUpdateByColumn(T entity, SFunction<T, Object> column) {
-        try {
-            String filterCondition = column.getFieldNameLine();
-            String filterValue = String.valueOf(entity.getClass().getMethod(column.getFieldName()).invoke(entity));
-            UpdateResult updateResult = getCollection(entity).updateOne(Filters.eq(filterCondition, ObjectId.isValid(filterValue) ? new ObjectId(filterValue) : filterValue), new Document(checkTableField(entity)));
-            return updateResult.getModifiedCount() >= 1;
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            logger.error("update fail , fail info : {}", e.getMessage(), e);
-            return false;
-        }
+        return doUpdateByColumn(null,entity,column);
+    }
+
+    public <T> Boolean doUpdateByColumn(ClientSession clientSession,T entity, SFunction<T, Object> column) {
+        return doUpdateByColumn(clientSession,entity,column.getFieldNameLine());
     }
 
 
     public <T> Boolean doUpdateByColumn(T entity, String column) {
+        return doUpdateByColumn(null,entity,column);
+    }
+
+    public <T> Boolean doUpdateByColumn(ClientSession clientSession,T entity, String column) {
         String filterValue = String.valueOf(ClassTypeUtil.getClassFieldValue(entity,column));
-        UpdateResult updateResult = getCollection(entity).updateOne(Filters.eq(column, ObjectId.isValid(filterValue) ? new ObjectId(filterValue) : filterValue), new Document(checkTableField(entity)));
-        return updateResult.getModifiedCount() >= 1;
+        Bson filter = Filters.eq(column, ObjectId.isValid(filterValue) ? new ObjectId(filterValue) : filterValue);
+        Document document = new Document(checkTableField(entity));
+        MongoCollection<Document> collection = getCollection(entity);
+        return Optional.ofNullable(clientSession).map(session -> collection.updateOne(session,filter,document)).orElseGet(() -> collection.updateOne(filter,document)).getModifiedCount() >= 1;
     }
 
     public Boolean doUpdateByColumn(String collectionName,Map<String,Object> entityMap, String column) {
+        return doUpdateByColumn(null,collectionName,entityMap,column);
+    }
+
+    public Boolean doUpdateByColumn(ClientSession clientSession,String collectionName,Map<String,Object> entityMap, String column) {
         if (!entityMap.containsKey(column)){
             throw new MongoException(column+" undefined");
         }
         String columnValue = String.valueOf(entityMap.get(column));
-        UpdateResult updateResult = getCollection(collectionName).updateOne(Filters.eq(column, ObjectId.isValid(String.valueOf(columnValue)) ? new ObjectId(columnValue) : columnValue), new Document(entityMap));
-        return updateResult.getModifiedCount() >= 1;
+        Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(columnValue)) ? new ObjectId(columnValue) : columnValue);
+        Document document = new Document(entityMap);
+        MongoCollection<Document> collection = getCollection(collectionName);
+        return Optional.ofNullable(clientSession).map(session -> collection.updateOne(session,filter,document)).orElseGet(() -> collection.updateOne(filter,document)).getModifiedCount() >= 1;
     }
 
 
     public Boolean doRemoveById(Serializable id,Class<?> clazz) {
-        return getCollection(clazz).deleteOne(Filters.eq(SqlOperationConstant._ID, ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id))).getDeletedCount() >= 1;
+        return doRemoveById(null,id,clazz);
+    }
+
+    public Boolean doRemoveById(ClientSession clientSession,Serializable id,Class<?> clazz) {
+        return executeRemove(clientSession, id, getCollection(clazz));
     }
 
     public Boolean doRemoveById(String collectionName,Serializable id) {
-        return getCollection(collectionName).deleteOne(Filters.eq(SqlOperationConstant._ID, ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id))).getDeletedCount() >= 1;
+        return doRemoveById(null,collectionName,id);
     }
 
+    public Boolean doRemoveById(ClientSession clientSession,String collectionName,Serializable id) {
+        return executeRemove(clientSession, id, getCollection(collectionName));
+    }
 
+    private Boolean executeRemove(ClientSession clientSession, Serializable id, MongoCollection<Document> collection) {
+        Bson filterId = Filters.eq(SqlOperationConstant._ID, ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id));
+        return Optional.ofNullable(clientSession).map(session -> collection.deleteOne(session,filterId)).orElseGet(() -> collection.deleteOne(filterId)).getDeletedCount() >= 1;
+    }
+
+    // TODO 加到这里了,继续加session重载方法
     public <T> Boolean doRemoveByColumn(SFunction<T, Object> column, String value,Class<T> clazz) {
         return getCollection(clazz).deleteOne(Filters.eq(column.getFieldNameLine(), ObjectId.isValid(value) ? new ObjectId(value) : value)).getDeletedCount() >= 1;
     }
@@ -385,11 +467,6 @@ public class SqlExecute {
         return getCollection(collectionName).find(queryBasic,Map.class).first();
     }
 
-    public boolean doIsExistMap(String collectionName, Serializable id){
-        BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id)));
-        return getCollection(collectionName).countDocuments(queryBasic) >= 1;
-    }
-
     public List<Map<String,Object>> doGetByIds(String collectionName, Collection<Serializable> ids) {
         return Converter.convertDocumentToMap(getCollection(collectionName).find(checkIdType(ids),Map.class));
     }
@@ -423,8 +500,24 @@ public class SqlExecute {
     }
 
     public boolean doIsExist(Serializable id,Class<?> clazz){
+        return doIsExist(null,id,clazz);
+    }
+
+    public boolean doIsExist(ClientSession clientSession,Serializable id,Class<?> clazz){
+        return executeExist(clientSession, id, getCollection(clazz));
+    }
+
+    public boolean doIsExistMap(String collectionName, Serializable id){
+        return doIsExistMap(null,collectionName,id);
+    }
+
+    public boolean doIsExistMap(ClientSession clientSession,String collectionName, Serializable id){
+        return executeExist(clientSession, id, getCollection(collectionName));
+    }
+
+    private boolean executeExist(ClientSession clientSession, Serializable id, MongoCollection<Document> collection) {
         BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id)));
-        return getCollection(clazz).countDocuments(queryBasic) >= 1;
+        return Optional.ofNullable(clientSession).map(session -> collection.countDocuments(session,queryBasic)).orElseGet(() -> collection.countDocuments(queryBasic)) >= 1;
     }
 
     public <T> List<T> doGetByIds(Collection<Serializable> ids,Class<T> clazz) {
