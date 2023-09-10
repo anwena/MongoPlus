@@ -1,5 +1,7 @@
 package com.anwen.mongo.conditions.update;
 
+import com.mongodb.client.ClientSession;
+
 /**
  * 修改方法定义
  * @author JiaChaoYang
@@ -9,6 +11,10 @@ public interface ChainUpdate {
 
     boolean update();
 
+    boolean update(ClientSession clientSession);
+
     boolean remove();
+
+    boolean remove(ClientSession clientSession);
 
 }

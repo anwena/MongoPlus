@@ -1,6 +1,7 @@
 package com.anwen.mongo.conditions.aggregate;
 
 import com.anwen.mongo.execute.SqlExecute;
+import com.mongodb.client.ClientSession;
 
 import java.util.List;
 
@@ -21,5 +22,10 @@ public class LambdaAggregateChainWrapper<T> extends AggregateChainWrapper<T,Lamb
     @Override
     public List<T> list() {
         return sqlExecute.doAggregateList(super.baseAggregateList,super.getBasicDBObjectList(),super.getOptionsBasicDBObject(),clazz);
+    }
+
+    @Override
+    public List<T> list(ClientSession clientSession) {
+        return sqlExecute.doAggregateList(clientSession,super.baseAggregateList,super.getBasicDBObjectList(),super.getOptionsBasicDBObject(),clazz);
     }
 }

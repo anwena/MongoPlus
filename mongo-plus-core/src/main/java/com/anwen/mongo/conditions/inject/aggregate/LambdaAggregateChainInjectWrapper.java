@@ -2,6 +2,7 @@ package com.anwen.mongo.conditions.inject.aggregate;
 
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.execute.SqlExecute;
+import com.mongodb.client.ClientSession;
 
 import java.util.List;
 import java.util.Map;
@@ -23,7 +24,17 @@ public class LambdaAggregateChainInjectWrapper extends AggregateChainWrapper<Map
     }
 
     @Override
+    public <E> List<E> list(ClientSession clientSession, String collectionName, Class<E> clazz) {
+        return sqlExecute.doAggregateList(clientSession,collectionName,super.getBaseAggregateList(),super.getBasicDBObjectList(),super.getOptionsBasicDBObject(),clazz);
+    }
+
+    @Override
     public List<Map<String, Object>> list(String collectionName) {
         return sqlExecute.doAggregateList(collectionName,super.getBaseAggregateList(),super.getBasicDBObjectList(),super.getOptionsBasicDBObject());
+    }
+
+    @Override
+    public List<Map<String, Object>> list(ClientSession clientSession, String collectionName) {
+        return sqlExecute.doAggregateList(clientSession,collectionName,super.getBaseAggregateList(),super.getBasicDBObjectList(),super.getOptionsBasicDBObject());
     }
 }

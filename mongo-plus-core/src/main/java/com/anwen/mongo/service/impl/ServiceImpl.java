@@ -11,6 +11,7 @@ import com.anwen.mongo.model.PageResult;
 import com.anwen.mongo.service.IService;
 import com.anwen.mongo.support.SFunction;
 import com.anwen.mongo.toolkit.ChainWrappers;
+import com.mongodb.client.ClientSession;
 
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
@@ -64,8 +65,18 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    public Boolean save(ClientSession clientSession, T entity) {
+        return sqlExecute.doSave(clientSession,entity);
+    }
+
+    @Override
     public Boolean saveBatch(Collection<T> entityList) {
         return sqlExecute.doSaveBatch(entityList);
+    }
+
+    @Override
+    public Boolean saveBatch(ClientSession clientSession, Collection<T> entityList) {
+        return sqlExecute.doSaveBatch(clientSession,entityList);
     }
 
     @Override
@@ -74,8 +85,18 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    public Boolean saveOrUpdate(ClientSession clientSession, T entity) {
+        return sqlExecute.doSaveOrUpdate(clientSession,entity);
+    }
+
+    @Override
     public Boolean saveOrUpdateBatch(Collection<T> entityList) {
         return sqlExecute.doSaveOrUpdateBatch(entityList);
+    }
+
+    @Override
+    public Boolean saveOrUpdateBatch(ClientSession clientSession, Collection<T> entityList) {
+        return sqlExecute.doSaveOrUpdateBatch(clientSession,entityList);
     }
 
     @Override
@@ -84,8 +105,18 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    public Boolean updateById(ClientSession clientSession, T entity) {
+        return sqlExecute.doUpdateById(clientSession,entity);
+    }
+
+    @Override
     public Boolean updateBatchByIds(Collection<T> entityList) {
         return sqlExecute.doUpdateBatchByIds(entityList);
+    }
+
+    @Override
+    public Boolean updateBatchByIds(ClientSession clientSession, Collection<T> entityList) {
+        return sqlExecute.doUpdateBatchByIds(clientSession,entityList);
     }
 
     @Override
@@ -94,8 +125,18 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    public Boolean updateByColumn(ClientSession clientSession, T entity, SFunction<T, Object> column) {
+        return sqlExecute.doUpdateByColumn(clientSession,entity,column);
+    }
+
+    @Override
     public Boolean updateByColumn(T entity, String column) {
         return sqlExecute.doUpdateByColumn(entity,column);
+    }
+
+    @Override
+    public Boolean updateByColumn(ClientSession clientSession, T entity, String column) {
+        return sqlExecute.doUpdateByColumn(clientSession,entity,column);
     }
 
     @Override
@@ -104,8 +145,18 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    public Boolean removeById(ClientSession clientSession, Serializable id) {
+        return sqlExecute.doRemoveById(clientSession,id,clazz);
+    }
+
+    @Override
     public Boolean removeByColumn(SFunction<T, Object> column, String value) {
         return sqlExecute.doRemoveByColumn(column,value,clazz);
+    }
+
+    @Override
+    public Boolean removeByColumn(ClientSession clientSession, SFunction<T, Object> column, String value) {
+        return sqlExecute.doRemoveByColumn(clientSession,column,value,clazz);
     }
 
     @Override
@@ -114,8 +165,18 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    public Boolean removeByColumn(ClientSession clientSession, String column, String value) {
+        return sqlExecute.doRemoveByColumn(clientSession,column,value,clazz);
+    }
+
+    @Override
     public Boolean removeBatchByIds(Collection<Serializable> idList) {
         return sqlExecute.doRemoveBatchByIds(idList,clazz);
+    }
+
+    @Override
+    public Boolean removeBatchByIds(ClientSession clientSession, Collection<Serializable> idList) {
+        return sqlExecute.doRemoveBatchByIds(clientSession,idList,clazz);
     }
 
     @Override
@@ -124,8 +185,18 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    public List<T> list(ClientSession clientSession) {
+        return sqlExecute.doList(clientSession,clazz);
+    }
+
+    @Override
     public List<T> aggregateList(AggregateChainWrapper<T, ?> queryChainWrapper) {
         return sqlExecute.doAggregateList(queryChainWrapper.getBaseAggregateList(),queryChainWrapper.getBasicDBObjectList(),queryChainWrapper.getOptionsBasicDBObject(),clazz);
+    }
+
+    @Override
+    public List<T> aggregateList(ClientSession clientSession, AggregateChainWrapper<T, ?> queryChainWrapper) {
+        return sqlExecute.doAggregateList(clientSession,queryChainWrapper.getBaseAggregateList(),queryChainWrapper.getBasicDBObjectList(),queryChainWrapper.getOptionsBasicDBObject(),clazz);
     }
 
     @Override
@@ -134,8 +205,18 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    public T one(ClientSession clientSession, QueryChainWrapper<T, ?> queryChainWrapper) {
+        return sqlExecute.doOne(clientSession,queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),clazz);
+    }
+
+    @Override
     public T limitOne(QueryChainWrapper<T, ?> queryChainWrapper) {
         return sqlExecute.doLimitOne(queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),clazz);
+    }
+
+    @Override
+    public T limitOne(ClientSession clientSession, QueryChainWrapper<T, ?> queryChainWrapper) {
+        return sqlExecute.doLimitOne(clientSession,queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),clazz);
     }
 
     @Override
@@ -144,8 +225,18 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    public List<T> list(ClientSession clientSession, QueryChainWrapper<T, ?> queryChainWrapper) {
+        return sqlExecute.doList(clientSession,queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),clazz);
+    }
+
+    @Override
     public List<T> list(AggregateChainWrapper<T,?> queryChainWrapper) {
         return sqlExecute.doAggregateList(queryChainWrapper.getBaseAggregateList(),queryChainWrapper.getBasicDBObjectList(),queryChainWrapper.getOptionsBasicDBObject(),clazz);
+    }
+
+    @Override
+    public List<T> list(ClientSession clientSession, AggregateChainWrapper<T, ?> queryChainWrapper) {
+        return sqlExecute.doAggregateList(clientSession,queryChainWrapper.getBaseAggregateList(),queryChainWrapper.getBasicDBObjectList(),queryChainWrapper.getOptionsBasicDBObject(),clazz);
     }
 
     @Override
@@ -154,8 +245,18 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    public long count(ClientSession clientSession) {
+        return sqlExecute.doCount(clientSession,clazz);
+    }
+
+    @Override
     public long count(QueryChainWrapper<T, ?> queryChainWrapper) {
         return sqlExecute.doCount(queryChainWrapper.getCompareList(),clazz);
+    }
+
+    @Override
+    public long count(ClientSession clientSession, QueryChainWrapper<T, ?> queryChainWrapper) {
+        return sqlExecute.doCount(clientSession,queryChainWrapper.getCompareList(),clazz);
     }
 
     @Override
@@ -164,8 +265,18 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    public PageResult<T> page(ClientSession clientSession, QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize) {
+        return sqlExecute.doPage(clientSession,queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(), pageNum,pageSize,clazz);
+    }
+
+    @Override
     public PageResult<T> page(PageParam pageParam) {
         return page(pageParam.getPageNum(),pageParam.getPageSize());
+    }
+
+    @Override
+    public PageResult<T> page(ClientSession clientSession, PageParam pageParam) {
+        return page(clientSession,pageParam.getPageNum(),pageParam.getPageSize());
     }
 
     @Override
@@ -174,13 +285,28 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    public PageResult<T> page(ClientSession clientSession, Integer pageNum, Integer pageSize) {
+        return sqlExecute.doPage(clientSession,null,null,null,null,pageNum,pageSize,clazz);
+    }
+
+    @Override
     public T getById(Serializable id) {
         return sqlExecute.doGetById(id,clazz);
     }
 
     @Override
+    public T getById(ClientSession clientSession, Serializable id) {
+        return sqlExecute.doGetById(clientSession,id,clazz);
+    }
+
+    @Override
     public List<T> getByIds(Collection<Serializable> ids) {
         return sqlExecute.doGetByIds(ids,clazz);
+    }
+
+    @Override
+    public List<T> getByIds(ClientSession clientSession, Collection<Serializable> ids) {
+        return sqlExecute.doGetByIds(clientSession,ids,clazz);
     }
 
     @Override

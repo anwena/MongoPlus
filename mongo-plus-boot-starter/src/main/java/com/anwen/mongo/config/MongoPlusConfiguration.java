@@ -1,5 +1,6 @@
 package com.anwen.mongo.config;
 
+import com.anwen.mongo.cache.MongoClientCache;
 import com.anwen.mongo.config.log.MongoDBLogProperty;
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.log.CustomMongoDriverLogger;
@@ -63,6 +64,7 @@ public class MongoPlusConfiguration {
     @ConditionalOnMissingBean
     @DependsOn("sqlExecute")
     public MongoClient mongo(){
+        MongoClientCache.mongoClient = this.mongoClient;
         return this.mongoClient;
     }
 

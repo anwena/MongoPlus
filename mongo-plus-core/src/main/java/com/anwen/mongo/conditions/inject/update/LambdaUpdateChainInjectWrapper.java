@@ -6,6 +6,7 @@ import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.enums.CompareEnum;
 import com.anwen.mongo.enums.LogicTypeEnum;
 import com.anwen.mongo.execute.SqlExecute;
+import com.mongodb.client.ClientSession;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,14 +43,22 @@ public class LambdaUpdateChainInjectWrapper extends AbstractChainWrapper<String,
     }
 
     public boolean update(String collectionName){
+        return update(null,collectionName);
+    }
+
+    public boolean update(ClientSession clientSession,String collectionName){
         List<CompareCondition> compareConditionList = new ArrayList<>();
         compareConditionList.addAll(getCompareList());
         compareConditionList.addAll(getUpdateCompareList());
-        return sqlExecute.doUpdate(collectionName,compareConditionList);
+        return sqlExecute.doUpdate(clientSession,collectionName,compareConditionList);
     }
 
     public boolean remove(String collectionName) {
         return sqlExecute.doRemove(collectionName,getCompareList());
+    }
+
+    public boolean remove(ClientSession clientSession,String collectionName) {
+        return sqlExecute.doRemove(clientSession,collectionName,getCompareList());
     }
 
     public List<CompareCondition> getUpdateCompareList() {
