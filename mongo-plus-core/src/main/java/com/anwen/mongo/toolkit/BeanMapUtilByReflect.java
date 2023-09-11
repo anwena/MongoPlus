@@ -29,9 +29,9 @@ public class BeanMapUtilByReflect {
      * @param entity 对象实例
      * @return 属性值Map
      */
-    public static <T> Map<String, Object> checkTableField(T entity,Boolean ... isAuto) {
+    public static <T> Map<String, Object> checkTableField(T entity) {
         //定义返回结果Map
-        Map<String,Object> resultMap = new HashMap<>();
+        Map<String, Object> resultMap = new HashMap<>();
         //获取实体class
         Class<?> entityClass = entity.getClass();
         //获取所有字段
@@ -39,43 +39,46 @@ public class BeanMapUtilByReflect {
         //设置所有属性可访问
         AccessibleObject.setAccessible(fieldList.toArray(new Field[0]),true);
         for (Field field : fieldList) {
-            //获取CollectionField注解
-            CollectionField collectionField = field.getAnnotation(CollectionField.class);
-            //判断是否跳过该属性
-            if (collectionField != null && !collectionField.exist()){
+            // 是否跳过解析
+            if (skipCheckField(field)) {
                 continue;
             }
-            Object fieldValue = null;
-            //获取字段值
-            try {
-                fieldValue = field.get(entity);
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
-            //获取id注解
-            ID id = field.getAnnotation(ID.class);
-            //如果使用了ID注解
-            if (id != null && fieldValue != null){
-                //如果使用了自增id
-                if (id.type() == IdTypeEnum.AUTO && ArrayUtils.isNotEmpty(isAuto)){
-                    //将此常量设置为true，表示需要自增处理
-                    resultMap.put(SqlOperationConstant.AUTO_NUM,true);
-                }
-                //设置值
-                resultMap.put(SqlOperationConstant._ID, Generate.generateId(id.type()));
-            }
-            //获取属性名
-            String fieldName = collectionField != null && StringUtils.isNotBlank(collectionField.value()) ? collectionField.value() : field.getName();
-            //不为null再进行映射
+            // 属性名
+            String fieldName = getFieldName(field);
+            // 属性值
+            Object fieldValue = ReflectionUtils.getFieldValue(entity, field);
+            // 不为null再进行映射
             if (fieldValue != null){
-                setFieldValue(field,fieldValue,fieldName,resultMap);
+                resultMap.put(fieldName, fieldValue);
             }
         }
         return resultMap;
     }
 
-    private static void setFieldValue(Field field,Object fieldValue,String fieldName,Map<String,Object> resultMap){
-        resultMap.put(fieldName, fieldValue);
+    public static Field getIdField(Class<?> clazz) {
+        for (Field field : ClassTypeUtil.getFields(clazz)) {
+            if (field.isAnnotationPresent(ID.class)) {
+                return field;
+            }
+        }
+        return null;
+    }
+
+    private static boolean skipCheckField(Field field) {
+        CollectionField collectionField = field.getAnnotation(CollectionField.class);
+        return collectionField != null && !collectionField.exist();
+    }
+
+    private static String getFieldName(Field field) {
+        ID idAnnotation = field.getAnnotation(ID.class);
+        if (idAnnotation != null) {
+            return SqlOperationConstant._ID;
+        }
+        CollectionField collectionField = field.getAnnotation(CollectionField.class);
+        if (collectionField != null) {
+            return collectionField.value();
+        }
+        return field.getName();
     }
 
     private static void setChildFieldValue(String fieldName , Map<String,Object> childMap,Map<String,Object> resultMap){

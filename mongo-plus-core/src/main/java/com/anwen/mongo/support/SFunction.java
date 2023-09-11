@@ -29,7 +29,7 @@ public interface SFunction<T,R> extends Function<T,R>, Serializable {
         if (methodName.startsWith("get")) {
             methodName = methodName.substring(3);
         }
-        return StringUtils.firstToLowerCase(methodName);
+        return StringUtils.firstCharToLowerCase(methodName);
     }
 
     /**

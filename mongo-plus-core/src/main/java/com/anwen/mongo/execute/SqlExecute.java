@@ -1,5 +1,6 @@
 package com.anwen.mongo.execute;
 
+import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
@@ -8,17 +9,18 @@ import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.conn.ConnectMongoDB;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.convert.Converter;
+import com.anwen.mongo.convert.DocumentFieldMapper;
 import com.anwen.mongo.convert.DocumentMapperConvert;
+import com.anwen.mongo.convert.factory.DocumentFieldMapperFactory;
 import com.anwen.mongo.domain.InitMongoCollectionException;
 import com.anwen.mongo.domain.MongoQueryException;
 import com.anwen.mongo.enums.AggregateOptionsEnum;
+import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.enums.QueryOperatorEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.model.*;
 import com.anwen.mongo.support.SFunction;
-import com.anwen.mongo.toolkit.BeanMapUtilByReflect;
-import com.anwen.mongo.toolkit.ClassTypeUtil;
-import com.anwen.mongo.toolkit.StringUtils;
+import com.anwen.mongo.toolkit.*;
 import com.anwen.mongo.toolkit.codec.RegisterCodecUtil;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
@@ -28,6 +30,7 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.result.DeleteResult;
+import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.BsonValue;
 import org.bson.Document;
@@ -38,11 +41,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.anwen.mongo.toolkit.BeanMapUtilByReflect.checkTableField;
+import static com.anwen.mongo.toolkit.BeanMapUtilByReflect.getIdField;
 
 /**
  * @Description: sql执行
@@ -69,7 +74,6 @@ public class SqlExecute {
 
     private String createIndex = null;
 
-    private String collectionName;
 
     public void init(Class<?> clazz) {
         String tableName = clazz.getSimpleName().toLowerCase();
@@ -110,9 +114,11 @@ public class SqlExecute {
         try {
             MongoCollection<Document> collection = getCollection(entity);
             Document document = processIdField(entity);
-            return Optional.ofNullable(clientSession)
+            InsertOneResult insertOneResult = Optional.ofNullable(clientSession)
                     .map(session -> collection.insertOne(session, document))
-                    .orElseGet(() -> collection.insertOne(document)).wasAcknowledged();
+                    .orElseGet(() -> collection.insertOne(document));
+            setBackIdValue(document, entity);
+            return insertOneResult.wasAcknowledged();
         } catch (Exception e) {
             logger.error("save fail , error info : {}", e.getMessage(), e);
             return false;
@@ -422,27 +428,21 @@ public class SqlExecute {
     }
 
     public Boolean executeRemoveBatchByIds(ClientSession clientSession,Collection<Serializable> idList,MongoCollection<Document> collection){
-        List<Serializable> serializableList = idList.stream().filter(id -> ObjectId.isValid(String.valueOf(id))).collect(Collectors.toList());
-        if (idList.size() == serializableList.size()){
-            Bson objectIdBson = Filters.in(SqlOperationConstant._ID, idList.stream().map(id -> new ObjectId(String.valueOf(id))));
-            return Optional.ofNullable(clientSession).map(session -> collection.deleteMany(session,objectIdBson)).orElseGet(() -> collection.deleteMany(objectIdBson)).getDeletedCount() >= 1;
-        } else if (serializableList.isEmpty()){
-            Bson ids = Filters.in(SqlOperationConstant._ID, idList.stream().map(String::valueOf));
-            return Optional.ofNullable(clientSession).map(session -> collection.deleteMany(session,ids)).orElseGet(() -> collection.deleteMany(ids)).getDeletedCount() >= 1;
-        } else {
-            int line = 0;
-            for (Serializable serializable : idList) {
-                line+=doRemoveById(clientSession,collectionName,serializable) ? 1 : 0;
-            }
-            return line >= 1;
-        }
+        List<Serializable> convertedIds = idList.stream()
+                .map(String::valueOf)
+                .map(id -> ObjectId.isValid(id) ? new ObjectId(id) : (Serializable) id)
+                .collect(Collectors.toList());
+        Bson objectIdBson = Filters.in(SqlOperationConstant._ID, convertedIds);
+        return Optional.ofNullable(clientSession)
+                .map(session -> collection.deleteMany(session,objectIdBson))
+                .orElseGet(() -> collection.deleteMany(objectIdBson)).getDeletedCount() >= 1;
     }
 
     public <T> List<T> doList(Class<T> clazz) {
         return doList(null,clazz);
     }
 
-    public <T> List<T> doList(ClientSession clientSession,Class<T> clazz) {
+    public <T> List<T> doList(ClientSession clientSession, Class<T> clazz) {
         MongoCollection<Document> collection = getCollection(clazz);
         if (StringUtils.isNotBlank(createIndex)) {
             collection.createIndex(new Document(createIndex, QueryOperatorEnum.TEXT.getValue()));
@@ -608,19 +608,11 @@ public class SqlExecute {
     }
 
     private BasicDBObject checkIdType(Collection<Serializable> ids) {
-        List<Serializable> serializableList = ids.stream().filter(id -> ObjectId.isValid(String.valueOf(id))).collect(Collectors.toList());
-        if (ids.size() == serializableList.size()){
-            ids = ids.stream().map(id -> new ObjectId(String.valueOf(id))).collect(Collectors.toList());
-        } else if (serializableList.isEmpty()){
-            ids = ids.stream().map(String::valueOf).collect(Collectors.toList());
-        }else {
-            List<Serializable> idList = new ArrayList<>();
-            ids.forEach(id -> {
-                idList.add(ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id));
-            });
-            ids = idList;
-        }
-        return new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.IN.getCondition(), ids));
+        List<Serializable> convertedIds = ids.stream()
+                .map(String::valueOf)
+                .map(id -> ObjectId.isValid(id) ? new ObjectId(id) : (Serializable) id)
+                .collect(Collectors.toList());
+        return new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.IN.getCondition(), convertedIds));
     }
 
     public Boolean doUpdate(List<CompareCondition> compareConditionList,Class<?> clazz) {
@@ -913,7 +905,6 @@ public class SqlExecute {
 
     private MongoCollection<Document> getCollection(String collectionName) {
         createIndex = null;
-        this.collectionName = collectionName;
         // 检查连接是否需要重新创建
         if (!this.collectionMap.containsKey(collectionName)) {
             if (connectMongoDB == null || !Objects.equals(connectMongoDB.getCollection(), collectionName)){
@@ -927,25 +918,77 @@ public class SqlExecute {
     }
 
     private <T> Document processIdField(T entity){
-        Map<String, Object> tableFieldMap = checkTableField(entity,true);
-        if (tableFieldMap.containsKey(SqlOperationConstant.AUTO_NUM)){
-            long num = 1L;
-            MongoCollection<Document> collection = getCollection("counters");
-            Document query = new Document(SqlOperationConstant._ID, collectionName);
-            Document update = new Document("$inc", new Document(SqlOperationConstant.AUTO_NUM, num));
-            Document document = collection.findOneAndUpdate(query,update,new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
-            if (document == null){
-                Long finalNum = num;
-                collection.insertOne(new Document(new HashMap<String,Object>(){{
-                    put(SqlOperationConstant._ID,collectionName);
-                    put(SqlOperationConstant.AUTO_NUM, finalNum);
-                }}));
-            }else {
-                num = Long.parseLong(String.valueOf(document.get(SqlOperationConstant.AUTO_NUM)));
-            }
-            tableFieldMap.put(SqlOperationConstant._ID, String.valueOf(num));
-        }
+        // TODO 反射较多，考虑使用缓存
+        Map<String, Object> tableFieldMap = checkTableField(entity);
+        fillId(entity, tableFieldMap);
         return new Document(tableFieldMap);
+    }
+
+    private String getAutoId(Class<?> clazz) {
+        String num = "1";
+        MongoCollection<Document> collection = getCollection("counters");
+        Document query = new Document(SqlOperationConstant._ID, MongoCollectionUtils.getLowerCaseName(clazz));
+        Document update = new Document("$inc", new Document(SqlOperationConstant.AUTO_NUM, 1));
+        Document document = collection.findOneAndUpdate(query,update,new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
+        if (document == null){
+            Long finalNum = Long.parseLong(num);
+            collection.insertOne(new Document(new HashMap<String,Object>(){{
+                put(SqlOperationConstant._ID, MongoCollectionUtils.getLowerCaseName(clazz));
+                put(SqlOperationConstant.AUTO_NUM, finalNum);
+            }}));
+        }else {
+            num = String.valueOf(document.get(SqlOperationConstant.AUTO_NUM));
+        }
+        return String.valueOf(num);
+    }
+
+    private <T> void fillId(T entity, Map<String, Object> tableFieldMap) {
+        // 用户自行设置了id字段
+        if (tableFieldMap.containsKey(SqlOperationConstant._ID)) {
+            // 检查一边id的入库类型
+            Object idObj = tableFieldMap.get(SqlOperationConstant._ID);
+            if (ObjectId.isValid(String.valueOf(idObj)) && !idObj.getClass().equals(ObjectId.class)) {
+                tableFieldMap.put(SqlOperationConstant._ID, new ObjectId(String.valueOf(idObj)));
+            }
+            return;
+        }
+        Field idField = getIdField(entity.getClass());
+        // 没有指定id字段
+        if (idField == null) {
+            return;
+        }
+        ID annotation = idField.getAnnotation(ID.class);
+        if (annotation.type() == IdTypeEnum.AUTO) {
+            tableFieldMap.put(SqlOperationConstant._ID, getAutoId(entity.getClass()));
+        } else {
+            tableFieldMap.put(SqlOperationConstant._ID, Generate.generateId(annotation.type()));
+        }
+    }
+
+    private <T> void setBackIdValue(Document document, T entity) {
+        Object idValue = document.get(SqlOperationConstant._ID);
+        if (idValue == null) {
+            return;
+        }
+        Field idField = getIdField(entity.getClass());
+        if (idField == null) {
+            return;
+        }
+        if (ReflectionUtils.getFieldValue(entity, idField) != null) {
+            return;
+        }
+        try {
+            // 暂时只支持两种类型转换
+            String str = String.valueOf(idValue);
+            if (idField.getType().equals(String.class)) {
+                ReflectionUtils.setFieldValue(entity, idField, str);
+            } else if(idField.getType().equals(ObjectId.class) && ObjectId.isValid(str)) {
+                ReflectionUtils.setFieldValue(entity, idField, new ObjectId(str));
+            }
+        } catch (Exception e) {
+            logger.warn("set back id field value error, error message: {}", e.getMessage());
+            // Ignore...
+        }
     }
 
     private <T> List<Document> processIdFieldList(Collection<T> entityList){
@@ -998,13 +1041,5 @@ public class SqlExecute {
 
     public void setCreateIndex(String createIndex) {
         this.createIndex = createIndex;
-    }
-
-    public String getCollectionName() {
-        return collectionName;
-    }
-
-    public void setCollectionName(String collectionName) {
-        this.collectionName = collectionName;
     }
 }

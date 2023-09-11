@@ -119,20 +119,46 @@ public final class StringUtils {
      * @param str 字符串
      * @return String
      */
-    public static String firstCharToLoweCase(String str) {
-        if (str == null || str.length() == 0) {
+    public static String firstCharToLowerCase(String str) {
+        return changeFirstCharCase(str, false);
+    }
+
+    /**
+     * 首字母大写
+     * @param str 字符串
+     * @return String
+     */
+    public static String firstCharToUpperCase(String str) {
+        return changeFirstCharCase(str, true);
+    }
+
+    /**
+     * 更改字符串第一个字符的大小写
+     * @param str 字符串
+     * @param capitalize true大写 false小写
+     * @return 更改后的字符串
+     */
+    private static String changeFirstCharCase(String str, boolean capitalize) {
+        if (str == null || str.isEmpty()) {
             return str;
         }
-        char first = str.charAt(0);
-        if (first >= 'A' && first <= 'Z') {
-            first = (char) (first + 32);
-            if (str.length() == 1) {
-                return String.valueOf(first);
-            }
-            return first + str.substring(1);
+        char baseChar = str.charAt(0);
+        char updatedChar;
+        if (capitalize) {
+            updatedChar = Character.toUpperCase(baseChar);
+        } else {
+            updatedChar = Character.toLowerCase(baseChar);
         }
-        return str;
+
+        if (baseChar == updatedChar) {
+            return str;
+        } else {
+            char[] chars = str.toCharArray();
+            chars[0] = updatedChar;
+            return new String(chars);
+        }
     }
+
 
     /**
      * 查找 src 里包含几个 target
@@ -321,19 +347,6 @@ public final class StringUtils {
             }
         }
         return sb.toString();
-    }
-
-    /**
-     * 首字母转换小写
-     *
-     * @param param 需要转换的字符串
-     * @return 转换好的字符串
-     */
-    public static String firstToLowerCase(String param) {
-        if (isBlank(param)) {
-            return StringPool.EMPTY;
-        }
-        return param.substring(0, 1).toLowerCase() + param.substring(1);
     }
 
     /**
