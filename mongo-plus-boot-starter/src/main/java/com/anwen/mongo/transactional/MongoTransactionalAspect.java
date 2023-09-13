@@ -1,13 +1,11 @@
 package com.anwen.mongo.transactional;
 
-import com.alibaba.fastjson.JSON;
 import com.mongodb.ClientSessionOptions;
 import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoClient;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.bson.BsonDocument;
 
 /**
  * @author JiaChaoYang

@@ -9,9 +9,7 @@ import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.conn.ConnectMongoDB;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.convert.Converter;
-import com.anwen.mongo.convert.DocumentFieldMapper;
 import com.anwen.mongo.convert.DocumentMapperConvert;
-import com.anwen.mongo.convert.factory.DocumentFieldMapperFactory;
 import com.anwen.mongo.domain.InitMongoCollectionException;
 import com.anwen.mongo.domain.MongoQueryException;
 import com.anwen.mongo.enums.AggregateOptionsEnum;
@@ -29,7 +27,6 @@ import com.mongodb.client.model.Collation;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
-import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.BsonValue;
@@ -986,8 +983,7 @@ public class SqlExecute {
                 ReflectionUtils.setFieldValue(entity, idField, new ObjectId(str));
             }
         } catch (Exception e) {
-            logger.warn("set back id field value error, error message: {}", e.getMessage());
-            // Ignore...
+            logger.error("set back id field value error, error message: {}", e.getMessage());
         }
     }
 

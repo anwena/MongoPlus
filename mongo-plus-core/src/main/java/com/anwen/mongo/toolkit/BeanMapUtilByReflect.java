@@ -2,9 +2,7 @@ package com.anwen.mongo.toolkit;
 
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
-import com.anwen.mongo.constant.IdAutoConstant;
 import com.anwen.mongo.constant.SqlOperationConstant;
-import com.anwen.mongo.enums.IdTypeEnum;
 import org.bson.Document;
 
 import java.lang.reflect.AccessibleObject;

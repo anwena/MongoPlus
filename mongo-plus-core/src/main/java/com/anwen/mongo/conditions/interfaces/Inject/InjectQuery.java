@@ -1,6 +1,5 @@
 package com.anwen.mongo.conditions.interfaces.Inject;
 
-import com.anwen.mongo.annotation.CutInID;
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.model.PageParam;
