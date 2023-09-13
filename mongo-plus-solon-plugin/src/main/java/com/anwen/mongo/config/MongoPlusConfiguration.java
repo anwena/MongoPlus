@@ -1,5 +1,6 @@
 package com.anwen.mongo.config;
 
+import com.anwen.mongo.cache.MongoClientCache;
 import com.anwen.mongo.config.log.MongoDBLogProperty;
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.log.CustomMongoDriverLogger;
@@ -34,6 +35,7 @@ public class MongoPlusConfiguration {
         }
         MongoClient mongoClient = MongoClients.create(builder.build());
         sqlExecute.setMongoClient(mongoClient);
+        MongoClientCache.mongoClient = mongoClient;
         return sqlExecute;
     }
 

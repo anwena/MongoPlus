@@ -13,6 +13,7 @@ import org.bson.BsonDocument;
  * @author JiaChaoYang
  **/
 @Aspect
+@Deprecated
 public class MongoTransactionalAspect {
 
     public MongoTransactionalAspect(MongoClient mongoClient) {
@@ -54,8 +55,6 @@ public class MongoTransactionalAspect {
      * @date 2023/7/30 18:15
     */
     private void commitTransaction() {
-        BsonDocument document = session.getServerSession().getIdentifier();
-        System.out.println("提交时候的session："+ JSON.toJSONString(document));
         session.commitTransaction();
     }
 
@@ -65,14 +64,10 @@ public class MongoTransactionalAspect {
      * @date 2023/7/30 18:16
     */
     private void rollbackTransaction() {
-        BsonDocument document = session.getServerSession().getIdentifier();
-        System.out.println("回滚时候的session："+ JSON.toJSONString(document));
         session.abortTransaction();
     }
 
     private void closeSession() {
-        BsonDocument document = session.getServerSession().getIdentifier();
-        System.out.println("关闭时候的session："+ JSON.toJSONString(document));
         session.close();
     }
 }

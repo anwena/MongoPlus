@@ -498,12 +498,12 @@ public class SqlExecute {
         return !result.isEmpty() ? result.get(0) : new HashMap<>();
     }
 
-    public Map<String, Object> doLimitOne(String collectionName, List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
-        return doLimitOne(null,collectionName,compareConditionList,projectionList,basicDBObjectList);
+    public Map<String, Object> doLimitOne(String collectionName, List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,List<Order> orderList) {
+        return doLimitOne(null,collectionName,compareConditionList,projectionList,basicDBObjectList,orderList);
     }
 
-    public Map<String, Object> doLimitOne(ClientSession clientSession,String collectionName, List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
-        List<Map<String, Object>> result = getLambdaQueryResult(clientSession,collectionName, compareConditionList, null,projectionList,basicDBObjectList);
+    public Map<String, Object> doLimitOne(ClientSession clientSession,String collectionName, List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,List<Order> orderList) {
+        List<Map<String, Object>> result = getLambdaQueryResult(clientSession,collectionName, compareConditionList, orderList,projectionList,basicDBObjectList);
         return !result.isEmpty() ? result.get(0) : new HashMap<>();
     }
 
@@ -548,12 +548,12 @@ public class SqlExecute {
     }
 
 
-    public <T> T doLimitOne(List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,Class<T> clazz) {
-        return doLimitOne(null,compareConditionList,projectionList,basicDBObjectList,clazz);
+    public <T> T doLimitOne(List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,List<Order> orderList,Class<T> clazz) {
+        return doLimitOne(null,compareConditionList,projectionList,basicDBObjectList,orderList,clazz);
     }
 
-    public <T> T doLimitOne(ClientSession clientSession,List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,Class<T> clazz) {
-        List<T> result = getLambdaQueryResult(clientSession,compareConditionList, null,projectionList,basicDBObjectList,clazz);
+    public <T> T doLimitOne(ClientSession clientSession,List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,List<Order> orderList,Class<T> clazz) {
+        List<T> result = getLambdaQueryResult(clientSession,compareConditionList, orderList,projectionList,basicDBObjectList,clazz);
         return !result.isEmpty() ? result.get(0) : null;
     }
 

@@ -35,8 +35,7 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
             Class<?> genericityClass = serviceImpl.getGenericityClazz();
             setSqlExecute(serviceImpl, genericityClass);
         } catch (BeansException e) {
-            logger.warn("{} is not a spring bean, exception message: {}", serviceClazz, e.getMessage());
-            // Ignore...
+            logger.error("{} is not a spring bean, exception message: {}", serviceClazz, e.getMessage());
         }
     }
 

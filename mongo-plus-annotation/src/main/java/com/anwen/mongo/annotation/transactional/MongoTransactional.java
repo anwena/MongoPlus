@@ -12,5 +12,6 @@ import java.lang.annotation.*;
 //表明这个注解应该被 javadoc工具记录
 //生成文档
 @Documented
+@Deprecated
 public @interface MongoTransactional {
 }

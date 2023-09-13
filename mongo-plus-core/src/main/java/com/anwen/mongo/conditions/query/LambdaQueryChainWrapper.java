@@ -45,12 +45,12 @@ public class LambdaQueryChainWrapper<T> extends QueryChainWrapper<T,LambdaQueryC
 
     @Override
     public T limitOne() {
-        return sqlExecute.doLimitOne(getCompareList(),getProjectionList(),getBasicDBObjectList(),clazz);
+        return sqlExecute.doLimitOne(getCompareList(),getProjectionList(),getBasicDBObjectList(),getOrderList(),clazz);
     }
 
     @Override
     public T limitOne(ClientSession clientSession) {
-        return sqlExecute.doLimitOne(clientSession,getCompareList(),getProjectionList(),getBasicDBObjectList(),clazz);
+        return sqlExecute.doLimitOne(clientSession,getCompareList(),getProjectionList(),getBasicDBObjectList(),getOrderList(),clazz);
     }
 
     @Override

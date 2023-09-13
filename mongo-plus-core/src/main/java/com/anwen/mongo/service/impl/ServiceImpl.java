@@ -211,12 +211,12 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public T limitOne(QueryChainWrapper<T, ?> queryChainWrapper) {
-        return sqlExecute.doLimitOne(queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),clazz);
+        return sqlExecute.doLimitOne(queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),queryChainWrapper.getOrderList(),clazz);
     }
 
     @Override
     public T limitOne(ClientSession clientSession, QueryChainWrapper<T, ?> queryChainWrapper) {
-        return sqlExecute.doLimitOne(clientSession,queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),clazz);
+        return sqlExecute.doLimitOne(clientSession,queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),queryChainWrapper.getOrderList(),clazz);
     }
 
     @Override

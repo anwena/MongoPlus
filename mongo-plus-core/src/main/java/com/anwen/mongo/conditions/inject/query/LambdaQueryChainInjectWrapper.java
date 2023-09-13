@@ -35,12 +35,12 @@ public class LambdaQueryChainInjectWrapper extends QueryChainWrapper<Map<String,
 
     @Override
     public Map<String, Object> limitOne(String collectionName) {
-        return sqlExecute.doLimitOne(collectionName,getCompareList(),getProjectionList(),getBasicDBObjectList());
+        return sqlExecute.doLimitOne(collectionName,getCompareList(),getProjectionList(),getBasicDBObjectList(),getOrderList());
     }
 
     @Override
     public Map<String, Object> limitOne(ClientSession clientSession, String collectionName) {
-        return sqlExecute.doLimitOne(clientSession,collectionName,getCompareList(),getProjectionList(),getBasicDBObjectList());
+        return sqlExecute.doLimitOne(clientSession,collectionName,getCompareList(),getProjectionList(),getBasicDBObjectList(),getOrderList());
     }
 
     @Override

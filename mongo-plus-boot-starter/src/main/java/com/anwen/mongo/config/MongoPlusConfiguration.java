@@ -74,6 +74,7 @@ public class MongoPlusConfiguration {
     }
 
     @Bean("mongoTransactionalAspect")
+    @Deprecated
     public MongoTransactionalAspect mongoTransactionalAspect(){
         return new MongoTransactionalAspect(this.mongoClient);
     }
