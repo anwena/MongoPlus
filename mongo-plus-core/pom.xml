@@ -13,6 +13,7 @@
     <artifactId>mongo-plus-core</artifactId>
     <packaging>jar</packaging>
     <name>mongo-plus-core</name>
+    <version>${mongoplus.version}</version>
     <description>mongo-plus核心代码</description>
     <url>https://gitee.com/jia-chaoyang/mongo-plus</url>
     <inceptionYear>2023</inceptionYear>
@@ -62,7 +63,7 @@
         <dependency>
             <groupId>com.gitee.anwena</groupId>
             <artifactId>mongo-plus-annotation</artifactId>
-            <version>${project.version}</version>
+            <version>${mongoplus.version}</version>
         </dependency>
         <dependency>
             <groupId>org.reflections</groupId>

@@ -13,6 +13,7 @@
     <artifactId>mongo-plus-boot-starter</artifactId>
     <name>mongo-plus-boot-starter</name>
     <packaging>jar</packaging>
+    <version>${mongoplus.version}</version>
     <description>mongo-plus-boot-starter主程序</description>
     <url>https://gitee.com/jia-chaoyang/mongo-plus</url>
     <inceptionYear>2023</inceptionYear>
@@ -68,7 +69,7 @@
         <dependency>
             <groupId>com.gitee.anwena</groupId>
             <artifactId>mongo-plus-core</artifactId>
-            <version>${project.version}</version>
+            <version>${mongoplus.version}</version>
         </dependency>
         <dependency>
             <groupId>org.aspectj</groupId>
