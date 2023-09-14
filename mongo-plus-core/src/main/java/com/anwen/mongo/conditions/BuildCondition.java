@@ -11,14 +11,12 @@ import com.anwen.mongo.enums.CompareEnum;
 import com.anwen.mongo.enums.LogicTypeEnum;
 import com.anwen.mongo.enums.QueryOperatorEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
+import com.anwen.mongo.toolkit.ObjectIdUtil;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.BasicDBObject;
 import org.bson.types.ObjectId;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -68,11 +66,10 @@ public class BuildCondition {
                         put(SpecialConditionEnum.TEXT.getCondition(), new BasicDBObject(SpecialConditionEnum.SEARCH.getCondition(), compare.getValue()));
                         IndexConstant.createIndex = compare.getColumn();
                     } else if (Objects.equals(compare.getColumn(), SqlOperationConstant._ID)) {
-                        //如果是objectId
-                        if (ObjectId.isValid(String.valueOf(compare.getValue()))) {
-                            put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), new org.bson.types.ObjectId(String.valueOf(compare.getValue()))));
+                        if (SpecialConditionEnum.IN.getCondition().equals("$" + compare.getCondition())) {
+                            put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), ObjectIdUtil.convertObjectId((Collection<?>)compare.getValue())));
                         } else {
-                            put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), String.valueOf(compare.getValue())));
+                            put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), ObjectIdUtil.convertObjectId(compare.getValue())));
                         }
                     } else {
                         put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), compare.getValue()));
