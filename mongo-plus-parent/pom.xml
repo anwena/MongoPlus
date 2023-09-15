@@ -43,7 +43,7 @@
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <mongoplus.version>2.0.6</mongoplus.version>
+        <mongoplus.version>2.0.6.1</mongoplus.version>
     </properties>
 
     <dependencyManagement>
@@ -147,8 +147,8 @@
 
                 </plugins>
             </build>
-
-            <distributionManagement>
+            <!-- maven中央仓库 -->
+<!--            <distributionManagement>
                 <snapshotRepository>
                     <id>release</id>
                     <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
@@ -157,6 +157,20 @@
                     <id>release</id>
                     <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
                 </repository>
+            </distributionManagement>-->
+            <!-- 私服 -->
+            <distributionManagement>
+                <repository>
+                    <id>mongo-plus-releases</id>
+                    <name>mongo-plus-releases</name>
+                    <url>https://www.mongoplus.cn/nexus/repository/mongo-plus-releases/</url>
+                    <uniqueVersion>true</uniqueVersion>
+                </repository>
+                <snapshotRepository>
+                    <id>mongo-plus-snapshots</id>
+                    <name>mongo-plus-snapshots</name>
+                    <url>https://www.mongoplus.cn/nexus/repository/mongo-plus-snapshots/</url>
+                </snapshotRepository>
             </distributionManagement>
         </profile>
 
