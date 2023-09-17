@@ -12,7 +12,6 @@ import org.aspectj.lang.annotation.Aspect;
  * @author JiaChaoYang
  **/
 @Aspect
-@Deprecated
 public class MongoTransactionalAspect {
 
     public MongoTransactionalAspect(MongoClient mongoClient) {
@@ -52,6 +51,7 @@ public class MongoTransactionalAspect {
             session.startTransaction();
             MongoTransactionContext.setClientSessionContext(session);
         }
+        System.out.println("开启事务了。。。");
     }
 
     /**
@@ -61,6 +61,7 @@ public class MongoTransactionalAspect {
     */
     private void commitTransaction() {
         session.commitTransaction();
+        System.out.println("提交事务了。。。");
     }
 
     /**
@@ -70,9 +71,11 @@ public class MongoTransactionalAspect {
     */
     private void rollbackTransaction() {
         session.abortTransaction();
+        System.out.println("回滚事务了。。。");
     }
 
     private void closeSession() {
         session.close();
+        System.out.println("关闭事务了。。。");
     }
 }

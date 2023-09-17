@@ -8,7 +8,7 @@ import com.mongodb.client.ClientSession;
  * * @date 2023/09/17 17:42
  */
 public class MongoTransactionContext {
-    private static ThreadLocal<ClientSession> threadLocalHeaderMap = new ThreadLocal();
+    private static final ThreadLocal<ClientSession> threadLocalHeaderMap = new ThreadLocal<>();
 
     public MongoTransactionContext() {
     }
@@ -22,6 +22,6 @@ public class MongoTransactionContext {
     }
 
     public static void clear() {
-        threadLocalHeaderMap.set(null);
+        threadLocalHeaderMap.remove();
     }
 }

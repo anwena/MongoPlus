@@ -208,7 +208,7 @@ public class SqlExecute {
     }
 
     public <T> Boolean doSaveOrUpdateBatch(Collection<T> entityList) {
-        return doSaveOrUpdateBatch(null,entityList);
+        return doSaveOrUpdateBatch(MongoTransactionContext.getClientSessionContext(),entityList);
     }
 
     public <T> Boolean doSaveOrUpdateBatch(ClientSession clientSession,Collection<T> entityList) {
@@ -261,7 +261,7 @@ public class SqlExecute {
 
 
     public <T> Boolean doUpdateById(T entity) {
-        return doUpdateById(null,entity);
+        return doUpdateById(MongoTransactionContext.getClientSessionContext(),entity);
     }
 
     public <T> Boolean doUpdateById(ClientSession clientSession,T entity) {
@@ -310,7 +310,7 @@ public class SqlExecute {
     }
 
     public Boolean doUpdateBatchByIds(String collectionName, Collection<Map<String, Object>> entityList) {
-        return doUpdateBatchByIds(null,collectionName,entityList);
+        return doUpdateBatchByIds(MongoTransactionContext.getClientSessionContext(),collectionName,entityList);
     }
 
     public Boolean doUpdateBatchByIds(ClientSession clientSession,String collectionName, Collection<Map<String, Object>> entityList) {
@@ -322,7 +322,7 @@ public class SqlExecute {
     }
 
     public <T> Boolean doUpdateByColumn(T entity, SFunction<T, Object> column) {
-        return doUpdateByColumn(null,entity,column);
+        return doUpdateByColumn(MongoTransactionContext.getClientSessionContext(),entity,column);
     }
 
     public <T> Boolean doUpdateByColumn(ClientSession clientSession,T entity, SFunction<T, Object> column) {
@@ -331,7 +331,7 @@ public class SqlExecute {
 
 
     public <T> Boolean doUpdateByColumn(T entity, String column) {
-        return doUpdateByColumn(null,entity,column);
+        return doUpdateByColumn(MongoTransactionContext.getClientSessionContext(),entity,column);
     }
 
     public <T> Boolean doUpdateByColumn(ClientSession clientSession,T entity, String column) {
@@ -343,7 +343,7 @@ public class SqlExecute {
     }
 
     public Boolean doUpdateByColumn(String collectionName,Map<String,Object> entityMap, String column) {
-        return doUpdateByColumn(null,collectionName,entityMap,column);
+        return doUpdateByColumn(MongoTransactionContext.getClientSessionContext(),collectionName,entityMap,column);
     }
 
     public Boolean doUpdateByColumn(ClientSession clientSession,String collectionName,Map<String,Object> entityMap, String column) {
@@ -359,7 +359,7 @@ public class SqlExecute {
 
 
     public Boolean doRemoveById(Serializable id,Class<?> clazz) {
-        return doRemoveById(null,id,clazz);
+        return doRemoveById(MongoTransactionContext.getClientSessionContext(),id,clazz);
     }
 
     public Boolean doRemoveById(ClientSession clientSession,Serializable id,Class<?> clazz) {
@@ -367,7 +367,7 @@ public class SqlExecute {
     }
 
     public Boolean doRemoveById(String collectionName,Serializable id) {
-        return doRemoveById(null,collectionName,id);
+        return doRemoveById(MongoTransactionContext.getClientSessionContext(),collectionName,id);
     }
 
     public Boolean doRemoveById(ClientSession clientSession,String collectionName,Serializable id) {
@@ -388,7 +388,7 @@ public class SqlExecute {
     }
 
     public Boolean doRemoveByColumn(String column, String value,Class<?> clazz) {
-        return doRemoveByColumn(null,column,value,clazz);
+        return doRemoveByColumn(MongoTransactionContext.getClientSessionContext(),column,value,clazz);
     }
 
     public Boolean doRemoveByColumn(ClientSession clientSession,String column, String value,Class<?> clazz) {
@@ -396,7 +396,7 @@ public class SqlExecute {
     }
 
     public Boolean doRemoveByColumn(String collectionName,String column, String value) {
-        return doRemoveByColumn(null,collectionName,column,value);
+        return doRemoveByColumn(MongoTransactionContext.getClientSessionContext(),collectionName,column,value);
     }
 
     public Boolean doRemoveByColumn(ClientSession clientSession,String collectionName,String column, String value) {
@@ -410,7 +410,7 @@ public class SqlExecute {
 
 
     public Boolean doRemoveBatchByIds(Collection<Serializable> idList,Class<?> clazz) {
-        return doRemoveBatchByIds(null,idList,clazz);
+        return doRemoveBatchByIds(MongoTransactionContext.getClientSessionContext(),idList,clazz);
     }
 
     public Boolean doRemoveBatchByIds(ClientSession clientSession,Collection<Serializable> idList,Class<?> clazz) {
@@ -418,7 +418,7 @@ public class SqlExecute {
     }
 
     public Boolean doRemoveBatchByIds(String collectionName,Collection<Serializable> idList) {
-        return doRemoveBatchByIds(null,collectionName,idList);
+        return doRemoveBatchByIds(MongoTransactionContext.getClientSessionContext(),collectionName,idList);
     }
 
     public Boolean doRemoveBatchByIds(ClientSession clientSession,String collectionName,Collection<Serializable> idList) {
@@ -437,7 +437,7 @@ public class SqlExecute {
     }
 
     public <T> List<T> doList(Class<T> clazz) {
-        return doList(null,clazz);
+        return doList(MongoTransactionContext.getClientSessionContext(),clazz);
     }
 
     public <T> List<T> doList(ClientSession clientSession, Class<T> clazz) {
@@ -449,7 +449,7 @@ public class SqlExecute {
     }
 
     public List<Map<String, Object>> doList(String collectionName) {
-        return doList(null,collectionName);
+        return doList(MongoTransactionContext.getClientSessionContext(),collectionName);
     }
 
     public List<Map<String, Object>> doList(ClientSession clientSession,String collectionName) {
@@ -461,7 +461,7 @@ public class SqlExecute {
     }
 
     public List<Map<String, Object>> doList(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList, List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
-        return doList(null,collectionName,compareConditionList,orderList,projectionList,basicDBObjectList);
+        return doList(MongoTransactionContext.getClientSessionContext(),collectionName,compareConditionList,orderList,projectionList,basicDBObjectList);
     }
 
     public List<Map<String, Object>> doList(ClientSession clientSession,String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList, List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
@@ -469,7 +469,7 @@ public class SqlExecute {
     }
 
     public PageResult<Map<String, Object>> doPage(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, Integer pageNum, Integer pageSize) {
-        return doPage(null,collectionName,compareConditionList,orderList,projectionList,basicDBObjectList,pageNum,pageSize);
+        return doPage(MongoTransactionContext.getClientSessionContext(),collectionName,compareConditionList,orderList,projectionList,basicDBObjectList,pageNum,pageSize);
     }
 
     public PageResult<Map<String, Object>> doPage(ClientSession clientSession,String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, Integer pageNum, Integer pageSize) {
@@ -477,7 +477,7 @@ public class SqlExecute {
     }
 
     public PageResult<Map<String,Object>> doPage(String collectionName,Integer pageNum,Integer pageSize){
-        return doPage(null,collectionName,pageNum,pageSize);
+        return doPage(MongoTransactionContext.getClientSessionContext(),collectionName,pageNum,pageSize);
     }
 
     public PageResult<Map<String,Object>> doPage(ClientSession clientSession,String collectionName,Integer pageNum,Integer pageSize){
@@ -485,7 +485,7 @@ public class SqlExecute {
     }
 
     public Map<String, Object> doOne(String collectionName, List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
-        return doOne(null,collectionName,compareConditionList,projectionList,basicDBObjectList);
+        return doOne(MongoTransactionContext.getClientSessionContext(),collectionName,compareConditionList,projectionList,basicDBObjectList);
     }
 
     public Map<String, Object> doOne(ClientSession clientSession,String collectionName, List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
@@ -497,7 +497,7 @@ public class SqlExecute {
     }
 
     public Map<String, Object> doLimitOne(String collectionName, List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,List<Order> orderList) {
-        return doLimitOne(null,collectionName,compareConditionList,projectionList,basicDBObjectList,orderList);
+        return doLimitOne(MongoTransactionContext.getClientSessionContext(),collectionName,compareConditionList,projectionList,basicDBObjectList,orderList);
     }
 
     public Map<String, Object> doLimitOne(ClientSession clientSession,String collectionName, List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,List<Order> orderList) {
@@ -526,7 +526,7 @@ public class SqlExecute {
     }
 
     public <T> List<T> doList(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,Class<T> clazz) {
-        return doList(null,compareConditionList,orderList,projectionList,basicDBObjectList,clazz);
+        return doList(MongoTransactionContext.getClientSessionContext(),compareConditionList,orderList,projectionList,basicDBObjectList,clazz);
     }
 
     public <T> List<T> doList(ClientSession clientSession,List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,Class<T> clazz) {
@@ -534,7 +534,7 @@ public class SqlExecute {
     }
 
     public <T> T doOne(List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,Class<T> clazz) {
-        return doOne(null,compareConditionList,projectionList,basicDBObjectList,clazz);
+        return doOne(MongoTransactionContext.getClientSessionContext(),compareConditionList,projectionList,basicDBObjectList,clazz);
     }
 
     public <T> T doOne(ClientSession clientSession,List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,Class<T> clazz) {
@@ -547,7 +547,7 @@ public class SqlExecute {
 
 
     public <T> T doLimitOne(List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,List<Order> orderList,Class<T> clazz) {
-        return doLimitOne(null,compareConditionList,projectionList,basicDBObjectList,orderList,clazz);
+        return doLimitOne(MongoTransactionContext.getClientSessionContext(),compareConditionList,projectionList,basicDBObjectList,orderList,clazz);
     }
 
     public <T> T doLimitOne(ClientSession clientSession,List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,List<Order> orderList,Class<T> clazz) {
@@ -556,7 +556,7 @@ public class SqlExecute {
     }
 
     public <T> PageResult<T> doPage(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, Integer pageNum, Integer pageSize,Class<T> clazz) {
-        return doPage(null,compareConditionList,orderList,projectionList,basicDBObjectList,pageNum,pageSize,clazz);
+        return doPage(MongoTransactionContext.getClientSessionContext(),compareConditionList,orderList,projectionList,basicDBObjectList,pageNum,pageSize,clazz);
     }
 
     public <T> PageResult<T> doPage(ClientSession clientSession,List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, Integer pageNum, Integer pageSize,Class<T> clazz) {
@@ -564,7 +564,7 @@ public class SqlExecute {
     }
 
     public <T> T doGetById(Serializable id,Class<T> clazz) {
-        return doGetById(null,id,clazz);
+        return doGetById(MongoTransactionContext.getClientSessionContext(),id,clazz);
     }
 
     public <T> T doGetById(ClientSession clientSession,Serializable id,Class<T> clazz) {
@@ -575,7 +575,7 @@ public class SqlExecute {
     }
 
     public boolean doIsExist(Serializable id,Class<?> clazz){
-        return doIsExist(null,id,clazz);
+        return doIsExist(MongoTransactionContext.getClientSessionContext(),id,clazz);
     }
 
     public boolean doIsExist(ClientSession clientSession,Serializable id,Class<?> clazz){
@@ -583,7 +583,7 @@ public class SqlExecute {
     }
 
     public boolean doIsExistMap(String collectionName, Serializable id){
-        return doIsExistMap(null,collectionName,id);
+        return doIsExistMap(MongoTransactionContext.getClientSessionContext(),collectionName,id);
     }
 
     public boolean doIsExistMap(ClientSession clientSession,String collectionName, Serializable id){
@@ -596,7 +596,7 @@ public class SqlExecute {
     }
 
     public <T> List<T> doGetByIds(Collection<Serializable> ids,Class<T> clazz) {
-        return doGetByIds(null,ids,clazz);
+        return doGetByIds(MongoTransactionContext.getClientSessionContext(),ids,clazz);
     }
 
     public <T> List<T> doGetByIds(ClientSession clientSession,Collection<Serializable> ids,Class<T> clazz) {
@@ -682,7 +682,7 @@ public class SqlExecute {
     }
 
     public long doCount(String collectionName){
-        return doCount(null,collectionName);
+        return doCount(MongoTransactionContext.getClientSessionContext(),collectionName);
     }
 
     public long doCount(ClientSession clientSession,String collectionName){
@@ -690,7 +690,7 @@ public class SqlExecute {
     }
 
     public long doCount(Class<?> clazz){
-        return executeCount(null,getCollection(clazz));
+        return executeCount(MongoTransactionContext.getClientSessionContext(),getCollection(clazz));
     }
 
     public long doCount(ClientSession clientSession,Class<?> clazz){
@@ -717,7 +717,7 @@ public class SqlExecute {
     }
 
     public List<Map<String,Object>> doAggregateList(String collectionName,List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject){
-        return doAggregateList(null,collectionName,aggregateList,basicDBObjectList,optionsBasicDBObject);
+        return doAggregateList(MongoTransactionContext.getClientSessionContext(),collectionName,aggregateList,basicDBObjectList,optionsBasicDBObject);
     }
 
     public List<Map<String,Object>> doAggregateList(ClientSession clientSession,String collectionName,List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject){
@@ -732,7 +732,7 @@ public class SqlExecute {
     }
 
     public <E> List<E> doAggregateList(String collectionName,List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject,Class<E> clazz){
-        return doAggregateList(null,collectionName,aggregateList,basicDBObjectList,optionsBasicDBObject,clazz);
+        return doAggregateList(MongoTransactionContext.getClientSessionContext(),collectionName,aggregateList,basicDBObjectList,optionsBasicDBObject,clazz);
     }
 
     public <E> List<E> doAggregateList(ClientSession clientSession,String collectionName,List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject,Class<E> clazz){
@@ -787,7 +787,7 @@ public class SqlExecute {
 
 
     private <T> List<T> getLambdaQueryResult(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,Class<T> clazz) {
-        return getLambdaQueryResult(null,compareConditionList,orderList,projectionList,basicDBObjectList,clazz);
+        return getLambdaQueryResult(MongoTransactionContext.getClientSessionContext(),compareConditionList,orderList,projectionList,basicDBObjectList,clazz);
     }
 
     private <T> List<T> getLambdaQueryResult(ClientSession clientSession,List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,Class<T> clazz) {
@@ -795,7 +795,7 @@ public class SqlExecute {
     }
 
     private List<Map<String, Object>> getLambdaQueryResult(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
-        return getLambdaQueryResult(null,collectionName,compareConditionList,orderList,projectionList,basicDBObjectList);
+        return getLambdaQueryResult(MongoTransactionContext.getClientSessionContext(),collectionName,compareConditionList,orderList,projectionList,basicDBObjectList);
     }
 
     private List<Map<String, Object>> getLambdaQueryResult(ClientSession clientSession,String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
@@ -809,7 +809,7 @@ public class SqlExecute {
      * @date 2023/6/25/025 1:51
      */
     private FindIterable<Document> baseLambdaQuery(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,Class<?> clazz) {
-        return baseLambdaQuery(null,compareConditionList,orderList,projectionList,basicDBObjectList,clazz);
+        return baseLambdaQuery(MongoTransactionContext.getClientSessionContext(),compareConditionList,orderList,projectionList,basicDBObjectList,clazz);
     }
 
     private FindIterable<Document> baseLambdaQuery(ClientSession clientSession,List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,Class<?> clazz) {
@@ -831,7 +831,7 @@ public class SqlExecute {
     }
 
     private FindIterable<Map> baseLambdaQuery(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
-        return baseLambdaQuery(null,collectionName,compareConditionList,orderList,projectionList,basicDBObjectList);
+        return baseLambdaQuery(MongoTransactionContext.getClientSessionContext(),collectionName,compareConditionList,orderList,projectionList,basicDBObjectList);
     }
 
     private FindIterable<Map> baseLambdaQuery(ClientSession clientSession,String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
@@ -853,7 +853,7 @@ public class SqlExecute {
     }
 
     private <T> PageResult<T> getLambdaQueryResultPage(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, PageParam pageParams,Class<T> clazz) {
-        return getLambdaQueryResultPage(null,compareConditionList,orderList,projectionList,basicDBObjectList,pageParams,clazz);
+        return getLambdaQueryResultPage(MongoTransactionContext.getClientSessionContext(),compareConditionList,orderList,projectionList,basicDBObjectList,pageParams,clazz);
     }
 
     private <T> PageResult<T> getLambdaQueryResultPage(ClientSession clientSession,List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, PageParam pageParams,Class<T> clazz) {
@@ -869,7 +869,7 @@ public class SqlExecute {
     }
 
     private PageResult<Map<String, Object>> getLambdaQueryResultPage(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, PageParam pageParams) {
-        return getLambdaQueryResultPage(null,collectionName,compareConditionList,orderList,projectionList,basicDBObjectList,pageParams);
+        return getLambdaQueryResultPage(MongoTransactionContext.getClientSessionContext(),collectionName,compareConditionList,orderList,projectionList,basicDBObjectList,pageParams);
     }
 
     private PageResult<Map<String, Object>> getLambdaQueryResultPage(ClientSession clientSession,String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, PageParam pageParams) {
