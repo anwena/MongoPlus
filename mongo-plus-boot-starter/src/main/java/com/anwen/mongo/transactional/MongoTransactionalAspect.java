@@ -1,12 +1,15 @@
 package com.anwen.mongo.transactional;
 
 import com.anwen.mongo.context.MongoTransactionContext;
+import com.anwen.mongo.context.MongoTransactionStatus;
 import com.mongodb.ClientSessionOptions;
 import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoClient;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author JiaChaoYang
@@ -14,13 +17,13 @@ import org.aspectj.lang.annotation.Aspect;
 @Aspect
 public class MongoTransactionalAspect {
 
+    private static final Logger logger = LoggerFactory.getLogger(MongoTransactionalAspect.class);
+
     public MongoTransactionalAspect(MongoClient mongoClient) {
         this.mongoClient = mongoClient;
     }
 
     private final MongoClient mongoClient;
-
-    private ClientSession session;
 
     @Around("@annotation(com.anwen.mongo.annotation.transactional.MongoTransactional)")
     public Object manageTransaction(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -32,8 +35,7 @@ public class MongoTransactionalAspect {
         } catch (Exception e) {
             rollbackTransaction();
             throw new RuntimeException(e);
-        }finally {
-            MongoTransactionContext.clear();
+        } finally {
             closeSession();
         }
     }
@@ -45,13 +47,18 @@ public class MongoTransactionalAspect {
     */
     private void startTransaction() {
         //获取线程中的session
-        ClientSession clientSession = MongoTransactionContext.getClientSessionContext();
-        if (clientSession == null) {
-            this.session = mongoClient.startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
+        ClientSession session = MongoTransactionContext.getClientSessionContext();
+        if (session == null) {
+            session = mongoClient.startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
             session.startTransaction();
-            MongoTransactionContext.setClientSessionContext(session);
+            MongoTransactionStatus status = new MongoTransactionStatus(session);
+            MongoTransactionContext.setTransactionStatus(status);
         }
-        System.out.println("开启事务了。。。");
+        // 每个被切到的方法都引用加一
+        MongoTransactionContext.getMongoTransactionStatus().incrementReference();
+        if (logger.isDebugEnabled()) {
+            logger.debug("Mongo transaction created, Thread:{}, session hashcode:{}", Thread.currentThread().getName(), session.hashCode());
+        }
     }
 
     /**
@@ -60,8 +67,18 @@ public class MongoTransactionalAspect {
      * @date 2023/7/30 18:15
     */
     private void commitTransaction() {
-        session.commitTransaction();
-        System.out.println("提交事务了。。。");
+        MongoTransactionStatus status = MongoTransactionContext.getMongoTransactionStatus();
+        if (status == null) {
+            logger.warn("no session to commit.");
+            return;
+        }
+        status.decrementReference();
+        if (status.readyCommit()) {
+            status.getClientSession().commitTransaction();
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Mongo transaction committed, Thread:{}, session hashcode:{}", Thread.currentThread().getName(), status.getClientSession().hashCode());
+        }
     }
 
     /**
@@ -70,12 +87,35 @@ public class MongoTransactionalAspect {
      * @date 2023/7/30 18:16
     */
     private void rollbackTransaction() {
-        session.abortTransaction();
-        System.out.println("回滚事务了。。。");
+        MongoTransactionStatus status = MongoTransactionContext.getMongoTransactionStatus();
+        if (status == null) {
+            logger.warn("no session to rollback.");
+            return;
+        }
+        // 清空计数器
+        status.clearReference();
+        status.getClientSession().abortTransaction();
+        if (logger.isDebugEnabled()) {
+            logger.debug("Mongo transaction rolled back, Thread:{}, session hashcode:{}", Thread.currentThread().getName(), status.getClientSession().hashCode());
+        }
     }
 
     private void closeSession() {
-        session.close();
-        System.out.println("关闭事务了。。。");
+        MongoTransactionStatus status = MongoTransactionContext.getMongoTransactionStatus();
+        if (status == null) {
+            logger.warn("no session to rollback.");
+            return;
+        }
+        if (status.readyClose()) {
+            try {
+                status.getClientSession().close();
+            } finally {
+                // 确保清理线程变量时不会被打断
+                MongoTransactionContext.clear();
+            }
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Mongo transaction closed, Thread:{}, session hashcode:{}", Thread.currentThread().getName(), status.getClientSession().hashCode());
+        }
     }
 }

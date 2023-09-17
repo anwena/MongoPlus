@@ -8,17 +8,25 @@ import com.mongodb.client.ClientSession;
  * * @date 2023/09/17 17:42
  */
 public class MongoTransactionContext {
-    private static final ThreadLocal<ClientSession> threadLocalHeaderMap = new ThreadLocal<>();
+    private static final ThreadLocal<MongoTransactionStatus> threadLocalHeaderMap = new ThreadLocal<>();
 
     public MongoTransactionContext() {
     }
 
     public static ClientSession getClientSessionContext() {
+        MongoTransactionStatus status = getMongoTransactionStatus();
+        if (status == null) {
+            return null;
+        }
+        return status.getClientSession();
+    }
+
+    public static MongoTransactionStatus getMongoTransactionStatus() {
         return threadLocalHeaderMap.get();
     }
 
-    public static void setClientSessionContext(ClientSession clientSession) {
-        threadLocalHeaderMap.set(clientSession);
+    public static void setTransactionStatus(MongoTransactionStatus mongoTransactionStatus) {
+        threadLocalHeaderMap.set(mongoTransactionStatus);
     }
 
     public static void clear() {
