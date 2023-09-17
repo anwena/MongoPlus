@@ -1,5 +1,6 @@
 package com.anwen.mongo.transactional;
 
+import com.anwen.mongo.context.MongoTransactionContext;
 import com.mongodb.ClientSessionOptions;
 import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoClient;
@@ -33,6 +34,7 @@ public class MongoTransactionalAspect {
             rollbackTransaction();
             throw new RuntimeException(e);
         }finally {
+            MongoTransactionContext.clear();
             closeSession();
         }
     }
@@ -43,8 +45,13 @@ public class MongoTransactionalAspect {
      * @date 2023/7/30 18:15
     */
     private void startTransaction() {
-        this.session = mongoClient.startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
-        session.startTransaction();
+        //获取线程中的session
+        ClientSession clientSession = MongoTransactionContext.getClientSessionContext();
+        if (clientSession == null) {
+            this.session = mongoClient.startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
+            session.startTransaction();
+            MongoTransactionContext.setClientSessionContext(session);
+        }
     }
 
     /**

@@ -8,6 +8,7 @@ import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.conn.ConnectMongoDB;
 import com.anwen.mongo.constant.SqlOperationConstant;
+import com.anwen.mongo.context.MongoTransactionContext;
 import com.anwen.mongo.convert.Converter;
 import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.domain.InitMongoCollectionException;
@@ -104,7 +105,7 @@ public class SqlExecute {
     }
 
     public <T> Boolean doSave(T entity) {
-        return doSave(null,entity);
+        return doSave(MongoTransactionContext.getClientSessionContext(),entity);
     }
 
     public <T> Boolean doSave(ClientSession clientSession,T entity) {
@@ -123,7 +124,7 @@ public class SqlExecute {
     }
 
     public Boolean doSave(String collectionName, Map<String, Object> entityMap) {
-        return doSave(null,collectionName,entityMap);
+        return doSave(MongoTransactionContext.getClientSessionContext(),collectionName,entityMap);
     }
 
     public Boolean doSave(ClientSession clientSession,String collectionName, Map<String, Object> entityMap) {
@@ -139,7 +140,7 @@ public class SqlExecute {
     }
 
     public <T> Boolean doSaveBatch(Collection<T> entityList) {
-        return doSaveBatch(null,entityList);
+        return doSaveBatch(MongoTransactionContext.getClientSessionContext(),entityList);
     }
 
     public <T> Boolean doSaveBatch(ClientSession clientSession,Collection<T> entityList) {
@@ -156,7 +157,7 @@ public class SqlExecute {
     }
 
     public Boolean doSaveBatch(String collectionName, Collection<Map<String, Object>> entityList) {
-        return doSaveBatch(null,collectionName,entityList);
+        return doSaveBatch(MongoTransactionContext.getClientSessionContext(),collectionName,entityList);
     }
 
     public Boolean doSaveBatch(ClientSession clientSession,String collectionName, Collection<Map<String, Object>> entityList) {
@@ -173,7 +174,7 @@ public class SqlExecute {
     }
 
     public <T> Boolean doSaveOrUpdate(T entity) {
-        return doSaveOrUpdate(null,entity);
+        return doSaveOrUpdate(MongoTransactionContext.getClientSessionContext(),entity);
     }
 
     public <T> Boolean doSaveOrUpdate(ClientSession clientSession,T entity) {
@@ -190,7 +191,7 @@ public class SqlExecute {
     }
 
     public Boolean doSaveOrUpdate(String collectionName, Map<String, Object> entityMap) {
-        return doSaveOrUpdate(null,collectionName,entityMap);
+        return doSaveOrUpdate(MongoTransactionContext.getClientSessionContext(),collectionName,entityMap);
     }
 
     public Boolean doSaveOrUpdate(ClientSession clientSession,String collectionName, Map<String, Object> entityMap) {
@@ -233,7 +234,7 @@ public class SqlExecute {
     }
 
     public Boolean doSaveOrUpdateBatch(String collectionName, Collection<Map<String, Object>> entityList) {
-        return doSaveOrUpdateBatch(null,collectionName,entityList);
+        return doSaveOrUpdateBatch(MongoTransactionContext.getClientSessionContext(),collectionName,entityList);
     }
 
     public Boolean doSaveOrUpdateBatch(ClientSession clientSession,String collectionName, Collection<Map<String, Object>> entityList) {
@@ -274,7 +275,7 @@ public class SqlExecute {
     }
 
     public Boolean doUpdateById(String collectionName, Map<String, Object> entityMap) {
-        return doUpdateById(null,collectionName,entityMap);
+        return doUpdateById(MongoTransactionContext.getClientSessionContext(),collectionName,entityMap);
     }
 
     public Boolean doUpdateById(ClientSession clientSession,String collectionName, Map<String, Object> entityMap) {
@@ -297,7 +298,7 @@ public class SqlExecute {
     }
 
     public <T> Boolean doUpdateBatchByIds(Collection<T> entityList) {
-        return doUpdateBatchByIds(null,entityList);
+        return doUpdateBatchByIds(MongoTransactionContext.getClientSessionContext(),entityList);
     }
 
     public <T> Boolean doUpdateBatchByIds(ClientSession clientSession,Collection<T> entityList) {
@@ -613,7 +614,7 @@ public class SqlExecute {
     }
 
     public Boolean doUpdate(List<CompareCondition> compareConditionList,Class<?> clazz) {
-        return doUpdate(null,compareConditionList,clazz);
+        return doUpdate(MongoTransactionContext.getClientSessionContext(),compareConditionList,clazz);
     }
 
     public Boolean doUpdate(ClientSession clientSession,List<CompareCondition> compareConditionList,Class<?> clazz) {
@@ -621,7 +622,7 @@ public class SqlExecute {
     }
 
     public Boolean doUpdate(String collectionName,List<CompareCondition> compareConditionList){
-        return doUpdate(null,collectionName,compareConditionList);
+        return doUpdate(MongoTransactionContext.getClientSessionContext(),collectionName,compareConditionList);
     }
 
     public Boolean doUpdate(ClientSession clientSession,String collectionName,List<CompareCondition> compareConditionList){
@@ -639,7 +640,7 @@ public class SqlExecute {
     }
 
     public Boolean doRemove(List<CompareCondition> compareConditionList,Class<?> clazz) {
-        return doRemove(null,compareConditionList,clazz);
+        return doRemove(MongoTransactionContext.getClientSessionContext(),compareConditionList,clazz);
     }
 
     public Boolean doRemove(ClientSession clientSession,List<CompareCondition> compareConditionList,Class<?> clazz) {
@@ -647,7 +648,7 @@ public class SqlExecute {
     }
 
     public Boolean doRemove(String collectionName,List<CompareCondition> compareConditionList){
-        return doRemove(null,collectionName,compareConditionList);
+        return doRemove(MongoTransactionContext.getClientSessionContext(),collectionName,compareConditionList);
     }
 
     public Boolean doRemove(ClientSession clientSession,String collectionName,List<CompareCondition> compareConditionList){
@@ -660,7 +661,7 @@ public class SqlExecute {
     }
 
     public long doCount(String collectionName,List<CompareCondition> compareConditionList){
-        return doCount(null,collectionName,compareConditionList);
+        return doCount(MongoTransactionContext.getClientSessionContext(),collectionName,compareConditionList);
     }
 
     public long doCount(ClientSession clientSession,String collectionName,List<CompareCondition> compareConditionList){
@@ -668,7 +669,7 @@ public class SqlExecute {
     }
 
     public long doCount(List<CompareCondition> compareConditionList,Class<?> clazz){
-        return doCount(null,compareConditionList,clazz);
+        return doCount(MongoTransactionContext.getClientSessionContext(),compareConditionList,clazz);
     }
 
     public long doCount(ClientSession clientSession,List<CompareCondition> compareConditionList,Class<?> clazz){
