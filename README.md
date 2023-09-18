@@ -55,10 +55,8 @@ MyBatisPlus就是可以不用像MyBatis一样写过多的sql语句，Mongo-Plus�
 
 ### 联系我们
 遇到任何问题请联系我<br/>
-v：JiaChaoYang_
-<div style="width: 200px;height: 200px;">
-<img style="width: 100%;height: 100%" src="wx.png" alt="微信">
-</div>
+v：JiaChaoYang_<br/>
+<img src="wx.png" alt="微信">
 
 ###  参与贡献
 
