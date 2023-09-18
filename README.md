@@ -47,8 +47,18 @@ MyBatisPlus就是可以不用像MyBatis一样写过多的sql语句，Mongo-Plus�
 * v2.0.4    修复分页的总行数显示数量问题，增加count()函数的操作</br>
 * v2.0.4.1  修复分页总行数显示为所有，增加projection操作，修改日志配置，修改MongoPlusOperate增删改操作
 * v2.0.4.2  增加自增id，修改打开两次连接，修改集群配置时，连接字符串拼接问题
+* v2.0.5    增加管道函数实现，增加自增id策略，修改实体类映射关系
+* v2.0.6    修复已知问题，增加实物操作，增加对spring3的支持，增加对solon框架的支持，增加管道函数的options，修改结构
+* v2.0.6.1  修复依赖引入问题
 ### 文档
 文档地址： https://www.mongoplus.cn/
+
+### 联系我们
+遇到任何问题请联系我<br/>
+v：JiaChaoYang_
+<div style="width: 200px;height: 200px;">
+<img style="width: 100%;height: 100%" src="wx.png" alt="微信">
+</div>
 
 ###  参与贡献
 
