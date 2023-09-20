@@ -1,11 +1,8 @@
 package com.anwen.mongo.config;
 
 import com.anwen.mongo.execute.SqlExecute;
+import com.anwen.mongo.service.IService;
 import com.anwen.mongo.service.impl.ServiceImpl;
-import org.reflections.Reflections;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -16,8 +13,6 @@ import org.springframework.context.ApplicationContext;
  **/
 public class MongoPlusAutoConfiguration implements InitializingBean {
 
-    private static final Logger logger = LoggerFactory.getLogger(MongoPlusAutoConfiguration.class);
-
     @Autowired
     private SqlExecute sqlExecute;
 
@@ -26,17 +21,11 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() {
-        new Reflections("").getSubTypesOf(ServiceImpl.class).forEach(this::processServiceImpl);
-    }
-
-    private void processServiceImpl(Class<?> serviceClazz) {
-        try {
-            ServiceImpl<?> serviceImpl = (ServiceImpl<?>) applicationContext.getBean(serviceClazz);
-            Class<?> genericityClass = serviceImpl.getGenericityClazz();
-            setSqlExecute(serviceImpl, genericityClass);
-        } catch (BeansException e) {
-            logger.error("{} is not a spring bean, exception message: {}", serviceClazz, e.getMessage());
-        }
+        applicationContext.getBeansOfType(IService.class)
+                .values()
+                .stream()
+                .filter(s -> s instanceof ServiceImpl)
+                .forEach(s -> setSqlExecute((ServiceImpl<?>) s, s.getGenericityClazz()));
     }
 
     private void setSqlExecute(ServiceImpl<?> serviceImpl,Class<?> clazz) {
