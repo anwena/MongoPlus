@@ -11,6 +11,7 @@ import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.conn.ConnectMongoDB;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.context.MongoTransactionContext;
+import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.convert.Converter;
 import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.domain.InitMongoCollectionException;
@@ -71,6 +72,8 @@ public class SqlExecute {
 
     // 实例化 ConnectMongoDB 对象，用于保存连接
     private ConnectMongoDB connectMongoDB;
+
+    private CollectionNameConvert collectionNameConvert;
 
     private String createIndex = null;
 
@@ -937,10 +940,7 @@ public class SqlExecute {
 
     private MongoCollection<Document> getCollection(Class<?> clazz) {
         createIndex = null;
-        String collectionName = clazz.getSimpleName().toLowerCase();
-        if (clazz.isAnnotationPresent(CollectionName.class)) {
-            collectionName = clazz.getAnnotation(CollectionName.class).value();
-        }
+        String collectionName = this.collectionNameConvert.convert(clazz);
         return getCollection(collectionName);
     }
 
@@ -970,13 +970,13 @@ public class SqlExecute {
     private String getAutoId(Class<?> clazz) {
         String num = "1";
         MongoCollection<Document> collection = getCollection("counters");
-        Document query = new Document(SqlOperationConstant._ID, MongoCollectionUtils.getLowerCaseName(clazz));
+        Document query = new Document(SqlOperationConstant._ID, collectionNameConvert.convert(clazz));
         Document update = new Document("$inc", new Document(SqlOperationConstant.AUTO_NUM, 1));
         Document document = collection.findOneAndUpdate(query,update,new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
         if (document == null){
             Long finalNum = Long.parseLong(num);
             collection.insertOne(new Document(new HashMap<String,Object>(){{
-                put(SqlOperationConstant._ID, MongoCollectionUtils.getLowerCaseName(clazz));
+                put(SqlOperationConstant._ID, collectionNameConvert.convert(clazz));
                 put(SqlOperationConstant.AUTO_NUM, finalNum);
             }}));
         }else {
@@ -1063,6 +1063,14 @@ public class SqlExecute {
 
     public MongoClient getMongoClient() {
         return mongoClient;
+    }
+
+    public CollectionNameConvert getCollectionNameConvert() {
+        return collectionNameConvert;
+    }
+
+    public void setCollectionNameConvert(CollectionNameConvert collectionNameConvert) {
+        this.collectionNameConvert = collectionNameConvert;
     }
 
     public void setMongoClient(MongoClient mongoClient) {
