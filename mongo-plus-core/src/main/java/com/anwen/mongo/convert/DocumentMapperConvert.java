@@ -85,11 +85,12 @@ public class DocumentMapperConvert {
             if (collectionField != null && !collectionField.exist()) {
                 continue;
             }
-            if (doc.containsKey(fieldName)) {
-                Object fieldValue = Objects.equals(fieldName, SqlOperationConstant._ID) ? String.valueOf(doc.get(fieldName)) : doc.get(fieldName);
-                DocumentFieldMapper<Object> fieldMapper = DocumentFieldMapperFactory.getMapper(field, fieldValue);
-                fieldMapper.mapField(doc, field, obj);
+            if (doc.get(fieldName) == null) {
+                continue;
             }
+            Object fieldValue = Objects.equals(fieldName, SqlOperationConstant._ID) ? String.valueOf(doc.get(fieldName)) : doc.get(fieldName);
+            DocumentFieldMapper<Object> fieldMapper = DocumentFieldMapperFactory.getMapper(field, fieldValue);
+            fieldMapper.mapField(doc, field, obj);
         }
 
         // 处理父类中的字段
