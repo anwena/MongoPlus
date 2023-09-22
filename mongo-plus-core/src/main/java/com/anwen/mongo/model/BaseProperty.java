@@ -41,7 +41,7 @@ public class BaseProperty {
     private String password;
 
     /**
-     * 如果开启了认证，清在这里配置认证数据库
+     * 如果开启了认证，请在这里配置认证数据库
      * @author: JiaChaoYang
      * @date: 2023/3/1 22:07
      **/
