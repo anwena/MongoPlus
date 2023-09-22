@@ -4,6 +4,7 @@ import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.accumulator.Accumulator;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.strategy.aggregate.PipelineStrategy;
+import com.anwen.mongo.toolkit.CollUtil;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.BasicDBObject;
 
@@ -56,7 +57,7 @@ public class GroupConcretePipeline implements PipelineStrategy {
     @Override
     public BasicDBObject buildAggregate() {
         BasicDBObject basicDBObject = new BasicDBObject();
-        if (!accumulatorList.isEmpty()){
+        if (CollUtil.isNotEmpty(accumulatorList)){
             basicDBObject = BuildCondition.buildGroup(accumulatorList);
         }
         if (StringUtils.isNotBlank(_id)) {

@@ -15,7 +15,7 @@
     <packaging>jar</packaging>
     <version>${mongoplus.version}</version>
     <description>mongo-plus注解、枚举</description>
-    <url>https://gitee.com/jia-chaoyang/mongo-plus</url>
+    <url>https://gitee.com/anwena/mongo-plus</url>
     <inceptionYear>2023</inceptionYear>
 
     <licenses>
