@@ -40,11 +40,6 @@ public class MongoPlusConfiguration {
     }
 
 
-/*    @Bean
-    public MongoPlusAutoConfiguration mongoPlusAutoConfiguration(@Inject SqlExecute sqlExecute){
-        return new MongoPlusAutoConfiguration(sqlExecute);
-    }*/
-
 
     @Bean
     public MongoPlusMapMapper mongoPlusMapMapper(@Inject SqlExecute sqlExecute){

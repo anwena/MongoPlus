@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ClassTypeUtil {
 
     // 内部缓存，存储已经处理过的对象类型及其字段的类型
-    private static Map<Class<?>, List<Class<?>>> cacheMap = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, List<Class<?>>> cacheMap = new ConcurrentHashMap<>();
 
     private static final Map<Class<?>, List<Field>> FIELD_CACHE = new HashMap<>();
 

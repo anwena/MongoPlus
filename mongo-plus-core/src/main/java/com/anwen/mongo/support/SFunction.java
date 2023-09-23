@@ -99,7 +99,7 @@ public interface SFunction<T,R> extends Function<T,R>, Serializable {
     }
 
     default SerializedLambda getSerializedLambda() {
-        Method method = null;
+        Method method;
         try {
             method = getClass().getDeclaredMethod("writeReplace");
         } catch (NoSuchMethodException e) {
@@ -137,13 +137,13 @@ public interface SFunction<T,R> extends Function<T,R>, Serializable {
 
     default Class<?> getReturnType() {
         SerializedLambda lambda = getSerializedLambda();
-        Class<?> className = null;
+        Class<?> className;
         try {
             className = Class.forName(lambda.getImplClass().replace("/", "."));
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
-        Method method = null;
+        Method method;
         try {
             method = className.getMethod(getMethodName());
         } catch (NoSuchMethodException e) {

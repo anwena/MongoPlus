@@ -81,9 +81,7 @@ public class BeanMapUtilByReflect {
 
     private static void setChildFieldValue(String fieldName , Map<String,Object> childMap,Map<String,Object> resultMap){
         childMap.values().removeIf(Objects::isNull);
-        childMap.keySet().forEach(map -> {
-            resultMap.put(fieldName + "." + map, childMap.get(map));
-        });
+        childMap.keySet().forEach(map -> resultMap.put(fieldName + "." + map, childMap.get(map)));
     }
 
     /**

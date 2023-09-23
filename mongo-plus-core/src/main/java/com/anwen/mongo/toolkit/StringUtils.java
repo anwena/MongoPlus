@@ -457,7 +457,7 @@ public final class StringUtils {
         if (isBlank(concatStr)) {
             concatStr = StringPool.EMPTY;
         }
-        if (str == null || str.length() == 0) {
+        if (str == null || str.isEmpty()) {
             return str;
         }
 

@@ -36,7 +36,7 @@ public class DocumentMapperConvert {
         if (doc == null) {
             return null;
         }
-        T obj = null;
+        T obj;
         try {
             obj = clazz.getDeclaredConstructor().newInstance();
             mapDocumentFields(doc, obj, clazz);

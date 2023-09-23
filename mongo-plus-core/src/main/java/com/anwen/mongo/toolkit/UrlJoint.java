@@ -40,11 +40,6 @@ public class UrlJoint {
                     String host = hostArray[i];
                     uri.append(host).append(":").append(portArray.length > 1 ? portArray[i] : portArray[0]).append(",");
                 }
-//                for (String host : hostArray) {
-//                    for (String port : portArray) {
-//                        uri.append(host).append(":").append(port).append(",");
-//                    }
-//                }
                 uri.deleteCharAt(uri.length()-1);
             }else {
                 uri.append(baseProperty.getHost()).append(":").append(baseProperty.getPort());
