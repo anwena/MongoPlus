@@ -301,9 +301,7 @@ public class ULID {
             // can simply be numerically compared as two numbers
             return (this.mostSignificantBits < val.mostSignificantBits ? -1 :
                     (this.mostSignificantBits > val.mostSignificantBits ? 1 :
-                            (this.leastSignificantBits < val.leastSignificantBits ? -1 :
-                                    (this.leastSignificantBits > val.leastSignificantBits ? 1 :
-                                            0))));
+                            (Long.compare(this.leastSignificantBits, val.leastSignificantBits))));
         }
 
         @Override

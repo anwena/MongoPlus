@@ -14,11 +14,11 @@ import java.lang.reflect.Proxy;
  **/
 public class MongoEntityDynamicProxy implements InvocationHandler {
 
-    private Object object;
+    private final Object object;
 
-    private SqlExecute sqlExecute;
+    private final SqlExecute sqlExecute;
 
-    private Class<?> clazz;
+    private final Class<?> clazz;
 
     public MongoEntityDynamicProxy(Object object, SqlExecute sqlExecute,Class<?> clazz) {
         this.object = object;

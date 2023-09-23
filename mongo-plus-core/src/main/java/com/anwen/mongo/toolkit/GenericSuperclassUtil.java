@@ -79,7 +79,7 @@ public class GenericSuperclassUtil {
         if (defaultUppercaseAndTrueLowercase.length>=1 && defaultUppercaseAndTrueLowercase[0]){
             return sb.toString().toUpperCase();
         }
-        return sb.toString().substring(4);
+        return sb.substring(4);
     }
 
 }

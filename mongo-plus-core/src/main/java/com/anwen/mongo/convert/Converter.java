@@ -3,12 +3,16 @@ package com.anwen.mongo.convert;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import org.bson.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class Converter {
+
+    private static final Logger logger = LoggerFactory.getLogger(Converter.class);
 
     /**
      * 将FindIterable<Document>转换为List<Map<String, Object>>。
@@ -75,7 +79,7 @@ public class Converter {
             obj = (T) clazz.getDeclaredMethod("fromDocument", Document.class)
                     .invoke(null, document);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("convert error");
         }
         return obj;
     }

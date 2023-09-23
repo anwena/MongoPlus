@@ -34,9 +34,7 @@ public class BuildCondition {
     public static BasicDBObject buildProjection(List<Projection> projectionList){
         return new BasicDBObject(){{
             if (projectionList != null && !projectionList.isEmpty()) {
-                projectionList.forEach(projection -> {
-                    put(projection.getColumn(), projection.getValue());
-                });
+                projectionList.forEach(projection -> put(projection.getColumn(), projection.getValue()));
             }
         }};
     }

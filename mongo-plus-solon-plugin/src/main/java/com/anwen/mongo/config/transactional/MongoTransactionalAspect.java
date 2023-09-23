@@ -23,20 +23,6 @@ public class MongoTransactionalAspect implements Interceptor {
 
     private final MongoClient mongoClient;
 
-    /*public Object manageTransaction(ProceedingJoinPoint joinPoint) throws Throwable {
-        startTransaction();
-        try {
-            Object proceed = joinPoint.proceed();
-            commitTransaction();
-            return proceed;
-        } catch (Exception e) {
-            rollbackTransaction();
-            throw new RuntimeException(e);
-        } finally {
-            closeSession();
-        }
-    }*/
-
     /**
      * 事务开启
      * @author JiaChaoYang

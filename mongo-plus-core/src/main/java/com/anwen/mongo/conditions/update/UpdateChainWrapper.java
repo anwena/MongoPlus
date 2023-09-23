@@ -19,7 +19,7 @@ public class UpdateChainWrapper<T,Children extends UpdateChainWrapper<T,Children
 
     protected final Children typedThis = (Children) this;
 
-    private List<CompareCondition> updateCompareList = new ArrayList<>();
+    private final List<CompareCondition> updateCompareList = new ArrayList<>();
 
     public List<CompareCondition> getUpdateCompareList() {
         return updateCompareList;

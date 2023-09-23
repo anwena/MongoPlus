@@ -820,9 +820,7 @@ public class SqlExecute {
         MongoCollection<Document> collection = getCollection(clazz);
         BasicDBObject basicDBObject = BuildCondition.buildQueryCondition(compareConditionList);
         if (null != basicDBObjectList && !basicDBObjectList.isEmpty()){
-            basicDBObjectList.forEach(basic -> {
-                basicDBObject.putAll(basic.toMap());
-            });
+            basicDBObjectList.forEach(basic -> basicDBObject.putAll(basic.toMap()));
         }
         if (StringUtils.isNotBlank(createIndex)) {
             collection.createIndex(new Document(createIndex, QueryOperatorEnum.TEXT.getValue()));

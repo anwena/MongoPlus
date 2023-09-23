@@ -28,9 +28,7 @@ public class SortConcretePipeline implements PipelineStrategy {
     @Override
     public BasicDBObject buildAggregate() {
         return new BasicDBObject(){{
-            orderList.forEach(order -> {
-                put(order.getColumn(),order.getType());
-            });
+            orderList.forEach(order -> put(order.getColumn(),order.getType()));
         }};
     }
 }

@@ -20,28 +20,12 @@ public class StringEscape {
         for (int i = 0; i < len; ++i) {
             char c = str.charAt(i);
             switch (c) {
-                /* Must be escaped for 'mysql' */
                 case 0:
-                    needsHexEscape = true;
-                    break;
-                /* Must be escaped for logs */
                 case '\n':
-                    needsHexEscape = true;
-                    break;
                 case '\r':
-                    needsHexEscape = true;
-                    break;
                 case '\\':
-                    needsHexEscape = true;
-                    break;
                 case '\'':
-                    needsHexEscape = true;
-                    break;
-                /* Better safe than sorry */
                 case '"':
-                    needsHexEscape = true;
-                    break;
-                /* This gives problems on Win32 */
                 case '\032':
                     needsHexEscape = true;
                     break;
@@ -49,7 +33,6 @@ public class StringEscape {
                     break;
             }
             if (needsHexEscape) {
-                // no need to scan more
                 break;
             }
         }

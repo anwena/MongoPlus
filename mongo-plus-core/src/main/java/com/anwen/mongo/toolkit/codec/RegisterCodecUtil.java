@@ -18,9 +18,7 @@ public class RegisterCodecUtil {
             codecRegistryList.add(MongoClientSettings.getDefaultCodecRegistry());
         }
         List<Class<?>> fieldClasses = ClassTypeUtil.getAllCustomFieldClasses(t.getClass());
-        fieldClasses.parallelStream().forEach(clazz -> {
-            codecRegistryList.add(CodecRegistries.fromCodecs(new GenericCodec<>(clazz)));
-        });
+        fieldClasses.parallelStream().forEach(clazz -> codecRegistryList.add(CodecRegistries.fromCodecs(new GenericCodec<>(clazz))));
         return codecRegistryList;
     }
 
