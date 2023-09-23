@@ -132,7 +132,7 @@
                         </executions>
                     </plugin>
 
-                    <!--<plugin>
+                    <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
                         <version>1.5</version>
@@ -145,12 +145,12 @@
                                 </goals>
                             </execution>
                         </executions>
-                    </plugin>-->
+                    </plugin>
 
                 </plugins>
             </build>
             <!-- maven中央仓库 -->
-<!--            <distributionManagement>
+            <distributionManagement>
                 <snapshotRepository>
                     <id>release</id>
                     <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
@@ -159,9 +159,9 @@
                     <id>release</id>
                     <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
                 </repository>
-            </distributionManagement>-->
+            </distributionManagement>
             <!-- 私服 -->
-            <distributionManagement>
+<!--            <distributionManagement>
                 <repository>
                     <id>mongo-plus-releases</id>
                     <name>mongo-plus-releases</name>
@@ -173,7 +173,7 @@
                     <name>mongo-plus-snapshots</name>
                     <url>https://www.mongoplus.cn/nexus/repository/mongo-plus-snapshots/</url>
                 </snapshotRepository>
-            </distributionManagement>
+            </distributionManagement>-->
         </profile>
 
     </profiles>

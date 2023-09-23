@@ -63,7 +63,7 @@ public class GroupConcretePipeline implements PipelineStrategy {
         if (StringUtils.isNotBlank(_id)) {
             basicDBObject.put(SqlOperationConstant._ID, "$" + _id);
         }
-        if (null != _idAccumulator && !_idAccumulator.isEmpty()){
+        if (CollUtil.isNotEmpty(_idAccumulator)){
             basicDBObject.put(SqlOperationConstant._ID,BuildCondition.buildGroup(_idAccumulator));
         }
         return basicDBObject;
