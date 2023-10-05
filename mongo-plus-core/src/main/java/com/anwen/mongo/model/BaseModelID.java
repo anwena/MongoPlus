@@ -17,7 +17,7 @@ public class BaseModelID {
     */
     @ID(type = IdTypeEnum.OBJECT_ID)
     @CollectionField("_id")
-    public String id;
+    private String id;
 
     public BaseModelID() {
     }

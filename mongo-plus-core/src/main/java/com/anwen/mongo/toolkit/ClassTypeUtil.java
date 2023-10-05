@@ -1,6 +1,7 @@
 package com.anwen.mongo.toolkit;
 
 import com.anwen.mongo.annotation.ID;
+import com.anwen.mongo.model.BaseModelID;
 import com.mongodb.MongoException;
 
 import java.lang.reflect.Field;
@@ -130,7 +131,7 @@ public class ClassTypeUtil {
      * @date 2023/8/30 22:05
     */
     public static <T> String getIdByEntity(T entity,boolean exception){
-        Optional<Field> fieldOptional = getFields(entity.getClass()).stream().filter(field -> field.getAnnotation(ID.class) != null).findFirst();
+        Optional<Field> fieldOptional = getFields(entity.getClass()).stream().peek(field -> field.setAccessible(true)).filter(field -> field.getAnnotation(ID.class) != null).findFirst();
         if (!fieldOptional.isPresent()){
             if (exception){
                 return null;
