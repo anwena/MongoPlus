@@ -9,9 +9,9 @@ public enum AggregateTypeEnum {
 
     MATCH("match"),
 
-    LIMIT("limit"),
+    LIMIT("$limit"),
 
-    SKIP("skip"),
+    SKIP("$skip"),
 
     SORT("sort"),
 

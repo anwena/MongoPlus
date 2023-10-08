@@ -1,7 +1,6 @@
 package com.anwen.mongo.toolkit;
 
 import com.anwen.mongo.annotation.ID;
-import com.anwen.mongo.model.BaseModelID;
 import com.mongodb.MongoException;
 
 import java.lang.reflect.Field;
