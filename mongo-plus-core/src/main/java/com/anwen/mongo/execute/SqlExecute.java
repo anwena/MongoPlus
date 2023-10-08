@@ -605,6 +605,19 @@ public class SqlExecute {
         return DocumentMapperConvert.mapDocumentList(Optional.ofNullable(clientSession).map(session -> collection.find(session,basicDBObject)).orElseGet(() -> collection.find(basicDBObject)), clazz);
     }
 
+    public <T> List<T> doSql(String sql,Class<T> clazz){
+        return doSql(null,sql,clazz);
+    }
+
+    public <T> List<T> doSql(ClientSession clientSession,String sql,Class<T> clazz){
+        MongoCollection<Document> collection = getCollection(clazz);
+        BasicDBObject basicDBObject = BasicDBObject.parse(sql);
+        if (StringUtils.isNotBlank(createIndex)) {
+            collection.createIndex(new Document(createIndex, QueryOperatorEnum.TEXT.getValue()));
+        }
+        return DocumentMapperConvert.mapDocumentList(Optional.ofNullable(clientSession).map(session -> collection.find(session,basicDBObject)).orElseGet(() -> collection.find(basicDBObject)),clazz);
+    }
+
     private BasicDBObject checkIdType(Collection<Serializable> ids) {
         List<Serializable> convertedIds = ids.stream()
                 .map(String::valueOf)

@@ -35,13 +35,13 @@ public class MongoTransactionalManager extends AbstractPlatformTransactionManage
 
     @Override
     protected void doBegin(Object transaction, TransactionDefinition definition) throws TransactionException {
-        TransactionSynchronizationManager.bindResource(Objects.requireNonNull(definition.getName()),transaction);
         ClientSession clientSession = (ClientSession) transaction;
+        TransactionSynchronizationManager.bindResource(Objects.requireNonNull(definition.getName()),clientSession);
         clientSession.startTransaction();
         MongoTransactionSpring.setResources(TransactionSynchronizationManager.getResourceMap());
         MongoTransactionSpring.setCurrentTransactionName(definition.getName());
         if (logger.isDebugEnabled()){
-            logger.debug("begin transaction -> name: {} , sessionId: {}",definition.getName(),clientSession.getServerSession().getIdentifier().toString());
+            logger.debug("begin transaction -> name: {} , sessionId: {}",definition.getName(), clientSession.getServerSession().getIdentifier());
         }
     }
 
@@ -49,8 +49,8 @@ public class MongoTransactionalManager extends AbstractPlatformTransactionManage
     protected void doCommit(DefaultTransactionStatus status) throws TransactionException {
         ClientSession clientSession = (ClientSession) status.getTransaction();
         clientSession.commitTransaction();
+        clientSession.close();
         MongoTransactionSpring.clear();
-        System.out.println("成功，提交提交");
         if (logger.isDebugEnabled()){
             logger.debug("commit transaction -> sessionId: {}",clientSession.getServerSession().getIdentifier());
         }
@@ -62,9 +62,8 @@ public class MongoTransactionalManager extends AbstractPlatformTransactionManage
         clientSession.abortTransaction();
         clientSession.close();
         MongoTransactionSpring.clear();
-        System.out.println("失败，有异常");
         if (logger.isDebugEnabled()){
-            logger.debug("rollback transaction -> sessionId: {}",clientSession.getServerSession().getIdentifier());
+            logger.debug("rollback transaction");
         }
     }
 }

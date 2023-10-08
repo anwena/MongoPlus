@@ -310,6 +310,16 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    public List<T> sql(String sql) {
+        return sqlExecute.doSql(sql,clazz);
+    }
+
+    @Override
+    public List<T> sql(ClientSession clientSession,String sql) {
+        return sqlExecute.doSql(clientSession,sql,clazz);
+    }
+
+    @Override
     public SqlExecute getSqlOperation() {
         return sqlExecute;
     }

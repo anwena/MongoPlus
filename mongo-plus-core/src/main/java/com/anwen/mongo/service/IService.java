@@ -338,6 +338,15 @@ public interface IService<T> {
 
     List<T> getByIds(ClientSession clientSession,Collection<Serializable> ids);
 
+    /**
+     * 查询sql，传入值为json，如{eq:XXX}
+     * @author JiaChaoYang
+     * @date 2023/10/8 22:15
+    */
+    List<T> sql(String sql);
+
+    List<T> sql(ClientSession clientSession,String sql);
+
     SqlExecute getSqlOperation();
 
     Class<T> getGenericityClazz();
