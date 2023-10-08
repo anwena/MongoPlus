@@ -1,3 +1,4 @@
 com.anwen.mongo.config.MongoPlusConfiguration
 com.anwen.mongo.config.MongoPlusAutoConfiguration
 com.anwen.mongo.config.OverrideMongoConfiguration
+com.anwen.mongo.transactional.MongoTransactionManagerConfig

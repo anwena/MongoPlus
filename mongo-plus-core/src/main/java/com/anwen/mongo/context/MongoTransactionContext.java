@@ -15,10 +15,10 @@ public class MongoTransactionContext {
 
     public static ClientSession getClientSessionContext() {
         MongoTransactionStatus status = getMongoTransactionStatus();
-        if (status == null) {
-            return null;
+        if (status != null) {
+            return status.getClientSession();
         }
-        return status.getClientSession();
+        return MongoTransactionSpring.getResource(MongoTransactionSpring.getCurrentTransactionName());
     }
 
     public static MongoTransactionStatus getMongoTransactionStatus() {

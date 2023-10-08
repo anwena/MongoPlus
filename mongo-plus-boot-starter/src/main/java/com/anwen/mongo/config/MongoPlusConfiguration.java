@@ -77,4 +77,5 @@ public class MongoPlusConfiguration {
     public MongoTransactionalAspect mongoTransactionalAspect(){
         return new MongoTransactionalAspect(this.mongoClient);
     }
+
 }

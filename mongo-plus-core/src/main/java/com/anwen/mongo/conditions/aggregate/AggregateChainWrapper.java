@@ -265,13 +265,13 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
 
     @Override
     public Children limit(long limit) {
-        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.LIMIT.getType(), new LimitConcretePipeline(limit)));
+        this.basicDBObjectList.add(new BasicDBObject(AggregateTypeEnum.LIMIT.getType(),limit));
         return typedThis;
     }
 
     @Override
     public Children skip(long skip) {
-        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.SKIP.getType(), new SkipConcretePipeline(skip)));
+        this.basicDBObjectList.add(new BasicDBObject(AggregateTypeEnum.SKIP.getType(),skip));
         return typedThis;
     }
 
