@@ -9,7 +9,7 @@ import com.mongodb.client.ClientSession;
  *
  * @author JiaChaoYang
  **/
-public class MongoTransactional {
+public class MongoTransactionalOperate {
 
     /**
      * 创建一个session
