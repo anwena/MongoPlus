@@ -34,7 +34,7 @@ public class MongoTransactionalAspect {
             return proceed;
         } catch (Exception e) {
             rollbackTransaction();
-            throw new RuntimeException(e);
+            throw e;
         } finally {
             closeSession();
         }
@@ -74,7 +74,10 @@ public class MongoTransactionalAspect {
         }
         status.decrementReference();
         if (status.readyCommit()) {
-            status.getClientSession().commitTransaction();
+            ClientSession clientSession = status.getClientSession();
+            if (clientSession.hasActiveTransaction()){
+                clientSession.commitTransaction();
+            }
         }
         if (logger.isDebugEnabled()) {
             logger.debug("Mongo transaction committed, Thread:{}, session hashcode:{}", Thread.currentThread().getName(), status.getClientSession().hashCode());
@@ -94,7 +97,10 @@ public class MongoTransactionalAspect {
         }
         // 清空计数器
         status.clearReference();
-        status.getClientSession().abortTransaction();
+        ClientSession clientSession = status.getClientSession();
+        if (clientSession.hasActiveTransaction()){
+            clientSession.abortTransaction();
+        }
         if (logger.isDebugEnabled()) {
             logger.debug("Mongo transaction rolled back, Thread:{}, session hashcode:{}", Thread.currentThread().getName(), status.getClientSession().hashCode());
         }
@@ -108,7 +114,10 @@ public class MongoTransactionalAspect {
         }
         if (status.readyClose()) {
             try {
-                status.getClientSession().close();
+                ClientSession clientSession = status.getClientSession();
+                if (clientSession.hasActiveTransaction()){
+                    clientSession.close();
+                }
             } finally {
                 // 确保清理线程变量时不会被打断
                 MongoTransactionContext.clear();

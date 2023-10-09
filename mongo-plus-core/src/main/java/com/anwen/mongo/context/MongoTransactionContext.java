@@ -18,7 +18,12 @@ public class MongoTransactionContext {
         if (status != null) {
             return status.getClientSession();
         }
-        return MongoTransactionSpring.getResource(MongoTransactionSpring.getCurrentTransactionName());
+        ClientSession clientSession = MongoTransactionSpring.getResource(MongoTransactionSpring.getCurrentTransactionName());
+        if (clientSession != null) {
+            threadLocalHeaderMap.set(new MongoTransactionStatus(clientSession));
+            return clientSession;
+        }
+        return null;
     }
 
     public static MongoTransactionStatus getMongoTransactionStatus() {

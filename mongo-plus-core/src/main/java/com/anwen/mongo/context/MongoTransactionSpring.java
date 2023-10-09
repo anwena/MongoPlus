@@ -25,14 +25,12 @@ public class MongoTransactionSpring {
     }
 
     public static ClientSession getResource(Object key){
-        return (ClientSession) resources.get().get(key);
+        Map<Object, Object> resourceMap = resources.get();
+        return resourceMap == null ? null : (ClientSession) resourceMap.get(key);
     }
 
     public static ClientSession getResource(){
-        if (currentTransactionName.get() != null){
-            return (ClientSession) resources.get().get(currentTransactionName.get());
-        }
-        return null;
+        return resources.get() != null && getCurrentTransactionName() != null ? getResource(currentTransactionName.get()) : null;
     }
 
     public static void setCurrentTransactionName(String name) {

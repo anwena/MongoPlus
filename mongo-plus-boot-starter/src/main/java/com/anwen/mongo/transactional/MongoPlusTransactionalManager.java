@@ -18,13 +18,13 @@ import java.util.Objects;
  * 自定义事务管理器
  * @author JiaChaoYang
  **/
-public class MongoTransactionalManager extends AbstractPlatformTransactionManager {
+public class MongoPlusTransactionalManager extends AbstractPlatformTransactionManager {
 
-    Logger logger = LoggerFactory.getLogger(MongoTransactionalManager.class);
+    Logger logger = LoggerFactory.getLogger(MongoPlusTransactionalManager.class);
 
     private final MongoClient mongoClient;
 
-    public MongoTransactionalManager(MongoClient mongoClient) {
+    public MongoPlusTransactionalManager(MongoClient mongoClient) {
         this.mongoClient = mongoClient;
     }
 
@@ -48,8 +48,10 @@ public class MongoTransactionalManager extends AbstractPlatformTransactionManage
     @Override
     protected void doCommit(DefaultTransactionStatus status) throws TransactionException {
         ClientSession clientSession = (ClientSession) status.getTransaction();
-        clientSession.commitTransaction();
-        clientSession.close();
+        if (clientSession.hasActiveTransaction()) {
+            clientSession.commitTransaction();
+            clientSession.close();
+        }
         MongoTransactionSpring.clear();
         if (logger.isDebugEnabled()){
             logger.debug("commit transaction -> sessionId: {}",clientSession.getServerSession().getIdentifier());
@@ -59,8 +61,10 @@ public class MongoTransactionalManager extends AbstractPlatformTransactionManage
     @Override
     protected void doRollback(DefaultTransactionStatus status) throws TransactionException {
         ClientSession clientSession = (ClientSession) status.getTransaction();
-        clientSession.abortTransaction();
-        clientSession.close();
+        if (clientSession.hasActiveTransaction()) {
+            clientSession.abortTransaction();
+            clientSession.close();
+        }
         MongoTransactionSpring.clear();
         if (logger.isDebugEnabled()){
             logger.debug("rollback transaction");
