@@ -1,7 +1,7 @@
 package com.anwen.mongo.config;
 
 import com.anwen.mongo.cache.MongoClientCache;
-import com.anwen.mongo.config.log.MongoDBLogProperty;
+import com.anwen.mongo.config.property.MongoDBLogProperty;
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.log.CustomMongoDriverLogger;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
