@@ -1,5 +1,6 @@
-package com.anwen.mongo.config.property;
+package com.anwen.mongo.property;
 
+import com.anwen.mongo.cache.PropertyCache;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -11,14 +12,15 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "mongo-plus.spring")
 public class MongoTransactionProperty {
 
+    private Boolean transaction = false;
+
     public Boolean getTransaction() {
         return transaction;
     }
 
     public void setTransaction(Boolean transaction) {
+        PropertyCache.transaction = transaction;
         this.transaction = transaction;
     }
-
-    private Boolean transaction = false;
 
 }
