@@ -1,10 +1,13 @@
-package com.anwen.mongo.config.log;
+package com.anwen.mongo.config.property;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * @author JiaChaoYang
  * 日志属性
  * @since 2023-06-07 23:07
  **/
+@ConfigurationProperties(prefix = "mongo-plus")
 public class MongoDBLogProperty {
 
     /**
