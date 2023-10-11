@@ -1,5 +1,6 @@
 package com.anwen.mongo.toolkit;
 
+import com.alibaba.fastjson.JSON;
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.constant.SqlOperationConstant;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 public class BeanMapUtilByReflect {
 
     public static List<Document> mapListToDocumentList(Collection<Map<String,Object>> mapCollection){
-        return mapCollection.stream().map(Document::new).collect(Collectors.toList());
+        return mapCollection.stream().map(map -> Document.parse(JSON.toJSONString(map))).collect(Collectors.toList());
     }
 
     /**
@@ -27,7 +28,7 @@ public class BeanMapUtilByReflect {
      * @param entity 对象实例
      * @return 属性值Map
      */
-    public static <T> Map<String, Object> checkTableField(T entity) {
+    public static <T> Document checkTableField(T entity) {
         //定义返回结果Map
         Map<String, Object> resultMap = new HashMap<>();
         //获取实体class
@@ -50,7 +51,7 @@ public class BeanMapUtilByReflect {
                 resultMap.put(fieldName, fieldValue);
             }
         }
-        return resultMap;
+        return Document.parse(JSON.toJSONString(resultMap));
     }
 
     public static Field getIdField(Class<?> clazz) {

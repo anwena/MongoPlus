@@ -1,7 +1,9 @@
 package com.anwen.mongo.execute;
 
+import com.alibaba.fastjson.JSON;
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionName;
+import com.anwen.mongo.cache.CodecRegistryCache;
 import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
@@ -110,7 +112,7 @@ public class SqlExecute {
 
     public <T> Boolean doSave(ClientSession clientSession,T entity) {
         try {
-            MongoCollection<Document> collection = getCollection(entity);
+            MongoCollection<Document> collection = getCollection(entity.getClass());
             Document document = processIdField(entity);
             InsertOneResult insertOneResult = Optional.ofNullable(clientSession)
                     .map(session -> collection.insertOne(session, document))
@@ -130,9 +132,10 @@ public class SqlExecute {
     public Boolean doSave(ClientSession clientSession,String collectionName, Map<String, Object> entityMap) {
         try {
             MongoCollection<Document> collection = getCollection(collectionName);
+            Document document = Document.parse(JSON.toJSONString(entityMap));
             return Optional.ofNullable(clientSession)
-                    .map(session -> collection.insertOne(session, new Document(entityMap)))
-                    .orElseGet(() -> collection.insertOne(new Document(entityMap))).wasAcknowledged();
+                    .map(session -> collection.insertOne(session, document))
+                    .orElseGet(() -> collection.insertOne(document)).wasAcknowledged();
         } catch (Exception e) {
             logger.error("save fail , error info : {}", e.getMessage(), e);
             return false;
@@ -146,7 +149,7 @@ public class SqlExecute {
     public <T> Boolean doSaveBatch(ClientSession clientSession,Collection<T> entityList) {
         try {
             List<Document> documentList = processIdFieldList(entityList);
-            MongoCollection<Document> collection = getCollection(entityList.iterator().next());
+            MongoCollection<Document> collection = getCollection(entityList.iterator().next().getClass());
             return Optional.ofNullable(clientSession)
                     .map(session -> collection.insertMany(session,documentList))
                     .orElseGet(() -> collection.insertMany(documentList)).getInsertedIds().size() == entityList.size();
@@ -265,10 +268,10 @@ public class SqlExecute {
     }
 
     public <T> Boolean doUpdateById(ClientSession clientSession,T entity) {
-        Document document = new Document(checkTableField(entity));
+        Document document = checkTableField(entity);
         BasicDBObject filter = getFilter(document);
         BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
-        MongoCollection<Document> collection = getCollection(entity);
+        MongoCollection<Document> collection = getCollection(entity.getClass());
         return Optional.ofNullable(clientSession)
                 .map(session -> collection.updateOne(session,filter,update))
                 .orElseGet(() -> collection.updateOne(filter,update)).getModifiedCount() >= 1;
@@ -280,7 +283,7 @@ public class SqlExecute {
 
     public Boolean doUpdateById(ClientSession clientSession,String collectionName, Map<String, Object> entityMap) {
         BasicDBObject filter = getFilter(entityMap);
-        BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), new Document(entityMap));
+        BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), Document.parse(JSON.toJSONString(entityMap)));
         MongoCollection<Document> collection = getCollection(collectionName);
         return Optional.ofNullable(clientSession)
                 .map(session -> collection.updateOne(session,filter,update))
@@ -337,8 +340,8 @@ public class SqlExecute {
     public <T> Boolean doUpdateByColumn(ClientSession clientSession,T entity, String column) {
         String filterValue = String.valueOf(ClassTypeUtil.getClassFieldValue(entity,column));
         Bson filter = Filters.eq(column, ObjectId.isValid(filterValue) ? new ObjectId(filterValue) : filterValue);
-        Document document = new Document(checkTableField(entity));
-        MongoCollection<Document> collection = getCollection(entity);
+        Document document = checkTableField(entity);
+        MongoCollection<Document> collection = getCollection(entity.getClass());
         return Optional.ofNullable(clientSession).map(session -> collection.updateOne(session,filter,document)).orElseGet(() -> collection.updateOne(filter,document)).getModifiedCount() >= 1;
     }
 
@@ -352,7 +355,7 @@ public class SqlExecute {
         }
         String columnValue = String.valueOf(entityMap.get(column));
         Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(columnValue)) ? new ObjectId(columnValue) : columnValue);
-        Document document = new Document(entityMap);
+        Document document = Document.parse(JSON.toJSONString(entityMap));
         MongoCollection<Document> collection = getCollection(collectionName);
         return Optional.ofNullable(clientSession).map(session -> collection.updateOne(session,filter,document)).orElseGet(() -> collection.updateOne(filter,document)).getModifiedCount() >= 1;
     }
@@ -895,13 +898,9 @@ public class SqlExecute {
         return pageResult;
     }
 
-    private <T> MongoCollection<Document> getCollection(T entity) {
-        return getCollection(entity.getClass()).withCodecRegistry(CodecRegistries.fromRegistries(RegisterCodecUtil.registerCodec(entity)));
-    }
-
-    private MongoCollection<Document> getCollection(Map<String, Object> entityMap, String collectionName) {
-        return getCollection(collectionName).withCodecRegistry(CodecRegistries.fromRegistries(RegisterCodecUtil.registerCodec(entityMap)));
-    }
+/*    private <T> MongoCollection<Document> getCollection(T entity) {
+        return getCollection(entity.getClass())*//*.withCodecRegistry(CodecRegistries.fromRegistries(RegisterCodecUtil.registerCodec(entity)))*//*;
+    }*/
 
     private MongoCollection<Document> getCollection(Class<?> clazz) {
         createIndex = null;
@@ -914,23 +913,25 @@ public class SqlExecute {
 
     private MongoCollection<Document> getCollection(String collectionName) {
         createIndex = null;
+        MongoCollection<Document> mongoCollection;
         // 检查连接是否需要重新创建
         if (!this.collectionMap.containsKey(collectionName)) {
             if (connectMongoDB == null || !Objects.equals(connectMongoDB.getCollection(), collectionName)){
                 connectMongoDB = new ConnectMongoDB(mongoClient, baseProperty.getDatabase(), collectionName);
             }
-            MongoCollection<Document> mongoCollection = connectMongoDB.open();
+            mongoCollection = connectMongoDB.open();
             this.collectionMap.put(collectionName, mongoCollection);
-            return mongoCollection;
+        }else {
+            mongoCollection = this.collectionMap.get(collectionName);
         }
-        return this.collectionMap.get(collectionName);
+        return mongoCollection.withCodecRegistry(CodecRegistries.fromRegistries(CodecRegistryCache.getCodecRegistry()));
     }
 
     private <T> Document processIdField(T entity){
         // TODO 反射较多，考虑使用缓存
         Map<String, Object> tableFieldMap = checkTableField(entity);
         fillId(entity, tableFieldMap);
-        return new Document(tableFieldMap);
+        return Document.parse(JSON.toJSONString(tableFieldMap));
     }
 
     private String getAutoId(Class<?> clazz) {

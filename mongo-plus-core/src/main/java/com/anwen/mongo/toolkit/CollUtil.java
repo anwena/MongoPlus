@@ -14,4 +14,8 @@ public class CollUtil {
         return collection != null && !collection.isEmpty();
     }
 
+    public static boolean isEmpty(Collection<?> collection){
+        return !isNotEmpty(collection);
+    }
+
 }
