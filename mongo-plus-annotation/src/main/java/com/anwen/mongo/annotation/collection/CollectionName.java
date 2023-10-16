@@ -19,5 +19,11 @@ import java.lang.annotation.*;
 public @interface CollectionName {
     String value();
 
+    /**
+     * 多数据源还有一点问题
+     * @author JiaChaoYang
+     * @date 2023/10/17 0:22
+    */
+    @Deprecated
     String dataSource() default "";
 }

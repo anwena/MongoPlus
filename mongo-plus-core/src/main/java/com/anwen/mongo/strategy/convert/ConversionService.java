@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * 策略应用
  * @author JiaChaoYang
  **/
 public class ConversionService {
@@ -28,7 +29,14 @@ public class ConversionService {
         conversionStrategies.put(Object.class,new DefaultConversionStrategy());
     }
 
-
+    /**
+     * 添加自定义转换器(后期要改，从spring去做)
+     * @param clazz map的key，使用转换器要转换的类
+     * @param conversionStrategy 转换器接口
+     * @return void
+     * @author JiaChaoYang
+     * @date 2023/10/17 0:19
+    */
     public static void appendConversion(Class<?> clazz,ConversionStrategy conversionStrategy){
         conversionStrategies.put(clazz,conversionStrategy);
         System.out.println("给map加值了："+ JSON.toJSONString(conversionStrategies));
