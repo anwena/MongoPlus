@@ -24,6 +24,7 @@ import java.util.Map;
  * @description sql操作
  * @date 2023-09-26 17:19
  **/
+@Deprecated
 public interface SqlOperate {
 
     Logger logger = LoggerFactory.getLogger(SqlOperate.class);

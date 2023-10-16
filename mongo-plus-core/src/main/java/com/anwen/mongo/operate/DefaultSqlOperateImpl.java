@@ -22,6 +22,7 @@ import java.util.Map;
  *
  * @author JiaChaoYang
  **/
+@Deprecated
 public class DefaultSqlOperateImpl implements SqlOperate {
     @Override
     public <T> Boolean doSave(T entity) {

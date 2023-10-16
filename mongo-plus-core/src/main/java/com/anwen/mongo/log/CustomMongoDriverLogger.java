@@ -59,7 +59,6 @@ public class CustomMongoDriverLogger implements CommandListener {
     public void commandFailed(CommandFailedEvent event) {
         String commandName = event.getCommandName();
         Throwable throwable = event.getThrowable();
-
         System.out.println("error ==> : " + commandName + ", " + throwable.getMessage());
     }
 

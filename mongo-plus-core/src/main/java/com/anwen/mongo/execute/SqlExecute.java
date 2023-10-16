@@ -22,7 +22,6 @@ import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.model.*;
 import com.anwen.mongo.support.SFunction;
 import com.anwen.mongo.toolkit.*;
-import com.anwen.mongo.toolkit.codec.RegisterCodecUtil;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
 import com.mongodb.client.*;
