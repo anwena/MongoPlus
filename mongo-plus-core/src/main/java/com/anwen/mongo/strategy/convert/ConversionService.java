@@ -6,6 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,6 +30,10 @@ public class ConversionService {
         conversionStrategies.put(Float.class, new FloatConversionStrategy());
         conversionStrategies.put(Boolean.class, new BooleanConversionStrategy());
         conversionStrategies.put(String.class, new StringConversionStrategy());
+        conversionStrategies.put(LocalTime.class,new LocalTimeConversionStrategy());
+        conversionStrategies.put(LocalDate.class,new LocalDateConversionStrategy());
+        conversionStrategies.put(LocalDateTime.class,new LocalDateTimeConversionStrategy());
+        conversionStrategies.put(Date.class,new DateConversionStrategy());
         conversionStrategies.put(Object.class,new DefaultConversionStrategy());
     }
 

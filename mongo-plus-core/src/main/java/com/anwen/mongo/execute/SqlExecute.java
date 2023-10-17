@@ -659,7 +659,7 @@ public class SqlExecute {
     }
 
     public Boolean doRemove(ClientSession clientSession,List<CompareCondition> compareConditionList,Class<?> clazz) {
-        return executeUpdate(clientSession,compareConditionList,getCollection(clazz));
+        return executeRemove(clientSession,compareConditionList,getCollection(clazz));
     }
 
     public Boolean doRemove(String collectionName,List<CompareCondition> compareConditionList){
