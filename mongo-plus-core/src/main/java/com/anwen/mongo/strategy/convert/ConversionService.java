@@ -6,6 +6,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -34,12 +37,15 @@ public class ConversionService {
         conversionStrategies.put(LocalDate.class,new LocalDateConversionStrategy());
         conversionStrategies.put(LocalDateTime.class,new LocalDateTimeConversionStrategy());
         conversionStrategies.put(Date.class,new DateConversionStrategy());
+        conversionStrategies.put(Instant.class,new InstantConversionStrategy());
         conversionStrategies.put(Object.class,new DefaultConversionStrategy());
+        conversionStrategies.put(BigDecimal.class,new BigDecimalConversionStrategy());
+        conversionStrategies.put(BigInteger.class,new BigIntegerConversionStrategy());
     }
 
     /**
      * 添加自定义转换器(后期要改，从spring去做)
-     * @param clazz map的key，使用转换器要转换的类
+     * @param clazz map的key，使用转换器要转换的类,get的时候，会根据字段的Type拿转换器
      * @param conversionStrategy 转换器接口
      * @return void
      * @author JiaChaoYang

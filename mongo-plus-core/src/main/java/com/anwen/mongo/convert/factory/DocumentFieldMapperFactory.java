@@ -2,6 +2,8 @@ package com.anwen.mongo.convert.factory;
 
 import com.anwen.mongo.convert.DocumentFieldMapper;
 import com.anwen.mongo.convert.mapper.*;
+import com.anwen.mongo.toolkit.ClassTypeUtil;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 
 import java.lang.reflect.Field;
@@ -18,14 +20,10 @@ public class DocumentFieldMapperFactory {
 
     public static <T> DocumentFieldMapper<T> getMapper(Field field, Object fieldValue) {
         Class<?> fieldType = field.getType();
-        if (fieldType.equals(Date.class)) {
-            return new DateFieldMapper<>(fieldValue);
-        } else if (fieldType.equals(LocalDateTime.class)) {
-            return new LocalDateTimeFieldMapper<>(fieldValue);
-        } else if (fieldType.isArray() || Collection.class.isAssignableFrom(fieldType)) {
+        if (fieldType.isArray() || Collection.class.isAssignableFrom(fieldType)) {
             return new CollectionFieldMapper<>(fieldValue);
-        } else if (!isPrimitive(fieldType)) {
-            return new ObjectFieldMapper<>(fieldValue);
+        }else if (ClassTypeUtil.isItCustomType(field) || fieldType.equals(Document.class)){
+            return new DocumentTypeFieldMapper<>(fieldValue);
         } else if (fieldType.equals(ObjectId.class)) {
             return new ObjectIdFieldMapper<>(fieldValue);
         } else {

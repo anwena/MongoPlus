@@ -34,16 +34,21 @@ public class DateConversionStrategy implements ConversionStrategy {
     @Override
     public void convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
         Date date = null;
-        for (String format : formatList) {
-            try {
-                SimpleDateFormat dateFormat = new SimpleDateFormat(format);
-                date = dateFormat.parse(String.valueOf(fieldValue));
-                break;
-            }catch (ParseException ignored){}
-        }
-        if (null == date){
-            logger.error("Unrecognized date format");
-            throw new IllegalAccessException("Unrecognized date format");
+        if (fieldValue.getClass().equals(Long.class)){
+            date = new Date((Long) fieldValue);
+        }else {
+            for (String format : formatList) {
+                try {
+                    SimpleDateFormat dateFormat = new SimpleDateFormat(format);
+                    date = dateFormat.parse(String.valueOf(fieldValue));
+                    break;
+                } catch (ParseException ignored) {
+                }
+            }
+            if (null == date) {
+                logger.error("Unrecognized date format");
+                throw new IllegalAccessException("Unrecognized date format");
+            }
         }
         field.set(obj,date);
     }

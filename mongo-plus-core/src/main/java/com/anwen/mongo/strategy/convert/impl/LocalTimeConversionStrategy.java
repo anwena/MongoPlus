@@ -1,6 +1,7 @@
 package com.anwen.mongo.strategy.convert.impl;
 
 import com.anwen.mongo.strategy.convert.ConversionStrategy;
+import com.anwen.mongo.toolkit.InstantUtil;
 
 import java.lang.reflect.Field;
 import java.time.LocalTime;
@@ -15,6 +16,6 @@ import java.time.format.DateTimeFormatter;
 public class LocalTimeConversionStrategy implements ConversionStrategy {
     @Override
     public void convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
-        field.set(obj, LocalTime.parse(String.valueOf(fieldValue), DateTimeFormatter.ofPattern("HH:mm:ss")));
+        field.set(obj, fieldValue.getClass().equals(Long.class) ? InstantUtil.convertTimestampToLocalTime((Long) fieldValue) : LocalTime.parse(String.valueOf(fieldValue), DateTimeFormatter.ofPattern("HH:mm:ss")));
     }
 }
