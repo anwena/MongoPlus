@@ -1,7 +1,6 @@
 package com.anwen.mongo.strategy.convert.impl;
 
 import com.anwen.mongo.strategy.convert.ConversionStrategy;
-import com.mongodb.MongoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

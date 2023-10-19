@@ -5,6 +5,10 @@ import com.anwen.mongo.model.BaseProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 /**
  * @Description: 拼接mongodb连接
  * @BelongsProject: mongo
@@ -27,6 +31,13 @@ public class UrlJoint {
 
     public String jointMongoUrl(){
         if (StringUtils.isNotBlank(baseProperty.getUsername()) && StringUtils.isNotBlank(baseProperty.getPassword())){
+            try {
+                baseProperty.setUsername(URLEncoder.encode(baseProperty.getUsername(), "UTF-8"));
+                baseProperty.setPassword(URLEncoder.encode(baseProperty.getPassword(),"UTF-8"));
+            } catch (UnsupportedEncodingException e) {
+                logger.error(e.getMessage());
+                throw new RuntimeException(e);
+            }
             uri.append(baseProperty.getUsername()).append(":").append(baseProperty.getPassword()).append("@");
         }
         if (StringUtils.isNotBlank(baseProperty.getHost()) && StringUtils.isNotBlank(baseProperty.getPort())){
