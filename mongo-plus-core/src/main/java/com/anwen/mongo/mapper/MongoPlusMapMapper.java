@@ -5,13 +5,16 @@ import com.anwen.mongo.conditions.inject.aggregate.LambdaAggregateChainInjectWra
 import com.anwen.mongo.conditions.inject.query.LambdaQueryChainInjectWrapper;
 import com.anwen.mongo.conditions.inject.update.LambdaUpdateChainInjectWrapper;
 import com.anwen.mongo.conditions.interfaces.Inject.InjectQuery;
+import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
+import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 import com.mongodb.client.ClientSession;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -257,6 +260,39 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public long count(ClientSession clientSession, String collectionName, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
         return sqlExecute.doCount(clientSession,collectionName,queryChainWrapper.getCompareList());
+    }
+
+    @Override
+    public List<Map<String, Object>> getByColumn(String collectionName,String field, Object fieldValue) {
+        return sqlExecute.doGetByColumn(collectionName,field,fieldValue);
+    }
+
+    @Override
+    public List<Map<String, Object>> getByColumn(ClientSession clientSession, String collection, String field, Object fieldValue) {
+        return sqlExecute.doGetByColumn(clientSession,collection,field,fieldValue);
+    }
+
+    @Override
+    public Boolean remove(String collectionName, UpdateChainWrapper<Map<String, Object>, ?> updateChainWrapper) {
+        return remove(null,collectionName,updateChainWrapper);
+    }
+
+    @Override
+    public Boolean remove(ClientSession clientSession, String collectionName, UpdateChainWrapper<Map<String, Object>, ?> updateChainWrapper) {
+        return sqlExecute.doRemove(clientSession,collectionName,updateChainWrapper.getCompareList());
+    }
+
+    @Override
+    public Boolean update(String collectionName, UpdateChainWrapper<Map<String, Object>, ?> updateChainWrapper) {
+        return update(null,collectionName,updateChainWrapper);
+    }
+
+    @Override
+    public Boolean update(ClientSession clientSession, String collectionName, UpdateChainWrapper<Map<String, Object>, ?> updateChainWrapper) {
+        List<CompareCondition> compareConditionList = new ArrayList<>();
+        compareConditionList.addAll(updateChainWrapper.getCompareList());
+        compareConditionList.addAll(updateChainWrapper.getUpdateCompareList());
+        return sqlExecute.doUpdate(clientSession,collectionName,compareConditionList);
     }
 
     @Override

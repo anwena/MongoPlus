@@ -14,7 +14,7 @@ public class AggregateWrapper<T> extends AggregateChainWrapper<T, AggregateWrapp
      * @author JiaChaoYang
      * @date 2023/8/12 2:14
      */
-    public AggregateChainWrapper<T, AggregateWrapper<T>> lambdaQuery(){
+    public AggregateChainWrapper<T, AggregateWrapper<T>> lambdaAggregate(){
         return ChainWrappers.lambdaAggregateChain();
     }
 

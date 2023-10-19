@@ -8,14 +8,14 @@ import java.util.Map;
 /**
  * @author JiaChaoYang
  **/
-public class InjectWrapper extends QueryChainWrapper<Map<String,Object>, InjectWrapper> {
+public class InjectQueryWrapper extends QueryChainWrapper<Map<String,Object>, InjectQueryWrapper> {
 
     /**
      * 链式调用
      * @author JiaChaoYang
      * @date 2023/8/12 2:14
      */
-    public QueryChainWrapper<Map<String,Object>, InjectWrapper> lambdaQuery(){
+    public QueryChainWrapper<Map<String,Object>, InjectQueryWrapper> lambdaQuery(){
         return ChainWrappers.lambdaQueryChainInject();
     }
 }

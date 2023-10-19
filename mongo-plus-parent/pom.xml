@@ -51,6 +51,12 @@
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <mongoplus.version>2.0.7</mongoplus.version>
+        <mongodb-driver-sync.version>4.9.0</mongodb-driver-sync.version>
+        <fastjson.version>1.2.83</fastjson.version>
+        <slf4j-api.version>1.7.36</slf4j-api.version>
+        <solon-api.version>2.4.5</solon-api.version>
+        <aspectjweaver.version>1.9.7</aspectjweaver.version>
+        <spring-tx.version>5.3.27</spring-tx.version>
     </properties>
 
     <dependencyManagement>
@@ -58,32 +64,32 @@
             <dependency>
                 <groupId>org.mongodb</groupId>
                 <artifactId>mongodb-driver-sync</artifactId>
-                <version>4.9.0</version>
+                <version>${mongodb-driver-sync.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.alibaba</groupId>
                 <artifactId>fastjson</artifactId>
-                <version>1.2.83</version>
+                <version>${fastjson.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
-                <version>1.7.36</version>
+                <version>${slf4j-api.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.noear</groupId>
                 <artifactId>solon-api</artifactId>
-                <version>2.4.5</version>
+                <version>${solon-api.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.aspectj</groupId>
                 <artifactId>aspectjweaver</artifactId>
-                <version>1.9.7</version>
+                <version>${aspectjweaver.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-tx</artifactId>
-                <version>5.3.27</version>
+                <version>${spring-tx.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

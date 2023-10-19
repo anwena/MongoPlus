@@ -341,7 +341,7 @@ public class SqlExecute {
         Bson filter = Filters.eq(column, ObjectId.isValid(filterValue) ? new ObjectId(filterValue) : filterValue);
         Document document = checkTableField(entity);
         MongoCollection<Document> collection = getCollection(entity.getClass());
-        return Optional.ofNullable(clientSession).map(session -> collection.updateOne(session,filter,document)).orElseGet(() -> collection.updateOne(filter,document)).getModifiedCount() >= 1;
+        return Optional.ofNullable(clientSession).map(session -> collection.updateMany(session,filter,document)).orElseGet(() -> collection.updateMany(filter,document)).getModifiedCount() >= 1;
     }
 
     public Boolean doUpdateByColumn(String collectionName,Map<String,Object> entityMap, String column) {
@@ -356,7 +356,7 @@ public class SqlExecute {
         Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(columnValue)) ? new ObjectId(columnValue) : columnValue);
         Document document = Document.parse(JSON.toJSONString(entityMap));
         MongoCollection<Document> collection = getCollection(collectionName);
-        return Optional.ofNullable(clientSession).map(session -> collection.updateOne(session,filter,document)).orElseGet(() -> collection.updateOne(filter,document)).getModifiedCount() >= 1;
+        return Optional.ofNullable(clientSession).map(session -> collection.updateMany(session,filter,document)).orElseGet(() -> collection.updateMany(filter,document)).getModifiedCount() >= 1;
     }
 
 
@@ -381,33 +381,33 @@ public class SqlExecute {
         return Optional.ofNullable(clientSession).map(session -> collection.deleteOne(session,filterId)).orElseGet(() -> collection.deleteOne(filterId)).getDeletedCount() >= 1;
     }
 
-    public <T> Boolean doRemoveByColumn(SFunction<T, Object> column, String value,Class<T> clazz) {
+    public <T> Boolean doRemoveByColumn(SFunction<T, Object> column, Object value,Class<T> clazz) {
         return doRemoveByColumn(column.getFieldNameLine(),value,clazz);
     }
 
-    public <T> Boolean doRemoveByColumn(ClientSession clientSession,SFunction<T, Object> column, String value,Class<T> clazz) {
+    public <T> Boolean doRemoveByColumn(ClientSession clientSession,SFunction<T, Object> column, Object value,Class<T> clazz) {
         return doRemoveByColumn(clientSession,column.getFieldNameLine(),value,clazz);
     }
 
-    public Boolean doRemoveByColumn(String column, String value,Class<?> clazz) {
+    public Boolean doRemoveByColumn(String column, Object value,Class<?> clazz) {
         return doRemoveByColumn(MongoTransactionContext.getClientSessionContext(),column,value,clazz);
     }
 
-    public Boolean doRemoveByColumn(ClientSession clientSession,String column, String value,Class<?> clazz) {
+    public Boolean doRemoveByColumn(ClientSession clientSession,String column, Object value,Class<?> clazz) {
         return executeRemoveByColumn(clientSession,column,value,getCollection(clazz));
     }
 
-    public Boolean doRemoveByColumn(String collectionName,String column, String value) {
+    public Boolean doRemoveByColumn(String collectionName,String column, Object value) {
         return doRemoveByColumn(MongoTransactionContext.getClientSessionContext(),collectionName,column,value);
     }
 
-    public Boolean doRemoveByColumn(ClientSession clientSession,String collectionName,String column, String value) {
+    public Boolean doRemoveByColumn(ClientSession clientSession,String collectionName,String column, Object value) {
         return executeRemoveByColumn(clientSession,column,value,getCollection(collectionName));
     }
 
-    public Boolean executeRemoveByColumn(ClientSession clientSession,String column,String value,MongoCollection<Document> collection){
-        Bson filter = Filters.eq(column, ObjectId.isValid(value) ? new ObjectId(value) : value);
-        return Optional.ofNullable(clientSession).map(session -> collection.deleteOne(session,filter)).orElseGet(() -> collection.deleteOne(filter)).getDeletedCount() >= 1;
+    public Boolean executeRemoveByColumn(ClientSession clientSession,String column,Object value,MongoCollection<Document> collection){
+        Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(value)) ? new ObjectId(String.valueOf(value)) : value);
+        return Optional.ofNullable(clientSession).map(session -> collection.deleteMany(session,filter)).orElseGet(() -> collection.deleteMany(filter)).getDeletedCount() >= 1;
     }
 
 
@@ -605,6 +605,26 @@ public class SqlExecute {
         MongoCollection<Document> collection = getCollection(clazz);
         BasicDBObject basicDBObject = checkIdType(ids);
         return DocumentMapperConvert.mapDocumentList(Optional.ofNullable(clientSession).map(session -> collection.find(session,basicDBObject)).orElseGet(() -> collection.find(basicDBObject)), clazz);
+    }
+
+    public <T> List<T> doGetByColumn(String column,Object value,Class<T> clazz){
+        return doGetByColumn(null,column,value,clazz);
+    }
+
+    public <T> List<T> doGetByColumn(ClientSession clientSession,String column,Object value,Class<T> clazz){
+        MongoCollection<Document> collection = getCollection(clazz);
+        Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(value)) ? new ObjectId(String.valueOf(value)) : value);
+        return DocumentMapperConvert.mapDocumentList(Optional.ofNullable(clientSession).map(session -> collection.find(session,filter)).orElseGet(() -> collection.find(filter)),clazz);
+    }
+
+    public List<Map<String,Object>> doGetByColumn(String collectionName,String column,Object value){
+        return doGetByColumn(null,collectionName,column,value);
+    }
+
+    public List<Map<String,Object>> doGetByColumn(ClientSession clientSession,String collectionName,String column,Object value){
+        MongoCollection<Document> collection = getCollection(collectionName);
+        Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(value)) ? new ObjectId(String.valueOf(value)) : value);
+        return Converter.convertDocumentToMap(Optional.ofNullable(clientSession).map(session -> collection.find(session,filter,Map.class)).orElseGet(() -> collection.find(filter,Map.class)));
     }
 
     public <T> List<T> doSql(String sql,Class<T> clazz){

@@ -5,6 +5,7 @@ import com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper;
 import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conditions.update.LambdaUpdateChainWrapper;
+import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
@@ -18,7 +19,7 @@ import java.util.List;
 
 /**
  * @author JiaChaoYang
- * 增删改接口
+ * 增删改接口，后边会弃用掉该接口，只提供在Mapper操作，2.0.7版本以上可以继承{@link com.anwen.mongo.mapper.BaseMapper}
  * @since 2023-02-09 13:25
  **/
 public interface IService<T> {
@@ -143,6 +144,44 @@ public interface IService<T> {
     Boolean updateByColumn(ClientSession clientSession,T entity, String column);
 
     /**
+     * 根据条件删除
+     * @param updateChainWrapper 条件
+     * @return java.lang.Boolean
+     * @author JiaChaoYang
+     * @date 2023/10/20 0:51
+    */
+    Boolean remove(UpdateChainWrapper<T,?> updateChainWrapper);
+
+    /**
+     * 根据条件删除
+     * @param updateChainWrapper 条件
+     * @param clientSession 事务接口
+     * @return java.lang.Boolean
+     * @author JiaChaoYang
+     * @date 2023/10/20 0:51
+     */
+    Boolean remove(ClientSession clientSession,UpdateChainWrapper<T,?> updateChainWrapper);
+
+    /**
+     * 根据条件修改
+     * @param updateChainWrapper 条件
+     * @return java.lang.Boolean
+     * @author JiaChaoYang
+     * @date 2023/10/20 0:51
+     */
+    Boolean update(UpdateChainWrapper<T,?> updateChainWrapper);
+
+    /**
+     * 根据条件修改
+     * @param updateChainWrapper 条件
+     * @param clientSession 事务接口
+     * @return java.lang.Boolean
+     * @author JiaChaoYang
+     * @date 2023/10/20 0:51
+     */
+    Boolean update(ClientSession clientSession,UpdateChainWrapper<T,?> updateChainWrapper);
+
+    /**
      * 根据id删除
      * @param id 数据id
      * @return java.lang.Boolean
@@ -167,7 +206,7 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @since 2023/2/9 14:01
     */
-    Boolean removeByColumn(SFunction<T, Object> column, String value);
+    Boolean removeByColumn(SFunction<T, Object> column, Object value);
 
     /**
      * 根据字段删除
@@ -176,7 +215,7 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @since 2023/2/9 14:01
     */
-    Boolean removeByColumn(ClientSession clientSession,SFunction<T, Object> column, String value);
+    Boolean removeByColumn(ClientSession clientSession,SFunction<T, Object> column, Object value);
 
     /**
      * 根据字段删除
@@ -186,7 +225,7 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @since 2023/2/9 14:05
     */
-    Boolean removeByColumn(String column,String value);
+    Boolean removeByColumn(String column,Object value);
 
     /**
      * 根据字段删除
@@ -196,7 +235,7 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @since 2023/2/9 14:05
     */
-    Boolean removeByColumn(ClientSession clientSession,String column,String value);
+    Boolean removeByColumn(ClientSession clientSession,String column,Object value);
 
     /**
      * 根据id批量删除
@@ -316,6 +355,10 @@ public interface IService<T> {
 
     PageResult<T> page(ClientSession clientSession,QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize);
 
+    PageResult<T> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam);
+
+    PageResult<T> page(ClientSession clientSession,QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam);
+
     /**
      * 根据id查询单个
      * @param id id
@@ -346,6 +389,32 @@ public interface IService<T> {
     List<T> sql(String sql);
 
     List<T> sql(ClientSession clientSession,String sql);
+
+    /**
+     * 根据某一列查询
+     * @param field 字段
+     * @param fieldValue 字段值
+     * @return List<T>
+     * @author JiaChaoYang
+     * @date 2023/10/19 23:28
+    */
+    List<T> getByColumn(SFunction<T,Object> field,Object fieldValue);
+
+    List<T> getByColumn(ClientSession clientSession,SFunction<T,Object> field,Object fieldValue);
+
+    /**
+     * 根据某一列查询
+     * @param field 字段
+     * @param fieldValue 字段值
+     * @return T
+     * @author JiaChaoYang
+     * @date 2023/10/19 23:30
+    */
+    List<T> getByColumn(String field,Object fieldValue);
+
+    List<T> getByColumn(ClientSession clientSession,String field,Object fieldValue);
+
+
 
     SqlExecute getSqlOperation();
 

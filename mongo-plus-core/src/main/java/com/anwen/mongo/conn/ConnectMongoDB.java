@@ -1,5 +1,11 @@
 package com.anwen.mongo.conn;
 
+import com.anwen.mongo.conditions.query.QueryWrapper;
+import com.anwen.mongo.conditions.update.LambdaUpdateChainWrapper;
+import com.anwen.mongo.conditions.update.UpdateChainWrapper;
+import com.anwen.mongo.conditions.update.UpdateWrapper;
+import com.anwen.mongo.model.BaseModelID;
+import com.anwen.mongo.service.IService;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;

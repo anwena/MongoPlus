@@ -4,11 +4,14 @@ import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.aggregate.AggregateWrapper;
 import com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper;
 import com.anwen.mongo.conditions.inject.aggregate.InjectAggregateWrapper;
-import com.anwen.mongo.conditions.inject.query.InjectWrapper;
+import com.anwen.mongo.conditions.inject.query.InjectQueryWrapper;
+import com.anwen.mongo.conditions.inject.update.InjectUpdateWrapper;
 import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
-import com.anwen.mongo.conditions.query.Wrapper;
+import com.anwen.mongo.conditions.query.QueryWrapper;
 import com.anwen.mongo.conditions.update.LambdaUpdateChainWrapper;
+import com.anwen.mongo.conditions.update.UpdateChainWrapper;
+import com.anwen.mongo.conditions.update.UpdateWrapper;
 import com.anwen.mongo.execute.SqlExecute;
 
 import java.util.Map;
@@ -32,11 +35,19 @@ public final class ChainWrappers {
         return new LambdaUpdateChainWrapper<>(sqlExecute,clazz);
     }
 
-    public static <T> QueryChainWrapper<T, Wrapper<T>> lambdaQueryChain(){
+    public static <T> UpdateChainWrapper<T, UpdateWrapper<T>> lambdaUpdateChain(){
+        return new UpdateChainWrapper<>();
+    }
+
+    public static <T> UpdateChainWrapper<Map<String,Object>, InjectUpdateWrapper> lambdaUpdateChainInject(){
+        return new UpdateChainWrapper<>();
+    }
+
+    public static <T> QueryChainWrapper<T, QueryWrapper<T>> lambdaQueryChain(){
         return new QueryChainWrapper<>();
     }
 
-    public static QueryChainWrapper<Map<String,Object>, InjectWrapper> lambdaQueryChainInject(){
+    public static QueryChainWrapper<Map<String,Object>, InjectQueryWrapper> lambdaQueryChainInject(){
         return new QueryChainWrapper<>();
     }
 

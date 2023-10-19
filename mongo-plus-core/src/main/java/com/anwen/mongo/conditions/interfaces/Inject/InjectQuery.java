@@ -2,6 +2,7 @@ package com.anwen.mongo.conditions.interfaces.Inject;
 
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
+import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 import com.mongodb.client.ClientSession;
@@ -307,4 +308,55 @@ public interface InjectQuery extends CommInjectQuery {
      * @date 2023/7/27 13:12
      */
     long count(ClientSession clientSession,String collectionName, QueryChainWrapper<Map<String,Object>,?> queryChainWrapper);
+
+    /**
+     * 根据某一列查询
+     * @param field 字段
+     * @param fieldValue 字段值
+     * @return T
+     * @author JiaChaoYang
+     * @date 2023/10/19 23:30
+     */
+    List<Map<String,Object>> getByColumn(String collectionName,String field,Object fieldValue);
+
+    List<Map<String,Object>> getByColumn(ClientSession clientSession,String collection,String field,Object fieldValue);
+
+    /**
+     * 根据条件删除
+     * @param updateChainWrapper 条件
+     * @return java.lang.Boolean
+     * @author JiaChaoYang
+     * @date 2023/10/20 0:51
+     */
+    Boolean remove(String collectionName,UpdateChainWrapper<Map<String,Object>,?> updateChainWrapper);
+
+    /**
+     * 根据条件删除
+     * @param updateChainWrapper 条件
+     * @param clientSession 事务接口
+     * @return java.lang.Boolean
+     * @author JiaChaoYang
+     * @date 2023/10/20 0:51
+     */
+    Boolean remove(ClientSession clientSession,String collectionName,UpdateChainWrapper<Map<String,Object>,?> updateChainWrapper);
+
+    /**
+     * 根据条件修改
+     * @param updateChainWrapper 条件
+     * @return java.lang.Boolean
+     * @author JiaChaoYang
+     * @date 2023/10/20 0:51
+     */
+    Boolean update(String collectionName,UpdateChainWrapper<Map<String,Object>,?> updateChainWrapper);
+
+    /**
+     * 根据条件修改
+     * @param updateChainWrapper 条件
+     * @param clientSession 事务接口
+     * @return java.lang.Boolean
+     * @author JiaChaoYang
+     * @date 2023/10/20 0:51
+     */
+    Boolean update(ClientSession clientSession,String collectionName,UpdateChainWrapper<Map<String,Object>,?> updateChainWrapper);
+
 }

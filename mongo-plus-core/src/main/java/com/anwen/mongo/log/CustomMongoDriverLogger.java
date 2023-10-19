@@ -44,7 +44,7 @@ public class CustomMongoDriverLogger implements CommandListener {
         if (Objects.equals(event.getCommandName(), "find")){
             System.out.println(event.getCommandName()+" results of execution ==> ");
             System.out.println(event.getResponse().getDocument("cursor").get("firstBatch").asArray().getValues().size());
-        } else if (Objects.equals(event.getCommandName(), "insert")) {
+        } else if (Objects.equals(event.getCommandName(), "insert") || Objects.equals(event.getCommandName(), "delete")) {
             System.out.println(event.getCommandName()+" results of execution ==> ");
             System.out.println(event.getResponse().get("n").asInt32().getValue());
         }

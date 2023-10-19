@@ -2,9 +2,11 @@ package com.anwen.mongo.service.impl;
 
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper;
+import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conditions.update.LambdaUpdateChainWrapper;
+import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
@@ -17,12 +19,14 @@ import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 /**
  * @author JiaChaoYang
  * 接口实现
+ * 增删改接口，后边会弃用掉该类，只提供在Mapper操作，2.0.7版本以上可以继承{@link com.anwen.mongo.mapper.BaseMapper}
  * @since 2023-02-09 14:13
  **/
 public class ServiceImpl<T> implements IService<T>{
@@ -140,6 +144,29 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    public Boolean remove(UpdateChainWrapper<T, ?> updateChainWrapper) {
+        return sqlExecute.doRemove(updateChainWrapper.getCompareList(),clazz);
+    }
+
+    @Override
+    public Boolean remove(ClientSession clientSession, UpdateChainWrapper<T, ?> updateChainWrapper) {
+        return sqlExecute.doRemove(clientSession,updateChainWrapper.getCompareList(),clazz);
+    }
+
+    @Override
+    public Boolean update(UpdateChainWrapper<T, ?> updateChainWrapper) {
+        return update(null,updateChainWrapper);
+    }
+
+    @Override
+    public Boolean update(ClientSession clientSession, UpdateChainWrapper<T, ?> updateChainWrapper) {
+        List<CompareCondition> compareConditionList = new ArrayList<>();
+        compareConditionList.addAll(updateChainWrapper.getCompareList());
+        compareConditionList.addAll(updateChainWrapper.getUpdateCompareList());
+        return sqlExecute.doUpdate(clientSession,compareConditionList,clazz);
+    }
+
+    @Override
     public Boolean removeById(Serializable id) {
         return sqlExecute.doRemoveById(id,clazz);
     }
@@ -150,22 +177,22 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
-    public Boolean removeByColumn(SFunction<T, Object> column, String value) {
+    public Boolean removeByColumn(SFunction<T, Object> column, Object value) {
         return sqlExecute.doRemoveByColumn(column,value,clazz);
     }
 
     @Override
-    public Boolean removeByColumn(ClientSession clientSession, SFunction<T, Object> column, String value) {
+    public Boolean removeByColumn(ClientSession clientSession, SFunction<T, Object> column, Object value) {
         return sqlExecute.doRemoveByColumn(clientSession,column,value,clazz);
     }
 
     @Override
-    public Boolean removeByColumn(String column, String value) {
+    public Boolean removeByColumn(String column, Object value) {
         return sqlExecute.doRemoveByColumn(column,value,clazz);
     }
 
     @Override
-    public Boolean removeByColumn(ClientSession clientSession, String column, String value) {
+    public Boolean removeByColumn(ClientSession clientSession, String column, Object value) {
         return sqlExecute.doRemoveByColumn(clientSession,column,value,clazz);
     }
 
@@ -270,6 +297,16 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    public PageResult<T> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam) {
+        return page(null,queryChainWrapper,pageParam);
+    }
+
+    @Override
+    public PageResult<T> page(ClientSession clientSession, QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam) {
+        return sqlExecute.doPage(clientSession,queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),pageParam.getPageNum(),pageParam.getPageSize(),clazz);
+    }
+
+    @Override
     public PageResult<T> page(PageParam pageParam) {
         return page(pageParam.getPageNum(),pageParam.getPageSize());
     }
@@ -317,6 +354,26 @@ public class ServiceImpl<T> implements IService<T>{
     @Override
     public List<T> sql(ClientSession clientSession,String sql) {
         return sqlExecute.doSql(clientSession,sql,clazz);
+    }
+
+    @Override
+    public List<T> getByColumn(SFunction<T, Object> field, Object fieldValue) {
+        return sqlExecute.doGetByColumn(field.getFieldNameLine(), fieldValue,clazz);
+    }
+
+    @Override
+    public List<T> getByColumn(ClientSession clientSession, SFunction<T, Object> field, Object fieldValue) {
+        return sqlExecute.doGetByColumn(clientSession,field.getFieldNameLine(),fieldValue,clazz);
+    }
+
+    @Override
+    public List<T> getByColumn(String field, Object fieldValue) {
+        return sqlExecute.doGetByColumn(field,fieldValue,clazz);
+    }
+
+    @Override
+    public List<T> getByColumn(ClientSession clientSession, String field, Object fieldValue) {
+        return sqlExecute.doGetByColumn(clientSession,field,fieldValue,clazz);
     }
 
     @Override
