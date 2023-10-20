@@ -18,7 +18,7 @@ public class MongoDBLogProperty {
     private Boolean log = false;
 
     /**
-     * 是否关闭格式化sql
+     * 是否打开格式化sql
      * @author JiaChaoYang
      * @date 2023/8/29 0:52
     */

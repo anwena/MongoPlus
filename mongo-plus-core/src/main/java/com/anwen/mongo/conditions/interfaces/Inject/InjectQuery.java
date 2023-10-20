@@ -359,4 +359,8 @@ public interface InjectQuery extends CommInjectQuery {
      */
     Boolean update(ClientSession clientSession,String collectionName,UpdateChainWrapper<Map<String,Object>,?> updateChainWrapper);
 
+    List<Map<String,Object>> sql(String collectionName,String sql);
+
+    List<Map<String,Object>> sql(ClientSession clientSession, String collectionName, String sql);
+
 }

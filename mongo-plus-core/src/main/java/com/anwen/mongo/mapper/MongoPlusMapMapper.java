@@ -296,6 +296,16 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
+    public List<Map<String, Object>> sql(String collectionName, String sql) {
+        return sqlExecute.doSql(collectionName,sql);
+    }
+
+    @Override
+    public List<Map<String, Object>> sql(ClientSession clientSession, String collectionName, String sql) {
+        return sqlExecute.doSql(clientSession, collectionName,sql);
+    }
+
+    @Override
     public long count(String collectionName) {
         return sqlExecute.doCount(collectionName);
     }

@@ -63,8 +63,8 @@ public class CustomMongoDriverLogger implements CommandListener {
     }
 
     private String formattingStatement(String statement){
-        return format ? statement : JSON.toJSONString(JSONObject.parse(statement), SerializerFeature.PrettyFormat, SerializerFeature.WriteMapNullValue,
-                SerializerFeature.WriteDateUseDateFormat);
+        return format ? JSON.toJSONString(JSONObject.parse(statement), SerializerFeature.PrettyFormat, SerializerFeature.WriteMapNullValue,
+                SerializerFeature.WriteDateUseDateFormat) : statement;
     }
 
 }
