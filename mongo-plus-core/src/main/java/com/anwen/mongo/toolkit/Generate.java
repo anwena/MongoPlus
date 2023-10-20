@@ -12,9 +12,6 @@ public class Generate {
 
 
     public static Serializable generateId(IdTypeEnum idTypeEnum){
-/*        if (idTypeEnum.getKey() == IdTypeEnum.OBJECT_ID.getKey()){
-            return ObjectId.get();
-        }*/
         if (idTypeEnum.getKey() == IdTypeEnum.ASSIGN_UUID.getKey()){
             return IdWorker.get32UUID();
         }
