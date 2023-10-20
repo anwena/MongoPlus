@@ -17,7 +17,6 @@
         <module>../mongo-plus-core</module>
         <module>../mongo-plus-annotation</module>
         <module>../mongo-plus-boot-starter</module>
-        <module>../mongo-plus-solon-plugin</module>
     </modules>
 
     <licenses>

@@ -2,6 +2,7 @@ package com.anwen.mongo.convert;
 
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
+import com.anwen.mongo.cache.PropertyCache;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.convert.factory.DocumentFieldMapperFactory;
 import com.anwen.mongo.toolkit.ClassTypeUtil;
@@ -12,10 +13,9 @@ import org.bson.Document;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @Description: Document转对象
@@ -80,7 +80,11 @@ public class DocumentMapperConvert {
             field.setAccessible(true);
             CollectionField collectionField = field.getAnnotation(CollectionField.class);
             ID id = field.getAnnotation(ID.class);
-            String fieldName = collectionField != null && StringUtils.isNotBlank(collectionField.value()) ? collectionField.value() : field.getName();
+            String cacheFieldName = field.getName();
+            if (PropertyCache.mapUnderscoreToCamelCase){
+                cacheFieldName = StringUtils.convertToCamelCase(cacheFieldName);
+            }
+            String fieldName = collectionField != null && StringUtils.isNotBlank(collectionField.value()) ? collectionField.value() : cacheFieldName;
             if (id != null) fieldName = SqlOperationConstant._ID;
             if (collectionField != null && !collectionField.exist()) {
                 continue;

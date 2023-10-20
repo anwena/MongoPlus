@@ -1,6 +1,10 @@
 package com.anwen.mongo.toolkit;
 
+import com.anwen.mongo.constant.SqlOperationConstant;
+
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -347,6 +351,20 @@ public final class StringUtils {
             }
         }
         return sb.toString();
+    }
+
+    /**
+     * 下划线转驼峰
+     * @author JiaChaoYang
+     * @date 2023/10/20 20:45
+    */
+    public static String convertToCamelCase(String str) {
+        if (Objects.equals(str, SqlOperationConstant._ID)){
+            return str;
+        }
+        return Arrays.stream(str.split("_"))
+                .reduce((s1, s2) -> s1 + s2.substring(0, 1).toUpperCase() + s2.substring(1))
+                .orElse("");
     }
 
     /**
