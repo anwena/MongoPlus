@@ -4,9 +4,7 @@ import com.anwen.mongo.strategy.convert.ConversionStrategy;
 import com.anwen.mongo.toolkit.InstantUtil;
 
 import java.lang.reflect.Field;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 /**
@@ -18,6 +16,11 @@ import java.time.format.DateTimeFormatter;
 public class LocalDateTimeConversionStrategy implements ConversionStrategy {
     @Override
     public void convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
-        field.set(obj, fieldValue.getClass().equals(Long.class) ? InstantUtil.convertTimestampToLocalDateTime((Long) fieldValue) : LocalDateTime.parse(String.valueOf(fieldValue).replaceAll("T"," "), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        field.set(obj, fieldValue.getClass().equals(Long.class) ?
+                        InstantUtil.convertTimestampToLocalDateTime((Long) fieldValue) :
+                        LocalDateTime.parse(String.valueOf(fieldValue).replaceAll("T"," "),
+                                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                        )
+        );
     }
 }

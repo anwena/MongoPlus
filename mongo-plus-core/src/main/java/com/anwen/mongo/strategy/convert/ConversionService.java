@@ -1,6 +1,5 @@
 package com.anwen.mongo.strategy.convert;
 
-import com.alibaba.fastjson.JSON;
 import com.anwen.mongo.strategy.convert.impl.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +53,17 @@ public class ConversionService {
     */
     public static void appendConversion(Class<?> clazz,ConversionStrategy conversionStrategy){
         conversionStrategies.put(clazz,conversionStrategy);
+    }
+
+    /**
+     * 是否存在该类型的转换器
+     * @param clazz 类型的class
+     * @return boolean
+     * @author JiaChaoYang
+     * @date 2023/10/20 18:28
+    */
+    public static boolean isExist(Class<?> clazz){
+        return conversionStrategies.containsKey(clazz);
     }
 
     public static void convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {

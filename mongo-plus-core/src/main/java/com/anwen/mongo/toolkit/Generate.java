@@ -2,7 +2,6 @@ package com.anwen.mongo.toolkit;
 
 import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.incrementer.id.IdWorker;
-import org.bson.types.ObjectId;
 
 import java.io.Serializable;
 

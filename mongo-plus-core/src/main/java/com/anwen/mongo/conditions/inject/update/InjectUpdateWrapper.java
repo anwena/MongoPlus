@@ -1,7 +1,6 @@
 package com.anwen.mongo.conditions.inject.update;
 
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
-import com.anwen.mongo.conditions.update.UpdateWrapper;
 import com.anwen.mongo.toolkit.ChainWrappers;
 
 import java.util.Map;

@@ -54,7 +54,7 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         applicationContext.getBeansOfType(ConversionStrategy.class).values().forEach(conversionStrategy -> {
             MongoConversion mongoConversion = conversionStrategy.getClass().getAnnotation(MongoConversion.class);
             if (null == mongoConversion){
-                logger.error("Received the converter, but did not use the @ MongoConversion annotation, so the type is unknown, ConversionStrategy: "+conversionStrategy.getClass().getName());
+                logger.error("Received the converter, but did not use the @MongoConversion annotation, so the type is unknown, ConversionStrategy: {}",conversionStrategy.getClass().getName());
             }else {
                 ConversionService.appendConversion(mongoConversion.type(), conversionStrategy);
             }

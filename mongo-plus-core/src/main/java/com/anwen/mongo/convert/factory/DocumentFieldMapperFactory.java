@@ -1,15 +1,17 @@
 package com.anwen.mongo.convert.factory;
 
 import com.anwen.mongo.convert.DocumentFieldMapper;
-import com.anwen.mongo.convert.mapper.*;
+import com.anwen.mongo.convert.mapper.CollectionFieldMapper;
+import com.anwen.mongo.convert.mapper.DefaultFieldMapper;
+import com.anwen.mongo.convert.mapper.DocumentTypeFieldMapper;
+import com.anwen.mongo.convert.mapper.ObjectIdFieldMapper;
+import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.toolkit.ClassTypeUtil;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
 import java.lang.reflect.Field;
-import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.Date;
 
 /**
  * 映射工厂
@@ -22,7 +24,9 @@ public class DocumentFieldMapperFactory {
         Class<?> fieldType = field.getType();
         if (fieldType.isArray() || Collection.class.isAssignableFrom(fieldType)) {
             return new CollectionFieldMapper<>(fieldValue);
-        }else if (ClassTypeUtil.isItCustomType(field) || fieldType.equals(Document.class)){
+        } else if (ConversionService.isExist(fieldType)) {
+            return new DefaultFieldMapper<>(fieldValue);
+        } else if (ClassTypeUtil.isItCustomType(field) || fieldType.equals(Document.class)){
             return new DocumentTypeFieldMapper<>(fieldValue);
         } else if (fieldType.equals(ObjectId.class)) {
             return new ObjectIdFieldMapper<>(fieldValue);
