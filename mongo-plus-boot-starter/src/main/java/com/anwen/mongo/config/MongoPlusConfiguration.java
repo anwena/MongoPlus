@@ -12,6 +12,7 @@ import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -27,14 +28,17 @@ public class MongoPlusConfiguration {
 
     private final MongoDBLogProperty mongoDBLogProperty;
 
-    final
-    MongoDBConnectProperty mongoDBConnectProperty;
+    private final MongoDBConnectProperty mongoDBConnectProperty;
 
     private MongoClient mongoClient;
 
     private SqlExecute sqlExecute;
 
-    public MongoPlusConfiguration(MongoDBConnectProperty mongoDBConnectProperty,MongoDBLogProperty mongoDBLogProperty) {
+    public SqlExecute getSqlExecute() {
+        return sqlExecute;
+    }
+
+    public MongoPlusConfiguration(MongoDBConnectProperty mongoDBConnectProperty, MongoDBLogProperty mongoDBLogProperty) {
         this.mongoDBConnectProperty = mongoDBConnectProperty;
         this.mongoDBLogProperty = mongoDBLogProperty;
     }
@@ -69,12 +73,14 @@ public class MongoPlusConfiguration {
     }
 
     @Bean("mongoPlusMapMapper")
+    @ConditionalOnMissingBean
     public MongoPlusMapMapper mongoPlusMapMapper(SqlExecute sqlExecute){
         return new MongoPlusMapMapper(sqlExecute);
     }
 
     @Bean("mongoTransactionalAspect")
     @Deprecated
+    @ConditionalOnMissingBean
     public MongoTransactionalAspect mongoTransactionalAspect(){
         return new MongoTransactionalAspect(this.mongoClient);
     }

@@ -7,6 +7,9 @@ package com.anwen.mongo.model;
  * @date 2023-02-23 10:42
  **/
 public class BaseProperty {
+
+    private String url;
+
     /**
      * mongodb地址
      * @author JiaChaoYang
@@ -589,6 +592,14 @@ public class BaseProperty {
 
     public void setSrvServiceName(String srvServiceName) {
         this.srvServiceName = srvServiceName;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public boolean equals(Object o) {

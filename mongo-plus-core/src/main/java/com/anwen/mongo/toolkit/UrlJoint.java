@@ -29,6 +29,9 @@ public class UrlJoint {
     StringBuilder uri = new StringBuilder("mongodb://");
 
     public String jointMongoUrl(){
+        if (StringUtils.isNotBlank(baseProperty.getUrl())){
+            return baseProperty.getUrl();
+        }
         if (StringUtils.isNotBlank(baseProperty.getUsername()) && StringUtils.isNotBlank(baseProperty.getPassword())){
             try {
                 baseProperty.setUsername(URLEncoder.encode(baseProperty.getUsername(), "UTF-8"));
