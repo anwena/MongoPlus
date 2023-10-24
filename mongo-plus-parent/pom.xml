@@ -13,11 +13,11 @@
     <url>https://gitee.com/anwena/mongo-plus</url>
     <inceptionYear>2023</inceptionYear>
 
-    <modules>
+<!--    <modules>
         <module>../mongo-plus-core</module>
         <module>../mongo-plus-annotation</module>
         <module>../mongo-plus-boot-starter</module>
-    </modules>
+    </modules>-->
 
     <licenses>
         <license>
@@ -142,7 +142,7 @@
                         </executions>
                     </plugin>
 
-                    <!--<plugin>
+                    <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
                         <version>1.5</version>
@@ -155,7 +155,7 @@
                                 </goals>
                             </execution>
                         </executions>
-                    </plugin>-->
+                    </plugin>
 
                 </plugins>
             </build>
