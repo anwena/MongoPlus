@@ -46,6 +46,13 @@ public class BeanMapUtilByReflect {
             String fieldName = getFieldName(field);
             // 属性值
             Object fieldValue = ReflectionUtils.getFieldValue(entity, field);
+            ID idAnnotation = field.getAnnotation(ID.class);
+            if (idAnnotation != null) {
+                resultMap.put(SqlOperationConstant._ID,fieldValue);
+                if (!idAnnotation.saveField()){
+                    continue;
+                }
+            }
             // 不为null再进行映射
             if (fieldValue != null){
                 resultMap.put(fieldName, fieldValue);
@@ -69,10 +76,6 @@ public class BeanMapUtilByReflect {
     }
 
     private static String getFieldName(Field field) {
-        ID idAnnotation = field.getAnnotation(ID.class);
-        if (idAnnotation != null) {
-            return SqlOperationConstant._ID;
-        }
         CollectionField collectionField = field.getAnnotation(CollectionField.class);
         if (collectionField != null) {
             return collectionField.value();

@@ -17,6 +17,19 @@ import java.lang.annotation.*;
 @Documented
 public @interface ID {
 
+    /**
+     * 自动生成id配置
+     * @author JiaChaoYang
+     * @date 2023/10/25 15:44
+    */
     IdTypeEnum type() default IdTypeEnum.OBJECT_ID;
+
+    /**
+     * 是否将该字段存入库中
+     * <p style="color: red">注意，查询时还是会根据_id进行查询</p>
+     * @author JiaChaoYang
+     * @date 2023/10/25 15:45
+    */
+    boolean saveField() default false;
 
 }
