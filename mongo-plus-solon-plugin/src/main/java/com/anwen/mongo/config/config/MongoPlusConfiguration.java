@@ -1,6 +1,6 @@
-package com.anwen.mongo.config;
+package com.anwen.mongo.config.config;
 
-import com.anwen.mongo.cache.MongoClientCache;
+import com.anwen.mongo.config.property.MongoDBConnectProperty;
 import com.anwen.mongo.config.property.MongoDBLogProperty;
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.log.CustomMongoDriverLogger;
@@ -11,6 +11,7 @@ import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import org.noear.solon.annotation.Bean;
+import org.noear.solon.annotation.Condition;
 import org.noear.solon.annotation.Configuration;
 import org.noear.solon.annotation.Inject;
 
@@ -22,8 +23,18 @@ import org.noear.solon.annotation.Inject;
 @Configuration
 public class MongoPlusConfiguration {
 
+    private SqlExecute sqlExecute;
+
+    public SqlExecute getSqlExecute() {
+        return sqlExecute;
+    }
+
     @Bean
+    @Condition(onMissingBean = SqlExecute.class)
     public SqlExecute sqlExecute(@Inject("${mongo-plus.data.mongodb}") MongoDBConnectProperty mongoDBConnectProperty, @Inject("${mongo-plus}") MongoDBLogProperty mongoDBLogProperty) {
+        if (this.sqlExecute != null){
+            return this.sqlExecute;
+        }
         SqlExecute sqlExecute = new SqlExecute();
         sqlExecute.setSlaveDataSources(mongoDBConnectProperty.getSlaveDataSource());
         sqlExecute.setBaseProperty(mongoDBConnectProperty);
@@ -35,13 +46,12 @@ public class MongoPlusConfiguration {
         }
         MongoClient mongoClient = MongoClients.create(builder.build());
         sqlExecute.setMongoClient(mongoClient);
-        MongoClientCache.mongoClient = mongoClient;
+        this.sqlExecute = sqlExecute;
         return sqlExecute;
     }
 
-
-
     @Bean
+    @Condition(onMissingBean = MongoPlusMapMapper.class)
     public MongoPlusMapMapper mongoPlusMapMapper(@Inject SqlExecute sqlExecute){
         return new MongoPlusMapMapper(sqlExecute);
     }

@@ -62,7 +62,7 @@ public class MongoTransactionalAspect {
     }
 
     /**
-     * 事务提交  TODO 如果已经异常，高并发可能会出现问题，无意中发现，未知
+     * 事务提交
      * @author JiaChaoYang
      * @date 2023/7/30 18:15
     */

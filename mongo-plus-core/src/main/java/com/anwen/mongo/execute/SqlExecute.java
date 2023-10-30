@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -60,7 +61,7 @@ public class SqlExecute {
 
     private static final Logger logger = LoggerFactory.getLogger(SqlExecute.class);
 
-    private Map<String, MongoCollection<Document>> collectionMap = new HashMap<>();
+    private Map<String, MongoCollection<Document>> collectionMap = new ConcurrentHashMap<>();
 
     private List<SlaveDataSource> slaveDataSources;
 

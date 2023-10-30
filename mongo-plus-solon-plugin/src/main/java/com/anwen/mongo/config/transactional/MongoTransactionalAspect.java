@@ -23,6 +23,21 @@ public class MongoTransactionalAspect implements Interceptor {
 
     private final MongoClient mongoClient;
 
+    /*@Around("@annotation(com.anwen.mongo.annotation.transactional.MongoTransactional)")
+    public Object manageTransaction(ProceedingJoinPoint joinPoint) throws Throwable {
+        startTransaction();
+        try {
+            Object proceed = joinPoint.proceed();
+            commitTransaction();
+            return proceed;
+        } catch (Exception e) {
+            rollbackTransaction();
+            throw e;
+        } finally {
+            closeSession();
+        }
+    }*/
+
     /**
      * 事务开启
      * @author JiaChaoYang
@@ -57,7 +72,10 @@ public class MongoTransactionalAspect implements Interceptor {
         }
         status.decrementReference();
         if (status.readyCommit()) {
-            status.getClientSession().commitTransaction();
+            ClientSession clientSession = status.getClientSession();
+            if (clientSession.hasActiveTransaction()){
+                clientSession.commitTransaction();
+            }
         }
         if (logger.isDebugEnabled()) {
             logger.debug("Mongo transaction committed, Thread:{}, session hashcode:{}", Thread.currentThread().getName(), status.getClientSession().hashCode());
@@ -77,7 +95,10 @@ public class MongoTransactionalAspect implements Interceptor {
         }
         // 清空计数器
         status.clearReference();
-        status.getClientSession().abortTransaction();
+        ClientSession clientSession = status.getClientSession();
+        if (clientSession.hasActiveTransaction()){
+            clientSession.abortTransaction();
+        }
         if (logger.isDebugEnabled()) {
             logger.debug("Mongo transaction rolled back, Thread:{}, session hashcode:{}", Thread.currentThread().getName(), status.getClientSession().hashCode());
         }
@@ -91,7 +112,10 @@ public class MongoTransactionalAspect implements Interceptor {
         }
         if (status.readyClose()) {
             try {
-                status.getClientSession().close();
+                ClientSession clientSession = status.getClientSession();
+                if (clientSession.hasActiveTransaction()){
+                    clientSession.close();
+                }
             } finally {
                 // 确保清理线程变量时不会被打断
                 MongoTransactionContext.clear();
