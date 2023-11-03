@@ -57,13 +57,13 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
     private void setConversion(){
         applicationContext.getBeansOfType(ConversionStrategy.class).values().forEach(conversionStrategy -> {
             try {
-                Class<?> clazz;
                 Type[] genericInterfaces = conversionStrategy.getClass().getGenericInterfaces();
                 for (Type anInterface : genericInterfaces) {
                     ParameterizedType parameterizedType = (ParameterizedType) anInterface;
-                    clazz = (Class<?>) parameterizedType.getActualTypeArguments()[0];
                     if (parameterizedType.getRawType().equals(ConversionStrategy.class)){
+                        Class<?> clazz = (Class<?>) parameterizedType.getActualTypeArguments()[0];
                         ConversionService.appendConversion(clazz,conversionStrategy);
+                        break;
                     }
                 }
             }catch (Exception e){
