@@ -10,9 +10,9 @@ import java.time.Instant;
  *
  * @author JiaChaoYang
  **/
-public class InstantConversionStrategy implements ConversionStrategy {
+public class InstantConversionStrategy implements ConversionStrategy<Instant> {
     @Override
-    public void convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
-        field.set(obj, Instant.ofEpochMilli(Long.parseLong(String.valueOf(fieldValue))));
+    public Instant convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
+        return Instant.ofEpochMilli(Long.parseLong(String.valueOf(fieldValue)));
     }
 }

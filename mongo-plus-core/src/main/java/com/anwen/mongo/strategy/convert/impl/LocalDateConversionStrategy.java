@@ -13,9 +13,9 @@ import java.time.format.DateTimeFormatter;
  * @description LocalDate类型转换策略
  * @date 2023-10-17 09:59
  **/
-public class LocalDateConversionStrategy implements ConversionStrategy {
+public class LocalDateConversionStrategy implements ConversionStrategy<LocalDate> {
     @Override
-    public void convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
-        field.set(obj, fieldValue.getClass().equals(Long.class) ? InstantUtil.convertTimestampToLocalDate((Long) fieldValue) : LocalDate.parse(String.valueOf(fieldValue), DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+    public LocalDate convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
+        return fieldValue.getClass().equals(Long.class) ? InstantUtil.convertTimestampToLocalDate((Long) fieldValue) : LocalDate.parse(String.valueOf(fieldValue), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }
 }

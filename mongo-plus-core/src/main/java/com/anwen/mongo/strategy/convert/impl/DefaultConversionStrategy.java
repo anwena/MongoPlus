@@ -9,9 +9,9 @@ import java.lang.reflect.Field;
  *
  * @author JiaChaoYang
  **/
-public class DefaultConversionStrategy implements ConversionStrategy {
+public class DefaultConversionStrategy implements ConversionStrategy<Object> {
     @Override
-    public void convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
-        field.set(obj, fieldValue);
+    public Object convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
+        return fieldValue;
     }
 }

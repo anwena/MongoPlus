@@ -13,14 +13,13 @@ import java.time.format.DateTimeFormatter;
  * @description LocalDateTime类型策略实现类
  * @date 2023-10-17 09:55
  **/
-public class LocalDateTimeConversionStrategy implements ConversionStrategy {
+public class LocalDateTimeConversionStrategy implements ConversionStrategy<LocalDateTime> {
     @Override
-    public void convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
-        field.set(obj, fieldValue.getClass().equals(Long.class) ?
-                        InstantUtil.convertTimestampToLocalDateTime((Long) fieldValue) :
-                        LocalDateTime.parse(String.valueOf(fieldValue).replaceAll("T"," "),
-                                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                        )
-        );
+    public LocalDateTime convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
+        return fieldValue.getClass().equals(Long.class) ?
+                InstantUtil.convertTimestampToLocalDateTime((Long) fieldValue) :
+                LocalDateTime.parse(String.valueOf(fieldValue).replaceAll("T"," "),
+                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                );
     }
 }

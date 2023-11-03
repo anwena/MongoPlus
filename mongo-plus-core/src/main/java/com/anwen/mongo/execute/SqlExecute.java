@@ -21,6 +21,7 @@ import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.enums.QueryOperatorEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.model.*;
+import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.support.SFunction;
 import com.anwen.mongo.toolkit.*;
 import com.mongodb.BasicDBObject;
@@ -1021,13 +1022,13 @@ public class SqlExecute {
             return;
         }
         try {
-            // 暂时只支持两种类型转换
-            String str = String.valueOf(idValue);
-            if (idField.getType().equals(String.class)) {
+            //使用策略转换器回写id
+            ConversionService.setValue(idField,entity,idValue);
+            /*if (idField.getType().equals(String.class)) {
                 ReflectionUtils.setFieldValue(entity, idField, str);
             } else if(idField.getType().equals(ObjectId.class) && ObjectId.isValid(str)) {
                 ReflectionUtils.setFieldValue(entity, idField, new ObjectId(str));
-            }
+            }*/
         } catch (Exception e) {
             logger.error("set back id field value error, error message: {}", e.getMessage());
         }

@@ -17,7 +17,7 @@ import java.util.List;
  * @description Date类型转换器策略实现
  * @date 2023-10-17 10:40
  **/
-public class DateConversionStrategy implements ConversionStrategy {
+public class DateConversionStrategy implements ConversionStrategy<Date> {
 
     Logger logger = LoggerFactory.getLogger(DateConversionStrategy.class);
 
@@ -32,7 +32,7 @@ public class DateConversionStrategy implements ConversionStrategy {
     }};
 
     @Override
-    public void convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
+    public Date convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
         Date date = null;
         if (fieldValue.getClass().equals(Long.class)){
             date = new Date((Long) fieldValue);
@@ -50,6 +50,6 @@ public class DateConversionStrategy implements ConversionStrategy {
                 throw new IllegalAccessException("Unrecognized date format");
             }
         }
-        field.set(obj,date);
+        return date;
     }
 }

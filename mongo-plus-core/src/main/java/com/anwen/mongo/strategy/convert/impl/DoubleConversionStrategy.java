@@ -9,9 +9,9 @@ import java.lang.reflect.Field;
  *
  * @author JiaChaoYang
  **/
-public class DoubleConversionStrategy implements ConversionStrategy {
+public class DoubleConversionStrategy implements ConversionStrategy<Double> {
     @Override
-    public void convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
-        field.set(obj, Double.parseDouble(String.valueOf(fieldValue)));
+    public Double convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
+        return Double.parseDouble(String.valueOf(fieldValue));
     }
 }

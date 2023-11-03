@@ -1,9 +1,8 @@
-package com.anwen.mongo.convert.mapper;
+package com.anwen.mongo.strategy.convert.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.anwen.mongo.annotation.collection.CollectionField;
-import com.anwen.mongo.convert.DocumentFieldMapper;
-import org.bson.Document;
+import com.anwen.mongo.strategy.convert.ConversionStrategy;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
@@ -12,31 +11,25 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * 集合字段
- *
  * @author JiaChaoYang
+ * @project mongo-plus
+ * @description Collection策略实现类
+ * @date 2023-11-02 15:55
  **/
-public class CollectionFieldMapper<T> implements DocumentFieldMapper<T> {
-
-    private Object fieldValue;
-
-    public CollectionFieldMapper(Object fieldValue) {
-        this.fieldValue = fieldValue;
-    }
+public class CollectionConversionStrategy implements ConversionStrategy<Collection<?>> {
 
     @Override
-    public void mapField(Document doc, Field field, T obj) throws IllegalAccessException {
+    public Collection<?> convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
         if (!(fieldValue instanceof Collection<?>)){
             CollectionField collectionField = field.getAnnotation(CollectionField.class);
             if (collectionField != null && collectionField.convertCollect()) {
+                Object finalFieldValue = fieldValue;
                 fieldValue = new ArrayList<Object>() {{
-                    add(fieldValue);
+                    add(finalFieldValue);
                 }};
-            }else {
-                return;
             }
         }
-        field.set(obj, JSON.parseArray(JSON.toJSONString(fieldValue),getListGenericType(field)));
+        return JSON.parseArray(JSON.toJSONString(fieldValue),getListGenericType(field));
     }
 
     public Class<?> getListGenericType(Field field) {
@@ -50,5 +43,4 @@ public class CollectionFieldMapper<T> implements DocumentFieldMapper<T> {
         }
         return Object.class;
     }
-
 }

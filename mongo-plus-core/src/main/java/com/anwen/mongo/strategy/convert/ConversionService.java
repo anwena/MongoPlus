@@ -11,9 +11,10 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 策略应用
@@ -23,7 +24,7 @@ public class ConversionService {
 
     static Logger logger = LoggerFactory.getLogger(ConversionStrategy.class);
 
-    private static final Map<Class<?>, ConversionStrategy> conversionStrategies = new HashMap<>();
+    private static final Map<Class<?>, ConversionStrategy<?>> conversionStrategies = new ConcurrentHashMap<>();
 
     static {
         conversionStrategies.put(Integer.class, new IntegerConversionStrategy());
@@ -40,6 +41,8 @@ public class ConversionService {
         conversionStrategies.put(Object.class,new DefaultConversionStrategy());
         conversionStrategies.put(BigDecimal.class,new BigDecimalConversionStrategy());
         conversionStrategies.put(BigInteger.class,new BigIntegerConversionStrategy());
+        conversionStrategies.put(Map.class,new MapConversionStrategy());
+        conversionStrategies.put(Collection.class,new MapConversionStrategy());
     }
 
     /**
@@ -51,8 +54,17 @@ public class ConversionService {
      * @author JiaChaoYang
      * @date 2023/10/17 0:19
     */
-    public static void appendConversion(Class<?> clazz,ConversionStrategy conversionStrategy){
+    public static <T> void appendConversion(Class<?> clazz, ConversionStrategy<T> conversionStrategy){
         conversionStrategies.put(clazz,conversionStrategy);
+    }
+
+    /**
+     * 获取所有的转换器
+     * @author JiaChaoYang
+     * @date 2023/11/3 9:50
+    */
+    public static Map<Class<?>, ConversionStrategy<?>> getAllConversion(){
+        return conversionStrategies;
     }
 
     /**
@@ -66,14 +78,53 @@ public class ConversionService {
         return conversionStrategies.containsKey(clazz);
     }
 
-    public static void convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
+    public static ConversionStrategy<?> getConversion(Class<?> clazz){
+        return conversionStrategies.get(clazz);
+    }
+
+    /**
+     * 将字段进行转换，根据field的type
+     * @author JiaChaoYang
+     * @date 2023/11/3 10:43
+    */
+    public static Object convertValue(Field field, Object obj, Object fieldValue, Class<?>... clazz) throws IllegalAccessException {
+        Class<?> fieldType = getFieldType(clazz, field);
+        ConversionStrategy<?> conversionStrategy = getConversionStrategy(fieldType);
+
+        return conversionStrategy.convertValue(field, obj, fieldValue);
+    }
+
+    private static Class<?> getFieldType(Class<?>[] clazz, Field field) {
         Class<?> fieldType = field.getType();
-        ConversionStrategy conversionStrategy = conversionStrategies.get(fieldType);
+        if (clazz != null && clazz.length > 0) {
+            fieldType = clazz[0];
+        }
+        if (isMapType(fieldType)) {
+            fieldType = Map.class;
+        }
+        return fieldType;
+    }
+
+    private static boolean isMapType(Class<?> fieldType) {
+        return Map.class.isAssignableFrom(fieldType);
+    }
+
+    private static ConversionStrategy<?> getConversionStrategy(Class<?> fieldType) {
+        ConversionStrategy<?> conversionStrategy = conversionStrategies.get(fieldType);
         if (conversionStrategy == null) {
-            logger.debug("Unsupported field type: {}",fieldType.getSimpleName());
             conversionStrategy = conversionStrategies.get(Object.class);
         }
-        conversionStrategy.convertValue(field, obj, fieldValue);
+        return conversionStrategy;
+    }
+
+    /**
+     * 设置值
+     * @author JiaChaoYang
+     * @date 2023/11/3 10:42
+    */
+    public static void setValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
+        Object value = convertValue(field, obj, fieldValue);
+        field.set(obj,value);
     }
 
 }

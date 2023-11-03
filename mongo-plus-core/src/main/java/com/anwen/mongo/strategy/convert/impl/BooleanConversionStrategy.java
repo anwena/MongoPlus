@@ -11,9 +11,9 @@ import java.util.regex.Pattern;
  *
  * @author JiaChaoYang
  **/
-public class BooleanConversionStrategy implements ConversionStrategy {
+public class BooleanConversionStrategy implements ConversionStrategy<Boolean> {
     @Override
-    public void convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
+    public Boolean convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
         String value = String.valueOf(fieldValue);
         if (!Objects.equals(value, "true") && !Objects.equals(value, "false")){
             boolean matches = Pattern.compile("-?[0-9]+\\.?[0-9]*").matcher(value).matches();
@@ -23,6 +23,6 @@ public class BooleanConversionStrategy implements ConversionStrategy {
                 throw new IllegalAccessException(field.getName()+" Not a Boolean type");
             }
         }
-        field.set(obj, Boolean.parseBoolean(value));
+        return Boolean.parseBoolean(value);
     }
 }

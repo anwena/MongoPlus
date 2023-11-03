@@ -9,9 +9,9 @@ import java.lang.reflect.Field;
  *
  * @author JiaChaoYang
  **/
-public class FloatConversionStrategy implements ConversionStrategy {
+public class FloatConversionStrategy implements ConversionStrategy<Float> {
     @Override
-    public void convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
-        field.set(obj, Float.parseFloat(String.valueOf(fieldValue)));
+    public Float convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
+        return Float.parseFloat(String.valueOf(fieldValue));
     }
 }

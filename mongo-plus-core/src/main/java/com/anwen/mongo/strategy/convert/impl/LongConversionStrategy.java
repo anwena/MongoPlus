@@ -9,9 +9,9 @@ import java.lang.reflect.Field;
  *
  * @author JiaChaoYang
  **/
-public class LongConversionStrategy implements ConversionStrategy {
+public class LongConversionStrategy implements ConversionStrategy<Long> {
     @Override
-    public void convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
-        field.set(obj, Long.parseLong(String.valueOf(fieldValue)));
+    public Long convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
+        return Long.parseLong(String.valueOf(fieldValue));
     }
 }

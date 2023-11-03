@@ -7,7 +7,7 @@ import java.lang.reflect.Field;
  * @author JiaChaoYang
  * @date 2023/10/16 23:30
 */
-public interface ConversionStrategy {
+public interface ConversionStrategy<T> {
 
     /**
      * 转换器方法
@@ -18,6 +18,6 @@ public interface ConversionStrategy {
      * @author JiaChaoYang
      * @date 2023/10/20 18:30
     */
-    void convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException;
+    T convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException;
 
 }
