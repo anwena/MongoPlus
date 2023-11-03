@@ -1,4 +1,4 @@
-package com.anwen.mongo.config.property;
+package com.anwen.mongo.property;
 
 import com.anwen.mongo.model.BaseProperty;
 import com.anwen.mongo.model.SlaveDataSource;

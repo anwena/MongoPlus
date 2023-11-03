@@ -1,4 +1,4 @@
-package com.anwen.mongo.config.config;
+package com.anwen.mongo.config;
 
 import com.anwen.mongo.annotation.MongoConversion;
 import com.anwen.mongo.execute.SqlExecute;
@@ -7,6 +7,7 @@ import com.anwen.mongo.service.impl.ServiceImpl;
 import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.strategy.convert.ConversionStrategy;
 import org.noear.solon.Solon;
+import org.noear.solon.annotation.Configuration;
 import org.noear.solon.annotation.Inject;
 import org.noear.solon.core.AopContext;
 import org.slf4j.Logger;
@@ -25,10 +26,17 @@ public class MongoPlusAutoConfiguration {
     public MongoPlusAutoConfiguration(@Inject SqlExecute sqlExecute){
         this.sqlExecute = sqlExecute;
         AopContext context = Solon.context();
-        context.getBeansOfType(IService.class)
+        context.subBeansOfType(IService.class, bean -> {
+            System.out.println("获取到Bean，beanName,"+bean.getClass().getName());
+            logger.info("获取到Bean，beanName {}",bean.getClass().getName());
+            if (bean instanceof ServiceImpl){
+                setSqlExecute((ServiceImpl<?>) bean,bean.getGenericityClazz());
+            }
+        });
+        /*context.getBeansOfType(IService.class)
                 .stream()
                 .filter(s -> s instanceof ServiceImpl)
-                .forEach(s -> setSqlExecute((ServiceImpl<?>) s, s.getGenericityClazz()));
+                .forEach(s -> setSqlExecute((ServiceImpl<?>) s, s.getGenericityClazz()));*/
         //拿到转换器
         setConversion(context);
     }

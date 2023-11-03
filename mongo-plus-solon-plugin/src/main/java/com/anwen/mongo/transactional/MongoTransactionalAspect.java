@@ -1,5 +1,6 @@
-package com.anwen.mongo.config.transactional;
+package com.anwen.mongo.transactional;
 
+import com.anwen.mongo.annotation.transactional.MongoTransactional;
 import com.anwen.mongo.context.MongoTransactionContext;
 import com.anwen.mongo.context.MongoTransactionStatus;
 import com.mongodb.ClientSessionOptions;
@@ -9,6 +10,8 @@ import org.noear.solon.core.aspect.Interceptor;
 import org.noear.solon.core.aspect.Invocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Optional;
 
 /**
  * @author JiaChaoYang
@@ -127,7 +130,22 @@ public class MongoTransactionalAspect implements Interceptor {
     }
 
     @Override
-    public Object doIntercept(Invocation inv) throws Throwable {
-        return null;
+    public Object doIntercept(Invocation inv) throws RuntimeException {
+        Optional.ofNullable(inv.method().getAnnotation(MongoTransactional.class)).map(mongoTransactional -> {
+            //开启事务
+            startTransaction();
+            try {
+                Object invoke = inv.invoke();
+                //提交事务
+                commitTransaction();
+                return invoke;
+            } catch (Throwable e) {
+                logger.error("Mongo Execute Error,Rolling back soon");
+                //回滚
+                rollbackTransaction();
+                throw new RuntimeException(e);
+            }
+        });
+        return inv;
     }
 }

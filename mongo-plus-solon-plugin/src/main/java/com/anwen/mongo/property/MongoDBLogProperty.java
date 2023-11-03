@@ -1,4 +1,4 @@
-package com.anwen.mongo.config.property;
+package com.anwen.mongo.property;
 
 /**
  * @author JiaChaoYang

@@ -3,6 +3,7 @@ package com.anwen.mongo.toolkit;
 import com.alibaba.fastjson.JSON;
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
+import com.anwen.mongo.cache.JsonCache;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import org.bson.Document;
 
@@ -58,7 +59,7 @@ public class BeanMapUtilByReflect {
                 resultMap.put(fieldName, fieldValue);
             }
         }
-        return Document.parse(JSON.toJSONString(resultMap));
+        return Document.parse(JSON.toJSONString(resultMap, JsonCache.config));
     }
 
     public static Field getIdField(Class<?> clazz) {

@@ -1,7 +1,7 @@
-package com.anwen.mongo.config.config;
+package com.anwen.mongo.config;
 
-import com.anwen.mongo.config.property.MongoDBConnectProperty;
-import com.anwen.mongo.config.property.MongoDBLogProperty;
+import com.anwen.mongo.property.MongoDBConnectProperty;
+import com.anwen.mongo.property.MongoDBLogProperty;
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.log.CustomMongoDriverLogger;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
@@ -55,4 +55,10 @@ public class MongoPlusConfiguration {
     public MongoPlusMapMapper mongoPlusMapMapper(@Inject SqlExecute sqlExecute){
         return new MongoPlusMapMapper(sqlExecute);
     }
+
+    @Bean
+    public MongoPlusAutoConfiguration mongoPlusAutoConfiguration(@Inject SqlExecute sqlExecute){
+        return new MongoPlusAutoConfiguration(this.sqlExecute);
+    }
+
 }

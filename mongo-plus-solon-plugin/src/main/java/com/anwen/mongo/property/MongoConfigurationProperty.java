@@ -1,4 +1,4 @@
-package com.anwen.mongo.config.property;
+package com.anwen.mongo.property;
 
 import com.anwen.mongo.cache.PropertyCache;
 import org.noear.solon.annotation.Configuration;

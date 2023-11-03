@@ -1,6 +1,9 @@
 package com.anwen.mongo.execute;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.JSONSerializer;
+import com.alibaba.fastjson.serializer.SerializeConfig;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.cache.CodecRegistryCache;
@@ -19,6 +22,7 @@ import com.anwen.mongo.enums.AggregateOptionsEnum;
 import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.enums.QueryOperatorEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
+import com.anwen.mongo.json.LocalDateTimeSerializer;
 import com.anwen.mongo.model.*;
 import com.anwen.mongo.support.SFunction;
 import com.anwen.mongo.toolkit.*;
@@ -41,6 +45,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -962,9 +967,13 @@ public class SqlExecute {
 
     private <T> Document processIdField(T entity){
         // TODO 反射较多，考虑使用缓存
-        Map<String, Object> tableFieldMap = checkTableField(entity);
+        Document tableFieldMap = checkTableField(entity);
         fillId(entity, tableFieldMap);
-        return Document.parse(JSON.toJSONString(tableFieldMap));
+        SerializeConfig config = new SerializeConfig();
+        // 注册自定义的序列化器
+        config.put(LocalDateTime.class, new LocalDateTimeSerializer());
+        // 设置序列化配置
+        return tableFieldMap;
     }
 
     private String getAutoId(Class<?> clazz) {
