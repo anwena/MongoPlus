@@ -4,7 +4,7 @@ import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.cache.PropertyCache;
 import com.anwen.mongo.constant.SqlOperationConstant;
-import com.anwen.mongo.convert.factory.DocumentFieldMapperFactory;
+import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.client.FindIterable;
@@ -14,8 +14,6 @@ import org.bson.Document;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * @Description: Document转对象
@@ -93,8 +91,7 @@ public class DocumentMapperConvert {
                 continue;
             }
             Object fieldValue = Objects.equals(fieldName, SqlOperationConstant._ID) ? String.valueOf(doc.get(fieldName)) : doc.get(fieldName);
-            DocumentFieldMapper<Object> fieldMapper = DocumentFieldMapperFactory.getMapper(field, fieldValue);
-            fieldMapper.mapField(doc, field, obj);
+            ConversionService.setValue(field,obj,fieldValue);
         }
 
         // 处理父类中的字段

@@ -12,16 +12,17 @@ import java.math.BigDecimal;
  *
  * @author JiaChaoYang
  **/
-public class BigDecimalConversionStrategy implements ConversionStrategy {
+public class BigDecimalConversionStrategy implements ConversionStrategy<BigDecimal> {
 
     private final Logger logger = LoggerFactory.getLogger(BigDecimalConversionStrategy.class);
 
     @Override
-    public void convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
+    public BigDecimal convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
         try {
-            field.set(obj,new BigDecimal(String.valueOf(fieldValue)));
+            return new BigDecimal(String.valueOf(fieldValue));
         }catch (Exception e){
             logger.error("Convert fieldValue To BigDecimal Fail,Exception Message: {}",e.getMessage(),e);
         }
+        return null;
     }
 }

@@ -14,6 +14,7 @@ import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.conn.ConnectMongoDB;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.context.MongoTransactionContext;
+import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.convert.Converter;
 import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.domain.InitMongoCollectionException;
@@ -24,6 +25,7 @@ import com.anwen.mongo.enums.QueryOperatorEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.json.LocalDateTimeSerializer;
 import com.anwen.mongo.model.*;
+import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.support.SFunction;
 import com.anwen.mongo.toolkit.*;
 import com.mongodb.BasicDBObject;
@@ -76,6 +78,8 @@ public class SqlExecute {
 
     // 实例化 ConnectMongoDB 对象，用于保存连接
     private ConnectMongoDB connectMongoDB;
+
+    private CollectionNameConvert collectionNameConvert;
 
     private String createIndex = null;
 
@@ -942,10 +946,7 @@ public class SqlExecute {
 
     private MongoCollection<Document> getCollection(Class<?> clazz) {
         createIndex = null;
-        String collectionName = clazz.getSimpleName().toLowerCase();
-        if (clazz.isAnnotationPresent(CollectionName.class)) {
-            collectionName = clazz.getAnnotation(CollectionName.class).value();
-        }
+        String collectionName = this.collectionNameConvert.convert(clazz);
         return getCollection(collectionName);
     }
 
@@ -979,13 +980,13 @@ public class SqlExecute {
     private String getAutoId(Class<?> clazz) {
         String num = "1";
         MongoCollection<Document> collection = getCollection("counters");
-        Document query = new Document(SqlOperationConstant._ID, MongoCollectionUtils.getLowerCaseName(clazz));
+        Document query = new Document(SqlOperationConstant._ID, collectionNameConvert.convert(clazz));
         Document update = new Document("$inc", new Document(SqlOperationConstant.AUTO_NUM, 1));
         Document document = collection.findOneAndUpdate(query,update,new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
         if (document == null){
             Long finalNum = Long.parseLong(num);
             collection.insertOne(new Document(new HashMap<String,Object>(){{
-                put(SqlOperationConstant._ID, MongoCollectionUtils.getLowerCaseName(clazz));
+                put(SqlOperationConstant._ID, collectionNameConvert.convert(clazz));
                 put(SqlOperationConstant.AUTO_NUM, finalNum);
             }}));
         }else {
@@ -1030,13 +1031,13 @@ public class SqlExecute {
             return;
         }
         try {
-            // 暂时只支持两种类型转换
-            String str = String.valueOf(idValue);
-            if (idField.getType().equals(String.class)) {
+            //使用策略转换器回写id
+            ConversionService.setValue(idField,entity,idValue);
+            /*if (idField.getType().equals(String.class)) {
                 ReflectionUtils.setFieldValue(entity, idField, str);
             } else if(idField.getType().equals(ObjectId.class) && ObjectId.isValid(str)) {
                 ReflectionUtils.setFieldValue(entity, idField, new ObjectId(str));
-            }
+            }*/
         } catch (Exception e) {
             logger.error("set back id field value error, error message: {}", e.getMessage());
         }
@@ -1072,6 +1073,14 @@ public class SqlExecute {
 
     public MongoClient getMongoClient() {
         return mongoClient;
+    }
+
+    public CollectionNameConvert getCollectionNameConvert() {
+        return collectionNameConvert;
+    }
+
+    public void setCollectionNameConvert(CollectionNameConvert collectionNameConvert) {
+        this.collectionNameConvert = collectionNameConvert;
     }
 
     public void setMongoClient(MongoClient mongoClient) {
