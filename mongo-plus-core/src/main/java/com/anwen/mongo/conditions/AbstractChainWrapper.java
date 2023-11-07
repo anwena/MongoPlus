@@ -4,7 +4,7 @@ import com.anwen.mongo.conditions.interfaces.Compare;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.interfaces.condition.Order;
-import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
+import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.enums.CompareEnum;
 import com.anwen.mongo.enums.LogicTypeEnum;
@@ -255,23 +255,23 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
     }
 
     @Override
-    public Children and(boolean condition, LambdaQueryChainWrapper<T> lambdaQueryChainWrapper) {
-        return condition ? and(lambdaQueryChainWrapper) : typedThis;
+    public Children and(boolean condition, QueryChainWrapper<?,?> queryChainWrapper) {
+        return condition ? and(queryChainWrapper) : typedThis;
     }
 
     @Override
-    public Children and(LambdaQueryChainWrapper<T> lambdaQueryChainWrapper) {
-        return getBaseAndCondition(lambdaQueryChainWrapper.getCompareList());
+    public Children and(QueryChainWrapper<?,?> queryChainWrapper) {
+        return getBaseAndCondition(queryChainWrapper.getCompareList());
     }
 
     @Override
-    public Children or(boolean condition, LambdaQueryChainWrapper<T> lambdaQueryChainWrapper) {
-        return condition ? or(lambdaQueryChainWrapper) : typedThis;
+    public Children or(boolean condition, QueryChainWrapper<?,?> queryChainWrapper) {
+        return condition ? or(queryChainWrapper) : typedThis;
     }
 
     @Override
-    public Children or(LambdaQueryChainWrapper<T> lambdaQueryChainWrapper) {
-        return getBaseOrCondition(lambdaQueryChainWrapper.getCompareList());
+    public Children or(QueryChainWrapper<?,?> queryChainWrapper) {
+        return getBaseOrCondition(queryChainWrapper.getCompareList());
     }
 
     @Override
@@ -295,13 +295,13 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
     }
 
     @Override
-    public Children nor(boolean condition, LambdaQueryChainWrapper<T> lambdaQueryChainWrapper) {
-        return condition ? nor(lambdaQueryChainWrapper) : typedThis;
+    public Children nor(boolean condition, QueryChainWrapper<?,?> queryChainWrapper) {
+        return condition ? nor(queryChainWrapper) : typedThis;
     }
 
     @Override
-    public Children nor(LambdaQueryChainWrapper<T> lambdaQueryChainWrapper) {
-        return getBaseOrCondition(lambdaQueryChainWrapper.getCompareList());
+    public Children nor(QueryChainWrapper<?,?> queryChainWrapper) {
+        return getBaseOrCondition(queryChainWrapper.getCompareList());
     }
 
     @Override
@@ -436,23 +436,23 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
     }
 
     @Override
-    public Children elemMatch(boolean condition, SFunction<T, Object> column, LambdaQueryChainWrapper<T> lambdaQueryChainWrapper) {
-        return condition ? elemMatch(column,lambdaQueryChainWrapper) : typedThis;
+    public Children elemMatch(boolean condition, SFunction<?, Object> column, QueryChainWrapper<?, ?> queryChainWrapper) {
+        return condition ? elemMatch(column,queryChainWrapper) : typedThis;
     }
 
     @Override
-    public Children elemMatch(SFunction<T, Object> column, LambdaQueryChainWrapper<T> lambdaQueryChainWrapper) {
-        return getChildBaseCondition(column,lambdaQueryChainWrapper.getCompareList(),LogicTypeEnum.ELEMMATCH.getKey());
+    public Children elemMatch(SFunction<?, Object> column, QueryChainWrapper<?,?> queryChainWrapper) {
+        return getChildBaseCondition(column,queryChainWrapper.getCompareList(),LogicTypeEnum.ELEMMATCH.getKey());
     }
 
     @Override
-    public Children elemMatch(boolean condition, String column, LambdaQueryChainWrapper<T> lambdaQueryChainWrapper) {
-        return condition ? elemMatch(column,lambdaQueryChainWrapper) : typedThis;
+    public Children elemMatch(boolean condition, String column, QueryChainWrapper<?,?> queryChainWrapper) {
+        return condition ? elemMatch(column,queryChainWrapper) : typedThis;
     }
 
     @Override
-    public Children elemMatch(String column, LambdaQueryChainWrapper<T> lambdaQueryChainWrapper) {
-        return getChildBaseCondition(column,lambdaQueryChainWrapper.getCompareList(),LogicTypeEnum.ELEMMATCH.getKey());
+    public Children elemMatch(String column, QueryChainWrapper<?,?> queryChainWrapper) {
+        return getChildBaseCondition(column,queryChainWrapper.getCompareList(),LogicTypeEnum.ELEMMATCH.getKey());
     }
 
     @Override
@@ -563,7 +563,7 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
         return typedThis;
     }
 
-    public Children getChildBaseCondition(SFunction<T,Object> column,Object value,Integer logic){
+    public Children getChildBaseCondition(SFunction<?,Object> column,Object value,Integer logic){
         compareList.add(CompareCondition.builder().condition(new Throwable().getStackTrace()[1].getMethodName()).column(column.getFieldNameLine()).value(value).type(CompareEnum.QUERY.getKey()).logicType(logic).build());
         return typedThis;
     }

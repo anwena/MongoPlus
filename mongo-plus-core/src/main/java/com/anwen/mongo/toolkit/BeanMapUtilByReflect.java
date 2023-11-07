@@ -1,6 +1,7 @@
 package com.anwen.mongo.toolkit;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.PropertyFilter;
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.cache.JsonCache;
@@ -9,6 +10,7 @@ import org.bson.Document;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -59,7 +61,11 @@ public class BeanMapUtilByReflect {
                 resultMap.put(fieldName, fieldValue);
             }
         }
-        return Document.parse(JSON.toJSONString(resultMap, JsonCache.config));
+//        PropertyFilter propertyFilter = (object, name, value) -> !(value instanceof LocalDateTime);
+//        return Document.parse(JSON.toJSONString(resultMap, JsonCache.config,propertyFilter));
+        return new Document(){{
+            putAll(resultMap);
+        }};
     }
 
     public static Field getIdField(Class<?> clazz) {

@@ -1,9 +1,7 @@
 package com.anwen.mongo.execute;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.JSONSerializer;
 import com.alibaba.fastjson.serializer.SerializeConfig;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.cache.CodecRegistryCache;
@@ -28,6 +26,7 @@ import com.anwen.mongo.model.*;
 import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.support.SFunction;
 import com.anwen.mongo.toolkit.*;
+import com.anwen.mongo.toolkit.codec.RegisterCodecUtil;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
 import com.mongodb.client.*;
@@ -37,7 +36,6 @@ import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
-import org.bson.BsonValue;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.conversions.Bson;
@@ -121,7 +119,7 @@ public class SqlExecute {
 
     public <T> Boolean doSave(ClientSession clientSession,T entity) {
         try {
-            MongoCollection<Document> collection = getCollection(entity.getClass());
+            MongoCollection<Document> collection = getCollection(entity);
             Document document = processIdField(entity);
             InsertOneResult insertOneResult = Optional.ofNullable(clientSession)
                     .map(session -> collection.insertOne(session, document))
@@ -828,7 +826,7 @@ public class SqlExecute {
                     aggregateIterable.bypassDocumentValidation(optionsBasicDBObject.getBoolean(key));
                     break;
                 case COMMENT:
-                    aggregateIterable.comment((BsonValue) optionsBasicDBObject.get(key));
+                    aggregateIterable.comment(String.valueOf(optionsBasicDBObject.get(key)));
                     break;
                 case COMMENT_STR:
                     aggregateIterable.comment(optionsBasicDBObject.getString(key));
@@ -940,9 +938,9 @@ public class SqlExecute {
         return pageResult;
     }
 
-/*    private <T> MongoCollection<Document> getCollection(T entity) {
-        return getCollection(entity.getClass())*//*.withCodecRegistry(CodecRegistries.fromRegistries(RegisterCodecUtil.registerCodec(entity)))*//*;
-    }*/
+    private <T> MongoCollection<Document> getCollection(T entity) {
+        return getCollection(entity.getClass()).withCodecRegistry(CodecRegistries.fromRegistries(RegisterCodecUtil.registerCodec(entity)));
+    }
 
     private MongoCollection<Document> getCollection(Class<?> clazz) {
         createIndex = null;
@@ -1014,6 +1012,9 @@ public class SqlExecute {
         if (annotation.type() == IdTypeEnum.AUTO) {
             tableFieldMap.put(SqlOperationConstant._ID, getAutoId(entity.getClass()));
         } else {
+            if (annotation.type() == IdTypeEnum.OBJECT_ID){
+                return;
+            }
             tableFieldMap.put(SqlOperationConstant._ID, Generate.generateId(annotation.type()));
         }
     }

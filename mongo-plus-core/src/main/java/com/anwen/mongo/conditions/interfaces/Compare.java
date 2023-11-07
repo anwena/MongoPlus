@@ -1,7 +1,7 @@
 package com.anwen.mongo.conditions.interfaces;
 
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
-import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
+import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.enums.TypeEnum;
 import com.anwen.mongo.support.SFunction;
 import com.mongodb.BasicDBObject;
@@ -397,41 +397,41 @@ public interface Compare<T,Children> extends Serializable {
 
     /**
      * 并且 在or中使用
-     * @param lambdaQueryChainWrapper 链式查询
+     * @param queryChainWrapper 链式查询
      * @return Children
      * @author JiaChaoYang
      * @date 2023/7/16 22:10
      */
-    Children and(LambdaQueryChainWrapper<T> lambdaQueryChainWrapper);
+    Children and(QueryChainWrapper<?,?> queryChainWrapper);
 
     /**
      * 并且 在or中使用
      * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
-     * @param lambdaQueryChainWrapper 链式查询
+     * @param queryChainWrapper 链式查询
      * @return Children
      * @author JiaChaoYang
      * @date 2023/7/16 22:11
      */
-    Children and(boolean condition,LambdaQueryChainWrapper<T> lambdaQueryChainWrapper);
+    Children and(boolean condition,QueryChainWrapper<?,?> queryChainWrapper);
 
     /**
      * 或者
      * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
-     * @param lambdaQueryChainWrapper 链式查询
+     * @param queryChainWrapper 链式查询
      * @return Children
      * @author JiaChaoYang
      * @date 2023/7/16 20:59
      */
-    Children or(boolean condition , LambdaQueryChainWrapper<T> lambdaQueryChainWrapper);
+    Children or(boolean condition , QueryChainWrapper<?,?> queryChainWrapper);
 
     /**
      * 或者
-     * @param lambdaQueryChainWrapper 链式查询
+     * @param queryChainWrapper 链式查询
      * @return Children
      * @author JiaChaoYang
      * @date 2023/7/16 20:44
      */
-    Children or(LambdaQueryChainWrapper<T> lambdaQueryChainWrapper);
+    Children or(QueryChainWrapper<?,?> queryChainWrapper);
 
     /**
      * 或者
@@ -478,21 +478,21 @@ public interface Compare<T,Children> extends Serializable {
     /**
      * 查询的文档必须不符合所有条件
      * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
-     * @param lambdaQueryChainWrapper 链式查询
+     * @param queryChainWrapper 链式查询
      * @return Children
      * @author JiaChaoYang
      * @date 2023/7/16 20:59
      */
-    Children nor(boolean condition , LambdaQueryChainWrapper<T> lambdaQueryChainWrapper);
+    Children nor(boolean condition , QueryChainWrapper<?,?> queryChainWrapper);
 
     /**
      * 查询的文档必须不符合所有条件
-     * @param lambdaQueryChainWrapper 链式查询
+     * @param queryChainWrapper 链式查询
      * @return Children
      * @author JiaChaoYang
      * @date 2023/7/16 20:44
      */
-    Children nor(LambdaQueryChainWrapper<T> lambdaQueryChainWrapper);
+    Children nor(QueryChainWrapper<?,?> queryChainWrapper);
 
     /**
      * 查询的文档必须不符合所有条件
@@ -749,43 +749,43 @@ public interface Compare<T,Children> extends Serializable {
      * 匹配数组中的值
      * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
-     * @param lambdaQueryChainWrapper 查询条件
+     * @param queryChainWrapper 查询条件
      * @return Children
      * @author JiaChaoYang
      * @date 2023/7/19 23:29
     */
-    Children elemMatch(boolean condition,SFunction<T,Object> column , LambdaQueryChainWrapper<T> lambdaQueryChainWrapper);
+    Children elemMatch(boolean condition,SFunction<?,Object> column , QueryChainWrapper<?,?> queryChainWrapper);
 
     /**
      * 匹配数组中的值
      * @param column 列名、字段名
-     * @param lambdaQueryChainWrapper 查询条件
+     * @param queryChainWrapper 查询条件
      * @return Children
      * @author JiaChaoYang
      * @date 2023/7/19 23:31
     */
-    Children elemMatch(SFunction<T,Object> column , LambdaQueryChainWrapper<T> lambdaQueryChainWrapper);
+    Children elemMatch(SFunction<?,Object> column , QueryChainWrapper<?,?> queryChainWrapper);
 
     /**
      * 匹配数组中的值
      * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
-     * @param lambdaQueryChainWrapper 查询条件
+     * @param queryChainWrapper 查询条件
      * @return Children
      * @author JiaChaoYang
      * @date 2023/7/19 23:29
      */
-    Children elemMatch(boolean condition,String column , LambdaQueryChainWrapper<T> lambdaQueryChainWrapper);
+    Children elemMatch(boolean condition,String column , QueryChainWrapper<?,?> queryChainWrapper);
 
     /**
      * 匹配数组中的值
      * @param column 列名、字段名
-     * @param lambdaQueryChainWrapper 查询条件
+     * @param queryChainWrapper 查询条件
      * @return Children
      * @author JiaChaoYang
      * @date 2023/7/19 23:31
      */
-    Children elemMatch(String column , LambdaQueryChainWrapper<T> lambdaQueryChainWrapper);
+    Children elemMatch(String column , QueryChainWrapper<?,?> queryChainWrapper);
 
     /**
      * 匹配数组中的值 必须同时包含指定的多个元素

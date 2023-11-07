@@ -108,6 +108,7 @@ public class ClassTypeUtil {
         fieldClasses.parallelStream().forEach(field -> {
             if (CustomClassUtil.isCustomObject(field)){
                 result.add(field);
+                result.addAll(getAllCustomFieldClasses(field));
             }
         });
         return result;
