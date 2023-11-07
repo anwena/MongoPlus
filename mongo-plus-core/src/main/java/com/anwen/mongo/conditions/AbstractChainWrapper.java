@@ -539,7 +539,10 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
     }
 
     public Children getChildBaseCondition(String column, Object value,Integer logic){
-        compareList.add(CompareCondition.builder().condition(new Throwable().getStackTrace()[1].getMethodName()).column(column).value(value).type(CompareEnum.QUERY.getKey()).logicType(logic).build());
+        this.compareList.add(CompareCondition.builder().type(CompareEnum.QUERY.getKey()).logicType(logic).childCondition(new ArrayList<CompareCondition>(){{
+            add(CompareCondition.builder().condition(new Throwable().getStackTrace()[1].getMethodName()).column(column).value(value).build());
+        }}).build());
+//        compareList.add(CompareCondition.builder().condition(new Throwable().getStackTrace()[1].getMethodName()).column(column).value(value).type(CompareEnum.QUERY.getKey()).logicType(logic).build());
         return typedThis;
     }
 
@@ -564,7 +567,10 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
     }
 
     public Children getChildBaseCondition(SFunction<?,Object> column,Object value,Integer logic){
-        compareList.add(CompareCondition.builder().condition(new Throwable().getStackTrace()[1].getMethodName()).column(column.getFieldNameLine()).value(value).type(CompareEnum.QUERY.getKey()).logicType(logic).build());
+        this.compareList.add(CompareCondition.builder().type(CompareEnum.QUERY.getKey()).logicType(logic).childCondition(new ArrayList<CompareCondition>(){{
+            add(CompareCondition.builder().condition(new Throwable().getStackTrace()[1].getMethodName()).column(column.getFieldNameLine()).value(value).build());
+        }}).build());
+//        compareList.add(CompareCondition.builder().condition(new Throwable().getStackTrace()[1].getMethodName()).column(column.getFieldNameLine()).value(value).type(CompareEnum.QUERY.getKey()).logicType(logic).build());
         return typedThis;
     }
 
