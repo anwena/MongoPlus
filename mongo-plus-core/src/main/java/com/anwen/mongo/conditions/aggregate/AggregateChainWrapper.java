@@ -37,7 +37,7 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
     protected final Children typedThis = (Children) this;
 
     @Override
-    public Children match(QueryChainWrapper<T, ?> queryChainWrapper) {
+    public Children match(QueryChainWrapper<?, ?> queryChainWrapper) {
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.MATCH.getType(), new MatchConcretePipeline(queryChainWrapper.getCompareList())));
         return typedThis;
     }

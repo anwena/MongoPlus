@@ -1,7 +1,10 @@
 package com.anwen.mongo.toolkit;
 
 import com.anwen.mongo.annotation.ID;
+import com.anwen.mongo.cache.MapCodecCache;
 import com.mongodb.MongoException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
@@ -19,12 +22,16 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ClassTypeUtil {
 
+    private static final Logger logger = LoggerFactory.getLogger(ClassTypeUtil.class);
+
     // 内部缓存，存储已经处理过的对象类型及其字段的类型
     private static final Map<Class<?>, List<Class<?>>> cacheMap = new ConcurrentHashMap<>();
 
     private static final Map<Class<?>, List<Field>> FIELD_CACHE = new HashMap<>();
 
     private static volatile ClassTypeUtil instance;
+
+    private static final Map<Class<?>,Set<Class<?>>> cacheClass = new ConcurrentHashMap<>();
 
     private ClassTypeUtil() {
     }
@@ -143,6 +150,84 @@ public class ClassTypeUtil {
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * 获取类中所有的字段，如果是自定义类型或者Map、Bson类型，也将子字段获取
+     * @author JiaChaoYang
+     * @date 2023/11/9 23:23
+    */
+    public static <T> Set<Class<?>> getAllClass(T entity){
+        Set<Class<?>> set = new HashSet<>();
+        if (entity == null){
+            return set;
+        }
+        System.out.println("进来了");
+        Class<?> clazz = entity.getClass();
+        if (cacheClass.containsKey(clazz)){
+            return cacheClass.get(clazz);
+        }
+        Field[] fields = clazz.getDeclaredFields();
+        for (Field field : fields) {
+            System.out.println("进入循环了");
+            field.setAccessible(true);
+            Class<?> fieldType = field.getType();
+            if (MapCodecCache.codecClassCache.contains(fieldType)){
+                continue;
+            }
+            set.add(fieldType);
+            try {
+                if (Map.class.isAssignableFrom(fieldType)){
+                    set.addAll(getMapClass((Map<?, ?>) field.get(entity)));
+                }
+                if (CustomClassUtil.isCustomObject(fieldType)){
+                    System.out.println("去递归了");
+                    set.addAll(getAllClass(field.get(entity)));
+                }
+            } catch (IllegalAccessException e) {
+                logger.error("get value error: {}",field.getName());
+            }
+        }
+        cacheClass.put(clazz,set);
+        return set;
+        /*return new HashSet<Class<?>>(){{
+            Field[] fields = clazz.getDeclaredFields();
+            for (Field field : fields) {
+                System.out.println("进入循环了");
+                field.setAccessible(true);
+                Class<?> fieldType = field.getType();
+                if (MapCodecCache.codecClassCache.contains(fieldType)){
+                    continue;
+                }
+                add(fieldType);
+                try {
+                    if (Map.class.isAssignableFrom(fieldType)){
+                        addAll(getMapClass((Map<?, ?>) field.get(entity)));
+                    }
+                    if (CustomClassUtil.isCustomObject(fieldType)){
+                        System.out.println("去递归了");
+                        addAll(getAllClass(field.get(entity)));
+                    }
+                } catch (IllegalAccessException e) {
+                    logger.error("get value error: {}",field.getName());
+                }
+            }
+        }};*/
+    }
+
+    private static Set<Class<?>> getMapClass(Map<?,?> map){
+        return new HashSet<Class<?>>(){{
+            map.values().forEach(value -> {
+                Class<?> clazz = value.getClass();
+                if (MapCodecCache.codecClassCache.contains(clazz)){
+                    return;
+                }
+                add(clazz);
+                if (CustomClassUtil.isCustomObject(clazz)){
+                    addAll(getAllClass(value));
+                }
+            });
+        }};
     }
 
     /**

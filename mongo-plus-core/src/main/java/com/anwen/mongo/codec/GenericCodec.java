@@ -1,5 +1,7 @@
 package com.anwen.mongo.codec;
 
+import com.anwen.mongo.toolkit.ClassTypeUtil;
+import com.anwen.mongo.toolkit.CustomClassUtil;
 import org.bson.BsonReader;
 import org.bson.BsonType;
 import org.bson.BsonWriter;
@@ -30,6 +32,7 @@ public class GenericCodec<T> implements Codec<T> {
     private final Map<Class<?>, Object> valueCache = new ConcurrentHashMap<>();
 
     public GenericCodec(Class<T> clazz) {
+        System.out.println("类：" + clazz.getName());
         this.clazz = clazz;
     }
 
@@ -37,18 +40,37 @@ public class GenericCodec<T> implements Codec<T> {
     public void encode(BsonWriter writer, T value, EncoderContext encoderContext) {
         // 将 T 类型的对象转换为 BSON 格式并写入到 writer 中
         writer.writeStartDocument();
-        for (Field field : getClassFields()) {
+        setBson(writer, value, encoderContext);
+//        writer.writeEndDocument();
+    }
+
+    public void setBson(BsonWriter writer, T value, EncoderContext encoderContext) {
+        if (value == null){
+            return;
+        }
+        Field[] declaredFields = value.getClass().getDeclaredFields();
+        for (Field field : declaredFields) {
+            field.setAccessible(true);
             try {
-                field.setAccessible(true);
-                // 获取属性值并写入到 writer 中
-                Object fieldValue = field.get(value);
-                writer.writeName(field.getName());
-                writeValue(writer, fieldValue, encoderContext);
+                if (CustomClassUtil.isCustomObject(field.getType())) {
+                    writer.writeStartDocument();
+                    setBson(writer,(T) field.get(value), encoderContext);
+                }
+                if (Map.class.isAssignableFrom(field.getType())) {
+                    Map<?, ?> map = (Map<?, ?>) value;
+                    map.values().forEach(m -> {
+                        setBson(writer, (T) m, encoderContext);
+                    });
+                }
+                if (field.get(value) != null){
+                    // 获取属性值并写入到 writer 中
+                    writer.writeName(field.getName());
+                    writeValue(writer, field.get(value), encoderContext);
+                }
             } catch (IllegalAccessException e) {
-                throw new CodecConfigurationException(e.getMessage(), e);
+                continue;
             }
         }
-        writer.writeEndDocument();
     }
 
     @Override

@@ -6,6 +6,7 @@ import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.cache.JsonCache;
 import com.anwen.mongo.constant.SqlOperationConstant;
+import com.anwen.mongo.enums.IdTypeEnum;
 import org.bson.Document;
 
 import java.lang.reflect.AccessibleObject;
@@ -51,10 +52,10 @@ public class BeanMapUtilByReflect {
             Object fieldValue = ReflectionUtils.getFieldValue(entity, field);
             ID idAnnotation = field.getAnnotation(ID.class);
             if (idAnnotation != null) {
-                resultMap.put(SqlOperationConstant._ID,fieldValue);
-                if (!idAnnotation.saveField()){
+                if (!idAnnotation.saveField() || idAnnotation.type() == IdTypeEnum.OBJECT_ID){
                     continue;
                 }
+                resultMap.put(SqlOperationConstant._ID,fieldValue);
             }
             // 不为null再进行映射
             if (fieldValue != null){

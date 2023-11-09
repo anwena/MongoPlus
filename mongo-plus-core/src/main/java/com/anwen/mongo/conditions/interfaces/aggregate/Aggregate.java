@@ -31,7 +31,7 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * @author JiaChaoYang
      * @date 2023/8/12 21:03
     */
-    Children match(QueryChainWrapper<T, ?> queryChainWrapper);
+    Children match(QueryChainWrapper<?, ?> queryChainWrapper);
 
     /**
      * 过滤文档记录，只将匹配的文档记录传递到管道中的下一个步骤
