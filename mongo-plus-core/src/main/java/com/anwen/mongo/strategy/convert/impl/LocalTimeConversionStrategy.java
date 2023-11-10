@@ -6,6 +6,7 @@ import com.anwen.mongo.toolkit.InstantUtil;
 import java.lang.reflect.Field;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 /**
  * @author JiaChaoYang
@@ -16,6 +17,6 @@ import java.time.format.DateTimeFormatter;
 public class LocalTimeConversionStrategy implements ConversionStrategy<LocalTime> {
     @Override
     public LocalTime convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
-        return fieldValue.getClass().equals(Long.class) ? InstantUtil.convertTimestampToLocalTime((Long) fieldValue) : LocalTime.parse(String.valueOf(fieldValue), DateTimeFormatter.ofPattern("HH:mm:ss"));
+        return fieldValue.getClass().equals(Long.class) ? InstantUtil.convertTimestampToLocalTime((Long) fieldValue) : InstantUtil.convertTimestampToLocalTime(((Date) fieldValue).toInstant());
     }
 }

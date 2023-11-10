@@ -939,7 +939,7 @@ public class SqlExecute {
     }
 
     private <T> MongoCollection<Document> getCollection(T entity) {
-        return getCollection(entity.getClass()).withCodecRegistry(CodecRegistries.fromRegistries(RegisterCodecUtil.registerCodec(entity)));
+        return getCollection(entity.getClass()).withCodecRegistry(RegisterCodecUtil.registerCodec(entity));
     }
 
     private MongoCollection<Document> getCollection(Class<?> clazz) {

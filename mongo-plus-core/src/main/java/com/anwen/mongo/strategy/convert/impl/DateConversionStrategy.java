@@ -33,11 +33,11 @@ public class DateConversionStrategy implements ConversionStrategy<Date> {
 
     @Override
     public Date convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
-        Date date = null;
+        Date date;
         if (fieldValue.getClass().equals(Long.class)){
             date = new Date((Long) fieldValue);
         }else {
-            for (String format : formatList) {
+            /*for (String format : formatList) {
                 try {
                     SimpleDateFormat dateFormat = new SimpleDateFormat(format);
                     date = dateFormat.parse(String.valueOf(fieldValue));
@@ -48,7 +48,8 @@ public class DateConversionStrategy implements ConversionStrategy<Date> {
             if (null == date) {
                 logger.error("Unrecognized date format");
                 throw new IllegalAccessException("Unrecognized date format");
-            }
+            }*/
+            date = (Date) fieldValue;
         }
         return date;
     }

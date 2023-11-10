@@ -9,6 +9,7 @@ import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.bson.Document;
 
 import java.lang.reflect.Field;
@@ -30,14 +31,18 @@ public class DocumentMapperConvert {
      * @author: JiaChaoYang
      * @date: 2023/6/7 20:58
      **/
-    public static <T> T mapDocument(Document doc, Class<T> clazz) {
-        if (doc == null) {
+    public static <T> T mapDocument(Document document, Class<T> clazz) {
+        return mapDocument(document,clazz,true);
+    }
+
+    public static <T> T mapDocument(Document document,Class<T> clazz,Boolean annotationEffect){
+        if (document == null) {
             return null;
         }
         T obj;
         try {
             obj = clazz.getDeclaredConstructor().newInstance();
-            mapDocumentFields(doc, obj, clazz);
+            mapDocumentFields(document, obj, clazz,annotationEffect);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -72,20 +77,24 @@ public class DocumentMapperConvert {
      * @author: JiaChaoYang
      * @date: 2023/6/7 21:26
      **/
-    private static void mapDocumentFields(Document doc, Object obj, Class<?> clazz) throws IllegalAccessException, InstantiationException {
+    private static void mapDocumentFields(Document doc, Object obj, Class<?> clazz, Boolean annotationEffect) throws IllegalAccessException, InstantiationException {
         List<Field> fields = ClassTypeUtil.getFields(clazz);
         for (Field field : fields) {
             field.setAccessible(true);
-            CollectionField collectionField = field.getAnnotation(CollectionField.class);
-            ID id = field.getAnnotation(ID.class);
-            String cacheFieldName = field.getName();
-            if (PropertyCache.mapUnderscoreToCamelCase){
-                cacheFieldName = StringUtils.convertToCamelCase(cacheFieldName);
-            }
-            String fieldName = collectionField != null && StringUtils.isNotBlank(collectionField.value()) ? collectionField.value() : cacheFieldName;
-            if (id != null) fieldName = SqlOperationConstant._ID;
-            if (collectionField != null && !collectionField.exist()) {
-                continue;
+            String fieldName = field.getName();
+            if (annotationEffect) {
+                CollectionField collectionField = field.getAnnotation(CollectionField.class);
+                ID id = field.getAnnotation(ID.class);
+                if (PropertyCache.mapUnderscoreToCamelCase) {
+                    fieldName = StringUtils.convertToCamelCase(fieldName);
+                }
+                if (collectionField != null && StringUtils.isNotBlank(collectionField.value())) {
+                    fieldName = collectionField.value();
+                }
+                if (id != null) fieldName = SqlOperationConstant._ID;
+                if (collectionField != null && !collectionField.exist()) {
+                    continue;
+                }
             }
             if (doc.get(fieldName) == null) {
                 continue;
@@ -97,7 +106,7 @@ public class DocumentMapperConvert {
         // 处理父类中的字段
         Class<?> superClass = clazz.getSuperclass();
         if (superClass != null && !superClass.equals(Object.class)) {
-            mapDocumentFields(doc, obj, superClass);
+            mapDocumentFields(doc, obj, superClass,annotationEffect);
         }
     }
 

@@ -1,17 +1,14 @@
 package com.anwen.mongo.toolkit;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.PropertyFilter;
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
-import com.anwen.mongo.cache.JsonCache;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.enums.IdTypeEnum;
 import org.bson.Document;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,8 +37,9 @@ public class BeanMapUtilByReflect {
         //获取所有字段
         List<Field> fieldList = ClassTypeUtil.getFields(entityClass);
         //设置所有属性可访问
-        AccessibleObject.setAccessible(fieldList.toArray(new Field[0]),true);
+//        AccessibleObject.setAccessible(fieldList.toArray(new Field[0]),true);
         for (Field field : fieldList) {
+            field.setAccessible(true);
             // 是否跳过解析
             if (skipCheckField(field)) {
                 continue;
@@ -59,6 +57,13 @@ public class BeanMapUtilByReflect {
             }
             // 不为null再进行映射
             if (fieldValue != null){
+                /*if (CustomClassUtil.isCustomObject(entity.getClass())){
+                    try {
+                        fieldValue = checkTableField(field.get(entity));
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
+                }*/
                 resultMap.put(fieldName, fieldValue);
             }
         }

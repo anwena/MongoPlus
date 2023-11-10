@@ -53,16 +53,16 @@ public class RegisterCodecUtil {
 //        codecList.parallelStream().forEach(clazz -> codecRegistryList.add(CodecRegistries.fromCodecs(new GenericCodec<>(clazz))));
     }
 
-    public static <T> List<CodecRegistry> registerCodec(T t){
+    public static <T> CodecRegistry registerCodec(T t){
         return registerCodec(ClassTypeUtil.getAllClass(t));
     }
 
-    public static List<CodecRegistry> registerCodec(Set<Class<?>> fieldClasses){
+    public static CodecRegistry registerCodec(Set<Class<?>> fieldClasses){
         if (CollUtil.isEmpty(CodecRegistryCache.getCodecRegistry())){
             codecRegistryList.addAll(CodecRegistryCache.getCodecRegistry());
         }
         fieldClasses.parallelStream().forEach(clazz -> codecRegistryList.add(CodecRegistries.fromCodecs(new GenericCodec<>(clazz))));
-        return codecRegistryList;
+        return CodecRegistries.fromRegistries(codecRegistryList);
     }
 
 }

@@ -24,7 +24,7 @@ public class MapCodecCache {
         add(Date.class);
         add(Binary.class);
         add(Symbol.class);
-        add(List.class);
+//        add(List.class);
         add(Long.class);
         add(MaxKey.class);
         add(Code.class);

@@ -2,6 +2,7 @@ package com.anwen.mongo.toolkit;
 
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.cache.MapCodecCache;
+import com.anwen.mongo.model.BaseModelID;
 import com.mongodb.MongoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -173,9 +174,9 @@ public class ClassTypeUtil {
             field.setAccessible(true);
             Class<?> fieldType = field.getType();
             if (MapCodecCache.codecClassCache.contains(fieldType)){
+                logger.info("这个类已经在存在默认解码器了，名称：{}",field.getName());
                 continue;
             }
-            set.add(fieldType);
             try {
                 if (Map.class.isAssignableFrom(fieldType)){
                     set.addAll(getMapClass((Map<?, ?>) field.get(entity)));
@@ -184,6 +185,27 @@ public class ClassTypeUtil {
                     System.out.println("去递归了");
                     set.addAll(getAllClass(field.get(entity)));
                 }
+                if (fieldType.equals(List.class)){
+                    System.out.println("集合类型");
+                    Class<?> listGenericType = ClassTypeUtil.getListGenericType(field);
+                    if (Map.class.equals(listGenericType) || CustomClassUtil.isCustomObject(listGenericType)){
+                        if (Map.class.equals(listGenericType)){
+                            Type[] typeArguments = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();
+                            List<Map<?, ?>> mapList = (List<Map<?, ?>>) field.get(entity);
+                            if (typeArguments[1].equals(Object.class)){
+                                for (Map<?, ?> map : mapList) {
+                                    set.addAll(getMapClass(map));
+                                }
+                            }else {
+                                set.addAll(getMapClass(mapList.get(0)));
+                            }
+                        }else {
+                            set.add(listGenericType);
+                            set.addAll(getAllClass(((List<?>) field.get(entity)).get(0)));
+                        }
+                    }
+                }
+                set.add(fieldType);
             } catch (IllegalAccessException e) {
                 logger.error("get value error: {}",field.getName());
             }
@@ -253,6 +275,29 @@ public class ClassTypeUtil {
             fieldList.addAll(Arrays.asList(clazz.getDeclaredFields()));
             getSupperFields(fieldList,clazz.getSuperclass());
         }
+    }
+
+    /**
+     * 获取List的泛型
+     * @author JiaChaoYang
+     * @date 2023/11/10 14:54
+    */
+    public static Class<?> getListGenericType(Field field) {
+        Type genericType = field.getGenericType();
+        if (genericType instanceof ParameterizedType) {
+            ParameterizedType parameterizedType = (ParameterizedType) genericType;
+            Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+            if (actualTypeArguments.length > 0 && actualTypeArguments[0] instanceof Class) {
+                return (Class<?>) actualTypeArguments[0];
+            }
+        }
+        return Object.class;
+    }
+
+    public static Class<?> getListClass(List<?> list){
+        ParameterizedType parameterizedType = (ParameterizedType) list.getClass().getGenericSuperclass();
+        Type[] typeArguments = parameterizedType.getActualTypeArguments();
+        return (Class<?>) typeArguments[0];
     }
 
 }
