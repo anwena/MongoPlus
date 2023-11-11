@@ -1,14 +1,18 @@
 package com.anwen.mongo.toolkit;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.PropertyFilter;
+import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.enums.IdTypeEnum;
 import org.bson.Document;
 
-import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -69,9 +73,47 @@ public class BeanMapUtilByReflect {
         }
 //        PropertyFilter propertyFilter = (object, name, value) -> !(value instanceof LocalDateTime);
 //        return Document.parse(JSON.toJSONString(resultMap, JsonCache.config,propertyFilter));
-        return new Document(){{
-            putAll(resultMap);
+        return handleMap(resultMap);
+    }
+
+    public static Document handleDocument(Document document){
+        Document result = new Document();
+        PropertyFilter propertyFilter = (object, name, value) -> {
+            if (value instanceof LocalDate
+                    || value instanceof LocalDateTime
+                    || value instanceof LocalTime
+                    || value instanceof Date) {
+                result.put(name,value);
+                return false;
+            }
+            return true;
+        };
+        String jsonString = JSON.toJSONString(document, new SerializeConfig() {{
+            addFilter(Document.class,propertyFilter);
+        }});
+        document = Document.parse(jsonString);
+        document.putAll(result);
+        return document;
+    }
+
+    public static List<Document> handleDocumentList(List<Document> documentList){
+        return new ArrayList<Document>(){{
+            documentList.forEach(document -> {
+                add(handleDocument(document));
+            });
         }};
+    }
+
+    public static List<Document> handleMapList(List<Map<String,Object>> mapList){
+        return new ArrayList<Document>(){{
+            mapList.forEach(map -> {
+                add(handleMap(map));
+            });
+        }};
+    }
+
+    public static Document handleMap(Map<String,Object> map){
+        return handleDocument(new Document(map));
     }
 
     public static Field getIdField(Class<?> clazz) {

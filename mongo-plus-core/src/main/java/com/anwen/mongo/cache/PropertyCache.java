@@ -21,6 +21,4 @@ public class PropertyCache {
     */
     public static Boolean transaction = false;
 
-    public static Boolean saveIdAnnotationField;
-
 }

@@ -1,4 +1,4 @@
-package com.anwen.mongo.cache;
+package com.anwen.mongo.cache.codec;
 
 import com.anwen.mongo.toolkit.codec.RegisterCodecUtil;
 import com.mongodb.MongoClientSettings;

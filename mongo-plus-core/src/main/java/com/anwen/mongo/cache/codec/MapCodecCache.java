@@ -1,4 +1,4 @@
-package com.anwen.mongo.cache;
+package com.anwen.mongo.cache.codec;
 
 import org.bson.*;
 import org.bson.types.*;

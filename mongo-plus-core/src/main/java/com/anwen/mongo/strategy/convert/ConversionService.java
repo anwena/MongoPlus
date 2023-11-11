@@ -42,7 +42,7 @@ public class ConversionService {
         conversionStrategies.put(BigDecimal.class,new BigDecimalConversionStrategy());
         conversionStrategies.put(BigInteger.class,new BigIntegerConversionStrategy());
         conversionStrategies.put(Map.class,new MapConversionStrategy());
-        conversionStrategies.put(Collection.class,new MapConversionStrategy());
+        conversionStrategies.put(Collection.class,new CollectionConversionStrategy());
     }
 
     /**

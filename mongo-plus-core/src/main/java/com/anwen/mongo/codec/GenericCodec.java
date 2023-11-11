@@ -1,6 +1,7 @@
 package com.anwen.mongo.codec;
 
-import com.anwen.mongo.cache.CodecCache;
+import com.anwen.mongo.cache.codec.BsonWriterCache;
+import com.anwen.mongo.cache.codec.CodecCache;
 import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.anwen.mongo.toolkit.CustomClassUtil;
 import org.bson.BsonReader;
@@ -10,11 +11,12 @@ import org.bson.codecs.Codec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
 import org.bson.codecs.configuration.CodecConfigurationException;
-import org.bson.codecs.configuration.CodecRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,7 +46,7 @@ public class GenericCodec<T> implements Codec<T> {
         this.clazz = clazz;
     }
 
-    public Codec<?> getCodec(Class<?> clazz){
+    public Codec getCodec(Class<?> clazz){
         try {
             return CodecCache.codecMap.get(clazz);
         }catch (CodecConfigurationException e){
@@ -61,12 +63,11 @@ public class GenericCodec<T> implements Codec<T> {
         writer.writeStartDocument();
         setBson(writer, value, encoderContext);
         writer.writeEndDocument();
-        CodecCache.codecMap.put(this.clazz,this);
+        BsonWriterCache.bsonWriterMap.put(this.clazz,writer);
     }
 
     public void setBson(BsonWriter writer, T value, EncoderContext encoderContext) {
         if (value == null){
-            logger.info("没东西没东西，出去了");
             return;
         }
         Field[] declaredFields = value.getClass().getDeclaredFields();
@@ -74,27 +75,29 @@ public class GenericCodec<T> implements Codec<T> {
             field.setAccessible(true);
             try {
                 if (CustomClassUtil.isCustomObject(field.getType())) {
-                    Codec codec;
-                    if (getCodec(field.getType()) != null){
-                        System.out.println("找到这个类型的解码器了："+field.getType().getName());
-                        codec = getCodec(field.getType());
-                    }else {
-                        System.out.println("没找到这个类型的解码器："+field.getType().getName());
-                        codec = new GenericCodec<>((Class<T>) field.getType());
-                    }
+                    Codec codec = getCodec(field.getType());
                     writer.writeName(field.getName());
                     codec.encode(writer, field.get(value),encoderContext);
-//                    setBson(writer,(T) field.get(value), encoderContext);
                 } else if (Map.class.isAssignableFrom(field.getType())) {
-                    Map<?, ?> map = (Map<?, ?>) value;
-                    map.values().forEach(m -> {
-                        setBson(writer, (T) m, encoderContext);
-                    });
+                    Map<?, ?> map = (Map<?, ?>) field.get(value);
+                    if (map.isEmpty()){
+                        continue;
+                    }
+                    Type[] typeArguments = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();
+                    if (typeArguments[1].equals(Object.class)) {
+                        map.values().forEach(m -> {
+                            writer.writeName(field.getName());
+                            getCodec(field.getType()).encode(writer, (T) m, encoderContext);
+                        });
+                    }else {
+                        writer.writeName(field.getName());
+                        getCodec(field.getType()).encode(writer, map.values().stream().findFirst(), encoderContext);
+                    }
                 } else if (List.class.isAssignableFrom(field.getType())){
-                    logger.error("这是一个集合");
                     Class<?> listGenericType = ClassTypeUtil.getListGenericType(field);
                     writer.writeStartArray();
-                    new GenericCodec(listGenericType).encode(writer,field.get(value),encoderContext);
+                    getCodec(listGenericType).encode(writer,field.get(value),encoderContext);
+//                    new GenericCodec(listGenericType).encode(writer,field.get(value),encoderContext);
                     writer.writeEndArray();
                 } else {
                     if (field.get(value) != null){
@@ -103,8 +106,7 @@ public class GenericCodec<T> implements Codec<T> {
                         writeValue(writer, field.get(value), encoderContext);
                     }
                 }
-            } catch (IllegalAccessException e) {
-                continue;
+            } catch (IllegalAccessException ignored) {
             }
         }
     }

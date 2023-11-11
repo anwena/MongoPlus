@@ -1,10 +1,7 @@
 package com.anwen.mongo.execute;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionName;
-import com.anwen.mongo.cache.CodecRegistryCache;
 import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
@@ -21,7 +18,6 @@ import com.anwen.mongo.enums.AggregateOptionsEnum;
 import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.enums.QueryOperatorEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
-import com.anwen.mongo.json.LocalDateTimeSerializer;
 import com.anwen.mongo.model.*;
 import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.support.SFunction;
@@ -37,7 +33,6 @@ import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
-import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
@@ -45,7 +40,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -119,7 +113,7 @@ public class SqlExecute {
 
     public <T> Boolean doSave(ClientSession clientSession,T entity) {
         try {
-            MongoCollection<Document> collection = getCollection(entity);
+            MongoCollection<Document> collection = getCollection(entity.getClass());
             Document document = processIdField(entity);
             InsertOneResult insertOneResult = Optional.ofNullable(clientSession)
                     .map(session -> collection.insertOne(session, document))
@@ -139,7 +133,7 @@ public class SqlExecute {
     public Boolean doSave(ClientSession clientSession,String collectionName, Map<String, Object> entityMap) {
         try {
             MongoCollection<Document> collection = getCollection(collectionName);
-            Document document = Document.parse(JSON.toJSONString(entityMap));
+            Document document = BeanMapUtilByReflect.handleMap(entityMap);
             return Optional.ofNullable(clientSession)
                     .map(session -> collection.insertOne(session, document))
                     .orElseGet(() -> collection.insertOne(document)).wasAcknowledged();
@@ -173,7 +167,7 @@ public class SqlExecute {
     public Boolean doSaveBatch(ClientSession clientSession,String collectionName, Collection<Map<String, Object>> entityList) {
         try {
             MongoCollection<Document> collection = getCollection(collectionName);
-            List<Document> documentList = BeanMapUtilByReflect.mapListToDocumentList(entityList);
+            List<Document> documentList = BeanMapUtilByReflect.handleDocumentList(BeanMapUtilByReflect.mapListToDocumentList(entityList));
             return Optional.ofNullable(clientSession)
                     .map(session -> collection.insertMany(session,documentList))
                     .orElseGet(() -> collection.insertMany(documentList)).getInsertedIds().size() == entityList.size();
@@ -290,8 +284,8 @@ public class SqlExecute {
 
     public Boolean doUpdateById(ClientSession clientSession,String collectionName, Map<String, Object> entityMap) {
         BasicDBObject filter = getFilter(entityMap);
-        BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), Document.parse(JSON.toJSONString(entityMap)));
-        MongoCollection<Document> collection = getCollection(collectionName);
+        BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), BeanMapUtilByReflect.handleMap(entityMap));
+        MongoCollection<Document> collection = getCollection(collectionName,entityMap);
         return Optional.ofNullable(clientSession)
                 .map(session -> collection.updateOne(session,filter,update))
                 .orElseGet(() -> collection.updateOne(filter,update)).getModifiedCount() >= 1;
@@ -362,7 +356,7 @@ public class SqlExecute {
         }
         String columnValue = String.valueOf(entityMap.get(column));
         Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(columnValue)) ? new ObjectId(columnValue) : columnValue);
-        Document document = Document.parse(JSON.toJSONString(entityMap));
+        Document document = BeanMapUtilByReflect.handleMap(entityMap);
         MongoCollection<Document> collection = getCollection(collectionName);
         return Optional.ofNullable(clientSession).map(session -> collection.updateMany(session,filter,document)).orElseGet(() -> collection.updateMany(filter,document)).getModifiedCount() >= 1;
     }
@@ -942,6 +936,10 @@ public class SqlExecute {
         return getCollection(entity.getClass()).withCodecRegistry(RegisterCodecUtil.registerCodec(entity));
     }
 
+    private MongoCollection<Document> getCollection(String collectionName,Map<?,?> map){
+        return getCollection(collectionName).withCodecRegistry(RegisterCodecUtil.registerCodec(map));
+    }
+
     private MongoCollection<Document> getCollection(Class<?> clazz) {
         createIndex = null;
         String collectionName = this.collectionNameConvert.convert(clazz);
@@ -961,17 +959,13 @@ public class SqlExecute {
         }else {
             mongoCollection = this.collectionMap.get(collectionName);
         }
-        return mongoCollection.withCodecRegistry(CodecRegistries.fromRegistries(CodecRegistryCache.getCodecRegistry()));
+        return mongoCollection.withCodecRegistry(RegisterCodecUtil.getCodecCacheAndDefault());
     }
 
     private <T> Document processIdField(T entity){
         // TODO 反射较多，考虑使用缓存
         Document tableFieldMap = checkTableField(entity);
         fillId(entity, tableFieldMap);
-        SerializeConfig config = new SerializeConfig();
-        // 注册自定义的序列化器
-        config.put(LocalDateTime.class, new LocalDateTimeSerializer());
-        // 设置序列化配置
         return tableFieldMap;
     }
 

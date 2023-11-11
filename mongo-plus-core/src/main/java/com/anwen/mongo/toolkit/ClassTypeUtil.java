@@ -1,8 +1,7 @@
 package com.anwen.mongo.toolkit;
 
 import com.anwen.mongo.annotation.ID;
-import com.anwen.mongo.cache.MapCodecCache;
-import com.anwen.mongo.model.BaseModelID;
+import com.anwen.mongo.cache.codec.MapCodecCache;
 import com.mongodb.MongoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -160,7 +159,7 @@ public class ClassTypeUtil {
     */
     public static <T> Set<Class<?>> getAllClass(T entity){
         Set<Class<?>> set = new HashSet<>();
-        if (entity == null){
+        if (entity == null || !CustomClassUtil.isCustomObject(entity.getClass())){
             return set;
         }
         System.out.println("进来了");
@@ -185,7 +184,7 @@ public class ClassTypeUtil {
                     System.out.println("去递归了");
                     set.addAll(getAllClass(field.get(entity)));
                 }
-                if (fieldType.equals(List.class)){
+                if (List.class.isAssignableFrom(fieldType)){
                     System.out.println("集合类型");
                     Class<?> listGenericType = ClassTypeUtil.getListGenericType(field);
                     if (Map.class.equals(listGenericType) || CustomClassUtil.isCustomObject(listGenericType)){
@@ -210,6 +209,7 @@ public class ClassTypeUtil {
                 logger.error("get value error: {}",field.getName());
             }
         }
+        set.add(entity.getClass());
         cacheClass.put(clazz,set);
         return set;
         /*return new HashSet<Class<?>>(){{
@@ -238,6 +238,9 @@ public class ClassTypeUtil {
     }
 
     private static Set<Class<?>> getMapClass(Map<?,?> map){
+        if (map == null){
+            return new HashSet<>();
+        }
         return new HashSet<Class<?>>(){{
             map.values().forEach(value -> {
                 Class<?> clazz = value.getClass();
