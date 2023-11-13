@@ -1,11 +1,9 @@
 package com.anwen.mongo.strategy.aggregate.impl;
 
-import com.anwen.mongo.conditions.BuildCondition;
+import com.anwen.mongo.build.GroupBuilder;
 import com.anwen.mongo.conditions.accumulator.Accumulator;
-import com.anwen.mongo.constant.SqlOperationConstant;
+import com.anwen.mongo.model.GroupField;
 import com.anwen.mongo.strategy.aggregate.PipelineStrategy;
-import com.anwen.mongo.toolkit.CollUtil;
-import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.BasicDBObject;
 
 import java.util.ArrayList;
@@ -26,8 +24,15 @@ public class GroupConcretePipeline implements PipelineStrategy {
 
     private List<Accumulator> _idAccumulator;
 
+    private List<GroupField> _idList;
+
     public GroupConcretePipeline(String _id, Accumulator accumulator) {
         this._id = _id;
+        this.accumulatorList = Collections.singletonList(accumulator);
+    }
+
+    public GroupConcretePipeline(List<GroupField> _idList, Accumulator accumulator,boolean multiple) {
+        this._idList = _idList;
         this.accumulatorList = Collections.singletonList(accumulator);
     }
 
@@ -36,8 +41,18 @@ public class GroupConcretePipeline implements PipelineStrategy {
         this.accumulatorList = new ArrayList<>(Arrays.asList(accumulators));
     }
 
+    public GroupConcretePipeline(List<GroupField> _idList,boolean multiple,Accumulator... accumulators) {
+        this._idList = _idList;
+        this.accumulatorList = new ArrayList<>(Arrays.asList(accumulators));
+    }
+
     public GroupConcretePipeline(String _id , List<Accumulator> accumulatorList) {
         this._id = _id;
+        this.accumulatorList = accumulatorList;
+    }
+
+    public GroupConcretePipeline(List<GroupField> _idList , List<Accumulator> accumulatorList) {
+        this._idList = _idList;
         this.accumulatorList = accumulatorList;
     }
 
@@ -46,8 +61,17 @@ public class GroupConcretePipeline implements PipelineStrategy {
         this.accumulatorList = Collections.singletonList(new Accumulator(resultMappingField, operator, field));
     }
 
+    public GroupConcretePipeline(List<GroupField> _idList , String resultMappingField, String operator, String field,boolean multiple) {
+        this._idList = _idList;
+        this.accumulatorList = Collections.singletonList(new Accumulator(resultMappingField, operator, field));
+    }
+
     public GroupConcretePipeline(String _id){
         this._id = _id;
+    }
+
+    public GroupConcretePipeline(List<GroupField> _idList,boolean multiple){
+        this._idList = _idList;
     }
 
     public GroupConcretePipeline(List<Accumulator> _idAccumulator){
@@ -56,16 +80,11 @@ public class GroupConcretePipeline implements PipelineStrategy {
 
     @Override
     public BasicDBObject buildAggregate() {
-        BasicDBObject basicDBObject = new BasicDBObject();
-        if (CollUtil.isNotEmpty(accumulatorList)){
-            basicDBObject = BuildCondition.buildGroup(accumulatorList);
-        }
-        if (StringUtils.isNotBlank(_id)) {
-            basicDBObject.put(SqlOperationConstant._ID, "$" + _id);
-        }
-        if (CollUtil.isNotEmpty(_idAccumulator)){
-            basicDBObject.put(SqlOperationConstant._ID,BuildCondition.buildGroup(_idAccumulator));
-        }
-        return basicDBObject;
+        return new GroupBuilder()
+                .withAccumulatorList(accumulatorList)
+                .withId(_id)
+                .withIdList(_idList)
+                .withIdAccumulator(_idAccumulator)
+                .build();
     }
 }

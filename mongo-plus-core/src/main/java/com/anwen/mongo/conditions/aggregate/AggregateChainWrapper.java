@@ -11,6 +11,8 @@ import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.enums.*;
 import com.anwen.mongo.model.BaseAggregate;
+import com.anwen.mongo.model.FuncGroupField;
+import com.anwen.mongo.model.GroupField;
 import com.anwen.mongo.strategy.aggregate.impl.*;
 import com.anwen.mongo.support.SFunction;
 import com.mongodb.BasicDBObject;
@@ -38,7 +40,7 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
 
     @Override
     public Children match(QueryChainWrapper<?, ?> queryChainWrapper) {
-        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.MATCH.getType(), new MatchConcretePipeline(queryChainWrapper.getCompareList())));
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.MATCH.getType(), new MatchConcretePipeline(queryChainWrapper.getCompareList(),queryChainWrapper.getBasicDBObjectList())));
         return typedThis;
     }
 
@@ -282,8 +284,24 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
     }
 
     @Override
+    public Children groupFunc(List<FuncGroupField<?>> _id) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(new ArrayList<GroupField>(){{
+            _id.forEach(funcGroupField -> {
+                add(new GroupField(funcGroupField.getGroupField(),funcGroupField.getField()));
+            });
+        }},true)));
+        return typedThis;
+    }
+
+    @Override
     public Children group(String _id) {
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(_id)));
+        return typedThis;
+    }
+
+    @Override
+    public Children group(List<GroupField> _id) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(_id,true)));
         return typedThis;
     }
 
@@ -300,8 +318,24 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
     }
 
     @Override
+    public Children groupFunc(List<FuncGroupField<?>> _id, Accumulator accumulator) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(new ArrayList<GroupField>(){{
+            _id.forEach(funcGroupField -> {
+                add(new GroupField(funcGroupField.getGroupField(),funcGroupField.getField()));
+            });
+        }}, accumulator,true)));
+        return typedThis;
+    }
+
+    @Override
     public Children group(String _id, Accumulator accumulator) {
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(_id, accumulator)));
+        return typedThis;
+    }
+
+    @Override
+    public Children group(List<GroupField> _id, Accumulator accumulator) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(_id, accumulator,true)));
         return typedThis;
     }
 
@@ -312,8 +346,24 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
     }
 
     @Override
+    public Children groupFunc(List<FuncGroupField<?>> _id, Accumulator... accumulator) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(new ArrayList<GroupField>(){{
+            _id.forEach(funcGroupField -> {
+                add(new GroupField(funcGroupField.getGroupField(),funcGroupField.getField()));
+            });
+        }}, true,accumulator)));
+        return typedThis;
+    }
+
+    @Override
     public Children group(String _id, Accumulator... accumulator) {
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(_id, accumulator)));
+        return typedThis;
+    }
+
+    @Override
+    public Children group(List<GroupField> _id, Accumulator... accumulator) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(_id, true,accumulator)));
         return typedThis;
     }
 
@@ -324,7 +374,23 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
     }
 
     @Override
+    public Children groupFunc(List<FuncGroupField<?>> _id, List<Accumulator> accumulatorList) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(new ArrayList<GroupField>(){{
+            _id.forEach(funcGroupField -> {
+                add(new GroupField(funcGroupField.getGroupField(),funcGroupField.getField()));
+            });
+        }}, accumulatorList)));
+        return typedThis;
+    }
+
+    @Override
     public Children group(String _id, List<Accumulator> accumulatorList) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(_id, accumulatorList)));
+        return typedThis;
+    }
+
+    @Override
+    public Children group(List<GroupField> _id, List<Accumulator> accumulatorList) {
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(_id, accumulatorList)));
         return typedThis;
     }
@@ -336,8 +402,24 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
     }
 
     @Override
+    public Children groupFunc(List<FuncGroupField<?>> _id, String resultMappingField, String operator, String field) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(new ArrayList<GroupField>(){{
+            _id.forEach(funcGroupField -> {
+                add(new GroupField(funcGroupField.getGroupField(),funcGroupField.getField()));
+            });
+        }}, resultMappingField, operator, field,true)));
+        return typedThis;
+    }
+
+    @Override
     public Children group(String _id, String resultMappingField, String operator, String field) {
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(_id, resultMappingField, operator, field)));
+        return typedThis;
+    }
+
+    @Override
+    public Children group(List<GroupField> _id, String resultMappingField, String operator, String field) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(_id, resultMappingField, operator, field,true)));
         return typedThis;
     }
 
@@ -348,8 +430,24 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
     }
 
     @Override
+    public Children groupFunc(List<FuncGroupField<?>> _id, String resultMappingField, GroupTypeEnum operator, String field) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(new ArrayList<GroupField>(){{
+            _id.forEach(funcGroupField -> {
+                add(new GroupField(funcGroupField.getGroupField(),funcGroupField.getField()));
+            });
+        }}, resultMappingField, operator.getOperator(), field,true)));
+        return typedThis;
+    }
+
+    @Override
     public Children group(String _id, String resultMappingField, GroupTypeEnum operator, String field) {
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(_id, resultMappingField, operator.getOperator(), field)));
+        return typedThis;
+    }
+
+    @Override
+    public Children group(List<GroupField> _id, String resultMappingField, GroupTypeEnum operator, String field) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(_id, resultMappingField, operator.getOperator(), field,true)));
         return typedThis;
     }
 
@@ -360,8 +458,24 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
     }
 
     @Override
+    public Children groupFunc(List<FuncGroupField<?>> _id, SFunction<T, Object> resultMappingField, String operator, SFunction<T, Object> field) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(new ArrayList<GroupField>(){{
+            _id.forEach(funcGroupField -> {
+                add(new GroupField(funcGroupField.getGroupField(),funcGroupField.getField()));
+            });
+        }}, resultMappingField.getFieldNameLine(), operator, field.getFieldNameLine(),true)));
+        return typedThis;
+    }
+
+    @Override
     public Children group(String _id, SFunction<T, Object> resultMappingField, String operator, SFunction<T, Object> field) {
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(_id, resultMappingField.getFieldNameLine(), operator, field.getFieldNameLine())));
+        return typedThis;
+    }
+
+    @Override
+    public Children group(List<GroupField> _id, SFunction<T, Object> resultMappingField, String operator, SFunction<T, Object> field) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(_id, resultMappingField.getFieldNameLine(), operator, field.getFieldNameLine(),true)));
         return typedThis;
     }
 
@@ -372,8 +486,24 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
     }
 
     @Override
+    public Children group(List<GroupField> _id, SFunction<T, Object> resultMappingField, GroupTypeEnum operator, SFunction<T, Object> field) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(_id, resultMappingField.getFieldNameLine(), operator.getOperator(), field.getFieldNameLine(),true)));
+        return typedThis;
+    }
+
+    @Override
     public Children group(SFunction<T, Object> _id, SFunction<T, Object> resultMappingField, GroupTypeEnum operator, SFunction<T, Object> field) {
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(_id.getFieldNameLine(), resultMappingField.getFieldNameLine(), operator.getOperator(), field.getFieldNameLine())));
+        return typedThis;
+    }
+
+    @Override
+    public Children groupFunc(List<FuncGroupField<?>> _id, SFunction<T, Object> resultMappingField, GroupTypeEnum operator, SFunction<T, Object> field) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(new ArrayList<GroupField>(){{
+            _id.forEach(funcGroupField -> {
+                add(new GroupField(funcGroupField.getGroupField(),funcGroupField.getField()));
+            });
+        }}, resultMappingField.getFieldNameLine(), operator.getOperator(), field.getFieldNameLine(),true)));
         return typedThis;
     }
 

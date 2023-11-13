@@ -18,7 +18,7 @@ import java.util.function.Function;
  * @since 2023/2/14 14:18
 */
 @FunctionalInterface
-public interface SFunction<T,R> extends Function<T,R>, Serializable {
+public interface SFunction<Object,R> extends Function<Object,R>, Serializable {
 
     //默认配置
     String defaultSplit = "";

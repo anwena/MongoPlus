@@ -9,6 +9,8 @@ import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.ReplaceRoot;
 import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.enums.GroupTypeEnum;
+import com.anwen.mongo.model.FuncGroupField;
+import com.anwen.mongo.model.GroupField;
 import com.anwen.mongo.support.SFunction;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.model.CollationStrength;
@@ -150,6 +152,8 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      */
     Children group(SFunction<T,Object> _id);
 
+    Children groupFunc(List<FuncGroupField<?>> _id);
+
     /**
      * 对所有文档记录进行分组，然后计算聚合结果
      * @param _id 分组依据字段
@@ -158,6 +162,8 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * @date 2023/8/12 21:07
      */
     Children group(String _id);
+
+    Children group(List<GroupField> _id);
 
     /**
      * 对所有文档记录进行分组，然后计算聚合结果
@@ -168,7 +174,7 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * @date 2023/8/20 0:00
     */
     Children group(Accumulator... _id);
-    
+
     /**
      * 对所有文档记录进行分组，然后计算聚合结果
      *
@@ -179,6 +185,8 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * @date 2023/8/12 21:07
      */
     Children group(SFunction<T,Object> _id,Accumulator accumulator);
+
+    Children groupFunc(List<FuncGroupField<?>> _id,Accumulator accumulator);
 
     /**
      * 对所有文档记录进行分组，然后计算聚合结果
@@ -191,6 +199,8 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      */
     Children group(String _id,Accumulator accumulator);
 
+    Children group(List<GroupField> _id,Accumulator accumulator);
+
     /**
      * 对所有文档记录进行分组，然后计算聚合结果
      * @param _id 分组依据字段
@@ -200,6 +210,8 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * @date 2023/8/12 21:07
      */
     Children group(SFunction<T,Object> _id , Accumulator... accumulator);
+
+    Children groupFunc(List<FuncGroupField<?>> _id, Accumulator... accumulator);
 
     /**
      * 对所有文档记录进行分组，然后计算聚合结果
@@ -211,6 +223,8 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      */
     Children group(String _id , Accumulator... accumulator);
 
+    Children group(List<GroupField> _id , Accumulator... accumulator);
+
     /**
      * 对所有文档记录进行分组，然后计算聚合结果
      * @param accumulatorList 累加器集合
@@ -219,6 +233,8 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * @date 2023/8/12 21:07
      */
     Children group(SFunction<T,Object> _id , List<Accumulator> accumulatorList);
+
+    Children groupFunc(List<FuncGroupField<?>> _id, List<Accumulator> accumulatorList);
 
     /**
      * 对所有文档记录进行分组，然后计算聚合结果
@@ -229,6 +245,8 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * @date 2023/8/12 21:07
      */
     Children group(String _id , List<Accumulator> accumulatorList);
+
+    Children group(List<GroupField> _id , List<Accumulator> accumulatorList);
 
     /**
      * 对所有文档记录进行分组，然后计算聚合结果
@@ -242,6 +260,8 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
     */
     Children group(SFunction<T,Object> _id , String resultMappingField,String operator,String field);
 
+    Children groupFunc(List<FuncGroupField<?>> _id , String resultMappingField,String operator,String field);
+
     /**
      * 对所有文档记录进行分组，然后计算聚合结果
      * @param _id 分组依据字段
@@ -253,6 +273,8 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * @date 2023/8/17 22:51
      */
     Children group(String _id , String resultMappingField,String operator,String field);
+
+    Children group(List<GroupField> _id , String resultMappingField,String operator,String field);
 
     /**
      * 对所有文档记录进行分组，然后计算聚合结果
@@ -266,6 +288,8 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      */
     Children group(SFunction<T,Object> _id , String resultMappingField, GroupTypeEnum operator, String field);
 
+    Children groupFunc(List<FuncGroupField<?>> _id , String resultMappingField, GroupTypeEnum operator, String field);
+
     /**
      * 对所有文档记录进行分组，然后计算聚合结果
      * @param _id 分组依据字段
@@ -277,6 +301,8 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * @date 2023/8/17 22:51
      */
     Children group(String _id , String resultMappingField, GroupTypeEnum operator, String field);
+
+    Children group(List<GroupField> _id , String resultMappingField, GroupTypeEnum operator, String field);
 
     /**
      * 对所有文档记录进行分组，然后计算聚合结果
@@ -290,6 +316,8 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      */
     Children group(SFunction<T,Object> _id , SFunction<T,Object> resultMappingField, String operator, SFunction<T,Object> field);
 
+    Children groupFunc(List<FuncGroupField<?>> _id , SFunction<T,Object> resultMappingField, String operator, SFunction<T,Object> field);
+
     /**
      * 对所有文档记录进行分组，然后计算聚合结果
      * @param _id 分组依据字段
@@ -301,6 +329,8 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * @date 2023/8/17 22:51
      */
     Children group(String _id , SFunction<T,Object> resultMappingField, String operator, SFunction<T,Object> field);
+
+    Children group(List<GroupField> _id , SFunction<T,Object> resultMappingField, String operator, SFunction<T,Object> field);
 
     /**
      * 对所有文档记录进行分组，然后计算聚合结果
@@ -314,6 +344,8 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      */
     Children group(String _id , SFunction<T,Object> resultMappingField, GroupTypeEnum operator, SFunction<T,Object> field);
 
+    Children group(List<GroupField> _id , SFunction<T,Object> resultMappingField, GroupTypeEnum operator, SFunction<T,Object> field);
+
     /**
      * 对所有文档记录进行分组，然后计算聚合结果
      * @param _id 分组依据字段
@@ -325,6 +357,8 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * @date 2023/8/17 22:51
      */
     Children group(SFunction<T,Object> _id , SFunction<T,Object> resultMappingField, GroupTypeEnum operator, SFunction<T,Object> field);
+
+    Children groupFunc(List<FuncGroupField<?>> _id , SFunction<T,Object> resultMappingField, GroupTypeEnum operator, SFunction<T,Object> field);
 
     /**
      * 对所有文档记录进行分组，然后计算聚合结果
@@ -456,7 +490,7 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * @date 2023/8/20 0:56
      */
     Children unwind(SFunction<T, Object> field);
-    
+
     /**
      * 展开数组字段，生成一个文档副本，每个副本只包含一个数组元素
      * @param preserveNullAndEmptyArrays 是否保留空数组或包含 null 值的数组字段
@@ -691,7 +725,7 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * @date 2023/8/31 0:55
     */
     Children maxTimeMS(long maxTime);
-    
+
     /**
      * 服务器等待新文档以满足$changeStream聚合的最长时间。
      * @param maxAwaitTime 最大等待时间
@@ -728,7 +762,7 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * @date 2023/9/4 21:56
      */
     Children comment(String comment);
-    
+
     /**
      * 设置要使用的索引的提示。空值表示未设置提示。
      * @param hint 提示
@@ -746,7 +780,7 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * @date 2023/9/4 21:58
      */
     Children hint(String hint);
-    
+
     /**
      * 将顶级变量添加到聚合中。
      * 对于MongoDB 5.0+，聚合命令接受let选项。此选项是一个由零个或多个字段组成的文档，这些字段表示聚合管道可访问的变量。键是变量的名称，值是聚合表达式语言中的常量。然后，每个参数名称都可用于在聚合表达式上下文中使用“$$”语法访问相应表达式的值，聚合表达式上下文可能需要使用$expr或管道。
