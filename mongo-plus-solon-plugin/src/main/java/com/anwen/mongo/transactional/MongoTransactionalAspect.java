@@ -26,20 +26,25 @@ public class MongoTransactionalAspect implements Interceptor {
 
     private final MongoClient mongoClient;
 
-    /*@Around("@annotation(com.anwen.mongo.annotation.transactional.MongoTransactional)")
-    public Object manageTransaction(ProceedingJoinPoint joinPoint) throws Throwable {
-        startTransaction();
-        try {
-            Object proceed = joinPoint.proceed();
-            commitTransaction();
-            return proceed;
-        } catch (Exception e) {
-            rollbackTransaction();
-            throw e;
-        } finally {
-            closeSession();
-        }
-    }*/
+    @Override
+    public Object doIntercept(Invocation inv) throws RuntimeException {
+        Optional.ofNullable(inv.method().getAnnotation(MongoTransactional.class)).map(mongoTransactional -> {
+            //开启事务
+            startTransaction();
+            try {
+                Object invoke = inv.invoke();
+                //提交事务
+                commitTransaction();
+                return invoke;
+            } catch (Throwable e) {
+                logger.error("Mongo Execute Error,Rolling back soon");
+                //回滚
+                rollbackTransaction();
+                throw new RuntimeException(e);
+            }
+        });
+        return inv;
+    }
 
     /**
      * 事务开启
@@ -127,25 +132,5 @@ public class MongoTransactionalAspect implements Interceptor {
         if (logger.isDebugEnabled()) {
             logger.debug("Mongo transaction closed, Thread:{}, session hashcode:{}", Thread.currentThread().getName(), status.getClientSession().hashCode());
         }
-    }
-
-    @Override
-    public Object doIntercept(Invocation inv) throws RuntimeException {
-        Optional.ofNullable(inv.method().getAnnotation(MongoTransactional.class)).map(mongoTransactional -> {
-            //开启事务
-            startTransaction();
-            try {
-                Object invoke = inv.invoke();
-                //提交事务
-                commitTransaction();
-                return invoke;
-            } catch (Throwable e) {
-                logger.error("Mongo Execute Error,Rolling back soon");
-                //回滚
-                rollbackTransaction();
-                throw new RuntimeException(e);
-            }
-        });
-        return inv;
     }
 }

@@ -47,7 +47,7 @@ public class ConversionService {
 
     /**
      * 添加自定义转换器，转换器需实现ConversionStrategy
-     * 可以使用此方法添加，或者将转换器注册为Bean，并且使用{@link com.anwen.mongo.annotation.MongoConversion}注解，MongoPlus会自动扫描到转换器，加入到转换器策略中
+     * 可以使用此方法添加，或者将转换器注册为Bean，MongoPlus会自动扫描到转换器，加入到转换器策略中
      * @param clazz map的key，使用转换器要转换的类,get的时候，会根据字段的Type拿转换器
      * @param conversionStrategy 转换器接口
      * @return void

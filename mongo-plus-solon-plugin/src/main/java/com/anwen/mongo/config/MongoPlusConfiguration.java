@@ -1,10 +1,14 @@
 package com.anwen.mongo.config;
 
+import com.anwen.mongo.cache.MongoClientCache;
+import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.log.CustomMongoDriverLogger;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
+import com.anwen.mongo.property.MongoConfigurationProperty;
 import com.anwen.mongo.property.MongoDBConnectProperty;
 import com.anwen.mongo.property.MongoDBLogProperty;
+import com.anwen.mongo.toolkit.MongoCollectionUtils;
 import com.anwen.mongo.toolkit.UrlJoint;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
@@ -25,29 +29,41 @@ public class MongoPlusConfiguration {
 
     private SqlExecute sqlExecute;
 
+    private MongoClient mongoClient;
+
     public SqlExecute getSqlExecute() {
         return sqlExecute;
     }
 
     @Bean
     @Condition(onMissingBean = SqlExecute.class)
-    public SqlExecute sqlExecute(@Inject("${mongo-plus.data.mongodb}") MongoDBConnectProperty mongoDBConnectProperty, @Inject("${mongo-plus}") MongoDBLogProperty mongoDBLogProperty) {
-        if (this.sqlExecute != null){
+    public SqlExecute sqlExecute(@Inject("${mongo-plus.data.mongodb}") MongoDBConnectProperty mongoDBConnectProperty, @Inject("${mongo-plus}") MongoDBLogProperty mongoDBLogProperty, @Inject("${mongo-plus.configuration}")MongoConfigurationProperty mongoConfigurationProperty) {
+        if (this.sqlExecute != null) {
             return this.sqlExecute;
         }
         SqlExecute sqlExecute = new SqlExecute();
         sqlExecute.setSlaveDataSources(mongoDBConnectProperty.getSlaveDataSource());
         sqlExecute.setBaseProperty(mongoDBConnectProperty);
+        CollectionNameConvert collectionNameConvert =
+                MongoCollectionUtils.build(mongoConfigurationProperty.getCollection().getMappingStrategy());
+        sqlExecute.setCollectionNameConvert(collectionNameConvert);
         UrlJoint urlJoint = new UrlJoint(mongoDBConnectProperty);
         MongoClientSettings.Builder builder = MongoClientSettings.builder()
                 .applyConnectionString(new ConnectionString(urlJoint.jointMongoUrl()));
-        if (mongoDBLogProperty.getLog()){
+        if (mongoDBLogProperty.getLog()) {
             builder.addCommandListener(new CustomMongoDriverLogger(mongoDBLogProperty.getFormat()));
         }
-        MongoClient mongoClient = MongoClients.create(builder.build());
-        sqlExecute.setMongoClient(mongoClient);
+        this.mongoClient = MongoClients.create(builder.build());
+        sqlExecute.setMongoClient(this.mongoClient);
         this.sqlExecute = sqlExecute;
         return sqlExecute;
+    }
+
+    @Bean("mongo")
+    @Condition(onMissingBean = MongoClient.class)
+    public MongoClient mongo() {
+        MongoClientCache.mongoClient = this.mongoClient;
+        return this.mongoClient;
     }
 
     @Bean

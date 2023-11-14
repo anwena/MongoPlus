@@ -19,7 +19,6 @@ public class MongoDBConnectProperty extends BaseProperty {
      **/
     private List<SlaveDataSource> slaveDataSource;
 
-
     public List<SlaveDataSource> getSlaveDataSource() {
         return this.slaveDataSource;
     }
@@ -34,4 +33,5 @@ public class MongoDBConnectProperty extends BaseProperty {
 
     public MongoDBConnectProperty() {
     }
+
 }

@@ -212,29 +212,6 @@ public class ClassTypeUtil {
         set.add(entity.getClass());
         cacheClass.put(clazz,set);
         return set;
-        /*return new HashSet<Class<?>>(){{
-            Field[] fields = clazz.getDeclaredFields();
-            for (Field field : fields) {
-                System.out.println("进入循环了");
-                field.setAccessible(true);
-                Class<?> fieldType = field.getType();
-                if (MapCodecCache.codecClassCache.contains(fieldType)){
-                    continue;
-                }
-                add(fieldType);
-                try {
-                    if (Map.class.isAssignableFrom(fieldType)){
-                        addAll(getMapClass((Map<?, ?>) field.get(entity)));
-                    }
-                    if (CustomClassUtil.isCustomObject(fieldType)){
-                        System.out.println("去递归了");
-                        addAll(getAllClass(field.get(entity)));
-                    }
-                } catch (IllegalAccessException e) {
-                    logger.error("get value error: {}",field.getName());
-                }
-            }
-        }};*/
     }
 
     private static Set<Class<?>> getMapClass(Map<?,?> map){
@@ -306,10 +283,7 @@ public class ClassTypeUtil {
     public static <T> Class<?> getClass(T entity){
         Class<?> entityClass = entity.getClass();
         if (entityClass.isAnonymousClass()){
-            System.out.println("匿名内部类");
             entityClass = entityClass.getSuperclass();
-        }else {
-            System.out.println("普通类");
         }
         return entityClass;
     }

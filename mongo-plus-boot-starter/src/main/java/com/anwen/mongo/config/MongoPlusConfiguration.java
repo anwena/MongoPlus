@@ -5,7 +5,7 @@ import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.log.CustomMongoDriverLogger;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
-import com.anwen.mongo.property.MongoDBCollectionProperty;
+import com.anwen.mongo.property.MongoConfigurationProperty;
 import com.anwen.mongo.property.MongoDBConnectProperty;
 import com.anwen.mongo.property.MongoDBLogProperty;
 import com.anwen.mongo.toolkit.MongoCollectionUtils;
@@ -25,14 +25,14 @@ import org.springframework.context.annotation.DependsOn;
  * 连接配置
  * @since 2023-02-09 14:27
  **/
-@EnableConfigurationProperties(value = {MongoDBConnectProperty.class, MongoDBLogProperty.class, MongoDBCollectionProperty.class})
+@EnableConfigurationProperties(value = {MongoDBConnectProperty.class, MongoDBLogProperty.class, MongoConfigurationProperty.class})
 public class MongoPlusConfiguration {
 
     private final MongoDBLogProperty mongoDBLogProperty;
 
     private final MongoDBConnectProperty mongoDBConnectProperty;
 
-    private final MongoDBCollectionProperty mongoDBCollectionProperty;
+    private final MongoConfigurationProperty mongoConfigurationProperty;
 
     private MongoClient mongoClient;
 
@@ -42,10 +42,10 @@ public class MongoPlusConfiguration {
         return sqlExecute;
     }
 
-    public MongoPlusConfiguration(MongoDBConnectProperty mongoDBConnectProperty, MongoDBLogProperty mongoDBLogProperty, MongoDBCollectionProperty mongoDBCollectionProperty) {
+    public MongoPlusConfiguration(MongoDBConnectProperty mongoDBConnectProperty, MongoDBLogProperty mongoDBLogProperty, MongoConfigurationProperty mongoConfigurationProperty) {
         this.mongoDBConnectProperty = mongoDBConnectProperty;
         this.mongoDBLogProperty = mongoDBLogProperty;
-        this.mongoDBCollectionProperty = mongoDBCollectionProperty;
+        this.mongoConfigurationProperty = mongoConfigurationProperty;
     }
 
     @Bean("sqlExecute")
@@ -58,7 +58,7 @@ public class MongoPlusConfiguration {
         sqlExecute.setSlaveDataSources(mongoDBConnectProperty.getSlaveDataSource());
         sqlExecute.setBaseProperty(mongoDBConnectProperty);
         CollectionNameConvert collectionNameConvert =
-                MongoCollectionUtils.build(mongoDBCollectionProperty.getMappingStrategy());
+                MongoCollectionUtils.build(mongoConfigurationProperty.getCollection().getMappingStrategy());
         sqlExecute.setCollectionNameConvert(collectionNameConvert);
         UrlJoint urlJoint = new UrlJoint(mongoDBConnectProperty);
         MongoClientSettings.Builder builder = MongoClientSettings.builder()
