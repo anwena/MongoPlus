@@ -46,7 +46,7 @@ public class BuildCondition {
      * @date 2023/6/25/025 1:48
      */
     public static BasicDBObject buildQueryCondition(List<CompareCondition> compareConditionList) {
-        return new BasicDBObject() {{
+        return new MongoPlusBasicDBObject(){{
             if (compareConditionList != null && !compareConditionList.isEmpty()) {
                 compareConditionList.stream().filter(compareCondition -> compareCondition.getType() == CompareEnum.QUERY.getKey()).collect(Collectors.toList()).forEach(compare -> {
                     if (Objects.equals(compare.getCondition(), QueryOperatorEnum.LIKE.getValue()) && StringUtils.isNotBlank(String.valueOf(compare.getValue()))) {
@@ -84,29 +84,29 @@ public class BuildCondition {
      * @date 2023/7/16 19:59
      */
     public static List<BasicDBObject> buildOrQueryCondition(List<CompareCondition> compareConditionList) {
-        List<BasicDBObject> basicDBObjectList = new ArrayList<>();
-        compareConditionList.forEach(compare -> {
-            BasicDBObject basicDBObject = new BasicDBObject();
-            if (Objects.equals(compare.getCondition(), QueryOperatorEnum.LIKE.getValue()) && StringUtils.isNotBlank(String.valueOf(compare.getValue()))) {
-                basicDBObject.put(compare.getColumn(), new BasicDBObject(SpecialConditionEnum.REGEX.getCondition(), compare.getValue()));
-            } else if (Objects.equals(compare.getCondition(), QueryOperatorEnum.AND.getValue())) {
-                basicDBObjectList.add(buildQueryCondition(compare.getChildCondition()));
-            } else if (Objects.equals(compare.getCondition(), QueryOperatorEnum.TEXT.getValue())) {
-                basicDBObject.put(SpecialConditionEnum.TEXT.getCondition(), new BasicDBObject(SpecialConditionEnum.SEARCH.getCondition(), compare.getValue()));
-                IndexConstant.createIndex = compare.getColumn();
-            } else if (Objects.equals(compare.getColumn(), SqlOperationConstant._ID)){
-                //如果是objectId
-                if (ObjectId.isValid(String.valueOf(compare.getValue()))){
-                    basicDBObject.put(compare.getColumn(),new BasicDBObject("$"+compare.getCondition(),new ObjectId(String.valueOf(compare.getValue()))));
-                } else {
-                    basicDBObject.put(compare.getColumn(),new BasicDBObject("$"+compare.getCondition(),String.valueOf(compare.getValue())));
-                }
-            } else {
-                basicDBObject.put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), compare.getValue()));
-            }
-            basicDBObjectList.add(basicDBObject);
-        });
-        return basicDBObjectList;
+        return new ArrayList<BasicDBObject>(){{
+            compareConditionList.forEach(compare -> {
+                add(new MongoPlusBasicDBObject(){{
+                    if (Objects.equals(compare.getCondition(), QueryOperatorEnum.LIKE.getValue()) && StringUtils.isNotBlank(String.valueOf(compare.getValue()))) {
+                        put(compare.getColumn(), new BasicDBObject(SpecialConditionEnum.REGEX.getCondition(), compare.getValue()));
+                    } else if (Objects.equals(compare.getCondition(), QueryOperatorEnum.AND.getValue())) {
+                        add(buildQueryCondition(compare.getChildCondition()));
+                    } else if (Objects.equals(compare.getCondition(), QueryOperatorEnum.TEXT.getValue())) {
+                        put(SpecialConditionEnum.TEXT.getCondition(), new BasicDBObject(SpecialConditionEnum.SEARCH.getCondition(), compare.getValue()));
+                        IndexConstant.createIndex = compare.getColumn();
+                    } else if (Objects.equals(compare.getColumn(), SqlOperationConstant._ID)){
+                        //如果是objectId
+                        if (ObjectId.isValid(String.valueOf(compare.getValue()))){
+                            put(compare.getColumn(),new BasicDBObject("$"+compare.getCondition(),new ObjectId(String.valueOf(compare.getValue()))));
+                        } else {
+                            put(compare.getColumn(),new BasicDBObject("$"+compare.getCondition(),String.valueOf(compare.getValue())));
+                        }
+                    } else {
+                        put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), compare.getValue()));
+                    }
+                }});
+            });
+        }};
     }
 
     /**

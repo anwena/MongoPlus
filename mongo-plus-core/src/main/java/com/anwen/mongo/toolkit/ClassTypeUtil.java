@@ -138,7 +138,7 @@ public class ClassTypeUtil {
      * @date 2023/8/30 22:05
     */
     public static <T> String getIdByEntity(T entity,boolean exception){
-        Optional<Field> fieldOptional = getFields(entity.getClass()).stream().peek(field -> field.setAccessible(true)).filter(field -> field.getAnnotation(ID.class) != null).findFirst();
+        Optional<Field> fieldOptional = getFields(ClassTypeUtil.getClass(entity)).stream().peek(field -> field.setAccessible(true)).filter(field -> field.getAnnotation(ID.class) != null).findFirst();
         if (!fieldOptional.isPresent()){
             if (exception){
                 return null;
@@ -159,7 +159,7 @@ public class ClassTypeUtil {
     */
     public static <T> Set<Class<?>> getAllClass(T entity){
         Set<Class<?>> set = new HashSet<>();
-        if (entity == null || !CustomClassUtil.isCustomObject(entity.getClass())){
+        if (entity == null || !CustomClassUtil.isCustomObject(ClassTypeUtil.getClass(entity))){
             return set;
         }
         System.out.println("进来了");
@@ -301,6 +301,17 @@ public class ClassTypeUtil {
         ParameterizedType parameterizedType = (ParameterizedType) list.getClass().getGenericSuperclass();
         Type[] typeArguments = parameterizedType.getActualTypeArguments();
         return (Class<?>) typeArguments[0];
+    }
+
+    public static <T> Class<?> getClass(T entity){
+        Class<?> entityClass = entity.getClass();
+        if (entityClass.isAnonymousClass()){
+            System.out.println("匿名内部类");
+            entityClass = entityClass.getSuperclass();
+        }else {
+            System.out.println("普通类");
+        }
+        return entityClass;
     }
 
 }

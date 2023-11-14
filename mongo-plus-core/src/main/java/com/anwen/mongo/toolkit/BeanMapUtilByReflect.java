@@ -33,11 +33,11 @@ public class BeanMapUtilByReflect {
      * @param entity 对象实例
      * @return 属性值Map
      */
-    public static <T> Document checkTableField(T entity) {
+    public static <T> Document checkTableField(T entity,boolean isSave) {
         //定义返回结果Map
         Map<String, Object> resultMap = new HashMap<>();
         //获取实体class
-        Class<?> entityClass = entity.getClass();
+        Class<?> entityClass = ClassTypeUtil.getClass(entity);
         //获取所有字段
         List<Field> fieldList = ClassTypeUtil.getFields(entityClass);
         //设置所有属性可访问
@@ -54,25 +54,16 @@ public class BeanMapUtilByReflect {
             Object fieldValue = ReflectionUtils.getFieldValue(entity, field);
             ID idAnnotation = field.getAnnotation(ID.class);
             if (idAnnotation != null) {
-                if (!idAnnotation.saveField() || idAnnotation.type() == IdTypeEnum.OBJECT_ID){
+                if (isSave && (!idAnnotation.saveField() || idAnnotation.type() == IdTypeEnum.OBJECT_ID)){
                     continue;
                 }
                 resultMap.put(SqlOperationConstant._ID,fieldValue);
             }
             // 不为null再进行映射
             if (fieldValue != null){
-                /*if (CustomClassUtil.isCustomObject(entity.getClass())){
-                    try {
-                        fieldValue = checkTableField(field.get(entity));
-                    } catch (IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    }
-                }*/
                 resultMap.put(fieldName, fieldValue);
             }
         }
-//        PropertyFilter propertyFilter = (object, name, value) -> !(value instanceof LocalDateTime);
-//        return Document.parse(JSON.toJSONString(resultMap, JsonCache.config,propertyFilter));
         return handleMap(resultMap);
     }
 

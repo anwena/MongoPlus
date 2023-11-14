@@ -791,4 +791,22 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
     */
     Children let(Bson variables);
 
+    /**
+     * 自定义project
+     * @param basicDBObject project值
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/11/14 9:47
+    */
+    Children project(BasicDBObject basicDBObject);
+
+    /**
+     * 自定义project
+     * @param bson project值
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/11/14 9:47
+     */
+    Children project(Bson bson);
+
 }

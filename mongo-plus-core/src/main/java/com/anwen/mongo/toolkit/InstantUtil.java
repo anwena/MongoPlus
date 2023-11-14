@@ -1,5 +1,6 @@
 package com.anwen.mongo.toolkit;
 
+import com.anwen.mongo.incrementer.id.Sequence;
 import com.mongodb.MongoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

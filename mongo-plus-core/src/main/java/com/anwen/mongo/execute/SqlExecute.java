@@ -113,7 +113,8 @@ public class SqlExecute {
 
     public <T> Boolean doSave(ClientSession clientSession,T entity) {
         try {
-            MongoCollection<Document> collection = getCollection(entity.getClass());
+            Class<?> entityClass = entity.getClass();
+            MongoCollection<Document> collection = getCollection(ClassTypeUtil.getClass(entity));
             Document document = processIdField(entity);
             InsertOneResult insertOneResult = Optional.ofNullable(clientSession)
                     .map(session -> collection.insertOne(session, document))
@@ -269,10 +270,10 @@ public class SqlExecute {
     }
 
     public <T> Boolean doUpdateById(ClientSession clientSession,T entity) {
-        Document document = checkTableField(entity);
+        Document document = checkTableField(entity,false);
         BasicDBObject filter = getFilter(document);
         BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
-        MongoCollection<Document> collection = getCollection(entity.getClass());
+        MongoCollection<Document> collection = getCollection(ClassTypeUtil.getClass(entity));
         return Optional.ofNullable(clientSession)
                 .map(session -> collection.updateOne(session,filter,update))
                 .orElseGet(() -> collection.updateOne(filter,update)).getModifiedCount() >= 1;
@@ -296,7 +297,7 @@ public class SqlExecute {
             throw new MongoException("_id undefined");
         }
         Object _idValue = entityMap.get(SqlOperationConstant._ID);
-        BasicDBObject filter = new BasicDBObject(SqlOperationConstant._ID, ObjectId.isValid(String.valueOf(_idValue)) ? new ObjectId(String.valueOf(entityMap.get(SqlOperationConstant._ID))) : String.valueOf(_idValue));
+        BasicDBObject filter = new BasicDBObject(SqlOperationConstant._ID, ObjectId.isValid(String.valueOf(_idValue)) ? new ObjectId(String.valueOf(entityMap.get(SqlOperationConstant._ID))) : _idValue);
         entityMap.remove(SqlOperationConstant._ID);
         return filter;
     }
@@ -339,10 +340,11 @@ public class SqlExecute {
     }
 
     public <T> Boolean doUpdateByColumn(ClientSession clientSession,T entity, String column) {
-        String filterValue = String.valueOf(ClassTypeUtil.getClassFieldValue(entity,column));
-        Bson filter = Filters.eq(column, ObjectId.isValid(filterValue) ? new ObjectId(filterValue) : filterValue);
-        Document document = checkTableField(entity);
-        MongoCollection<Document> collection = getCollection(entity.getClass());
+        Object filterValue = ClassTypeUtil.getClassFieldValue(entity,column);
+        String valueOf = String.valueOf(filterValue);
+        Bson filter = Filters.eq(column, ObjectId.isValid(valueOf) ? new ObjectId(valueOf) : filterValue);
+        Document document = checkTableField(entity,false);
+        MongoCollection<Document> collection = getCollection(ClassTypeUtil.getClass(entity));
         return Optional.ofNullable(clientSession).map(session -> collection.updateMany(session,filter,document)).orElseGet(() -> collection.updateMany(filter,document)).getModifiedCount() >= 1;
     }
 
@@ -354,8 +356,8 @@ public class SqlExecute {
         if (!entityMap.containsKey(column)){
             throw new MongoException(column+" undefined");
         }
-        String columnValue = String.valueOf(entityMap.get(column));
-        Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(columnValue)) ? new ObjectId(columnValue) : columnValue);
+        Object columnValue = entityMap.get(column);
+        Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(columnValue)) ? new ObjectId(String.valueOf(columnValue)) : columnValue);
         Document document = BeanMapUtilByReflect.handleMap(entityMap);
         MongoCollection<Document> collection = getCollection(collectionName);
         return Optional.ofNullable(clientSession).map(session -> collection.updateMany(session,filter,document)).orElseGet(() -> collection.updateMany(filter,document)).getModifiedCount() >= 1;
@@ -379,7 +381,7 @@ public class SqlExecute {
     }
 
     private Boolean executeRemove(ClientSession clientSession, Serializable id, MongoCollection<Document> collection) {
-        Bson filterId = Filters.eq(SqlOperationConstant._ID, ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id));
+        Bson filterId = Filters.eq(SqlOperationConstant._ID, ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id);
         return Optional.ofNullable(clientSession).map(session -> collection.deleteOne(session,filterId)).orElseGet(() -> collection.deleteOne(filterId)).getDeletedCount() >= 1;
     }
 
@@ -431,8 +433,7 @@ public class SqlExecute {
 
     public Boolean executeRemoveBatchByIds(ClientSession clientSession,Collection<Serializable> idList,MongoCollection<Document> collection){
         List<Serializable> convertedIds = idList.stream()
-                .map(String::valueOf)
-                .map(id -> ObjectId.isValid(id) ? new ObjectId(id) : (Serializable) id)
+                .map(id -> ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id)
                 .collect(Collectors.toList());
         Bson objectIdBson = Filters.in(SqlOperationConstant._ID, convertedIds);
         return Optional.ofNullable(clientSession)
@@ -514,7 +515,7 @@ public class SqlExecute {
     }
 
     public Map<String, Object> doGetById(ClientSession clientSession,String collectionName, Serializable id) {
-        BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id)));
+        BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id));
         MongoCollection<Document> collection = getCollection(collectionName);
         return Optional.ofNullable(clientSession).map(session -> collection.find(session,queryBasic)).orElseGet(() -> collection.find(queryBasic)).first();
     }
@@ -572,7 +573,7 @@ public class SqlExecute {
     }
 
     public <T> T doGetById(ClientSession clientSession,Serializable id,Class<T> clazz) {
-        BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id)));
+        BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id));
         MongoCollection<Document> collection = getCollection(clazz);
         FindIterable<Document> iterable = Optional.ofNullable(clientSession).map(session -> collection.find(session,queryBasic)).orElseGet(() -> collection.find(queryBasic));
         return DocumentMapperConvert.mapDocument(iterable.first(),clazz);
@@ -595,7 +596,7 @@ public class SqlExecute {
     }
 
     private boolean executeExist(ClientSession clientSession, Serializable id, MongoCollection<Document> collection) {
-        BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : String.valueOf(id)));
+        BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id));
         return Optional.ofNullable(clientSession).map(session -> collection.countDocuments(session,queryBasic)).orElseGet(() -> collection.countDocuments(queryBasic)) >= 1;
     }
 
@@ -657,8 +658,7 @@ public class SqlExecute {
 
     private BasicDBObject checkIdType(Collection<Serializable> ids) {
         List<Serializable> convertedIds = ids.stream()
-                .map(String::valueOf)
-                .map(id -> ObjectId.isValid(id) ? new ObjectId(id) : (Serializable) id)
+                .map(id -> ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id)
                 .collect(Collectors.toList());
         return new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.IN.getCondition(), convertedIds));
     }
@@ -933,7 +933,7 @@ public class SqlExecute {
     }
 
     private <T> MongoCollection<Document> getCollection(T entity) {
-        return getCollection(entity.getClass()).withCodecRegistry(RegisterCodecUtil.registerCodec(entity));
+        return getCollection(ClassTypeUtil.getClass(entity)).withCodecRegistry(RegisterCodecUtil.registerCodec(entity));
     }
 
     private MongoCollection<Document> getCollection(String collectionName,Map<?,?> map){
@@ -964,27 +964,27 @@ public class SqlExecute {
 
     private <T> Document processIdField(T entity){
         // TODO 反射较多，考虑使用缓存
-        Document tableFieldMap = checkTableField(entity);
+        Document tableFieldMap = checkTableField(entity,true);
         fillId(entity, tableFieldMap);
         return tableFieldMap;
     }
 
-    private String getAutoId(Class<?> clazz) {
-        String num = "1";
+    private Integer getAutoId(Class<?> clazz) {
+        int num = 1;
         MongoCollection<Document> collection = getCollection("counters");
         Document query = new Document(SqlOperationConstant._ID, collectionNameConvert.convert(clazz));
         Document update = new Document("$inc", new Document(SqlOperationConstant.AUTO_NUM, 1));
         Document document = collection.findOneAndUpdate(query,update,new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
         if (document == null){
-            Long finalNum = Long.parseLong(num);
+            Integer finalNum = num;
             collection.insertOne(new Document(new HashMap<String,Object>(){{
                 put(SqlOperationConstant._ID, collectionNameConvert.convert(clazz));
                 put(SqlOperationConstant.AUTO_NUM, finalNum);
             }}));
         }else {
-            num = String.valueOf(document.get(SqlOperationConstant.AUTO_NUM));
+            num = Integer.parseInt(String.valueOf(document.get(SqlOperationConstant.AUTO_NUM)));
         }
-        return String.valueOf(num);
+        return num;
     }
 
     private <T> void fillId(T entity, Map<String, Object> tableFieldMap) {
@@ -997,14 +997,14 @@ public class SqlExecute {
             }
             return;
         }
-        Field idField = getIdField(entity.getClass());
+        Field idField = getIdField(ClassTypeUtil.getClass(entity));
         // 没有指定id字段
         if (idField == null) {
             return;
         }
         ID annotation = idField.getAnnotation(ID.class);
         if (annotation.type() == IdTypeEnum.AUTO) {
-            tableFieldMap.put(SqlOperationConstant._ID, getAutoId(entity.getClass()));
+            tableFieldMap.put(SqlOperationConstant._ID, getAutoId(ClassTypeUtil.getClass(entity)));
         } else {
             if (annotation.type() == IdTypeEnum.OBJECT_ID){
                 return;
@@ -1018,7 +1018,7 @@ public class SqlExecute {
         if (idValue == null) {
             return;
         }
-        Field idField = getIdField(entity.getClass());
+        Field idField = getIdField(ClassTypeUtil.getClass(entity));
         if (idField == null) {
             return;
         }

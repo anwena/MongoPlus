@@ -19,7 +19,7 @@ public class Generate {
             return IdWorker.get26ULID();
         }
         if (idTypeEnum.getKey() == IdTypeEnum.ASSIGN_ID.getKey()){
-            return IdWorker.getIdStr();
+            return IdWorker.getId();
         }
         return null;
     }

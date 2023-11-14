@@ -188,6 +188,19 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
         return typedThis;
     }
 
+
+    @Override
+    public Children project(BasicDBObject basicDBObject) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.PROJECT.getType(), new DefaultConcretePipeline(basicDBObject)));
+        return typedThis;
+    }
+
+    @Override
+    public Children project(Bson bson) {
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.PROJECT.getType(), new DefaultConcretePipeline(BasicDBObject.parse(bson.toBsonDocument().toJson()))));
+        return typedThis;
+    }
+
     @Override
     public Children sort(Order... orders) {
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.SORT.getType(), new SortConcretePipeline(orders)));

@@ -516,6 +516,26 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
     }
 
     @Override
+    public Children between(boolean condition, SFunction<T, Object> column, Object gte, Object lte, boolean convertGtOrLt) {
+        return condition ? between(column,gte,lte,convertGtOrLt) : typedThis;
+    }
+
+    @Override
+    public Children between(SFunction<T, Object> column, Object gte, Object lte, boolean convertGtOrLt) {
+        return getBaseConditionBetween(column.getFieldNameLine(),gte,lte,convertGtOrLt);
+    }
+
+    @Override
+    public Children between(boolean condition, String column, Object gte, Object lte, boolean convertGtOrLt) {
+        return condition ? between(column,gte,lte,convertGtOrLt) : typedThis;
+    }
+
+    @Override
+    public Children between(String column, Object gte, Object lte, boolean convertGtOrLt) {
+        return getBaseConditionBetween(column,gte,lte,convertGtOrLt);
+    }
+
+    @Override
     public Children custom(BasicDBObject basicDBObject) {
         this.basicDBObjectList.add(basicDBObject);
         return typedThis;
@@ -530,6 +550,12 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
     @Override
     public Children custom(List<BasicDBObject> basicDBObjectList) {
         this.basicDBObjectList.addAll(basicDBObjectList);
+        return typedThis;
+    }
+
+    public Children getBaseConditionBetween(String column,Object gte,Object lte,boolean convertGtOrLt){
+        compareList.add(CompareCondition.builder().condition(!convertGtOrLt ? "gte" : "gt").column(column).value(gte).type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.AND.getKey()).build());
+        compareList.add(CompareCondition.builder().condition(!convertGtOrLt ? "lte" : "lt").column(column).value(lte).type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.AND.getKey()).build());
         return typedThis;
     }
 

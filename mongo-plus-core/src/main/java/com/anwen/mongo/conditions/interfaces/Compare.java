@@ -15,7 +15,7 @@ import java.util.List;
  * 查询条件封装
  * @author JiaChaoYang
  * @date 2023/6/24/024 1:37
-*/ 
+*/
 public interface Compare<T,Children> extends Serializable {
 
     /**
@@ -912,6 +912,56 @@ public interface Compare<T,Children> extends Serializable {
      * @date 2023/7/30 1:06
      */
     Children text(String column, Object value);
+
+    /**
+     * 在。。。之间
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
+     * @param column 列名、字段名
+     * @param gte 大于等于
+     * @param lte 小于等于
+     * @param convertGtOrLt 设置为true，则转换为大于-小于，默认为大于等于和小于等于
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/11/14 11:02
+    */
+    Children between(boolean condition , SFunction<T,Object> column,Object gte,Object lte,boolean convertGtOrLt);
+
+    /**
+     * 在。。。之间
+     * @param column 列名、字段名
+     * @param gte 大于等于
+     * @param lte 小于等于
+     * @param convertGtOrLt 设置为true，则转换为大于-小于，默认为大于等于和小于等于
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/11/14 11:02
+     */
+    Children between(SFunction<T,Object> column,Object gte,Object lte,boolean convertGtOrLt);
+
+    /**
+     * 在。。。之间
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
+     * @param column 列名、字段名
+     * @param gte 大于等于
+     * @param lte 小于等于
+     * @param convertGtOrLt 设置为true，则转换为大于-小于，默认为大于等于和小于等于
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/11/14 11:02
+     */
+    Children between(boolean condition,String column,Object gte,Object lte,boolean convertGtOrLt);
+
+    /**
+     * 在。。。之间
+     * @param column 列名、字段名
+     * @param gte 大于等于
+     * @param lte 小于等于
+     * @param convertGtOrLt 设置为true，则转换为大于-小于，默认为大于等于和小于等于
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/11/14 11:02
+     */
+    Children between(String column,Object gte,Object lte,boolean convertGtOrLt);
 
     Children custom(BasicDBObject basicDBObject);
 

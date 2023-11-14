@@ -1,5 +1,6 @@
 package com.anwen.mongo.strategy.convert.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.strategy.convert.ConversionStrategy;
 import com.mongodb.MongoException;
@@ -29,7 +30,7 @@ public class MapConversionStrategy implements ConversionStrategy<Map<?,?>> {
         Type[] typeArguments = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();
         Class<?> keyClazz = (Class<?>) typeArguments[0];
         Class<?> valueClazz = (Class<?>) typeArguments[1];
-        if (typeArguments[1].equals(Object.class)){
+        if (valueClazz.equals(Object.class)){
             return (Document) fieldValue;
         }else {
             Document document = (Document) fieldValue;
