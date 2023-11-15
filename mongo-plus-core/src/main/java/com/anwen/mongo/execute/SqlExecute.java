@@ -969,7 +969,7 @@ public class SqlExecute {
         return tableFieldMap;
     }
 
-    private Integer getAutoId(Class<?> clazz) {
+    private String getAutoId(Class<?> clazz) {
         int num = 1;
         MongoCollection<Document> collection = getCollection("counters");
         Document query = new Document(SqlOperationConstant._ID, collectionNameConvert.convert(clazz));
@@ -984,7 +984,7 @@ public class SqlExecute {
         }else {
             num = Integer.parseInt(String.valueOf(document.get(SqlOperationConstant.AUTO_NUM)));
         }
-        return num;
+        return String.valueOf(num);
     }
 
     private <T> void fillId(T entity, Map<String, Object> tableFieldMap) {
