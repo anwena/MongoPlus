@@ -1,7 +1,9 @@
 package com.anwen.mongo.property;
 
 import com.anwen.mongo.enums.CollectionNameConvertEnum;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
+@ConfigurationProperties(prefix = "mongo-plus.configuration.collection")
 public class MongoDBCollectionProperty {
 
     /**

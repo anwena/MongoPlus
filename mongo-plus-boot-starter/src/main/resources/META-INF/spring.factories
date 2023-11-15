@@ -3,4 +3,5 @@ org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
     com.anwen.mongo.config.MongoPlusAutoConfiguration,\
     com.anwen.mongo.config.OverrideMongoConfiguration,\
     com.anwen.mongo.property.MongoTransactionProperty,\
+    com.anwen.mongo.property.MongoDBFieldProperty,\
     com.anwen.mongo.transactional.MongoTransactionManagerAutoConfiguration

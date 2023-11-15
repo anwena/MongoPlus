@@ -1,10 +1,12 @@
 package com.anwen.mongo.property;
 
 import com.anwen.mongo.cache.PropertyCache;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * @author JiaChaoYang
  **/
+@ConfigurationProperties(prefix = "mongo-plus.configuration.field")
 public class MongoDBFieldProperty {
 
     /**
@@ -19,7 +21,6 @@ public class MongoDBFieldProperty {
     }
 
     public void setMapUnderscoreToCamelCase(Boolean mapUnderscoreToCamelCase) {
-        System.out.println("进来内部的构造函数了");
         PropertyCache.mapUnderscoreToCamelCase = mapUnderscoreToCamelCase;
         this.mapUnderscoreToCamelCase = mapUnderscoreToCamelCase;
     }
