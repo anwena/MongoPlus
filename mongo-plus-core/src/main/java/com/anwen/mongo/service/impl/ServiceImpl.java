@@ -14,6 +14,13 @@ import com.anwen.mongo.service.IService;
 import com.anwen.mongo.support.SFunction;
 import com.anwen.mongo.toolkit.ChainWrappers;
 import com.mongodb.client.ClientSession;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.CreateIndexOptions;
+import com.mongodb.client.model.DropIndexOptions;
+import com.mongodb.client.model.IndexModel;
+import com.mongodb.client.model.IndexOptions;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
@@ -38,6 +45,15 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     private Class<T> clazz;
+
+    /**
+     * 获取当前操作对象的连接，以便使用MongoDriver的语法
+     * @author JiaChaoYang
+     * @date 2023/11/15 13:43
+    */
+    public MongoCollection<Document> getMongoCollection(){
+        return this.sqlExecute.getCollection(clazz);
+    }
 
     public void setClazz(Class<?> clazz) {
         this.clazz = (Class<T>) clazz;
@@ -374,6 +390,116 @@ public class ServiceImpl<T> implements IService<T>{
     @Override
     public List<T> getByColumn(ClientSession clientSession, String field, Object fieldValue) {
         return sqlExecute.doGetByColumn(clientSession,field,fieldValue,clazz);
+    }
+
+    @Override
+    public String createIndex(ClientSession clientSession,Bson bson) {
+        return sqlExecute.createIndex(clientSession,bson,getMongoCollection());
+    }
+
+    @Override
+    public String createIndex(Bson bson) {
+        return sqlExecute.createIndex(bson,getMongoCollection());
+    }
+
+    @Override
+    public String createIndex(ClientSession clientSession, Bson bson, IndexOptions indexOptions) {
+        return sqlExecute.createIndex(clientSession,bson,indexOptions,getMongoCollection());
+    }
+
+    @Override
+    public String createIndex(Bson bson, IndexOptions indexOptions) {
+        return sqlExecute.createIndex(bson,indexOptions,getMongoCollection());
+    }
+
+    @Override
+    public List<String> createIndexes(List<IndexModel> indexes) {
+        return sqlExecute.createIndexes(indexes,getMongoCollection());
+    }
+
+    @Override
+    public List<String> createIndexes(List<IndexModel> indexes, CreateIndexOptions createIndexOptions) {
+        return sqlExecute.createIndexes(indexes,createIndexOptions,getMongoCollection());
+    }
+
+    @Override
+    public List<String> createIndexes(ClientSession clientSession, List<IndexModel> indexes) {
+        return sqlExecute.createIndexes(clientSession,indexes,getMongoCollection());
+    }
+
+    @Override
+    public List<String> createIndexes(ClientSession clientSession, List<IndexModel> indexes, CreateIndexOptions createIndexOptions) {
+        return sqlExecute.createIndexes(clientSession,indexes,createIndexOptions,getMongoCollection());
+    }
+
+    @Override
+    public List<Document> listIndexes() {
+        return null;
+    }
+
+    @Override
+    public List<Document> listIndexes(ClientSession clientSession) {
+        return null;
+    }
+
+    @Override
+    public void dropIndex(String indexName) {
+
+    }
+
+    @Override
+    public void dropIndex(String indexName, DropIndexOptions dropIndexOptions) {
+
+    }
+
+    @Override
+    public void dropIndex(Bson keys) {
+
+    }
+
+    @Override
+    public void dropIndex(Bson keys, DropIndexOptions dropIndexOptions) {
+
+    }
+
+    @Override
+    public void dropIndex(ClientSession clientSession, String indexName) {
+
+    }
+
+    @Override
+    public void dropIndex(ClientSession clientSession, Bson keys) {
+
+    }
+
+    @Override
+    public void dropIndex(ClientSession clientSession, String indexName, DropIndexOptions dropIndexOptions) {
+
+    }
+
+    @Override
+    public void dropIndex(ClientSession clientSession, Bson keys, DropIndexOptions dropIndexOptions) {
+
+    }
+
+    @Override
+    public void dropIndexes() {
+
+    }
+
+    @Override
+    public void dropIndexes(ClientSession clientSession) {
+
+    }
+
+    @Override
+    public void dropIndexes(DropIndexOptions dropIndexOptions) {
+
+    }
+
+    @Override
+    public void dropIndexes(ClientSession clientSession, DropIndexOptions dropIndexOptions) {
+
     }
 
     @Override

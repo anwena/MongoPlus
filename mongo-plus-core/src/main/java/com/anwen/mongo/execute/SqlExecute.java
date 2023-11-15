@@ -26,10 +26,7 @@ import com.anwen.mongo.toolkit.codec.RegisterCodecUtil;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
 import com.mongodb.client.*;
-import com.mongodb.client.model.Collation;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.FindOneAndUpdateOptions;
-import com.mongodb.client.model.ReturnDocument;
+import com.mongodb.client.model.*;
 import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
@@ -751,6 +748,38 @@ public class SqlExecute {
         return Optional.ofNullable(clientSession).map(collection::countDocuments).orElseGet(collection::countDocuments);
     }
 
+    public String createIndex(Bson bson,MongoCollection<Document> collection){
+        return createIndex(MongoTransactionContext.getClientSessionContext(),bson,collection);
+    }
+
+    public String createIndex(ClientSession clientSession,Bson bson,MongoCollection<Document> collection){
+        return Optional.ofNullable(clientSession).map(session -> collection.createIndex(clientSession,bson)).orElseGet(() -> collection.createIndex(bson));
+    }
+
+    public String createIndex(Bson bson,IndexOptions indexOptions,MongoCollection<Document> collection){
+        return createIndex(MongoTransactionContext.getClientSessionContext(),bson,indexOptions,collection);
+    }
+
+    public String createIndex(ClientSession clientSession,Bson bson,IndexOptions indexOptions,MongoCollection<Document> collection){
+        return Optional.ofNullable(clientSession).map(session -> collection.createIndex(clientSession,bson,indexOptions)).orElseGet(() -> collection.createIndex(bson,indexOptions));
+    }
+
+    public List<String> createIndexes(List<IndexModel> indexes,MongoCollection<Document> collection){
+        return createIndexes(MongoTransactionContext.getClientSessionContext(),indexes,collection);
+    }
+
+    public List<String> createIndexes(ClientSession clientSession,List<IndexModel> indexes,MongoCollection<Document> collection){
+        return Optional.ofNullable(clientSession).map(session -> collection.createIndexes(clientSession,indexes)).orElseGet(() -> collection.createIndexes(indexes));
+    }
+
+    public List<String> createIndexes(List<IndexModel> indexes, CreateIndexOptions createIndexOptions,MongoCollection<Document> collection){
+        return createIndexes(MongoTransactionContext.getClientSessionContext(),indexes,createIndexOptions,collection);
+    }
+
+    public List<String> createIndexes(ClientSession clientSession, List<IndexModel> indexes, CreateIndexOptions createIndexOptions,MongoCollection<Document> collection){
+        return Optional.ofNullable(clientSession).map(session -> collection.createIndexes(clientSession,indexes,createIndexOptions)).orElseGet(() -> collection.createIndexes(indexes,createIndexOptions));
+    }
+
     public <T> List<T> doAggregateList(List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject,Class<T> clazz){
         return doAggregateList((ClientSession) null,aggregateList,basicDBObjectList,optionsBasicDBObject,clazz);
     }
@@ -940,7 +969,7 @@ public class SqlExecute {
         return getCollection(collectionName).withCodecRegistry(RegisterCodecUtil.registerCodec(map));
     }
 
-    private MongoCollection<Document> getCollection(Class<?> clazz) {
+    public MongoCollection<Document> getCollection(Class<?> clazz) {
         createIndex = null;
         String collectionName = this.collectionNameConvert.convert(clazz);
         return getCollection(collectionName);

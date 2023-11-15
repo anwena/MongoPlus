@@ -19,7 +19,6 @@ public class MongoDBFieldProperty {
     }
 
     public void setMapUnderscoreToCamelCase(Boolean mapUnderscoreToCamelCase) {
-        System.out.println("进来内部的构造函数了");
         PropertyCache.mapUnderscoreToCamelCase = mapUnderscoreToCamelCase;
         this.mapUnderscoreToCamelCase = mapUnderscoreToCamelCase;
     }

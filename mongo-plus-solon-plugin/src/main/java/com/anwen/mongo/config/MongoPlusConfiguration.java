@@ -5,7 +5,7 @@ import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.log.CustomMongoDriverLogger;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
-import com.anwen.mongo.property.MongoConfigurationProperty;
+import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBConnectProperty;
 import com.anwen.mongo.property.MongoDBLogProperty;
 import com.anwen.mongo.toolkit.MongoCollectionUtils;
@@ -37,7 +37,7 @@ public class MongoPlusConfiguration {
 
     @Bean
     @Condition(onMissingBean = SqlExecute.class)
-    public SqlExecute sqlExecute(@Inject("${mongo-plus.data.mongodb}") MongoDBConnectProperty mongoDBConnectProperty, @Inject("${mongo-plus}") MongoDBLogProperty mongoDBLogProperty, @Inject("${mongo-plus.configuration}")MongoConfigurationProperty mongoConfigurationProperty) {
+    public SqlExecute sqlExecute(@Inject("${mongo-plus.data.mongodb}") MongoDBConnectProperty mongoDBConnectProperty, @Inject("${mongo-plus}") MongoDBLogProperty mongoDBLogProperty, @Inject("${mongo-plus.configuration}") MongoDBCollectionProperty mongoDBCollectionProperty) {
         if (this.sqlExecute != null) {
             return this.sqlExecute;
         }
@@ -45,7 +45,7 @@ public class MongoPlusConfiguration {
         sqlExecute.setSlaveDataSources(mongoDBConnectProperty.getSlaveDataSource());
         sqlExecute.setBaseProperty(mongoDBConnectProperty);
         CollectionNameConvert collectionNameConvert =
-                MongoCollectionUtils.build(mongoConfigurationProperty.getCollection().getMappingStrategy());
+                MongoCollectionUtils.build(mongoDBCollectionProperty.getMappingStrategy());
         sqlExecute.setCollectionNameConvert(collectionNameConvert);
         UrlJoint urlJoint = new UrlJoint(mongoDBConnectProperty);
         MongoClientSettings.Builder builder = MongoClientSettings.builder()

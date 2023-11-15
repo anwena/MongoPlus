@@ -1,6 +1,8 @@
 package com.anwen.mongo.toolkit;
 
 import com.anwen.mongo.constant.SqlOperationConstant;
+import com.anwen.mongo.model.BaseModelID;
+import com.anwen.mongo.model.Indexes;
 
 import java.util.Arrays;
 import java.util.Collection;
