@@ -1,6 +1,5 @@
 com.anwen.mongo.config.MongoPlusConfiguration
 com.anwen.mongo.config.MongoPlusAutoConfiguration
 com.anwen.mongo.config.OverrideMongoConfiguration
-com.anwen.mongo.property.MongoConfigurationProperty
 com.anwen.mongo.property.MongoTransactionProperty
 com.anwen.mongo.transactional.MongoTransactionManagerAutoConfiguration
