@@ -1,5 +1,6 @@
 package com.anwen.mongo.strategy.aggregate.impl;
 
+import com.anwen.mongo.conditions.MongoPlusBasicDBObject;
 import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.strategy.aggregate.PipelineStrategy;
 import com.mongodb.BasicDBObject;
@@ -27,7 +28,7 @@ public class SortConcretePipeline implements PipelineStrategy {
 
     @Override
     public BasicDBObject buildAggregate() {
-        return new BasicDBObject(){{
+        return new MongoPlusBasicDBObject(){{
             orderList.forEach(order -> put(order.getColumn(),order.getType()));
         }};
     }

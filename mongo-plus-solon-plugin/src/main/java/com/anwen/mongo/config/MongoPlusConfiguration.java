@@ -7,6 +7,7 @@ import com.anwen.mongo.log.CustomMongoDriverLogger;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBConnectProperty;
+import com.anwen.mongo.property.MongoDBFieldProperty;
 import com.anwen.mongo.property.MongoDBLogProperty;
 import com.anwen.mongo.toolkit.MongoCollectionUtils;
 import com.anwen.mongo.toolkit.UrlJoint;
@@ -18,6 +19,8 @@ import org.noear.solon.annotation.Bean;
 import org.noear.solon.annotation.Condition;
 import org.noear.solon.annotation.Configuration;
 import org.noear.solon.annotation.Inject;
+
+import java.util.Optional;
 
 /**
  * @author JiaChaoYang
@@ -37,10 +40,13 @@ public class MongoPlusConfiguration {
 
     @Bean
     @Condition(onMissingBean = SqlExecute.class)
-    public SqlExecute sqlExecute(@Inject("${mongo-plus.data.mongodb}") MongoDBConnectProperty mongoDBConnectProperty, @Inject("${mongo-plus}") MongoDBLogProperty mongoDBLogProperty, @Inject("${mongo-plus.configuration}") MongoDBCollectionProperty mongoDBCollectionProperty) {
+    public SqlExecute sqlExecute(@Inject("${mongo-plus.data.mongodb}") MongoDBConnectProperty mongoDBConnectProperty,
+                                 @Inject("${mongo-plus}") MongoDBLogProperty mongoDBLogProperty,
+                                 @Inject(value = "${mongo-plus.configuration.collection}",required = false) MongoDBCollectionProperty mongoDBCollectionProperty) {
         if (this.sqlExecute != null) {
             return this.sqlExecute;
         }
+        mongoDBCollectionProperty = Optional.ofNullable(mongoDBCollectionProperty).orElseGet(MongoDBCollectionProperty::new);
         SqlExecute sqlExecute = new SqlExecute();
         sqlExecute.setSlaveDataSources(mongoDBConnectProperty.getSlaveDataSource());
         sqlExecute.setBaseProperty(mongoDBConnectProperty);

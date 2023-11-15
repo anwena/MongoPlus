@@ -1,10 +1,14 @@
 package com.anwen.mongo.property;
 
 import com.anwen.mongo.cache.PropertyCache;
+import org.noear.solon.annotation.Configuration;
+import org.noear.solon.annotation.Inject;
 
 /**
  * @author JiaChaoYang
  **/
+@Inject(value = "${mongo-plus.configuration.field}",required = false,autoRefreshed = true)
+@Configuration
 public class MongoDBFieldProperty {
 
     /**
