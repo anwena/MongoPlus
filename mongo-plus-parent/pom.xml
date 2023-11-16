@@ -57,6 +57,7 @@
         <solon-api.version>2.5.11</solon-api.version>
         <aspectjweaver.version>1.9.7</aspectjweaver.version>
         <spring-tx.version>5.3.27</spring-tx.version>
+        <reflections.version>0.10.2</reflections.version>
     </properties>
 
     <dependencyManagement>
@@ -90,6 +91,11 @@
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-tx</artifactId>
                 <version>${spring-tx.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.reflections</groupId>
+                <artifactId>reflections</artifactId>
+                <version>${reflections.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

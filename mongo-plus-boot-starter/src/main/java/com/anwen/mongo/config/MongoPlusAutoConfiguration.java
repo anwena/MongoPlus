@@ -1,7 +1,6 @@
 package com.anwen.mongo.config;
 
 import com.anwen.mongo.execute.SqlExecute;
-import com.anwen.mongo.registrar.MongoPlusRegistrar;
 import com.anwen.mongo.service.IService;
 import com.anwen.mongo.service.impl.ServiceImpl;
 import com.anwen.mongo.strategy.convert.ConversionService;
@@ -11,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Import;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -20,7 +18,6 @@ import java.lang.reflect.Type;
  * MongoPlus自动注入配置
  * @author JiaChaoYang
  **/
-@Import(MongoPlusRegistrar.class)
 public class MongoPlusAutoConfiguration implements InitializingBean {
 
     private final SqlExecute sqlExecute;
