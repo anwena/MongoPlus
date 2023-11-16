@@ -8,7 +8,6 @@ import com.anwen.mongo.strategy.convert.ConversionStrategy;
 import com.mongodb.MongoException;
 import org.noear.solon.Solon;
 import org.noear.solon.annotation.Inject;
-import org.noear.solon.core.AopContext;
 import org.noear.solon.core.AppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

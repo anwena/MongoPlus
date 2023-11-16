@@ -67,7 +67,7 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
                     }
                 }
             }catch (Exception e){
-                logger.error("Unknown converter type");
+                logger.error("Unknown converter type",e);
                 throw new MongoException("Unknown converter type");
             }
         });

@@ -162,18 +162,15 @@ public class ClassTypeUtil {
         if (entity == null || !CustomClassUtil.isCustomObject(ClassTypeUtil.getClass(entity))){
             return set;
         }
-        System.out.println("进来了");
         Class<?> clazz = entity.getClass();
         if (cacheClass.containsKey(clazz)){
             return cacheClass.get(clazz);
         }
         Field[] fields = clazz.getDeclaredFields();
         for (Field field : fields) {
-            System.out.println("进入循环了");
             field.setAccessible(true);
             Class<?> fieldType = field.getType();
             if (MapCodecCache.codecClassCache.contains(fieldType)){
-                logger.info("这个类已经在存在默认解码器了，名称：{}",field.getName());
                 continue;
             }
             try {
@@ -181,11 +178,9 @@ public class ClassTypeUtil {
                     set.addAll(getMapClass((Map<?, ?>) field.get(entity)));
                 }
                 if (CustomClassUtil.isCustomObject(fieldType)){
-                    System.out.println("去递归了");
                     set.addAll(getAllClass(field.get(entity)));
                 }
                 if (List.class.isAssignableFrom(fieldType)){
-                    System.out.println("集合类型");
                     Class<?> listGenericType = ClassTypeUtil.getListGenericType(field);
                     if (Map.class.equals(listGenericType) || CustomClassUtil.isCustomObject(listGenericType)){
                         if (Map.class.equals(listGenericType)){
