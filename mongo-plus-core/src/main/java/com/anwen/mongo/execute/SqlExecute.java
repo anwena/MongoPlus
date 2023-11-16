@@ -40,6 +40,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.anwen.mongo.toolkit.BeanMapUtilByReflect.checkTableField;
@@ -780,6 +781,62 @@ public class SqlExecute {
         return Optional.ofNullable(clientSession).map(session -> collection.createIndexes(clientSession,indexes,createIndexOptions)).orElseGet(() -> collection.createIndexes(indexes,createIndexOptions));
     }
 
+    public List<Document> listIndexes(MongoCollection<Document> collection){
+        return listIndexes(MongoTransactionContext.getClientSessionContext(),collection);
+    }
+
+    public List<Document> listIndexes(ClientSession clientSession,MongoCollection<Document> collection){
+        return DocumentMapperConvert.indexesIterableToDocument(Optional.ofNullable(clientSession).map(collection::listIndexes).orElseGet(collection::listIndexes));
+    }
+
+    public void dropIndex(String indexName,MongoCollection<Document> collection){
+        dropIndex(MongoTransactionContext.getClientSessionContext(),indexName,collection);
+    }
+
+    public void dropIndex(ClientSession clientSession,String indexName,MongoCollection<Document> collection){
+        ifPresentOrElse(clientSession,session -> collection.dropIndex(session,indexName),() -> collection.dropIndex(indexName));
+    }
+
+    public void dropIndex(String indexName,DropIndexOptions dropIndexOptions,MongoCollection<Document> collection){
+        dropIndex(MongoTransactionContext.getClientSessionContext(),indexName,dropIndexOptions,collection);
+    }
+
+    public void dropIndex(ClientSession clientSession,String indexName,DropIndexOptions dropIndexOptions,MongoCollection<Document> collection){
+        ifPresentOrElse(clientSession,session -> collection.dropIndex(session,indexName,dropIndexOptions),() -> collection.dropIndex(indexName,dropIndexOptions));
+    }
+
+    public void dropIndex(Bson keys,MongoCollection<Document> collection){
+        dropIndex(MongoTransactionContext.getClientSessionContext(),keys,collection);
+    }
+
+    public void dropIndex(ClientSession clientSession,Bson keys,MongoCollection<Document> collection){
+        ifPresentOrElse(clientSession,session -> collection.dropIndex(session,keys),() -> collection.dropIndex(keys));
+    }
+
+    public void dropIndex(Bson keys,DropIndexOptions dropIndexOptions,MongoCollection<Document> collection){
+        dropIndex(MongoTransactionContext.getClientSessionContext(),keys,dropIndexOptions,collection);
+    }
+
+    public void dropIndex(ClientSession clientSession,Bson keys,DropIndexOptions dropIndexOptions,MongoCollection<Document> collection){
+        ifPresentOrElse(clientSession,session -> collection.dropIndex(session,keys,dropIndexOptions),() -> collection.dropIndex(keys,dropIndexOptions));
+    }
+
+    public void dropIndexes(MongoCollection<Document> collection){
+        dropIndexes(MongoTransactionContext.getClientSessionContext(),collection);
+    }
+
+    public void dropIndexes(ClientSession clientSession,MongoCollection<Document> collection){
+        ifPresentOrElse(clientSession, collection::dropIndexes, collection::dropIndexes);
+    }
+
+    public void dropIndexes(DropIndexOptions dropIndexOptions,MongoCollection<Document> collection){
+        dropIndexes(MongoTransactionContext.getClientSessionContext(),dropIndexOptions,collection);
+    }
+
+    public void dropIndexes(ClientSession clientSession,DropIndexOptions dropIndexOptions,MongoCollection<Document> collection){
+        ifPresentOrElse(clientSession,session -> collection.dropIndexes(session,dropIndexOptions),() -> collection.dropIndexes(dropIndexOptions));
+    }
+
     public <T> List<T> doAggregateList(List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject,Class<T> clazz){
         return doAggregateList((ClientSession) null,aggregateList,basicDBObjectList,optionsBasicDBObject,clazz);
     }
@@ -975,7 +1032,7 @@ public class SqlExecute {
         return getCollection(collectionName);
     }
 
-    private MongoCollection<Document> getCollection(String collectionName) {
+    public MongoCollection<Document> getCollection(String collectionName) {
         createIndex = null;
         MongoCollection<Document> mongoCollection;
         // 检查连接是否需要重新创建
@@ -1057,13 +1114,16 @@ public class SqlExecute {
         try {
             //使用策略转换器回写id
             ConversionService.setValue(idField,entity,idValue);
-            /*if (idField.getType().equals(String.class)) {
-                ReflectionUtils.setFieldValue(entity, idField, str);
-            } else if(idField.getType().equals(ObjectId.class) && ObjectId.isValid(str)) {
-                ReflectionUtils.setFieldValue(entity, idField, new ObjectId(str));
-            }*/
         } catch (Exception e) {
             logger.error("set back id field value error, error message: {}", e.getMessage());
+        }
+    }
+
+    private <T> void ifPresentOrElse(T value,Consumer<? super T> action, Runnable emptyAction) {
+        if (value != null) {
+            action.accept(value);
+        } else {
+            emptyAction.run();
         }
     }
 

@@ -434,72 +434,72 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public List<Document> listIndexes() {
-        return null;
+        return sqlExecute.listIndexes(getMongoCollection());
     }
 
     @Override
     public List<Document> listIndexes(ClientSession clientSession) {
-        return null;
+        return sqlExecute.listIndexes(clientSession,getMongoCollection());
     }
 
     @Override
     public void dropIndex(String indexName) {
-
+        sqlExecute.dropIndex(indexName,getMongoCollection());
     }
 
     @Override
     public void dropIndex(String indexName, DropIndexOptions dropIndexOptions) {
-
+        sqlExecute.dropIndex(indexName,dropIndexOptions,getMongoCollection());
     }
 
     @Override
     public void dropIndex(Bson keys) {
-
+        sqlExecute.dropIndex(keys,getMongoCollection());
     }
 
     @Override
     public void dropIndex(Bson keys, DropIndexOptions dropIndexOptions) {
-
+        sqlExecute.dropIndex(keys,dropIndexOptions,getMongoCollection());
     }
 
     @Override
     public void dropIndex(ClientSession clientSession, String indexName) {
-
+        sqlExecute.dropIndex(clientSession,indexName,getMongoCollection());
     }
 
     @Override
     public void dropIndex(ClientSession clientSession, Bson keys) {
-
+        sqlExecute.dropIndex(clientSession,keys,getMongoCollection());
     }
 
     @Override
     public void dropIndex(ClientSession clientSession, String indexName, DropIndexOptions dropIndexOptions) {
-
+        sqlExecute.dropIndex(clientSession,indexName,dropIndexOptions,getMongoCollection());
     }
 
     @Override
     public void dropIndex(ClientSession clientSession, Bson keys, DropIndexOptions dropIndexOptions) {
-
+        sqlExecute.dropIndex(clientSession,keys,dropIndexOptions,getMongoCollection());
     }
 
     @Override
     public void dropIndexes() {
-
+        sqlExecute.dropIndexes(getMongoCollection());
     }
 
     @Override
     public void dropIndexes(ClientSession clientSession) {
-
+        sqlExecute.dropIndexes(clientSession,getMongoCollection());
     }
 
     @Override
     public void dropIndexes(DropIndexOptions dropIndexOptions) {
-
+        sqlExecute.dropIndexes(dropIndexOptions,getMongoCollection());
     }
 
     @Override
     public void dropIndexes(ClientSession clientSession, DropIndexOptions dropIndexOptions) {
-
+        sqlExecute.dropIndexes(clientSession,dropIndexOptions,getMongoCollection());
     }
 
     @Override
