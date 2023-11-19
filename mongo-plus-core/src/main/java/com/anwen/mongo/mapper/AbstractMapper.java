@@ -1,4 +1,4 @@
-package com.anwen.mongo.service.impl;
+package com.anwen.mongo.mapper;
 
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper;
@@ -10,7 +10,6 @@ import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
-import com.anwen.mongo.service.IService;
 import com.anwen.mongo.support.SFunction;
 import com.anwen.mongo.toolkit.ChainWrappers;
 import com.mongodb.client.ClientSession;
@@ -24,12 +23,12 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * @author JiaChaoYang
- * 接口实现
- * 增删改接口，后边会弃用掉该类，只提供在Mapper操作，2.0.7版本以上可以继承{@link com.anwen.mongo.mapper.BaseMapper}
- * @since 2023-02-09 14:13
- **/
-public class ServiceImpl<T> implements IService<T> {
+ * @Author Bomber
+ * @Description 抽象mapper类型
+ * @Date 2023/11/19 22:11
+ * @Version 1.0
+ */
+public class AbstractMapper<T> implements BaseMapper<T> {
 
     private SqlExecute sqlExecute;
 

@@ -1,13 +1,18 @@
 package com.anwen.mongo.registrar;
 
+import com.anwen.mongo.annotation.Mapper;
 import com.anwen.mongo.annotation.MapperScan;
 import com.anwen.mongo.mapper.BaseMapper;
+import com.anwen.mongo.proxy.MapperProxy;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.type.AnnotationMetadata;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
 
@@ -39,17 +44,33 @@ public class MongoPlusMapperRegistrar implements ImportBeanDefinitionRegistrar {
         packages.addAll(Arrays.asList(basePackages));
 
         // 扫描mapper接口
-        Set<Class<?>> mappers = scanMappers(packages);
-        registerMappers(mappers, registry);
+        Set<Class<?>> mapperClasses = scanMappers(packages);
+        registerMappers(mapperClasses, registry);
     }
 
     /**
      * 注册mapper到spring
-     * @param mappers
+     * @param mapperClasses
      * @param registry
      */
-    private void registerMappers(Set<Class<?>> mappers, BeanDefinitionRegistry registry) {
+    private void registerMappers(Set<Class<?>> mapperClasses, BeanDefinitionRegistry registry) {
+        mapperClasses.forEach(mapperClass -> {
+            GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
+            beanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
+            beanDefinition.setBeanClass(MapperProxy.class);
+            beanDefinition.getPropertyValues().add("mapperClass", mapperClass);
+            beanDefinition.setPrimary(true);
+            beanDefinition.setLazyInit(false);
+            beanDefinition.setScope("singleton");
 
+            // 生成bean的名字
+            String beanName = mapperClass.getSimpleName().substring(0, 1).toLowerCase() + mapperClass.getSimpleName().substring(1);
+            if (mapperClass.isAnnotationPresent(Mapper.class)) {
+                Mapper annotation = mapperClass.getAnnotation(Mapper.class);
+                if (StringUtils.hasText(annotation.value())) beanName = annotation.value();
+            }
+            registry.registerBeanDefinition(beanName, beanDefinition);
+        });
     }
 
     /**

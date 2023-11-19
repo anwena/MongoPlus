@@ -22,6 +22,6 @@ public class UserController {
 
     @GetMapping("/user/{id}")
     public User getById(@PathVariable Integer id) {
-        return userMapper.custom(id);
+        return userMapper.getById(id);
     }
 }

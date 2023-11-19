@@ -1,6 +1,9 @@
 package com.anwen.mongo.config;
 
 import com.anwen.mongo.execute.SqlExecute;
+import com.anwen.mongo.mapper.AbstractMapper;
+import com.anwen.mongo.mapper.BaseMapper;
+import com.anwen.mongo.proxy.MapperProxy;
 import com.anwen.mongo.service.IService;
 import com.anwen.mongo.service.impl.ServiceImpl;
 import com.anwen.mongo.strategy.convert.ConversionService;
@@ -40,6 +43,15 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
                 .stream()
                 .filter(s -> s instanceof ServiceImpl)
                 .forEach(s -> setSqlExecute((ServiceImpl<?>) s, s.getGenericityClazz()));
+
+        // baseMapperProxy设置sqlExecute
+        applicationContext.getBeansOfType(BaseMapper.class)
+                .values()
+                .stream()
+                .forEach(m -> {
+                    BaseMapper<?> proxy = (BaseMapper<?>) m;
+                    proxy.set(sqlExecute);
+                });
     }
 
     private void setSqlExecute(ServiceImpl<?> serviceImpl,Class<?> clazz) {
