@@ -2,6 +2,7 @@ package com.anwen.mongo.proxy;
 
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.mapper.AbstractMapper;
+import com.anwen.mongo.mapper.MongoPlusMapMapper;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
@@ -21,22 +22,10 @@ public class MapperInvokeHandler<T> extends AbstractMapper<T> implements Invocat
     // 每种类型注解对应的处理器
     private static final Map<String, MapperAnnotationProcessor> MAPPER_ANNOTATION_PROCESSOR_MAP = new HashMap<>();
     // 默认的处理器，没有注解的时候自动使用
-    private static final MapperAnnotationProcessor DEFAULT_MAPPER_ANNOTATION_PROCESSOR
-            = (source, proxy, method, args) -> method.invoke(source, args);
+    private static final MapperAnnotationProcessor DEFAULT_MAPPER_ANNOTATION_PROCESSOR = (source, proxy, method, args) -> method.invoke(source, args);
 
-    // sql执行器
-    private SqlExecute sqlExecute;
     // 注解处理器缓存
     private final Map<Method, MapperAnnotationProcessor> cacheMap = new HashMap<>();
-
-    public void setSqlExecute(SqlExecute sqlExecute) {
-        this.sqlExecute = sqlExecute;
-    }
-
-    @Override
-    public SqlExecute getSqlOperation() {
-        return sqlExecute;
-    }
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {

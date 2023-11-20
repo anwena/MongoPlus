@@ -1,6 +1,7 @@
 package com.anwen.mongo.proxy;
 
 import com.anwen.mongo.execute.SqlExecute;
+import com.anwen.mongo.mapper.AbstractMapper;
 import com.anwen.mongo.mapper.BaseMapper;
 import org.springframework.beans.factory.FactoryBean;
 

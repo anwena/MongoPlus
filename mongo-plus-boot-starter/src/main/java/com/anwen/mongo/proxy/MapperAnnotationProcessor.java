@@ -20,5 +20,5 @@ public interface MapperAnnotationProcessor {
      * @param args 参数
      * @return 执行结果
      */
-    Object process(Object source, Object proxy, Method method, Object[] args) throws Throwable;
+    Object process(MapperInvokeHandler source, Object proxy, Method method, Object[] args) throws Throwable;
 }

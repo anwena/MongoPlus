@@ -1,9 +1,9 @@
 package com.anwen.mongo.config;
 
 import com.anwen.mongo.execute.SqlExecute;
-import com.anwen.mongo.mapper.AbstractMapper;
 import com.anwen.mongo.mapper.BaseMapper;
-import com.anwen.mongo.proxy.MapperProxy;
+import com.anwen.mongo.mapper.MongoPlusMapMapper;
+import com.anwen.mongo.proxy.MapperInvokeHandler;
 import com.anwen.mongo.service.IService;
 import com.anwen.mongo.service.impl.ServiceImpl;
 import com.anwen.mongo.strategy.convert.ConversionService;
@@ -15,6 +15,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
 
 /**
@@ -33,7 +34,6 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         this.sqlExecute = sqlExecute;
         this.applicationContext = applicationContext;
         setConversion();
-
     }
 
     @Override
@@ -47,10 +47,9 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         // baseMapperProxy设置sqlExecute
         applicationContext.getBeansOfType(BaseMapper.class)
                 .values()
-                .stream()
                 .forEach(m -> {
-                    BaseMapper<?> proxy = (BaseMapper<?>) m;
-                    proxy.set(sqlExecute);
+                    MapperInvokeHandler<?> proxy= (MapperInvokeHandler<?>)Proxy.getInvocationHandler(m);
+                    proxy.setSqlExecute(sqlExecute);
                 });
     }
 
