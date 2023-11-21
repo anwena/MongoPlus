@@ -1,5 +1,7 @@
 package com.anwen.mongo.annotation.collection;
 
+import com.anwen.mongo.enums.FieldFill;
+
 import java.lang.annotation.*;
 
 /**
@@ -35,4 +37,12 @@ public @interface CollectionField {
      * @date 2023/8/20 2:45
     */
     boolean exist() default true;
+
+    /**
+     * 自动填充策略
+     * @author JiaChaoYang
+     * @date 2023/11/21 12:24
+    */
+    FieldFill fill() default FieldFill.DEFAULT;
+
 }

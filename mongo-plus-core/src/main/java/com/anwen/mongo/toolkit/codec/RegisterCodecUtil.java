@@ -43,7 +43,7 @@ public class RegisterCodecUtil {
     }
 
     public static CodecRegistry registerCodec(Set<Class<?>> fieldClasses){
-        if (CollUtil.isEmpty(CodecRegistryCache.getCodecRegistry())){
+        if (CollUtil.isNotEmpty(CodecRegistryCache.getCodecRegistry())){
             codecRegistryList.addAll(CodecRegistryCache.getCodecRegistry());
         }
         fieldClasses = fieldClasses.stream().filter(clazz -> !CodecCache.codecMap.containsKey(clazz)).collect(Collectors.toSet());

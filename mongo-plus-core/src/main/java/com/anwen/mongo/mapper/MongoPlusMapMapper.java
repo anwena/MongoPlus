@@ -12,6 +12,13 @@ import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 import com.mongodb.client.ClientSession;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.CreateIndexOptions;
+import com.mongodb.client.model.DropIndexOptions;
+import com.mongodb.client.model.IndexModel;
+import com.mongodb.client.model.IndexOptions;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -27,6 +34,15 @@ public class MongoPlusMapMapper implements InjectQuery {
 
     public MongoPlusMapMapper(SqlExecute sqlExecute) {
         this.sqlExecute = sqlExecute;
+    }
+
+    /**
+     * 获取当前操作对象的连接，以便使用MongoDriver的语法
+     * @author JiaChaoYang
+     * @date 2023/11/15 13:43
+     */
+    public MongoCollection<Document> getMongoCollection(String collectionName){
+        return this.sqlExecute.getCollection(collectionName);
     }
 
     public LambdaQueryChainInjectWrapper lambdaQuery(){
@@ -303,6 +319,116 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public List<Map<String, Object>> sql(ClientSession clientSession, String collectionName, String sql) {
         return sqlExecute.doSql(clientSession, collectionName,sql);
+    }
+
+    @Override
+    public String createIndex(ClientSession clientSession,String collectionName,Bson bson) {
+        return sqlExecute.createIndex(clientSession,bson,getMongoCollection(collectionName));
+    }
+
+    @Override
+    public String createIndex(String collectionName,Bson bson) {
+        return sqlExecute.createIndex(bson,getMongoCollection(collectionName));
+    }
+
+    @Override
+    public String createIndex(ClientSession clientSession,String collectionName, Bson bson, IndexOptions indexOptions) {
+        return sqlExecute.createIndex(clientSession,bson,indexOptions,getMongoCollection(collectionName));
+    }
+
+    @Override
+    public String createIndex(String collectionName,Bson bson, IndexOptions indexOptions) {
+        return sqlExecute.createIndex(bson,indexOptions,getMongoCollection(collectionName));
+    }
+
+    @Override
+    public List<String> createIndexes(String collectionName,List<IndexModel> indexes) {
+        return sqlExecute.createIndexes(indexes,getMongoCollection(collectionName));
+    }
+
+    @Override
+    public List<String> createIndexes(String collectionName,List<IndexModel> indexes, CreateIndexOptions createIndexOptions) {
+        return sqlExecute.createIndexes(indexes,createIndexOptions,getMongoCollection(collectionName));
+    }
+
+    @Override
+    public List<String> createIndexes(ClientSession clientSession, String collectionName,List<IndexModel> indexes) {
+        return sqlExecute.createIndexes(clientSession,indexes,getMongoCollection(collectionName));
+    }
+
+    @Override
+    public List<String> createIndexes(ClientSession clientSession, String collectionName,List<IndexModel> indexes, CreateIndexOptions createIndexOptions) {
+        return sqlExecute.createIndexes(clientSession,indexes,createIndexOptions,getMongoCollection(collectionName));
+    }
+
+    @Override
+    public List<Document> listIndexes(String collectionName) {
+        return sqlExecute.listIndexes(getMongoCollection(collectionName));
+    }
+
+    @Override
+    public List<Document> listIndexes(ClientSession clientSession,String collectionName) {
+        return sqlExecute.listIndexes(clientSession,getMongoCollection(collectionName));
+    }
+
+    @Override
+    public void dropIndex(String collectionName,String indexName) {
+        sqlExecute.dropIndex(indexName,getMongoCollection(collectionName));
+    }
+
+    @Override
+    public void dropIndex(String collectionName,String indexName, DropIndexOptions dropIndexOptions) {
+        sqlExecute.dropIndex(indexName,dropIndexOptions,getMongoCollection(collectionName));
+    }
+
+    @Override
+    public void dropIndex(String collectionName,Bson keys) {
+        sqlExecute.dropIndex(keys,getMongoCollection(collectionName));
+    }
+
+    @Override
+    public void dropIndex(String collectionName,Bson keys, DropIndexOptions dropIndexOptions) {
+        sqlExecute.dropIndex(keys,dropIndexOptions,getMongoCollection(collectionName));
+    }
+
+    @Override
+    public void dropIndex(ClientSession clientSession,String collectionName, String indexName) {
+        sqlExecute.dropIndex(clientSession,indexName,getMongoCollection(collectionName));
+    }
+
+    @Override
+    public void dropIndex(ClientSession clientSession, String collectionName,Bson keys) {
+        sqlExecute.dropIndex(clientSession,keys,getMongoCollection(collectionName));
+    }
+
+    @Override
+    public void dropIndex(ClientSession clientSession, String collectionName,String indexName, DropIndexOptions dropIndexOptions) {
+        sqlExecute.dropIndex(clientSession,indexName,dropIndexOptions,getMongoCollection(collectionName));
+    }
+
+    @Override
+    public void dropIndex(ClientSession clientSession, String collectionName,Bson keys, DropIndexOptions dropIndexOptions) {
+        sqlExecute.dropIndex(clientSession,keys,dropIndexOptions,getMongoCollection(collectionName));
+    }
+
+    @Override
+    public void dropIndexes(String collectionName) {
+        sqlExecute.dropIndexes(getMongoCollection(collectionName));
+    }
+
+    @Override
+    public void dropIndexes(ClientSession clientSession,String collectionName) {
+        sqlExecute.dropIndexes(clientSession,getMongoCollection(collectionName));
+    }
+
+    @Override
+    public void dropIndexes(String collectionName,DropIndexOptions dropIndexOptions) {
+        sqlExecute.dropIndexes(dropIndexOptions,getMongoCollection(collectionName));
+    }
+
+    @Override
+    public void dropIndexes(ClientSession clientSession, String collectionName,DropIndexOptions dropIndexOptions) {
+        sqlExecute.dropIndexes(clientSession,dropIndexOptions,getMongoCollection(collectionName));
     }
 
     @Override

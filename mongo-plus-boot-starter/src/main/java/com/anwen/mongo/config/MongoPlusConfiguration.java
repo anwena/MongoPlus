@@ -1,6 +1,6 @@
 package com.anwen.mongo.config;
 
-import com.anwen.mongo.cache.MongoClientCache;
+import com.anwen.mongo.cache.global.MongoClientCache;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.log.CustomMongoDriverLogger;

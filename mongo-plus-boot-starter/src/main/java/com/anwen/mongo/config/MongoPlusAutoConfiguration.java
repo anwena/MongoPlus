@@ -1,12 +1,15 @@
 package com.anwen.mongo.config;
 
+import com.anwen.mongo.cache.global.AutoFillCache;
 import com.anwen.mongo.execute.SqlExecute;
+import com.anwen.mongo.handlers.MetaObjectHandler;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.proxy.MapperInvokeHandler;
 import com.anwen.mongo.service.IService;
 import com.anwen.mongo.service.impl.ServiceImpl;
 import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.strategy.convert.ConversionStrategy;
+import com.anwen.mongo.toolkit.BeanMapUtilByReflect;
 import com.mongodb.MongoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +36,7 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         this.sqlExecute = sqlExecute;
         this.applicationContext = applicationContext;
         setConversion();
-
+        setMetaObjectHandler();
     }
 
     @Override
@@ -78,9 +81,20 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
                     }
                 }
             }catch (Exception e){
-                logger.error("Unknown converter type");
+                logger.error("Unknown converter type",e);
                 throw new MongoException("Unknown converter type");
             }
+        });
+    }
+
+    /**
+     * 从Bean中拿到自动填充策略
+     * @author JiaChaoYang
+     * @date 2023/11/21 12:18
+    */
+    private void setMetaObjectHandler(){
+        applicationContext.getBeansOfType(MetaObjectHandler.class).values().forEach(metaObjectHandler -> {
+            AutoFillCache.metaObjectHandler = metaObjectHandler;
         });
     }
 

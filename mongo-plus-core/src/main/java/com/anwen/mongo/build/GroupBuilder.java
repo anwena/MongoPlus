@@ -1,6 +1,7 @@
 package com.anwen.mongo.build;
 
 import com.anwen.mongo.conditions.BuildCondition;
+import com.anwen.mongo.conditions.MongoPlusBasicDBObject;
 import com.anwen.mongo.conditions.accumulator.Accumulator;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.model.GroupField;
@@ -18,10 +19,10 @@ import java.util.List;
  **/
 public class GroupBuilder {
 
-    private BasicDBObject basicDBObject;
+    private MongoPlusBasicDBObject basicDBObject;
 
     public GroupBuilder() {
-        this.basicDBObject = new BasicDBObject();
+        this.basicDBObject = new MongoPlusBasicDBObject();
     }
 
     public GroupBuilder withAccumulatorList(List<Accumulator> accumulatorList) {

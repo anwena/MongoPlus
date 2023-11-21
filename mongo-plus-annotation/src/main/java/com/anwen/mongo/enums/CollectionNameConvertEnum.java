@@ -25,4 +25,5 @@ public enum CollectionNameConvertEnum {
      */
     CAMEL_TO_UNDERLINE,
     ;
+
 }

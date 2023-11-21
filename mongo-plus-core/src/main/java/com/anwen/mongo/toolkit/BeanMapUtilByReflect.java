@@ -5,8 +5,11 @@ import com.alibaba.fastjson.serializer.PropertyFilter;
 import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
+import com.anwen.mongo.cache.global.AutoFillCache;
 import com.anwen.mongo.constant.SqlOperationConstant;
+import com.anwen.mongo.enums.FieldFill;
 import com.anwen.mongo.enums.IdTypeEnum;
+import com.anwen.mongo.handlers.MetaObjectHandler;
 import org.bson.Document;
 
 import java.lang.reflect.Field;
@@ -14,6 +17,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 
@@ -34,14 +38,18 @@ public class BeanMapUtilByReflect {
      * @return 属性值Map
      */
     public static <T> Document checkTableField(T entity,boolean isSave) {
+        //定义添加自动填充字段
+        Map<String,Object> insertFillMap = new HashMap<>();
+        //定义添加自动填充字段
+        Map<String,Object> updateFillMap = new HashMap<>();
         //定义返回结果Map
         Map<String, Object> resultMap = new HashMap<>();
         //获取实体class
         Class<?> entityClass = ClassTypeUtil.getClass(entity);
         //获取所有字段
         List<Field> fieldList = ClassTypeUtil.getFields(entityClass);
+        getFillInsertAndUpdateField(fieldList,insertFillMap,updateFillMap);
         //设置所有属性可访问
-//        AccessibleObject.setAccessible(fieldList.toArray(new Field[0]),true);
         for (Field field : fieldList) {
             field.setAccessible(true);
             // 是否跳过解析
@@ -54,17 +62,28 @@ public class BeanMapUtilByReflect {
             Object fieldValue = ReflectionUtils.getFieldValue(entity, field);
             ID idAnnotation = field.getAnnotation(ID.class);
             if (idAnnotation != null) {
-                if (isSave && (!idAnnotation.saveField() || idAnnotation.type() == IdTypeEnum.OBJECT_ID)){
+                //手动设置id值，永远优先
+                if (fieldValue != null){
+                    resultMap.put(SqlOperationConstant._ID,fieldValue);
+                }
+                if (isSave && !idAnnotation.saveField()) {
                     continue;
                 }
-                resultMap.put(SqlOperationConstant._ID,fieldValue);
             }
             // 不为null再进行映射
             if (fieldValue != null){
                 resultMap.put(fieldName, fieldValue);
             }
         }
-        return handleMap(resultMap);
+        Document document = handleMap(resultMap);
+        if (AutoFillCache.metaObjectHandler != null){
+            if (isSave) {
+                AutoFillCache.metaObjectHandler.insertFill(insertFillMap,document);
+            } else {
+                AutoFillCache.metaObjectHandler.updateFill(updateFillMap,document);
+            }
+        }
+        return document;
     }
 
     public static Document handleDocument(Document document){
@@ -93,6 +112,25 @@ public class BeanMapUtilByReflect {
                 add(handleDocument(document));
             });
         }};
+    }
+
+    public static void getFillInsertAndUpdateField(List<Field> fieldList,Map<String,Object> insertFill,Map<String,Object> updateFill){
+        fieldList.forEach(field -> {
+            field.setAccessible(true);
+            CollectionField collectionField = field.getAnnotation(CollectionField.class);
+            if (collectionField != null && collectionField.fill() != FieldFill.DEFAULT){
+                if (collectionField.fill() == FieldFill.INSERT){
+                    insertFill.put(getFieldName(field),null);
+                }
+                if (collectionField.fill() == FieldFill.UPDATE){
+                    updateFill.put(getFieldName(field),null);
+                }
+                if (collectionField.fill() == FieldFill.INSERT_UPDATE){
+                    insertFill.put(getFieldName(field),null);
+                    updateFill.put(getFieldName(field),null);
+                }
+            }
+        });
     }
 
     public static List<Document> handleMapList(List<Map<String,Object>> mapList){

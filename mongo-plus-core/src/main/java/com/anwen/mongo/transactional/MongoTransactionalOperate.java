@@ -1,6 +1,6 @@
 package com.anwen.mongo.transactional;
 
-import com.anwen.mongo.cache.MongoClientCache;
+import com.anwen.mongo.cache.global.MongoClientCache;
 import com.mongodb.ClientSessionOptions;
 import com.mongodb.client.ClientSession;
 

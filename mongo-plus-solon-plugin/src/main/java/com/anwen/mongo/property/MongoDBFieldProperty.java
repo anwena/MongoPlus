@@ -1,10 +1,14 @@
 package com.anwen.mongo.property;
 
-import com.anwen.mongo.cache.PropertyCache;
+import com.anwen.mongo.cache.global.PropertyCache;
+import org.noear.solon.annotation.Configuration;
+import org.noear.solon.annotation.Inject;
 
 /**
  * @author JiaChaoYang
  **/
+@Inject(value = "${mongo-plus.configuration.field}",required = false,autoRefreshed = true)
+@Configuration
 public class MongoDBFieldProperty {
 
     /**
@@ -19,7 +23,6 @@ public class MongoDBFieldProperty {
     }
 
     public void setMapUnderscoreToCamelCase(Boolean mapUnderscoreToCamelCase) {
-        System.out.println("进来内部的构造函数了");
         PropertyCache.mapUnderscoreToCamelCase = mapUnderscoreToCamelCase;
         this.mapUnderscoreToCamelCase = mapUnderscoreToCamelCase;
     }

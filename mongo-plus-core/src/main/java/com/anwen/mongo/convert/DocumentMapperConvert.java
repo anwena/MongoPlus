@@ -2,12 +2,13 @@ package com.anwen.mongo.convert;
 
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
-import com.anwen.mongo.cache.PropertyCache;
+import com.anwen.mongo.cache.global.PropertyCache;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.client.FindIterable;
+import com.mongodb.client.ListIndexesIterable;
 import com.mongodb.client.MongoCursor;
 import org.bson.Document;
 
@@ -35,6 +36,16 @@ public class DocumentMapperConvert {
      **/
     public static <T> T mapDocument(Document document, Class<T> clazz) {
         return mapDocument(document,clazz,true);
+    }
+
+    public static List<Document> indexesIterableToDocument(ListIndexesIterable<Document> indexesIterable){
+        return new ArrayList<Document>(){{
+            try (MongoCursor<Document> cursor = indexesIterable.iterator()) {
+                while (cursor.hasNext()) {
+                    add(cursor.next());
+                }
+            }
+        }};
     }
 
     public static <T> T mapDocument(Document document,Class<T> clazz,Boolean annotationEffect){

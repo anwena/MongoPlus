@@ -1,6 +1,6 @@
 package com.anwen.mongo.convert;
 
-import com.anwen.mongo.cache.PropertyCache;
+import com.anwen.mongo.cache.global.PropertyCache;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;

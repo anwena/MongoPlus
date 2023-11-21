@@ -8,7 +8,7 @@ import com.anwen.mongo.strategy.convert.ConversionStrategy;
 import com.mongodb.MongoException;
 import org.noear.solon.Solon;
 import org.noear.solon.annotation.Inject;
-import org.noear.solon.core.AopContext;
+import org.noear.solon.core.AppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +27,7 @@ public class MongoPlusAutoConfiguration {
 
     public MongoPlusAutoConfiguration(@Inject SqlExecute sqlExecute){
         this.sqlExecute = sqlExecute;
-        AopContext context = Solon.context();
+        AppContext context = Solon.context();
         context.subBeansOfType(IService.class, bean -> {
             if (bean instanceof ServiceImpl){
                 setSqlExecute((ServiceImpl<?>) bean,bean.getGenericityClazz());
@@ -49,7 +49,7 @@ public class MongoPlusAutoConfiguration {
      * @date 2023/10/19 12:49
      */
     @SuppressWarnings("unchecked")
-    private void setConversion(AopContext context){
+    private void setConversion(AppContext context){
         context.getBeansOfType(ConversionStrategy.class).forEach(conversionStrategy -> {
             try {
                 Type[] genericInterfaces = conversionStrategy.getClass().getGenericInterfaces();

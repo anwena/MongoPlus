@@ -11,6 +11,12 @@ import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 import com.anwen.mongo.support.SFunction;
 import com.mongodb.client.ClientSession;
+import com.mongodb.client.model.CreateIndexOptions;
+import com.mongodb.client.model.DropIndexOptions;
+import com.mongodb.client.model.IndexModel;
+import com.mongodb.client.model.IndexOptions;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -414,7 +420,203 @@ public interface IService<T> {
 
     List<T> getByColumn(ClientSession clientSession,String field,Object fieldValue);
 
+    /**
+     * 创建索引，携带事务
+     * @param bson 描述索引键的对象，该对象不能为 null
+     * @return java.lang.String
+     * @author JiaChaoYang
+     * @date 2023/11/15 14:04
+     */
+    String createIndex(ClientSession clientSession,Bson bson);
 
+    /**
+     * 创建索引
+     * @param bson 描述索引键的对象，该对象不能为 null
+     * @return java.lang.String
+     * @author JiaChaoYang
+     * @date 2023/11/15 14:04
+    */
+    String createIndex(Bson bson);
+
+    /**
+     * 使用给定的键和选项创建索引。
+     * @param clientSession 要与此操作关联的客户端会话
+     * @param bson 描述索引键的对象，该对象不能为 null
+     * @param indexOptions 指数的选项
+     * @return java.lang.String
+     * @author JiaChaoYang
+     * @date 2023/11/15 15:37
+    */
+    String createIndex(ClientSession clientSession, Bson bson, IndexOptions indexOptions);
+
+    /**
+     * 使用给定的键和选项创建索引。
+     * @param bson 描述索引键的对象，该对象不能为 null
+     * @param indexOptions 指数的选项
+     * @return java.lang.String
+     * @author JiaChaoYang
+     * @date 2023/11/15 15:37
+     */
+    String createIndex(Bson bson, IndexOptions indexOptions);
+
+    /**
+     * 创建多个索引
+     * @param indexes 索引列表
+     * @return java.util.List<java.lang.String>
+     * @author JiaChaoYang
+     * @date 2023/11/15 15:34
+    */
+    List<String> createIndexes(List<IndexModel> indexes);
+
+    /**
+     * 创建多个索引
+     * @param indexes 索引列表
+     * @param createIndexOptions 创建索引时要使用的选项
+     * @return java.util.List<java.lang.String> 索引名称列表
+     * @author JiaChaoYang
+     * @date 2023/11/15 15:34
+    */
+    List<String> createIndexes(List<IndexModel> indexes, CreateIndexOptions createIndexOptions);
+
+    /**
+     * 创建多个索引。
+     *
+     * @param clientSession 要与此操作关联的客户端会话
+     * @param indexes 索引列表
+     * @return 索引名称列表
+     * @since 3.6
+     * @mongodb.server.release 3.6
+     * @mongodb.driver.manual reference/command/createIndexes Create indexes
+     */
+    /**
+     * 创建多个索引
+     * @param clientSession 要与此操作关联的客户端会话
+     * @param indexes 索引列表
+     * @return java.util.List<java.lang.String> 索引名称列表
+     * @author JiaChaoYang
+     * @date 2023/11/15 15:35
+    */
+    List<String> createIndexes(ClientSession clientSession, List<IndexModel> indexes);
+
+    /**
+     * 创建多个索引
+     * @param clientSession 要与此操作关联的客户端会话
+     * @param indexes 索引列表
+     * @param createIndexOptions 创建索引时要使用的选项
+     * @return java.util.List<java.lang.String> 索引名称列表
+     * @author JiaChaoYang
+     * @date 2023/11/15 15:36
+    */
+    List<String> createIndexes(ClientSession clientSession, List<IndexModel> indexes, CreateIndexOptions createIndexOptions);
+
+    /**
+     * 获取此集合中的所有索引。
+     *
+     * @return 列表索引可迭代接口
+     */
+    List<Document> listIndexes();
+
+    /**
+     * 获取此集合中的所有索引。
+     *
+     * @param clientSession 要与此操作关联的客户端会话
+     * @return 列表索引可迭代接口
+     */
+    List<Document> listIndexes(ClientSession clientSession);
+
+    /**
+     * 删除给定其名称的索引。
+     *
+     * @param indexName 要删除的索引的名称
+     */
+    void dropIndex(String indexName);
+
+    /**
+     * 删除给定其名称的索引。
+     *
+     * @param indexName 要删除的索引的名称
+     * @param dropIndexOptions 删除索引时要使用的选项
+     */
+    void dropIndex(String indexName, DropIndexOptions dropIndexOptions);
+
+    /**
+     * 在给定用于创建索引的键的情况下删除索引。
+     *
+     * @param keys 要删除的索引的键
+     */
+    void dropIndex(Bson keys);
+
+    /**
+     * 在给定用于创建索引的键的情况下删除索引。
+     *
+     * @param keys 要删除的索引的键
+     * @param dropIndexOptions 删除索引时要使用的选项
+     * @since 3.6
+     */
+    void dropIndex(Bson keys, DropIndexOptions dropIndexOptions);
+
+    /**
+     * 删除给定其名称的索引。
+     *
+     * @param clientSession 要与此操作关联的客户端会话
+     * @param indexName 要删除的索引的名称
+     */
+    void dropIndex(ClientSession clientSession, String indexName);
+
+    /**
+     * 在给定用于创建索引的键的情况下删除索引。
+     *
+     * @param clientSession 要与此操作关联的客户端会话
+     * @param keys 要删除的索引的键
+     */
+    void dropIndex(ClientSession clientSession, Bson keys);
+
+    /**
+     * 删除给定其名称的索引。
+     *
+     * @param clientSession 要与此操作关联的客户端会话
+     * @param indexName 要删除的索引的名称
+     * @param dropIndexOptions 删除索引时要使用的选项
+     */
+    void dropIndex(ClientSession clientSession, String indexName, DropIndexOptions dropIndexOptions);
+
+    /**
+     * 在给定用于创建索引的键的情况下删除索引。
+     *
+     * @param clientSession 要与此操作关联的客户端会话
+     * @param keys 要删除的索引的键
+     * @param dropIndexOptions 删除索引时要使用的选项
+     */
+    void dropIndex(ClientSession clientSession, Bson keys, DropIndexOptions dropIndexOptions);
+
+    /**
+     * 删除此集合上的所有索引，但 _id 上的默认值除外。
+     *
+     */
+    void dropIndexes();
+
+    /**
+     * 删除此集合上的所有索引，但 _id 上的默认值除外。
+     *
+     * @param clientSession 要与此操作关联的客户端会话
+     */
+    void dropIndexes(ClientSession clientSession);
+
+    /**
+     * 删除此集合上的所有索引，但 _id 上的默认值除外。
+     *
+     * @param dropIndexOptions 删除索引时要使用的选项
+     * @since 3.6
+     */
+    void dropIndexes(DropIndexOptions dropIndexOptions);
+
+    /**
+     * 删除此集合上的所有索引，但 _id 上的默认值除外。
+     *
+     * @param clientSession 要与此操作关联的客户端会话
+     * @param dropIndexOptions 删除索引时要使用的选项
+     */
+    void dropIndexes(ClientSession clientSession, DropIndexOptions dropIndexOptions);
 
     SqlExecute getSqlOperation();
 

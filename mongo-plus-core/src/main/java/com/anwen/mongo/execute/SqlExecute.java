@@ -26,10 +26,7 @@ import com.anwen.mongo.toolkit.codec.RegisterCodecUtil;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
 import com.mongodb.client.*;
-import com.mongodb.client.model.Collation;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.FindOneAndUpdateOptions;
-import com.mongodb.client.model.ReturnDocument;
+import com.mongodb.client.model.*;
 import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
@@ -40,9 +37,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.anwen.mongo.toolkit.BeanMapUtilByReflect.checkTableField;
@@ -113,7 +112,6 @@ public class SqlExecute {
 
     public <T> Boolean doSave(ClientSession clientSession,T entity) {
         try {
-            Class<?> entityClass = entity.getClass();
             MongoCollection<Document> collection = getCollection(ClassTypeUtil.getClass(entity));
             Document document = processIdField(entity);
             InsertOneResult insertOneResult = Optional.ofNullable(clientSession)
@@ -751,6 +749,94 @@ public class SqlExecute {
         return Optional.ofNullable(clientSession).map(collection::countDocuments).orElseGet(collection::countDocuments);
     }
 
+    public String createIndex(Bson bson,MongoCollection<Document> collection){
+        return createIndex(MongoTransactionContext.getClientSessionContext(),bson,collection);
+    }
+
+    public String createIndex(ClientSession clientSession,Bson bson,MongoCollection<Document> collection){
+        return Optional.ofNullable(clientSession).map(session -> collection.createIndex(clientSession,bson)).orElseGet(() -> collection.createIndex(bson));
+    }
+
+    public String createIndex(Bson bson,IndexOptions indexOptions,MongoCollection<Document> collection){
+        return createIndex(MongoTransactionContext.getClientSessionContext(),bson,indexOptions,collection);
+    }
+
+    public String createIndex(ClientSession clientSession,Bson bson,IndexOptions indexOptions,MongoCollection<Document> collection){
+        return Optional.ofNullable(clientSession).map(session -> collection.createIndex(clientSession,bson,indexOptions)).orElseGet(() -> collection.createIndex(bson,indexOptions));
+    }
+
+    public List<String> createIndexes(List<IndexModel> indexes,MongoCollection<Document> collection){
+        return createIndexes(MongoTransactionContext.getClientSessionContext(),indexes,collection);
+    }
+
+    public List<String> createIndexes(ClientSession clientSession,List<IndexModel> indexes,MongoCollection<Document> collection){
+        return Optional.ofNullable(clientSession).map(session -> collection.createIndexes(clientSession,indexes)).orElseGet(() -> collection.createIndexes(indexes));
+    }
+
+    public List<String> createIndexes(List<IndexModel> indexes, CreateIndexOptions createIndexOptions,MongoCollection<Document> collection){
+        return createIndexes(MongoTransactionContext.getClientSessionContext(),indexes,createIndexOptions,collection);
+    }
+
+    public List<String> createIndexes(ClientSession clientSession, List<IndexModel> indexes, CreateIndexOptions createIndexOptions,MongoCollection<Document> collection){
+        return Optional.ofNullable(clientSession).map(session -> collection.createIndexes(clientSession,indexes,createIndexOptions)).orElseGet(() -> collection.createIndexes(indexes,createIndexOptions));
+    }
+
+    public List<Document> listIndexes(MongoCollection<Document> collection){
+        return listIndexes(MongoTransactionContext.getClientSessionContext(),collection);
+    }
+
+    public List<Document> listIndexes(ClientSession clientSession,MongoCollection<Document> collection){
+        return DocumentMapperConvert.indexesIterableToDocument(Optional.ofNullable(clientSession).map(collection::listIndexes).orElseGet(collection::listIndexes));
+    }
+
+    public void dropIndex(String indexName,MongoCollection<Document> collection){
+        dropIndex(MongoTransactionContext.getClientSessionContext(),indexName,collection);
+    }
+
+    public void dropIndex(ClientSession clientSession,String indexName,MongoCollection<Document> collection){
+        ifPresentOrElse(clientSession,session -> collection.dropIndex(session,indexName),() -> collection.dropIndex(indexName));
+    }
+
+    public void dropIndex(String indexName,DropIndexOptions dropIndexOptions,MongoCollection<Document> collection){
+        dropIndex(MongoTransactionContext.getClientSessionContext(),indexName,dropIndexOptions,collection);
+    }
+
+    public void dropIndex(ClientSession clientSession,String indexName,DropIndexOptions dropIndexOptions,MongoCollection<Document> collection){
+        ifPresentOrElse(clientSession,session -> collection.dropIndex(session,indexName,dropIndexOptions),() -> collection.dropIndex(indexName,dropIndexOptions));
+    }
+
+    public void dropIndex(Bson keys,MongoCollection<Document> collection){
+        dropIndex(MongoTransactionContext.getClientSessionContext(),keys,collection);
+    }
+
+    public void dropIndex(ClientSession clientSession,Bson keys,MongoCollection<Document> collection){
+        ifPresentOrElse(clientSession,session -> collection.dropIndex(session,keys),() -> collection.dropIndex(keys));
+    }
+
+    public void dropIndex(Bson keys,DropIndexOptions dropIndexOptions,MongoCollection<Document> collection){
+        dropIndex(MongoTransactionContext.getClientSessionContext(),keys,dropIndexOptions,collection);
+    }
+
+    public void dropIndex(ClientSession clientSession,Bson keys,DropIndexOptions dropIndexOptions,MongoCollection<Document> collection){
+        ifPresentOrElse(clientSession,session -> collection.dropIndex(session,keys,dropIndexOptions),() -> collection.dropIndex(keys,dropIndexOptions));
+    }
+
+    public void dropIndexes(MongoCollection<Document> collection){
+        dropIndexes(MongoTransactionContext.getClientSessionContext(),collection);
+    }
+
+    public void dropIndexes(ClientSession clientSession,MongoCollection<Document> collection){
+        ifPresentOrElse(clientSession, collection::dropIndexes, collection::dropIndexes);
+    }
+
+    public void dropIndexes(DropIndexOptions dropIndexOptions,MongoCollection<Document> collection){
+        dropIndexes(MongoTransactionContext.getClientSessionContext(),dropIndexOptions,collection);
+    }
+
+    public void dropIndexes(ClientSession clientSession,DropIndexOptions dropIndexOptions,MongoCollection<Document> collection){
+        ifPresentOrElse(clientSession,session -> collection.dropIndexes(session,dropIndexOptions),() -> collection.dropIndexes(dropIndexOptions));
+    }
+
     public <T> List<T> doAggregateList(List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject,Class<T> clazz){
         return doAggregateList((ClientSession) null,aggregateList,basicDBObjectList,optionsBasicDBObject,clazz);
     }
@@ -940,13 +1026,13 @@ public class SqlExecute {
         return getCollection(collectionName).withCodecRegistry(RegisterCodecUtil.registerCodec(map));
     }
 
-    private MongoCollection<Document> getCollection(Class<?> clazz) {
+    public MongoCollection<Document> getCollection(Class<?> clazz) {
         createIndex = null;
         String collectionName = this.collectionNameConvert.convert(clazz);
         return getCollection(collectionName);
     }
 
-    private MongoCollection<Document> getCollection(String collectionName) {
+    public MongoCollection<Document> getCollection(String collectionName) {
         createIndex = null;
         MongoCollection<Document> mongoCollection;
         // 检查连接是否需要重新创建
@@ -974,7 +1060,7 @@ public class SqlExecute {
         MongoCollection<Document> collection = getCollection("counters");
         Document query = new Document(SqlOperationConstant._ID, collectionNameConvert.convert(clazz));
         Document update = new Document("$inc", new Document(SqlOperationConstant.AUTO_NUM, 1));
-        Document document = collection.findOneAndUpdate(query,update,new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
+        Document document = Optional.ofNullable(MongoTransactionContext.getClientSessionContext()).map(session -> collection.findOneAndUpdate(session,query,update,new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER))).orElseGet(() -> collection.findOneAndUpdate(query,update,new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)));
         if (document == null){
             Integer finalNum = num;
             collection.insertOne(new Document(new HashMap<String,Object>(){{
@@ -1003,13 +1089,21 @@ public class SqlExecute {
             return;
         }
         ID annotation = idField.getAnnotation(ID.class);
+        Object _idValue;
         if (annotation.type() == IdTypeEnum.AUTO) {
-            tableFieldMap.put(SqlOperationConstant._ID, getAutoId(ClassTypeUtil.getClass(entity)));
+            _idValue = getAutoId(ClassTypeUtil.getClass(entity));
         } else {
             if (annotation.type() == IdTypeEnum.OBJECT_ID){
                 return;
             }
-            tableFieldMap.put(SqlOperationConstant._ID, Generate.generateId(annotation.type()));
+            _idValue = Generate.generateId(annotation.type());
+        }
+        try {
+            tableFieldMap.put(SqlOperationConstant._ID, ConversionService.convertValue(idField, ClassTypeUtil.getClass(entity).getDeclaredConstructor().newInstance(), _idValue));
+        } catch (IllegalAccessException | InstantiationException | InvocationTargetException |
+                 NoSuchMethodException e) {
+            logger.error("Failed to convert to entity class's' _id 'field type when filling in'_id',error message: {}",e.getMessage(),e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -1028,13 +1122,16 @@ public class SqlExecute {
         try {
             //使用策略转换器回写id
             ConversionService.setValue(idField,entity,idValue);
-            /*if (idField.getType().equals(String.class)) {
-                ReflectionUtils.setFieldValue(entity, idField, str);
-            } else if(idField.getType().equals(ObjectId.class) && ObjectId.isValid(str)) {
-                ReflectionUtils.setFieldValue(entity, idField, new ObjectId(str));
-            }*/
         } catch (Exception e) {
             logger.error("set back id field value error, error message: {}", e.getMessage());
+        }
+    }
+
+    private <T> void ifPresentOrElse(T value,Consumer<? super T> action, Runnable emptyAction) {
+        if (value != null) {
+            action.accept(value);
+        } else {
+            emptyAction.run();
         }
     }
 

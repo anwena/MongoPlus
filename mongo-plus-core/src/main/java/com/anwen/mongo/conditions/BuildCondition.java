@@ -149,8 +149,8 @@ public class BuildCondition {
      * @author JiaChaoYang
      * @date 2023/8/19 0:11
      */
-    public static BasicDBObject buildGroup(List<Accumulator> accumulatorList){
-        return new BasicDBObject(){{
+    public static MongoPlusBasicDBObject buildGroup(List<Accumulator> accumulatorList){
+        return new MongoPlusBasicDBObject(){{
             accumulatorList.forEach(accumulator -> {
                 put(accumulator.getResultMappingField(),new BasicDBObject(){{
                     put("$"+accumulator.getCondition(),accumulator.getField());
