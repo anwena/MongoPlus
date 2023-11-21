@@ -1,4 +1,4 @@
-package com.anwen.mongo.cache;
+package com.anwen.mongo.cache.global;
 
 import com.mongodb.client.MongoClient;
 

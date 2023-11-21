@@ -1,6 +1,6 @@
 package com.anwen.mongo.property;
 
-import com.anwen.mongo.cache.PropertyCache;
+import com.anwen.mongo.cache.global.PropertyCache;
 import org.noear.solon.annotation.Configuration;
 import org.noear.solon.annotation.Inject;
 

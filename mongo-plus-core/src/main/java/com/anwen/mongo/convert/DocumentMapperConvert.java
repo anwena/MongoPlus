@@ -2,7 +2,7 @@ package com.anwen.mongo.convert;
 
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
-import com.anwen.mongo.cache.PropertyCache;
+import com.anwen.mongo.cache.global.PropertyCache;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.toolkit.ClassTypeUtil;

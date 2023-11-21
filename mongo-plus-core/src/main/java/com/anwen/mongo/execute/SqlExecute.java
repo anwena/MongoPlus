@@ -1089,21 +1089,21 @@ public class SqlExecute {
             return;
         }
         ID annotation = idField.getAnnotation(ID.class);
+        Object _idValue;
         if (annotation.type() == IdTypeEnum.AUTO) {
-            tableFieldMap.put(SqlOperationConstant._ID, getAutoId(ClassTypeUtil.getClass(entity)));
+            _idValue = getAutoId(ClassTypeUtil.getClass(entity));
         } else {
             if (annotation.type() == IdTypeEnum.OBJECT_ID){
                 return;
             }
-            Object value;
-            try {
-                value = ConversionService.convertValue(idField, ClassTypeUtil.getClass(entity).getDeclaredConstructor().newInstance(), Generate.generateId(annotation.type()));
-            } catch (IllegalAccessException | InstantiationException | InvocationTargetException |
-                     NoSuchMethodException e) {
-                logger.error("Failed to convert to entity class's' _id 'field type when filling in'_id',error message: {}",e.getMessage(),e);
-                throw new RuntimeException(e);
-            }
-            tableFieldMap.put(SqlOperationConstant._ID, value);
+            _idValue = Generate.generateId(annotation.type());
+        }
+        try {
+            tableFieldMap.put(SqlOperationConstant._ID, ConversionService.convertValue(idField, ClassTypeUtil.getClass(entity).getDeclaredConstructor().newInstance(), _idValue));
+        } catch (IllegalAccessException | InstantiationException | InvocationTargetException |
+                 NoSuchMethodException e) {
+            logger.error("Failed to convert to entity class's' _id 'field type when filling in'_id',error message: {}",e.getMessage(),e);
+            throw new RuntimeException(e);
         }
     }
 

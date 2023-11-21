@@ -5,7 +5,9 @@ import com.alibaba.fastjson.serializer.PropertyFilter;
 import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
+import com.anwen.mongo.cache.global.AutoFillCache;
 import com.anwen.mongo.constant.SqlOperationConstant;
+import com.anwen.mongo.enums.FieldFill;
 import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.handlers.MetaObjectHandler;
 import org.bson.Document;
@@ -15,6 +17,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 
@@ -29,22 +32,24 @@ public class BeanMapUtilByReflect {
         return mapCollection.stream().map(map -> Document.parse(JSON.toJSONString(map))).collect(Collectors.toList());
     }
 
-    public static MetaObjectHandler metaObjectHandler;
-
     /**
      * 检查对象属性并返回属性值Map。
      * @param entity 对象实例
      * @return 属性值Map
      */
     public static <T> Document checkTableField(T entity,boolean isSave) {
+        //定义添加自动填充字段
+        Map<String,Object> insertFillMap = new HashMap<>();
+        //定义添加自动填充字段
+        Map<String,Object> updateFillMap = new HashMap<>();
         //定义返回结果Map
         Map<String, Object> resultMap = new HashMap<>();
         //获取实体class
         Class<?> entityClass = ClassTypeUtil.getClass(entity);
         //获取所有字段
         List<Field> fieldList = ClassTypeUtil.getFields(entityClass);
+        getFillInsertAndUpdateField(fieldList,insertFillMap,updateFillMap);
         //设置所有属性可访问
-//        AccessibleObject.setAccessible(fieldList.toArray(new Field[0]),true);
         for (Field field : fieldList) {
             field.setAccessible(true);
             // 是否跳过解析
@@ -71,9 +76,12 @@ public class BeanMapUtilByReflect {
             }
         }
         Document document = handleMap(resultMap);
-        if (metaObjectHandler != null){
-            metaObjectHandler.insertFill(document);
-            metaObjectHandler.updateFill(document);
+        if (AutoFillCache.metaObjectHandler != null){
+            if (isSave) {
+                AutoFillCache.metaObjectHandler.insertFill(insertFillMap,document);
+            } else {
+                AutoFillCache.metaObjectHandler.updateFill(updateFillMap,document);
+            }
         }
         return document;
     }
@@ -104,6 +112,25 @@ public class BeanMapUtilByReflect {
                 add(handleDocument(document));
             });
         }};
+    }
+
+    public static void getFillInsertAndUpdateField(List<Field> fieldList,Map<String,Object> insertFill,Map<String,Object> updateFill){
+        fieldList.forEach(field -> {
+            field.setAccessible(true);
+            CollectionField collectionField = field.getAnnotation(CollectionField.class);
+            if (collectionField != null && collectionField.fill() != FieldFill.DEFAULT){
+                if (collectionField.fill() == FieldFill.INSERT){
+                    insertFill.put(getFieldName(field),null);
+                }
+                if (collectionField.fill() == FieldFill.UPDATE){
+                    updateFill.put(getFieldName(field),null);
+                }
+                if (collectionField.fill() == FieldFill.INSERT_UPDATE){
+                    insertFill.put(getFieldName(field),null);
+                    updateFill.put(getFieldName(field),null);
+                }
+            }
+        });
     }
 
     public static List<Document> handleMapList(List<Map<String,Object>> mapList){

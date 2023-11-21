@@ -21,7 +21,7 @@ public enum FieldFill {
      */
     UPDATE,
     /**
-     * 插入和更新时填充字段
+     * 插入和更新时都进行填充字段
      */
     INSERT_UPDATE
 }

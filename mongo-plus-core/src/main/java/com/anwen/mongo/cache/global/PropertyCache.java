@@ -1,4 +1,4 @@
-package com.anwen.mongo.cache;
+package com.anwen.mongo.cache.global;
 
 /**
  * 配置文件缓存
