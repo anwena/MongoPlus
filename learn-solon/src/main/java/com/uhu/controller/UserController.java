@@ -15,7 +15,7 @@ import java.util.List;
 @Controller
 public class UserController {
 
-    // @Inject
+    @Inject
     private UserMapper userMapper;
 
     @Get

@@ -8,6 +8,7 @@ import com.anwen.mongo.mapper.MongoPlusMapMapper;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBConnectProperty;
 import com.anwen.mongo.property.MongoDBLogProperty;
+import com.anwen.mongo.registrar.MongoPlusMapperRegistrar;
 import com.anwen.mongo.toolkit.MongoCollectionUtils;
 import com.anwen.mongo.toolkit.UrlJoint;
 import com.mongodb.ConnectionString;
@@ -78,8 +79,12 @@ public class MongoPlusConfiguration {
     }
 
     @Bean
+    public MongoPlusMapperRegistrar mongoPlusMapperRegistrar(@Inject SqlExecute sqlExecute){
+        return new MongoPlusMapperRegistrar(this.sqlExecute);
+    }
+
+    @Bean
     public MongoPlusAutoConfiguration mongoPlusAutoConfiguration(@Inject SqlExecute sqlExecute){
         return new MongoPlusAutoConfiguration(this.sqlExecute);
     }
-
 }

@@ -1,7 +1,7 @@
 package com.uhu;
 
+import com.anwen.mongo.annotation.MapperScan;
 import org.noear.solon.Solon;
-import org.noear.solon.annotation.SolonMain;
 
 /**
  * @Description:
@@ -10,7 +10,6 @@ import org.noear.solon.annotation.SolonMain;
  * @CreateTime: 2023/11/16 9:38
  */
 
-@SolonMain
 public class Application {
     public static void main(String[] args) {
         Solon.start(Application.class, args);
