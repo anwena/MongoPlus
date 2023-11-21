@@ -1,6 +1,7 @@
 package com.anwen.mongo.transactional;
 
 import com.anwen.mongo.annotation.transactional.MongoTransactional;
+import com.anwen.mongo.cache.MongoClientCache;
 import com.anwen.mongo.context.MongoTransactionContext;
 import com.anwen.mongo.context.MongoTransactionStatus;
 import com.mongodb.ClientSessionOptions;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author JiaChaoYang
@@ -24,15 +26,19 @@ public class MongoTransactionalAspect implements Interceptor {
         this.mongoClient = mongoClient;
     }
 
-    private final MongoClient mongoClient;
+    private MongoClient mongoClient;
 
     @Override
-    public Object doIntercept(Invocation inv) throws RuntimeException {
+    public Object doIntercept(Invocation inv) throws Throwable {
+        if (mongoClient == null){
+            mongoClient = MongoClientCache.mongoClient;
+        }
+        AtomicReference<Object> invoke = new AtomicReference<>();
         Optional.ofNullable(inv.method().getAnnotation(MongoTransactional.class)).map(mongoTransactional -> {
             //开启事务
             startTransaction();
             try {
-                Object invoke = inv.invoke();
+                invoke.set(inv.invoke());
                 //提交事务
                 commitTransaction();
                 return invoke;
@@ -43,7 +49,7 @@ public class MongoTransactionalAspect implements Interceptor {
                 throw new RuntimeException(e);
             }
         });
-        return inv;
+        return invoke.get();
     }
 
     /**

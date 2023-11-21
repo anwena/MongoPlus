@@ -7,7 +7,6 @@ import com.anwen.mongo.log.CustomMongoDriverLogger;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBConnectProperty;
-import com.anwen.mongo.property.MongoDBFieldProperty;
 import com.anwen.mongo.property.MongoDBLogProperty;
 import com.anwen.mongo.toolkit.MongoCollectionUtils;
 import com.anwen.mongo.toolkit.UrlJoint;
@@ -60,6 +59,7 @@ public class MongoPlusConfiguration {
             builder.addCommandListener(new CustomMongoDriverLogger(mongoDBLogProperty.getFormat()));
         }
         this.mongoClient = MongoClients.create(builder.build());
+        MongoClientCache.mongoClient = this.mongoClient;
         sqlExecute.setMongoClient(this.mongoClient);
         this.sqlExecute = sqlExecute;
         return sqlExecute;
@@ -68,7 +68,6 @@ public class MongoPlusConfiguration {
     @Bean("mongo")
     @Condition(onMissingBean = MongoClient.class)
     public MongoClient mongo() {
-        MongoClientCache.mongoClient = this.mongoClient;
         return this.mongoClient;
     }
 

@@ -11,7 +11,6 @@ import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 import com.anwen.mongo.support.SFunction;
 import com.mongodb.client.ClientSession;
-import com.mongodb.client.ListIndexesIterable;
 import com.mongodb.client.model.CreateIndexOptions;
 import com.mongodb.client.model.DropIndexOptions;
 import com.mongodb.client.model.IndexModel;

@@ -1060,7 +1060,7 @@ public class SqlExecute {
         MongoCollection<Document> collection = getCollection("counters");
         Document query = new Document(SqlOperationConstant._ID, collectionNameConvert.convert(clazz));
         Document update = new Document("$inc", new Document(SqlOperationConstant.AUTO_NUM, 1));
-        Document document = collection.findOneAndUpdate(query,update,new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
+        Document document = Optional.ofNullable(MongoTransactionContext.getClientSessionContext()).map(session -> collection.findOneAndUpdate(session,query,update,new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER))).orElseGet(() -> collection.findOneAndUpdate(query,update,new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)));
         if (document == null){
             Integer finalNum = num;
             collection.insertOne(new Document(new HashMap<String,Object>(){{
