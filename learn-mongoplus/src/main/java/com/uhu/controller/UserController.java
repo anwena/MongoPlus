@@ -22,14 +22,12 @@ public class UserController {
     private UserMapper userMapper;
 
     @GetMapping("/user/{id}")
-    public User getById(
-            @PathVariable Integer id) {
+    public User getById(@PathVariable Integer id) {
         return userMapper.getById(id);
     }
 
     @GetMapping("/one/{id}")
-    public User test1(
-            @PathVariable Integer id) {
+    public User test1(@PathVariable Integer id) {
         return userMapper.getOneById(id);
     }
 

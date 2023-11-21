@@ -3,7 +3,6 @@ mongo-core/target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-./learn-mongoplus/**
 
 ### STS ###
 .apt_generated
