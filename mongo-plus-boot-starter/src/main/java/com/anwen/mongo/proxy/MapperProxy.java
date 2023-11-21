@@ -1,11 +1,11 @@
 package com.anwen.mongo.proxy;
 
-import com.anwen.mongo.execute.SqlExecute;
-import com.anwen.mongo.mapper.AbstractMapper;
 import com.anwen.mongo.mapper.BaseMapper;
 import org.springframework.beans.factory.FactoryBean;
 
-import java.lang.reflect.*;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Proxy;
+import java.lang.reflect.Type;
 
 
 /**
@@ -24,6 +24,28 @@ public class MapperProxy<M extends BaseMapper<T>, T> implements FactoryBean<M> {
 
     public void setMapperClass(Class<M> mapperClass) {
         this.mapperClass = mapperClass;
+        this.mapperInvokeHandler.setClazz(getEntityClassByMapperClass());
+    }
+
+    /**
+     * 通过mapperClass获取实体类型
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    private Class<T> getEntityClassByMapperClass() {
+        Type[] interfaces = mapperClass.getGenericInterfaces();
+        for (Type type : interfaces) {
+            if (type instanceof ParameterizedType && type.getTypeName().startsWith("com.anwen.mongo.mapper.BaseMapper")) {
+                ParameterizedType parameterizedType = (ParameterizedType) type;
+                String entityClassName = parameterizedType.getActualTypeArguments()[0].getTypeName();
+                try {
+                    return (Class<T>) Class.forName(entityClassName);
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return null;
     }
 
     @Override

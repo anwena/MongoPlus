@@ -252,7 +252,7 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * 对所有文档记录进行分组，然后计算聚合结果
      * @param _id 分组依据字段
      * @param resultMappingField 结果映射字段
-     * @param operator 操作，参考{@link com.anwen.mongo.enums.GroupTypeEnum}枚举
+     * @param operator 操作，参考{@link GroupTypeEnum}枚举
      * @param field 列名、字段名
      * @return Children
      * @author JiaChaoYang
@@ -266,7 +266,7 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * 对所有文档记录进行分组，然后计算聚合结果
      * @param _id 分组依据字段
      * @param resultMappingField 结果映射字段
-     * @param operator 操作，参考{@link com.anwen.mongo.enums.GroupTypeEnum}枚举
+     * @param operator 操作，参考{@link GroupTypeEnum}枚举
      * @param field 列名、字段名
      * @return Children
      * @author JiaChaoYang
@@ -308,7 +308,7 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * 对所有文档记录进行分组，然后计算聚合结果
      * @param _id 分组依据字段
      * @param resultMappingField 结果映射字段
-     * @param operator 操作，参考{@link com.anwen.mongo.enums.GroupTypeEnum}枚举
+     * @param operator 操作，参考{@link GroupTypeEnum}枚举
      * @param field 列名、字段名
      * @return Children
      * @author JiaChaoYang
@@ -322,7 +322,7 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * 对所有文档记录进行分组，然后计算聚合结果
      * @param _id 分组依据字段
      * @param resultMappingField 结果映射字段
-     * @param operator 操作，参考{@link com.anwen.mongo.enums.GroupTypeEnum}枚举
+     * @param operator 操作，参考{@link GroupTypeEnum}枚举
      * @param field 列名、字段名
      * @return Children
      * @author JiaChaoYang

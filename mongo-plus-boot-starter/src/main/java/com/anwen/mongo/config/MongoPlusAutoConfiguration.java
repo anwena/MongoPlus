@@ -2,7 +2,6 @@ package com.anwen.mongo.config;
 
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.mapper.BaseMapper;
-import com.anwen.mongo.mapper.MongoPlusMapMapper;
 import com.anwen.mongo.proxy.MapperInvokeHandler;
 import com.anwen.mongo.service.IService;
 import com.anwen.mongo.service.impl.ServiceImpl;
@@ -34,6 +33,7 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         this.sqlExecute = sqlExecute;
         this.applicationContext = applicationContext;
         setConversion();
+
     }
 
     @Override
@@ -48,8 +48,8 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         applicationContext.getBeansOfType(BaseMapper.class)
                 .values()
                 .forEach(m -> {
-                    MapperInvokeHandler<?> proxy= (MapperInvokeHandler<?>)Proxy.getInvocationHandler(m);
-                    proxy.setSqlExecute(sqlExecute);
+                    MapperInvokeHandler<?> invocationHandler = (MapperInvokeHandler<?>) Proxy.getInvocationHandler(m);
+                    invocationHandler.setSqlExecute(sqlExecute);
                 });
     }
 

@@ -23,7 +23,6 @@ import java.util.Map;
  * @author JiaChaoYang
  **/
 public class MongoPlusMapMapper implements InjectQuery {
-
     private final SqlExecute sqlExecute;
 
     public MongoPlusMapMapper(SqlExecute sqlExecute) {

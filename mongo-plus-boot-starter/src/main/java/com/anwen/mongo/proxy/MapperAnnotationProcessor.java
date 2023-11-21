@@ -1,5 +1,7 @@
 package com.anwen.mongo.proxy;
 
+import com.anwen.mongo.mapper.AbstractMapper;
+
 import java.lang.reflect.Method;
 
 /**
@@ -20,5 +22,5 @@ public interface MapperAnnotationProcessor {
      * @param args 参数
      * @return 执行结果
      */
-    Object process(MapperInvokeHandler source, Object proxy, Method method, Object[] args) throws Throwable;
+    Object process(AbstractMapper<?> source, Object proxy, Method method, Object[] args) throws Throwable;
 }

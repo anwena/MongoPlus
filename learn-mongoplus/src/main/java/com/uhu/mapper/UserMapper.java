@@ -6,6 +6,8 @@ import com.anwen.mongo.annotation.mapper.Select;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.uhu.entity.User;
 
+import java.util.List;
+
 /**
  * @Description:
  * @Name: UserMapper
@@ -17,5 +19,5 @@ import com.uhu.entity.User;
 public interface UserMapper extends BaseMapper<User> {
 
     @Select("{_id: {$eq: #{id}}}")
-    User custom(@Param("id") Integer id);
+    List<User> custom(@Param("id") Integer id);
 }
