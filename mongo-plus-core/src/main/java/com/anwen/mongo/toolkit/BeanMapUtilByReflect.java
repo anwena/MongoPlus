@@ -7,6 +7,7 @@ import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.enums.IdTypeEnum;
+import com.anwen.mongo.handlers.MetaObjectHandler;
 import org.bson.Document;
 
 import java.lang.reflect.Field;
@@ -27,6 +28,8 @@ public class BeanMapUtilByReflect {
     public static List<Document> mapListToDocumentList(Collection<Map<String,Object>> mapCollection){
         return mapCollection.stream().map(map -> Document.parse(JSON.toJSONString(map))).collect(Collectors.toList());
     }
+
+    public static MetaObjectHandler metaObjectHandler;
 
     /**
      * 检查对象属性并返回属性值Map。
@@ -54,17 +57,25 @@ public class BeanMapUtilByReflect {
             Object fieldValue = ReflectionUtils.getFieldValue(entity, field);
             ID idAnnotation = field.getAnnotation(ID.class);
             if (idAnnotation != null) {
-                if (isSave && (!idAnnotation.saveField() || idAnnotation.type() == IdTypeEnum.OBJECT_ID)){
+                //手动设置id值，永远优先
+                if (fieldValue != null){
+                    resultMap.put(SqlOperationConstant._ID,fieldValue);
+                }
+                if (isSave && !idAnnotation.saveField()) {
                     continue;
                 }
-                resultMap.put(SqlOperationConstant._ID,fieldValue);
             }
             // 不为null再进行映射
             if (fieldValue != null){
                 resultMap.put(fieldName, fieldValue);
             }
         }
-        return handleMap(resultMap);
+        Document document = handleMap(resultMap);
+        if (metaObjectHandler != null){
+            metaObjectHandler.insertFill(document);
+            metaObjectHandler.updateFill(document);
+        }
+        return document;
     }
 
     public static Document handleDocument(Document document){

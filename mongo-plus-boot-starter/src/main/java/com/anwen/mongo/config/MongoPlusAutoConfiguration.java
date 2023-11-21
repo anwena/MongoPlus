@@ -1,6 +1,7 @@
 package com.anwen.mongo.config;
 
 import com.anwen.mongo.execute.SqlExecute;
+import com.anwen.mongo.handlers.MetaObjectHandler;
 import com.anwen.mongo.service.IService;
 import com.anwen.mongo.service.impl.ServiceImpl;
 import com.anwen.mongo.strategy.convert.ConversionService;
@@ -70,6 +71,12 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
                 logger.error("Unknown converter type");
                 throw new MongoException("Unknown converter type");
             }
+        });
+    }
+
+    private void setMetaObjectHandler(){
+        applicationContext.getBeansOfType(MetaObjectHandler.class).values().forEach(metaObjectHandler -> {
+
         });
     }
 

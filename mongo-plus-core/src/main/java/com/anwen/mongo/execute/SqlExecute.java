@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -111,7 +112,6 @@ public class SqlExecute {
 
     public <T> Boolean doSave(ClientSession clientSession,T entity) {
         try {
-            Class<?> entityClass = entity.getClass();
             MongoCollection<Document> collection = getCollection(ClassTypeUtil.getClass(entity));
             Document document = processIdField(entity);
             InsertOneResult insertOneResult = Optional.ofNullable(clientSession)
@@ -1095,7 +1095,15 @@ public class SqlExecute {
             if (annotation.type() == IdTypeEnum.OBJECT_ID){
                 return;
             }
-            tableFieldMap.put(SqlOperationConstant._ID, Generate.generateId(annotation.type()));
+            Object value;
+            try {
+                value = ConversionService.convertValue(idField, ClassTypeUtil.getClass(entity).getDeclaredConstructor().newInstance(), Generate.generateId(annotation.type()));
+            } catch (IllegalAccessException | InstantiationException | InvocationTargetException |
+                     NoSuchMethodException e) {
+                logger.error("Failed to convert to entity class's' _id 'field type when filling in'_id',error message: {}",e.getMessage(),e);
+                throw new RuntimeException(e);
+            }
+            tableFieldMap.put(SqlOperationConstant._ID, value);
         }
     }
 
