@@ -3,8 +3,8 @@ package com.anwen.mongo.proxy.impl;
 import com.anwen.mongo.annotation.mapper.Param;
 import com.anwen.mongo.mapper.AbstractMapper;
 import com.anwen.mongo.proxy.MapperAnnotationProcessor;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
+import com.anwen.mongo.toolkit.CollUtil;
+import com.anwen.mongo.toolkit.StringUtils;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
@@ -32,23 +32,8 @@ public abstract class AbstractSqlAnnotationProcessor implements MapperAnnotation
         String realSql = cachedMethodInfo.replaceSqlArgs(args);
         // 执行
         List<?> resultList = source.sql(realSql);
-        // 判断结果类型
-        if (cachedMethodInfo.returnType.equals(RETURN_ONE)) {
-            if (CollectionUtils.isEmpty(resultList)) return null;
-            return resultList.get(0);
-        } else if (cachedMethodInfo.returnType.equals(RETURN_LIST)) {
-            if (CollectionUtils.isEmpty(resultList)) return new ArrayList<>(0);
-            return resultList;
-        } else if (cachedMethodInfo.returnType.equals(RETURN_ARRAY)) {
-            Class<?> componentType = method.getReturnType().getComponentType();
-            if (CollectionUtils.isEmpty(resultList)) return Array.newInstance(componentType, 0);
-            Object[] objects = (Object[]) Array.newInstance(componentType, resultList.size());
-            for (int i = 0; i < objects.length; i++) {
-                objects[i] = resultList.get(i);
-            }
-            return objects;
-        }
-        throw new IllegalArgumentException("The return type is illegal.");
+        // 获取返回结果
+        return cachedMethodInfo.getResultByReturnType(resultList);
     }
 
     /**
@@ -68,7 +53,7 @@ public abstract class AbstractSqlAnnotationProcessor implements MapperAnnotation
         if (Objects.isNull(cachedMethodInfo)) {
             // 进行缓存
             cachedMethodInfo = new CachedMethodInfo();
-            cachedMethodInfo.sqltemplate = sqlSupplier.get();
+            cachedMethodInfo.sqlTemplate = sqlSupplier.get();
             cachedMethodInfo.method = method;
             cachedMethodInfo.cacheArgMap();
             cachedMethodInfo.cacheReturnType();
@@ -81,6 +66,7 @@ public abstract class AbstractSqlAnnotationProcessor implements MapperAnnotation
     private static final Integer RETURN_ONE = 1;
     private static final Integer RETURN_LIST = 2;
     private static final Integer RETURN_ARRAY = 3;
+    // private static final Integer RETURN_MAP = 4;
 
     /**
      * 缓存的方法信息
@@ -89,7 +75,7 @@ public abstract class AbstractSqlAnnotationProcessor implements MapperAnnotation
         // 对应方法
         Method method;
         // sql模板
-        String sqltemplate;
+        String sqlTemplate;
         // 参数模板下标对照map
         Map<String, Integer> argMap;
         // 返回数量类型
@@ -106,7 +92,7 @@ public abstract class AbstractSqlAnnotationProcessor implements MapperAnnotation
                 String argName = parameters[i].getName();
                 if (parameters[i].isAnnotationPresent(Param.class)) {
                     Param param = parameters[i].getAnnotation(Param.class);
-                    if (StringUtils.hasText(param.value())) {
+                    if (!StringUtils.isEmpty(param.value())) {
                         argName = param.value();
                     }
                 }
@@ -122,7 +108,7 @@ public abstract class AbstractSqlAnnotationProcessor implements MapperAnnotation
          */
         public String replaceSqlArgs(Object[] args) {
             // 循环替换
-            String sqlTemplate = this.sqltemplate;
+            String sqlTemplate = this.sqlTemplate;
             for (Map.Entry<String, Integer> entry : argMap.entrySet()) {
                 sqlTemplate = sqlTemplate.replace("#{" + entry.getKey() + "}", args[entry.getValue()].toString());
             }
@@ -145,6 +131,30 @@ public abstract class AbstractSqlAnnotationProcessor implements MapperAnnotation
                 returnType.getTypeName().startsWith(ArrayList.class.getTypeName())) {
                 this.returnType = RETURN_LIST;
             }
+        }
+
+        /**
+         * 根据返回类型获取结果
+         * @param resultList
+         * @return
+         */
+        public Object getResultByReturnType(List<?> resultList) {
+            if (returnType.equals(RETURN_ONE)) {
+                if (CollUtil.isEmpty(resultList)) return null;
+                return resultList.get(0);
+            } else if (returnType.equals(RETURN_LIST)) {
+                if (CollUtil.isEmpty(resultList)) return new ArrayList<>(0);
+                return resultList;
+            } else if (returnType.equals(RETURN_ARRAY)) {
+                Class<?> componentType = method.getReturnType().getComponentType();
+                if (CollUtil.isEmpty(resultList)) return Array.newInstance(componentType, 0);
+                Object[] objects = (Object[]) Array.newInstance(componentType, resultList.size());
+                for (int i = 0; i < objects.length; i++) {
+                    objects[i] = resultList.get(i);
+                }
+                return objects;
+            }
+            throw new IllegalArgumentException("The return type is illegal.");
         }
     }
 }

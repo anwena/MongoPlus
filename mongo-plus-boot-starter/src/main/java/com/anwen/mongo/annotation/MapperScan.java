@@ -19,5 +19,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Import(MongoPlusMapperRegistrar.class)
 public @interface MapperScan {
+
+    // 扫描的包名
     String[] basePackages() default "";
 }

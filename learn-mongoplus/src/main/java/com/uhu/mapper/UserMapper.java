@@ -1,6 +1,5 @@
 package com.uhu.mapper;
 
-import com.anwen.mongo.annotation.Mapper;
 import com.anwen.mongo.annotation.mapper.Param;
 import com.anwen.mongo.annotation.mapper.Select;
 import com.anwen.mongo.mapper.BaseMapper;
@@ -15,9 +14,14 @@ import java.util.List;
  * @CreateTime: 2023/11/16 14:31
  */
 
-@Mapper
 public interface UserMapper extends BaseMapper<User> {
 
     @Select("{_id: {$eq: #{id}}}")
-    List<User> custom(@Param("id") Integer id);
+    User getOneById(@Param("id") Integer id);
+
+    @Select("{_id: {$gte: #{arg0}}}")
+    List<User> getList(@Param Integer id);
+
+    @Select("{_id: {$lte: #{arg0}}}")
+    User[] getArray(@Param Integer id);
 }

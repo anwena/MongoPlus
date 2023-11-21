@@ -1,10 +1,8 @@
 package com.anwen.mongo.registrar;
 
-import com.anwen.mongo.annotation.Mapper;
+import com.anwen.mongo.adaptor.MapperProxyAdaptor;
 import com.anwen.mongo.annotation.MapperScan;
-import com.anwen.mongo.mapper.BaseMapper;
-import com.anwen.mongo.proxy.MapperProxy;
-import org.reflections.Reflections;
+import com.anwen.mongo.mapper.MapperScanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -12,7 +10,6 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.type.AnnotationMetadata;
-import org.springframework.util.StringUtils;
 
 import java.util.*;
 
@@ -23,7 +20,7 @@ import java.util.*;
  * @Author: Bomber
  * @CreateTime: 2023/11/16 15:51
  */
-public class MongoPlusMapperRegistrar implements ImportBeanDefinitionRegistrar {
+public class MongoPlusMapperRegistrar extends MapperScanner implements ImportBeanDefinitionRegistrar {
 
     private final Logger logger = LoggerFactory.getLogger(MongoPlusMapperRegistrar.class);
 
@@ -57,7 +54,7 @@ public class MongoPlusMapperRegistrar implements ImportBeanDefinitionRegistrar {
         mapperClasses.forEach(mapperClass -> {
             GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
             beanDefinition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
-            beanDefinition.setBeanClass(MapperProxy.class);
+            beanDefinition.setBeanClass(MapperProxyAdaptor.class);
             beanDefinition.getPropertyValues().add("mapperClass", mapperClass);
             beanDefinition.setPrimary(true);
             beanDefinition.setLazyInit(false);
@@ -65,27 +62,7 @@ public class MongoPlusMapperRegistrar implements ImportBeanDefinitionRegistrar {
 
             // 生成bean的名字
             String beanName = mapperClass.getSimpleName().substring(0, 1).toLowerCase() + mapperClass.getSimpleName().substring(1);
-            if (mapperClass.isAnnotationPresent(Mapper.class)) {
-                Mapper annotation = mapperClass.getAnnotation(Mapper.class);
-                if (StringUtils.hasText(annotation.value())) beanName = annotation.value();
-            }
             registry.registerBeanDefinition(beanName, beanDefinition);
         });
     }
-
-    /**
-     * 扫描mapper接口
-     * @param packages 包集合
-     * @return
-     */
-    private Set<Class<?>> scanMappers(List<String> packages) {
-        Set<Class<?>> classes = new HashSet<>();
-        packages.forEach(p -> {
-            Reflections reflections = new Reflections(p);
-            classes.addAll(reflections.getSubTypesOf(BaseMapper.class));
-        });
-        return classes;
-    }
-
-
 }

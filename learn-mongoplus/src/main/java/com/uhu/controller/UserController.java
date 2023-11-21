@@ -26,8 +26,18 @@ public class UserController {
         return userMapper.getById(id);
     }
 
-    @GetMapping("/custom/{id}")
-    public List<User> customById(@PathVariable Integer id) {
-        return userMapper.custom(id);
+    @GetMapping("/one/{id}")
+    public User test1(@PathVariable Integer id) {
+        return userMapper.getOneById(id);
+    }
+
+    @GetMapping("/list/{id}")
+    public List<User> test2(@PathVariable Integer id) {
+        return userMapper.getList(id);
+    }
+
+    @GetMapping("/array/{id}")
+    public User[] test3(@PathVariable Integer id) {
+        return userMapper.getArray(id);
     }
 }

@@ -13,5 +13,10 @@ import java.lang.annotation.*;
 @Target(ElementType.PARAMETER)
 @Documented
 public @interface Param {
+
+    /**
+     * 参数名称
+     * @return
+     */
     String value() default "";
 }
