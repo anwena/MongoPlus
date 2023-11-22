@@ -3,7 +3,7 @@ package com.anwen.mongo.config;
 import com.anwen.mongo.cache.global.MongoClientCache;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.execute.SqlExecute;
-import com.anwen.mongo.log.CustomMongoDriverLogger;
+import com.anwen.mongo.interceptor.LogInterceptor;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBConnectProperty;
@@ -56,7 +56,7 @@ public class MongoPlusConfiguration {
         MongoClientSettings.Builder builder = MongoClientSettings.builder()
                 .applyConnectionString(new ConnectionString(urlJoint.jointMongoUrl()));
         if (mongoDBLogProperty.getLog()) {
-            builder.addCommandListener(new CustomMongoDriverLogger(mongoDBLogProperty.getFormat()));
+            builder.addCommandListener(new LogInterceptor());
         }
         this.mongoClient = MongoClients.create(builder.build());
         MongoClientCache.mongoClient = this.mongoClient;

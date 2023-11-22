@@ -1,5 +1,6 @@
 package com.anwen.mongo.property;
 
+import com.anwen.mongo.cache.global.PropertyCache;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -37,6 +38,7 @@ public class MongoDBLogProperty {
     }
 
     public void setFormat(final Boolean format) {
+        PropertyCache.format = format;
         this.format = format;
     }
 

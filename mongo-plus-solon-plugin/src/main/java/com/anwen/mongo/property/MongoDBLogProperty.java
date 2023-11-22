@@ -1,11 +1,14 @@
 package com.anwen.mongo.property;
 
+import com.anwen.mongo.cache.global.PropertyCache;
+import com.anwen.mongo.interceptor.LogInterceptor;
+
 /**
  * @author JiaChaoYang
  * 日志属性
  * @since 2023-06-07 23:07
  **/
-public class MongoDBLogProperty {
+public class MongoDBLogProperty extends LogInterceptor {
 
     /**
      * 是否开启日志
@@ -34,6 +37,7 @@ public class MongoDBLogProperty {
     }
 
     public void setFormat(final Boolean format) {
+        PropertyCache.format = format;
         this.format = format;
     }
 

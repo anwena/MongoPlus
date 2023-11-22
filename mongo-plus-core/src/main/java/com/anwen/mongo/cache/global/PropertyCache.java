@@ -21,4 +21,11 @@ public class PropertyCache {
     */
     public static Boolean transaction = false;
 
+    /**
+     * 格式化执行语句，默认false
+     * @author JiaChaoYang
+     * @date 2023/11/22 11:03
+    */
+    public static Boolean format = false;
+
 }

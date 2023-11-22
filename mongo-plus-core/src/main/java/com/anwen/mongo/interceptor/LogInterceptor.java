@@ -1,8 +1,9 @@
-package com.anwen.mongo.log;
+package com.anwen.mongo.interceptor;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.anwen.mongo.cache.global.PropertyCache;
 import com.mongodb.event.CommandFailedEvent;
 import com.mongodb.event.CommandListener;
 import com.mongodb.event.CommandStartedEvent;
@@ -10,18 +11,12 @@ import com.mongodb.event.CommandSucceededEvent;
 
 import java.util.Objects;
 
-public class CustomMongoDriverLogger implements CommandListener {
-
-    /**
-     * 是否格式化
-     * @author JiaChaoYang
-     * @date 2023/8/29 0:53
-    */
-    private final Boolean format;
-
-    public CustomMongoDriverLogger(Boolean format) {
-        this.format = format;
-    }
+/**
+ * Mongo拦截器，这里可以打印日志，也可以做防止全表更新的操作
+ * @author JiaChaoYang
+ * @date 2023/11/22 10:54
+*/
+public class LogInterceptor implements CommandListener {
 
     /**
      * 处理命令开始事件
@@ -63,7 +58,7 @@ public class CustomMongoDriverLogger implements CommandListener {
     }
 
     private String formattingStatement(String statement){
-        return format ? JSON.toJSONString(JSONObject.parse(statement), SerializerFeature.PrettyFormat, SerializerFeature.WriteMapNullValue,
+        return PropertyCache.format ? JSON.toJSONString(JSONObject.parse(statement), SerializerFeature.PrettyFormat, SerializerFeature.WriteMapNullValue,
                 SerializerFeature.WriteDateUseDateFormat) : statement;
     }
 
