@@ -26,25 +26,25 @@ public class UserController {
 
     @Get
     @Mapping("/user/{id}")
-    public User getById(@Path Integer id) {
+    public User getById(@Path("id") Integer id) {
         return userMapper.getById(id);
     }
 
     @Get
     @Mapping("/one/{id}")
-    public User test1(@Path Integer id) {
+    public User test1(@Path("id") Integer id) {
         return userMapper.getOneById(id);
     }
 
     @Get
     @Mapping("/list/{id}")
-    public List<User> test2(@Path Integer id) {
+    public List<User> test2(@Path("id") Integer id) {
         return userMapper.getList(id);
     }
 
     @Get
     @Mapping("/array/{id}")
-    public User[] test3(@Path Integer id) {
+    public User[] test3(@Path("id") Integer id) {
         return userMapper.getArray(id);
     }
 }

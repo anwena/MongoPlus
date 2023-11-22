@@ -1,6 +1,5 @@
 package com.uhu;
 
-import com.anwen.mongo.annotation.MapperScan;
 import org.noear.solon.Solon;
 
 /**
