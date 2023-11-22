@@ -1,4 +1,4 @@
-package com.anwen.mongo.annotation;
+package com.anwen.mongo.annotation.mapper;
 
 import java.lang.annotation.*;
 

@@ -8,8 +8,6 @@ import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.cache.global.AutoFillCache;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.enums.FieldFill;
-import com.anwen.mongo.enums.IdTypeEnum;
-import com.anwen.mongo.handlers.MetaObjectHandler;
 import org.bson.Document;
 
 import java.lang.reflect.Field;
@@ -17,7 +15,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 
