@@ -1,5 +1,6 @@
 package com.anwen.mongo.property;
 
+import com.anwen.mongo.cache.global.OrderCache;
 import com.anwen.mongo.cache.global.PropertyCache;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -17,6 +18,22 @@ public class MongoDBLogProperty {
      * @date: 2023/6/7 23:08
      **/
     private Boolean log = false;
+
+    /**
+     * 指定日志拦截器的order，默认为0
+     * @author JiaChaoYang
+     * @date 2023/11/22 19:01
+    */
+    private int logOrder = 0;
+
+    public int getLogOrder() {
+        return logOrder;
+    }
+
+    public void setLogOrder(int logOrder) {
+        OrderCache.LOG_ORDER = logOrder;
+        this.logOrder = logOrder;
+    }
 
     /**
      * 是否打开格式化sql

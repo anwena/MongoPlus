@@ -7,7 +7,7 @@ import com.anwen.mongo.model.command.CommandSucceeded;
 /**
  * @author JiaChaoYang
  * @project mongo-plus
- * @description
+ * @description 拦截器
  * @date 2023-11-22 14:12
  **/
 public interface Interceptor {

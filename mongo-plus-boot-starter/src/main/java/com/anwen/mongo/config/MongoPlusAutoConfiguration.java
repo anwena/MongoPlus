@@ -1,39 +1,59 @@
 package com.anwen.mongo.config;
 
 import com.anwen.mongo.cache.global.AutoFillCache;
+import com.anwen.mongo.cache.global.InterceptorCache;
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.handlers.MetaObjectHandler;
+import com.anwen.mongo.interceptor.Interceptor;
+import com.anwen.mongo.interceptor.business.BlockAttackInnerInterceptor;
+import com.anwen.mongo.interceptor.business.LogInterceptor;
+import com.anwen.mongo.property.MongoDBCollectionProperty;
+import com.anwen.mongo.property.MongoDBLogProperty;
 import com.anwen.mongo.service.IService;
 import com.anwen.mongo.service.impl.ServiceImpl;
 import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.strategy.convert.ConversionStrategy;
-import com.anwen.mongo.toolkit.BeanMapUtilByReflect;
+import com.anwen.mongo.toolkit.CollUtil;
 import com.mongodb.MongoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * MongoPlus自动注入配置
  * @author JiaChaoYang
  **/
+@EnableConfigurationProperties(MongoDBLogProperty.class)
 public class MongoPlusAutoConfiguration implements InitializingBean {
 
     private final SqlExecute sqlExecute;
 
     private final ApplicationContext applicationContext;
 
+    private final MongoDBLogProperty mongoDBLogProperty;
+
+    private final MongoDBCollectionProperty mongoDBCollectionProperty;
+
     Logger logger = LoggerFactory.getLogger(MongoPlusAutoConfiguration.class);
 
-    public MongoPlusAutoConfiguration(SqlExecute sqlExecute, ApplicationContext applicationContext) {
+    public MongoPlusAutoConfiguration(MongoDBLogProperty mongoDBLogProperty,MongoDBCollectionProperty mongoDBCollectionProperty,SqlExecute sqlExecute, ApplicationContext applicationContext) {
         this.sqlExecute = sqlExecute;
         this.applicationContext = applicationContext;
+        this.mongoDBLogProperty = mongoDBLogProperty;
+        this.mongoDBCollectionProperty = mongoDBCollectionProperty;
         setConversion();
         setMetaObjectHandler();
+        setInterceptor();
     }
 
     @Override
@@ -85,6 +105,26 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         applicationContext.getBeansOfType(MetaObjectHandler.class).values().forEach(metaObjectHandler -> {
             AutoFillCache.metaObjectHandler = metaObjectHandler;
         });
+    }
+
+    /**
+     * 从Bean中拿到拦截器
+     * @author JiaChaoYang
+     * @date 2023/11/22 18:39
+    */
+    private void setInterceptor(){
+        List<Interceptor> interceptors = new ArrayList<>();
+        if (mongoDBLogProperty.getLog()){
+            interceptors.add(new LogInterceptor());
+        }
+        if (mongoDBCollectionProperty.getBlockAttackInner()){
+            interceptors.add(new BlockAttackInnerInterceptor());
+        }
+        Collection<Interceptor> interceptorCollection = applicationContext.getBeansOfType(Interceptor.class).values();
+        if (CollUtil.isNotEmpty(interceptorCollection)){
+            interceptors.addAll(interceptorCollection);
+        }
+        InterceptorCache.interceptors = interceptors.stream().sorted(Comparator.comparingInt(Interceptor::getOrder)).collect(Collectors.toList());
     }
 
 }

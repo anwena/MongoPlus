@@ -1,7 +1,8 @@
 package com.anwen.mongo.property;
 
+import com.anwen.mongo.cache.global.OrderCache;
 import com.anwen.mongo.cache.global.PropertyCache;
-import com.anwen.mongo.interceptor.LogInterceptor;
+import com.anwen.mongo.interceptor.business.LogInterceptor;
 
 /**
  * @author JiaChaoYang
@@ -23,6 +24,23 @@ public class MongoDBLogProperty extends LogInterceptor {
      * @date 2023/8/29 0:52
     */
     private Boolean format = false;
+
+    /**
+     * 指定日志拦截器的order，默认为0
+     * @author JiaChaoYang
+     * @date 2023/11/22 19:01
+     */
+    private int logOrder = 0;
+
+    public int getLogOrder() {
+        return logOrder;
+    }
+
+    public void setLogOrder(int logOrder) {
+        OrderCache.LOG_ORDER = logOrder;
+        this.logOrder = logOrder;
+    }
+
 
     public Boolean getLog() {
         return this.log;

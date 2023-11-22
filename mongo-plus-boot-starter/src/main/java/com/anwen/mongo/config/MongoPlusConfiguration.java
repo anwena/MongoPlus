@@ -3,11 +3,10 @@ package com.anwen.mongo.config;
 import com.anwen.mongo.cache.global.MongoClientCache;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.execute.SqlExecute;
-import com.anwen.mongo.interceptor.LogInterceptor;
+import com.anwen.mongo.interceptor.BaseInterceptor;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBConnectProperty;
-import com.anwen.mongo.property.MongoDBLogProperty;
 import com.anwen.mongo.toolkit.MongoCollectionUtils;
 import com.anwen.mongo.toolkit.UrlJoint;
 import com.anwen.mongo.transactional.MongoTransactionalAspect;
@@ -20,15 +19,17 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.DependsOn;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+
 /**
  * @author JiaChaoYang
  * 连接配置
  * @since 2023-02-09 14:27
  **/
-@EnableConfigurationProperties(value = {MongoDBConnectProperty.class, MongoDBLogProperty.class, MongoDBCollectionProperty.class})
+@EnableConfigurationProperties(value = {MongoDBConnectProperty.class, MongoDBCollectionProperty.class})
 public class MongoPlusConfiguration {
-
-    private final MongoDBLogProperty mongoDBLogProperty;
 
     private final MongoDBConnectProperty mongoDBConnectProperty;
 
@@ -42,9 +43,8 @@ public class MongoPlusConfiguration {
         return sqlExecute;
     }
 
-    public MongoPlusConfiguration(MongoDBConnectProperty mongoDBConnectProperty, MongoDBLogProperty mongoDBLogProperty, MongoDBCollectionProperty mongoDBCollectionProperty) {
+    public MongoPlusConfiguration(MongoDBConnectProperty mongoDBConnectProperty, MongoDBCollectionProperty mongoDBCollectionProperty) {
         this.mongoDBConnectProperty = mongoDBConnectProperty;
-        this.mongoDBLogProperty = mongoDBLogProperty;
         this.mongoDBCollectionProperty = mongoDBCollectionProperty;
     }
 
@@ -61,12 +61,8 @@ public class MongoPlusConfiguration {
                 MongoCollectionUtils.build(mongoDBCollectionProperty.getMappingStrategy());
         sqlExecute.setCollectionNameConvert(collectionNameConvert);
         UrlJoint urlJoint = new UrlJoint(mongoDBConnectProperty);
-        MongoClientSettings.Builder builder = MongoClientSettings.builder()
-                .applyConnectionString(new ConnectionString(urlJoint.jointMongoUrl()));
-        if (mongoDBLogProperty.getLog()) {
-            builder.addCommandListener(new LogInterceptor());
-        }
-        this.mongoClient = MongoClients.create(builder.build());
+        this.mongoClient = MongoClients.create(MongoClientSettings.builder()
+                .applyConnectionString(new ConnectionString(urlJoint.jointMongoUrl())).commandListenerList(Collections.singletonList(new BaseInterceptor())).build());
         sqlExecute.setMongoClient(this.mongoClient);
         this.sqlExecute = sqlExecute;
         return sqlExecute;

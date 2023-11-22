@@ -3,7 +3,7 @@ package com.anwen.mongo.config;
 import com.anwen.mongo.cache.global.MongoClientCache;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.execute.SqlExecute;
-import com.anwen.mongo.interceptor.LogInterceptor;
+import com.anwen.mongo.interceptor.BaseInterceptor;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBConnectProperty;
@@ -40,7 +40,6 @@ public class MongoPlusConfiguration {
     @Bean
     @Condition(onMissingBean = SqlExecute.class)
     public SqlExecute sqlExecute(@Inject("${mongo-plus.data.mongodb}") MongoDBConnectProperty mongoDBConnectProperty,
-                                 @Inject("${mongo-plus}") MongoDBLogProperty mongoDBLogProperty,
                                  @Inject(value = "${mongo-plus.configuration.collection}",required = false) MongoDBCollectionProperty mongoDBCollectionProperty) {
         if (this.sqlExecute != null) {
             return this.sqlExecute;
@@ -53,12 +52,8 @@ public class MongoPlusConfiguration {
                 MongoCollectionUtils.build(mongoDBCollectionProperty.getMappingStrategy());
         sqlExecute.setCollectionNameConvert(collectionNameConvert);
         UrlJoint urlJoint = new UrlJoint(mongoDBConnectProperty);
-        MongoClientSettings.Builder builder = MongoClientSettings.builder()
-                .applyConnectionString(new ConnectionString(urlJoint.jointMongoUrl()));
-        if (mongoDBLogProperty.getLog()) {
-            builder.addCommandListener(new LogInterceptor());
-        }
-        this.mongoClient = MongoClients.create(builder.build());
+        this.mongoClient = MongoClients.create(MongoClientSettings.builder()
+                .applyConnectionString(new ConnectionString(urlJoint.jointMongoUrl())).addCommandListener(new BaseInterceptor()).build());
         MongoClientCache.mongoClient = this.mongoClient;
         sqlExecute.setMongoClient(this.mongoClient);
         this.sqlExecute = sqlExecute;
@@ -78,8 +73,10 @@ public class MongoPlusConfiguration {
     }
 
     @Bean
-    public MongoPlusAutoConfiguration mongoPlusAutoConfiguration(@Inject SqlExecute sqlExecute){
-        return new MongoPlusAutoConfiguration(this.sqlExecute);
+    public MongoPlusAutoConfiguration mongoPlusAutoConfiguration(@Inject SqlExecute sqlExecute,
+                                                                 @Inject("${mongo-plus}") MongoDBLogProperty mongoDBLogProperty,
+                                                                 @Inject(value = "${mongo-plus.configuration.collection}",required = false) MongoDBCollectionProperty mongoDBCollectionProperty){
+        return new MongoPlusAutoConfiguration(this.sqlExecute,mongoDBLogProperty,mongoDBCollectionProperty);
     }
 
 }
