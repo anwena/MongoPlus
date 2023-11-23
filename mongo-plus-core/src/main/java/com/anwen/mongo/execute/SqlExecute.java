@@ -45,7 +45,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static com.anwen.mongo.toolkit.BeanMapUtilByReflect.checkTableField;
 import static com.anwen.mongo.toolkit.BeanMapUtilByReflect.getIdField;
 
 /**
@@ -114,7 +113,7 @@ public class SqlExecute {
     public <T> Boolean doSave(ClientSession clientSession,T entity) {
         try {
             MongoCollection<Document> collection = getCollection(ClassTypeUtil.getClass(entity));
-            Document document = processIdField(entity);
+            Document document = processIdField(entity,false);
             InsertOneResult insertOneResult = Optional.ofNullable(clientSession)
                     .map(session -> collection.insertOne(session, document))
                     .orElseGet(() -> collection.insertOne(document));
@@ -133,7 +132,7 @@ public class SqlExecute {
     public Boolean doSave(ClientSession clientSession,String collectionName, Map<String, Object> entityMap) {
         try {
             MongoCollection<Document> collection = getCollection(collectionName);
-            Document document = BeanMapUtilByReflect.handleMap(entityMap);
+            Document document = DocumentUtil.handleMap(entityMap,true);
             return Optional.ofNullable(clientSession)
                     .map(session -> collection.insertOne(session, document))
                     .orElseGet(() -> collection.insertOne(document)).wasAcknowledged();
@@ -167,7 +166,7 @@ public class SqlExecute {
     public Boolean doSaveBatch(ClientSession clientSession,String collectionName, Collection<Map<String, Object>> entityList) {
         try {
             MongoCollection<Document> collection = getCollection(collectionName);
-            List<Document> documentList = BeanMapUtilByReflect.handleDocumentList(BeanMapUtilByReflect.mapListToDocumentList(entityList));
+            List<Document> documentList = DocumentUtil.handleDocumentList(BeanMapUtilByReflect.mapListToDocumentList(entityList),true);
             return Optional.ofNullable(clientSession)
                     .map(session -> collection.insertMany(session,documentList))
                     .orElseGet(() -> collection.insertMany(documentList)).getInsertedIds().size() == entityList.size();
@@ -269,7 +268,7 @@ public class SqlExecute {
     }
 
     public <T> Boolean doUpdateById(ClientSession clientSession,T entity) {
-        Document document = checkTableField(entity,false);
+        Document document = DocumentUtil.checkUpdateField(entity,false);
         BasicDBObject filter = getFilter(document);
         BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
         MongoCollection<Document> collection = getCollection(ClassTypeUtil.getClass(entity));
@@ -284,7 +283,7 @@ public class SqlExecute {
 
     public Boolean doUpdateById(ClientSession clientSession,String collectionName, Map<String, Object> entityMap) {
         BasicDBObject filter = getFilter(entityMap);
-        BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), BeanMapUtilByReflect.handleMap(entityMap));
+        BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), DocumentUtil.handleMap(entityMap,false));
         MongoCollection<Document> collection = getCollection(collectionName,entityMap);
         return Optional.ofNullable(clientSession)
                 .map(session -> collection.updateOne(session,filter,update))
@@ -342,7 +341,7 @@ public class SqlExecute {
         Object filterValue = ClassTypeUtil.getClassFieldValue(entity,column);
         String valueOf = String.valueOf(filterValue);
         Bson filter = Filters.eq(column, ObjectId.isValid(valueOf) ? new ObjectId(valueOf) : filterValue);
-        Document document = checkTableField(entity,false);
+        Document document = DocumentUtil.checkUpdateField(entity,false);
         MongoCollection<Document> collection = getCollection(ClassTypeUtil.getClass(entity));
         return Optional.ofNullable(clientSession).map(session -> collection.updateMany(session,filter,document)).orElseGet(() -> collection.updateMany(filter,document)).getModifiedCount() >= 1;
     }
@@ -357,7 +356,7 @@ public class SqlExecute {
         }
         Object columnValue = entityMap.get(column);
         Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(columnValue)) ? new ObjectId(String.valueOf(columnValue)) : columnValue);
-        Document document = BeanMapUtilByReflect.handleMap(entityMap);
+        Document document = DocumentUtil.handleMap(entityMap,false);
         MongoCollection<Document> collection = getCollection(collectionName);
         return Optional.ofNullable(clientSession).map(session -> collection.updateMany(session,filter,document)).orElseGet(() -> collection.updateMany(filter,document)).getModifiedCount() >= 1;
     }
@@ -1049,13 +1048,13 @@ public class SqlExecute {
         return mongoCollection.withCodecRegistry(RegisterCodecUtil.getCodecCacheAndDefault());
     }
 
-    private <T> Document processIdField(T entity){
+    private <T> Document processIdField(T entity,Boolean skip){
         // TODO 反射较多，考虑使用缓存
-        Document tableFieldMap = checkTableField(entity,true);
+        Document tableFieldMap = DocumentUtil.checkTableField(entity,true);
         fillId(entity, tableFieldMap);
-        if (HandlerCache.documentHandler != null){
+        if (HandlerCache.documentHandler != null && !skip){
             //经过一下Document处理器
-            HandlerCache.documentHandler.invoke(Collections.singletonList(tableFieldMap));
+            tableFieldMap = HandlerCache.documentHandler.insertInvoke(Collections.singletonList(tableFieldMap)).get(0);
         }
         return tableFieldMap;
     }
@@ -1065,16 +1064,23 @@ public class SqlExecute {
         MongoCollection<Document> collection = getCollection("counters");
         Document query = new Document(SqlOperationConstant._ID, collectionNameConvert.convert(clazz));
         Document update = new Document("$inc", new Document(SqlOperationConstant.AUTO_NUM, 1));
-        Document document = Optional.ofNullable(MongoTransactionContext.getClientSessionContext()).map(session -> collection.findOneAndUpdate(session,query,update,new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER))).orElseGet(() -> collection.findOneAndUpdate(query,update,new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)));
+        Document document = Optional.ofNullable(MongoTransactionContext.getClientSessionContext())
+                .map(session -> collection.findOneAndUpdate(session,query,update,new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)))
+                .orElseGet(() -> collection.findOneAndUpdate(query,update,new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)));
         if (document == null){
             Integer finalNum = num;
             collection.insertOne(new Document(new HashMap<String,Object>(){{
                 put(SqlOperationConstant._ID, collectionNameConvert.convert(clazz));
                 put(SqlOperationConstant.AUTO_NUM, finalNum);
             }}));
-        }else {
+        } else {
             num = Integer.parseInt(String.valueOf(document.get(SqlOperationConstant.AUTO_NUM)));
+            // 检查是否冲突，这里使用了乐观锁的原理，如果发现冲突就重新获取id
+            if (num != document.getInteger(SqlOperationConstant.AUTO_NUM)){
+                return getAutoId(clazz);  // 重新获取id
+            }
         }
+        System.out.println("自增值："+num);
         return num;
     }
 
@@ -1141,8 +1147,8 @@ public class SqlExecute {
     }
 
     private <T> List<Document> processIdFieldList(Collection<T> entityList){
-        List<Document> documentList = entityList.stream().map(this::processIdField).collect(Collectors.toList());
-        return Optional.ofNullable(HandlerCache.documentHandler).map(documentHandler -> documentHandler.invoke(documentList)).orElse(documentList);
+        List<Document> documentList = entityList.stream().map(document -> processIdField(document,true)).collect(Collectors.toList());
+        return Optional.ofNullable(HandlerCache.documentHandler).map(documentHandler -> documentHandler.insertInvoke(documentList)).orElse(documentList);
     }
 
     public Map<String, MongoCollection<Document>> getCollectionMap() {
