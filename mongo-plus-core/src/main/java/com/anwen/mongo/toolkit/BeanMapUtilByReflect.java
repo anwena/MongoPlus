@@ -5,11 +5,9 @@ import com.alibaba.fastjson.serializer.PropertyFilter;
 import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
-import com.anwen.mongo.cache.global.AutoFillCache;
+import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.enums.FieldFill;
-import com.anwen.mongo.enums.IdTypeEnum;
-import com.anwen.mongo.handlers.MetaObjectHandler;
 import org.bson.Document;
 
 import java.lang.reflect.Field;
@@ -17,7 +15,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 
@@ -76,11 +73,11 @@ public class BeanMapUtilByReflect {
             }
         }
         Document document = handleMap(resultMap);
-        if (AutoFillCache.metaObjectHandler != null){
+        if (HandlerCache.metaObjectHandler != null){
             if (isSave) {
-                AutoFillCache.metaObjectHandler.insertFill(insertFillMap,document);
+                HandlerCache.metaObjectHandler.insertFill(insertFillMap,document);
             } else {
-                AutoFillCache.metaObjectHandler.updateFill(updateFillMap,document);
+                HandlerCache.metaObjectHandler.updateFill(updateFillMap,document);
             }
         }
         return document;
@@ -107,11 +104,10 @@ public class BeanMapUtilByReflect {
     }
 
     public static List<Document> handleDocumentList(List<Document> documentList){
-        return new ArrayList<Document>(){{
-            documentList.forEach(document -> {
-                add(handleDocument(document));
-            });
+        List<Document> documentArrayList = new ArrayList<Document>() {{
+            documentList.forEach(document -> add(handleDocument(document)));
         }};
+        return Optional.ofNullable(HandlerCache.documentHandler).map(documentHandler -> documentHandler.invoke(documentArrayList)).orElse(documentArrayList);
     }
 
     public static void getFillInsertAndUpdateField(List<Field> fieldList,Map<String,Object> insertFill,Map<String,Object> updateFill){
@@ -142,7 +138,8 @@ public class BeanMapUtilByReflect {
     }
 
     public static Document handleMap(Map<String,Object> map){
-        return handleDocument(new Document(map));
+        Document handleDocument = handleDocument(new Document(map));
+        return Optional.ofNullable(HandlerCache.documentHandler).map(documentHandler -> documentHandler.invoke(Collections.singletonList(handleDocument)).get(0)).orElse(handleDocument);
     }
 
     public static Field getIdField(Class<?> clazz) {

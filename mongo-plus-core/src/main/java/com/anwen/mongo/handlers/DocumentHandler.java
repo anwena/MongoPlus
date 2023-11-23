@@ -1,0 +1,22 @@
+package com.anwen.mongo.handlers;
+
+import org.bson.Document;
+
+import java.util.List;
+
+/**
+ * Document处理器，添加和修改会经过这里，可以对添加修改的数据进行进一步修改
+ * @author JiaChaoYang
+ * @date 2023/11/23 12:50
+*/
+public interface DocumentHandler {
+
+    /**
+     * 处理Document
+     * @param document 添加和修改时最终生成的Document
+     * @author JiaChaoYang
+     * @date 2023/11/23 12:59
+    */
+    List<Document> invoke(List<Document> document);
+
+}

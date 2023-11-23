@@ -2,6 +2,7 @@ package com.anwen.mongo.execute;
 
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionName;
+import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
@@ -1052,6 +1053,10 @@ public class SqlExecute {
         // TODO 反射较多，考虑使用缓存
         Document tableFieldMap = checkTableField(entity,true);
         fillId(entity, tableFieldMap);
+        if (HandlerCache.documentHandler != null){
+            //经过一下Document处理器
+            HandlerCache.documentHandler.invoke(Collections.singletonList(tableFieldMap));
+        }
         return tableFieldMap;
     }
 
@@ -1136,7 +1141,8 @@ public class SqlExecute {
     }
 
     private <T> List<Document> processIdFieldList(Collection<T> entityList){
-        return entityList.stream().map(this::processIdField).collect(Collectors.toList());
+        List<Document> documentList = entityList.stream().map(this::processIdField).collect(Collectors.toList());
+        return Optional.ofNullable(HandlerCache.documentHandler).map(documentHandler -> documentHandler.invoke(documentList)).orElse(documentList);
     }
 
     public Map<String, MongoCollection<Document>> getCollectionMap() {

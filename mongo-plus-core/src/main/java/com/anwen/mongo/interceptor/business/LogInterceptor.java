@@ -35,7 +35,7 @@ public class LogInterceptor implements Interceptor {
         if (Objects.equals(commandSucceeded.getCommandName(), "find") || Objects.equals(commandSucceeded.getCommandName(), "aggregate")){
             System.out.println(commandSucceeded.getCommandName()+" results of execution ==> ");
             System.out.println(commandSucceeded.getResponse().getDocument("cursor").get("firstBatch").asArray().getValues().size());
-        } else if (Objects.equals(commandSucceeded.getCommandName(), "insert") || Objects.equals(commandSucceeded.getCommandName(), "delete")) {
+        } else if (Objects.equals(commandSucceeded.getCommandName(), "insert") || Objects.equals(commandSucceeded.getCommandName(), "delete") || Objects.equals(commandSucceeded.getCommandName(),"update")) {
             System.out.println(commandSucceeded.getCommandName()+" results of execution ==> ");
             System.out.println(commandSucceeded.getResponse().get("n").asInt32().getValue());
         }

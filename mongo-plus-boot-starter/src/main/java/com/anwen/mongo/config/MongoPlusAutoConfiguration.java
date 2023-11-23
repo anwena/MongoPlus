@@ -1,8 +1,9 @@
 package com.anwen.mongo.config;
 
-import com.anwen.mongo.cache.global.AutoFillCache;
+import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.cache.global.InterceptorCache;
 import com.anwen.mongo.execute.SqlExecute;
+import com.anwen.mongo.handlers.DocumentHandler;
 import com.anwen.mongo.handlers.MetaObjectHandler;
 import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.interceptor.business.BlockAttackInnerInterceptor;
@@ -53,6 +54,7 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         this.mongoDBCollectionProperty = mongoDBCollectionProperty;
         setConversion();
         setMetaObjectHandler();
+        setMetaObjectHandler();
         setInterceptor();
     }
 
@@ -102,9 +104,16 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
      * @date 2023/11/21 12:18
     */
     private void setMetaObjectHandler(){
-        applicationContext.getBeansOfType(MetaObjectHandler.class).values().forEach(metaObjectHandler -> {
-            AutoFillCache.metaObjectHandler = metaObjectHandler;
-        });
+        applicationContext.getBeansOfType(MetaObjectHandler.class).values().forEach(metaObjectHandler -> HandlerCache.metaObjectHandler = metaObjectHandler);
+    }
+
+    /**
+     * 从Bean中拿到Document的处理器
+     * @author JiaChaoYang
+     * @date 2023/11/23 12:58
+    */
+    private void setDocumentHandler(){
+        applicationContext.getBeansOfType(DocumentHandler.class).values().forEach(documentHandler -> HandlerCache.documentHandler = documentHandler);
     }
 
     /**

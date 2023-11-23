@@ -1,8 +1,9 @@
 package com.anwen.mongo.config;
 
-import com.anwen.mongo.cache.global.AutoFillCache;
+import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.cache.global.InterceptorCache;
 import com.anwen.mongo.execute.SqlExecute;
+import com.anwen.mongo.handlers.DocumentHandler;
 import com.anwen.mongo.handlers.MetaObjectHandler;
 import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.interceptor.business.BlockAttackInnerInterceptor;
@@ -24,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -55,10 +55,19 @@ public class MongoPlusAutoConfiguration {
         });
         //拿到转换器
         setConversion(context);
+        //拿到自动填充处理器
         setMetaObjectHandler(context);
+        //拿到Document处理器
+        setDocumentHandler(context);
+        //拿到拦截器
         setInterceptor(context);
     }
 
+    /**
+     * 从Bean中拿到Document的处理器
+     * @author JiaChaoYang
+     * @date 2023/11/23 12:56
+    */
     private void setSqlExecute(ServiceImpl<?> serviceImpl,Class<?> clazz) {
         sqlExecute.init(clazz);
         serviceImpl.setClazz(clazz);
@@ -96,9 +105,11 @@ public class MongoPlusAutoConfiguration {
      * @date 2023/11/21 12:18
      */
     private void setMetaObjectHandler(AppContext context){
-        context.getBeansOfType(MetaObjectHandler.class).forEach(metaObjectHandler -> {
-            AutoFillCache.metaObjectHandler = metaObjectHandler;
-        });
+        context.getBeansOfType(MetaObjectHandler.class).forEach(metaObjectHandler -> HandlerCache.metaObjectHandler = metaObjectHandler);
+    }
+
+    private void setDocumentHandler(AppContext appContext){
+        appContext.getBeansOfType(DocumentHandler.class).forEach(documentHandler -> HandlerCache.documentHandler = documentHandler);
     }
 
     /**
