@@ -8,7 +8,7 @@ package com.anwen.mongo.domain;
  * @CreateTime: 2023-02-18 15:09
  * @Version: 1.0
  */
-public class InitMongoCollectionException extends RuntimeException{
+public class InitMongoCollectionException extends RuntimeException {
     private String message;
 
     @Override

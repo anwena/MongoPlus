@@ -1,6 +1,7 @@
 package com.anwen.mongo.interceptor.business;
 
 import com.anwen.mongo.cache.global.OrderCache;
+import com.anwen.mongo.domain.BlockAttackInnerException;
 import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.model.command.CommandFailed;
 import com.anwen.mongo.model.command.CommandStarted;
@@ -25,7 +26,7 @@ public class BlockAttackInnerInterceptor implements Interceptor {
             BsonValue filter = commandStarted.getCommandDocument().get("q");
             if (filter == null || filter.asDocument().isEmpty()) {
                 logger.error("Prohibition of collection {} operation",commandStarted.getCommandName());
-                throw new IllegalArgumentException("Prohibition of collection " + commandStarted.getCommandName() +" operation");
+                throw new BlockAttackInnerException("Prohibition of collection " + commandStarted.getCommandName() +" operation");
             }
         }
     }
