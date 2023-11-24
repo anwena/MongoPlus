@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * AOP操作，实现声明式事务
  * @author JiaChaoYang
  **/
 @Aspect
