@@ -1,5 +1,6 @@
 package com.anwen.mongo.execute;
 
+import com.alibaba.fastjson.JSON;
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.cache.global.HandlerCache;
@@ -19,6 +20,7 @@ import com.anwen.mongo.enums.AggregateOptionsEnum;
 import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.enums.QueryOperatorEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
+import com.anwen.mongo.incrementer.id.AutoIdGenerate;
 import com.anwen.mongo.model.*;
 import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.support.SFunction;
@@ -41,7 +43,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -73,6 +78,8 @@ public class SqlExecute {
     private CollectionNameConvert collectionNameConvert;
 
     private String createIndex = null;
+
+    private AtomicInteger num;
 
 
     public void init(Class<?> clazz) {
@@ -114,6 +121,7 @@ public class SqlExecute {
         try {
             MongoCollection<Document> collection = getCollection(ClassTypeUtil.getClass(entity));
             Document document = processIdField(entity,false);
+            System.out.println("最终添加到Mongo中的值："+ JSON.toJSONString(document));
             InsertOneResult insertOneResult = Optional.ofNullable(clientSession)
                     .map(session -> collection.insertOne(session, document))
                     .orElseGet(() -> collection.insertOne(document));
@@ -1059,29 +1067,32 @@ public class SqlExecute {
         return tableFieldMap;
     }
 
-    private Integer getAutoId(Class<?> clazz) {
-        int num = 1;
+    private synchronized Integer getAutoId(Class<?> clazz) {
+        //获取到collection
         MongoCollection<Document> collection = getCollection("counters");
-        Document query = new Document(SqlOperationConstant._ID, collectionNameConvert.convert(clazz));
-        Document update = new Document("$inc", new Document(SqlOperationConstant.AUTO_NUM, 1));
-        Document document = Optional.ofNullable(MongoTransactionContext.getClientSessionContext())
-                .map(session -> collection.findOneAndUpdate(session,query,update,new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)))
-                .orElseGet(() -> collection.findOneAndUpdate(query,update,new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)));
-        if (document == null){
-            Integer finalNum = num;
-            collection.insertOne(new Document(new HashMap<String,Object>(){{
-                put(SqlOperationConstant._ID, collectionNameConvert.convert(clazz));
-                put(SqlOperationConstant.AUTO_NUM, finalNum);
-            }}));
-        } else {
-            num = Integer.parseInt(String.valueOf(document.get(SqlOperationConstant.AUTO_NUM)));
-            // 检查是否冲突，这里使用了乐观锁的原理，如果发现冲突就重新获取id
-            if (num != document.getInteger(SqlOperationConstant.AUTO_NUM)){
-                return getAutoId(clazz);  // 重新获取id
-            }
+        //获取到类名，作为计数器的key
+        String className = collectionNameConvert.convert(clazz);
+        //定义查询语句
+        Document filter = new Document(SqlOperationConstant._ID, className);
+        //查询
+        Map<String, Object> counters = doGetById("counters", className);
+        //双重检查锁定，维护为单例
+        AutoIdGenerate autoIdGenerate = AutoIdGenerate.getInstance();
+        int nextId = autoIdGenerate.getNextId();
+        //如果存在，并且nextId小于等于1，因为AutoIdGenerate默认从0开始，第一次拿到下一个是1，保证第一次的时候才进行赋值
+        if (counters != null && nextId <= 1){
+            autoIdGenerate.addAndGet(Integer.parseInt(String.valueOf(counters.get(SqlOperationConstant.AUTO_NUM))) - 1);
         }
-        System.out.println("自增值："+num);
-        return num;
+        if (counters == null) {
+            collection.insertOne(new Document(new HashMap<String,Object>(){{
+                put(SqlOperationConstant._ID, className);
+                put(SqlOperationConstant.AUTO_NUM, nextId);
+            }}));
+            return nextId;
+        }
+        int generateNextId = autoIdGenerate.getNextId();
+        collection.updateOne(filter,new Document("$set",new Document(SqlOperationConstant.AUTO_NUM,generateNextId)));
+        return generateNextId;
     }
 
     private <T> void fillId(T entity, Map<String, Object> tableFieldMap) {
@@ -1110,7 +1121,8 @@ public class SqlExecute {
             _idValue = Generate.generateId(annotation.type());
         }
         try {
-            tableFieldMap.put(SqlOperationConstant._ID, ConversionService.convertValue(idField, ClassTypeUtil.getClass(entity).getDeclaredConstructor().newInstance(), _idValue));
+            Object value = ConversionService.convertValue(idField, ClassTypeUtil.getClass(entity).getDeclaredConstructor().newInstance(), _idValue);
+            tableFieldMap.put(SqlOperationConstant._ID, value);
         } catch (IllegalAccessException | InstantiationException | InvocationTargetException |
                  NoSuchMethodException e) {
             logger.error("Failed to convert to entity class's' _id 'field type when filling in'_id',error message: {}",e.getMessage(),e);
