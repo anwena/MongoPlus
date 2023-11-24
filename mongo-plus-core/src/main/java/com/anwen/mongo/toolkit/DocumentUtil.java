@@ -9,7 +9,9 @@ import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.handlers.DocumentHandler;
 import org.bson.Document;
+import org.bson.types.Binary;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -76,7 +78,8 @@ public class DocumentUtil {
             if (value instanceof LocalDate
                     || value instanceof LocalDateTime
                     || value instanceof LocalTime
-                    || value instanceof Date) {
+                    || value instanceof Date
+                    || value instanceof Binary) {
                 result.put(name,value);
                 return false;
             }
