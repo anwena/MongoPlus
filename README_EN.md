@@ -34,7 +34,7 @@
 * Low overhead: Automatically inject basic CURD upon startup, with almost no performance overhead, directly operating on objects
 * Powerful CRUD operations: Generic Service can achieve most of the CRUD operations on a single table with only a small amount of configuration. It also provides a powerful condition builder to meet various needs
 * Support Lambda expression invocation: Conveniently write various query conditions using Lambda expressions, no need to worry about incorrect field names
-* Support automatic primary key generation: Supports up to 4 primary key strategies (including distributed unique ID generator - Sequence), freely configurable, perfectly solving the primary key issue
+* Support automatic primary key generation: Supports up to 5 primary key strategies (including distributed unique ID generator - Sequence), freely configurable, perfectly solving the primary key issue
 * Support operation without entity class
 
 ### Quick Development
