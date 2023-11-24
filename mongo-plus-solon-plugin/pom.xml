@@ -13,7 +13,7 @@
     <artifactId>mongo-plus-solon-plugin</artifactId>
     <name>mongo-plus-solon-plugin</name>
     <packaging>jar</packaging>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <description>mongo-plus-solon-plugin主程序</description>
     <url>https://gitee.com/anwena/mongo-plus</url>
     <inceptionYear>2023</inceptionYear>
