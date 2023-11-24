@@ -3,7 +3,7 @@ package com.anwen.mongo.mapper;
 import com.anwen.mongo.service.impl.ServiceImpl;
 
 /**
- * mapper层，后边版本会弃用IService和IServiceImpl
+ * mapper层，待完善，占位
  *
  * @author JiaChaoYang
  **/

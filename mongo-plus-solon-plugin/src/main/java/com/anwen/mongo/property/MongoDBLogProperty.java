@@ -9,7 +9,7 @@ import com.anwen.mongo.interceptor.business.LogInterceptor;
  * 日志属性
  * @since 2023-06-07 23:07
  **/
-public class MongoDBLogProperty extends LogInterceptor {
+public class MongoDBLogProperty {
 
     /**
      * 是否开启日志

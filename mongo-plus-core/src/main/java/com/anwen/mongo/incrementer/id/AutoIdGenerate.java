@@ -38,7 +38,6 @@ public class AutoIdGenerate {
      * @date 2023/11/24 9:22
     */
     private AutoIdGenerate(){
-        System.out.println("创建了对象");
         counter = new AtomicInteger(0);
     }
 
@@ -58,23 +57,11 @@ public class AutoIdGenerate {
     */
     public synchronized int getNextId() {
         int i = counter.incrementAndGet();
-        System.out.println("获取id："+i);
         return i;
     }
 
     public synchronized void addAndGet(int delta){
         counter.addAndGet(delta);
-    }
-
-    public static void main(String[] args) {
-        AutoIdGenerate autoIdGenerate = new AutoIdGenerate();
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
-        for (int i=0;i<100;i++){
-            executorService.execute(() -> {
-                System.out.println(autoIdGenerate.getNextId());
-            });
-        }
-        executorService.shutdown();
     }
 
 }

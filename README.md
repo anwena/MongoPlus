@@ -5,6 +5,9 @@
 <a href="https://www.oracle.com/java/technologies/javase/javase-jdk8-downloads.html">
 	<img src="https://img.shields.io/badge/JDK-8-green.svg" alt="jdk-8" />
 </a>
+<a target="_blank" href="https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html">
+	<img src="https://img.shields.io/badge/JDK-17-green.svg" alt="jdk-17" />
+</a>
 <a href='https://gitee.com/anwena/mongo-plus/stargazers'>
   <img src='https://gitee.com/anwena/mongo-plus/badge/star.svg?theme=dark' alt='star'/>
 </a>
@@ -31,7 +34,7 @@
 * 损耗小：启动即会自动注入基本 CURD，性能基本无损耗，直接面向对象操作
 * 强大的 CRUD 操作：通用 Service，仅仅通过少量配置即可实现单表大部分 CRUD 操作，更有强大的条件构造器，满足各类使用需求
 * 支持 Lambda 形式调用：通过 Lambda 表达式，方便的编写各类查询条件，无需再担心字段写错
-* 支持主键自动生成：支持多达 4 种主键策略（内含分布式唯一 ID 生成器 - Sequence），可自由配置，完美解决主键问题
+* 支持主键自动生成：支持多达 5 种主键策略（内含分布式唯一 ID 生成器 - Sequence），可自由配置，完美解决主键问题
 * 支持无实体类情况下的操作
 
 ### 快速开发

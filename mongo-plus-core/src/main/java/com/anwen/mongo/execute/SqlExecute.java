@@ -1106,6 +1106,10 @@ public class SqlExecute {
         try {
             Object value = ConversionService.convertValue(idField, ClassTypeUtil.getClass(entity).getDeclaredConstructor().newInstance(), _idValue);
             document.put(SqlOperationConstant._ID, value);
+            //为自行设置id，需要在这里判断一下重入，自行设置checkTableField方法会进行处理
+            if (annotation.saveField()){
+                document.put(idField.getName(),value);
+            }
         } catch (IllegalAccessException | InstantiationException | InvocationTargetException |
                  NoSuchMethodException e) {
             logger.error("Failed to convert to entity class's' _id 'field type when filling in'_id',error message: {}",e.getMessage(),e);

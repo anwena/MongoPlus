@@ -25,7 +25,6 @@ import java.util.List;
 
 /**
  * @author JiaChaoYang
- * 增删改接口，后边会弃用掉该接口，只提供在Mapper操作，2.0.7版本以上可以继承{@link com.anwen.mongo.mapper.BaseMapper}
  * @since 2023-02-09 13:25
  **/
 public interface IService<T> {

@@ -76,6 +76,7 @@ public class MongoPlusConfiguration {
     public MongoPlusAutoConfiguration mongoPlusAutoConfiguration(@Inject SqlExecute sqlExecute,
                                                                  @Inject("${mongo-plus}") MongoDBLogProperty mongoDBLogProperty,
                                                                  @Inject(value = "${mongo-plus.configuration.collection}",required = false) MongoDBCollectionProperty mongoDBCollectionProperty){
+        mongoDBCollectionProperty = Optional.ofNullable(mongoDBCollectionProperty).orElseGet(MongoDBCollectionProperty::new);
         return new MongoPlusAutoConfiguration(this.sqlExecute,mongoDBLogProperty,mongoDBCollectionProperty);
     }
 

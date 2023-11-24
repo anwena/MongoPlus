@@ -33,7 +33,6 @@ import java.util.List;
 /**
  * @author JiaChaoYang
  * 接口实现
- * 增删改接口，后边会弃用掉该类，只提供在Mapper操作，2.0.7版本以上可以继承{@link com.anwen.mongo.mapper.BaseMapper}
  * @since 2023-02-09 14:13
  **/
 public class ServiceImpl<T> implements IService<T>{
