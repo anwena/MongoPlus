@@ -24,6 +24,12 @@ public abstract class AbstractSqlAnnotationProcessor implements MapperAnnotation
     // 缓存每个方法上的sql信息
     protected Map<Method, CachedMethodInfo> cachedMethodInfoMap = new ConcurrentHashMap<>();
 
+    /**
+     * sql模板提供者
+     * @return sql模板
+     */
+    protected abstract Supplier<String> sqlSupplier(Method method);
+
     @Override
     public Object process(AbstractMapper<?> source, Object proxy, Method method, Object[] args) throws Throwable {
         // 从缓存中读取
@@ -31,16 +37,19 @@ public abstract class AbstractSqlAnnotationProcessor implements MapperAnnotation
         // 替换模板参数
         String realSql = cachedMethodInfo.replaceSqlArgs(args);
         // 执行
-        List<?> resultList = source.sql(realSql);
+        Object result = executeSql(source, proxy, realSql);
         // 获取返回结果
-        return cachedMethodInfo.getResultByReturnType(resultList);
+        return cachedMethodInfo.getResultByReturnType(result);
     }
 
     /**
-     * sql模板提供者
-     * @return sql模板
+     * 执行sql
+     * @param source 源对象（存在执行sql的功能）
+     * @param proxy 代理对象
+     * @param realSql 填充过的sql语句
+     * @return 执行的返回结果
      */
-    protected abstract Supplier<String> sqlSupplier(Method method);
+    protected abstract Object executeSql(AbstractMapper<?> source, Object proxy, String realSql);
 
     /**
      * 通过方法获取获取sql模板
@@ -135,25 +144,36 @@ public abstract class AbstractSqlAnnotationProcessor implements MapperAnnotation
 
         /**
          * 根据返回类型获取结果
-         * @param resultList
+         * @param result
          * @return
          */
-        public Object getResultByReturnType(List<?> resultList) {
-            if (returnType.equals(RETURN_ONE)) {
-                if (CollUtil.isEmpty(resultList)) return null;
-                return resultList.get(0);
-            } else if (returnType.equals(RETURN_LIST)) {
-                if (CollUtil.isEmpty(resultList)) return new ArrayList<>(0);
-                return resultList;
-            } else if (returnType.equals(RETURN_ARRAY)) {
-                Class<?> componentType = method.getReturnType().getComponentType();
-                if (CollUtil.isEmpty(resultList)) return Array.newInstance(componentType, 0);
-                Object[] objects = (Object[]) Array.newInstance(componentType, resultList.size());
-                for (int i = 0; i < objects.length; i++) {
-                    objects[i] = resultList.get(i);
+        public Object getResultByReturnType(Object result) {
+            boolean collectable = result instanceof List<?>;
+
+            // 单个的结果
+            if (!collectable && returnType.equals(RETURN_ONE)) return result;
+
+            // 多个的结果
+            if (collectable) {
+                List<?> resultList = (List<?>) result;
+                if (returnType.equals(RETURN_ONE)) {
+                    if (CollUtil.isEmpty(resultList)) return null;
+                    return resultList.get(0);
+                } else if (returnType.equals(RETURN_LIST)) {
+                    if (CollUtil.isEmpty(resultList)) return new ArrayList<>(0);
+                    return resultList;
+                } else if (returnType.equals(RETURN_ARRAY)) {
+                    Class<?> componentType = method.getReturnType().getComponentType();
+                    if (CollUtil.isEmpty(resultList)) return Array.newInstance(componentType, 0);
+                    Object[] objects = (Object[]) Array.newInstance(componentType, resultList.size());
+                    for (int i = 0; i < objects.length; i++) {
+                        objects[i] = resultList.get(i);
+                    }
+                    return objects;
                 }
-                return objects;
             }
+
+            // 非法结果
             throw new IllegalArgumentException("The return type is illegal.");
         }
     }
