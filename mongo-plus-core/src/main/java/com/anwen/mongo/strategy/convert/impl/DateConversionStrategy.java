@@ -17,36 +17,12 @@ import java.util.List;
  **/
 public class DateConversionStrategy implements ConversionStrategy<Date> {
 
-    Logger logger = LoggerFactory.getLogger(DateConversionStrategy.class);
-
-    //定义格式集合
-    private final List<String> formatList = new ArrayList<String>(){{
-        add("yyyy-MM-dd");
-        add("MM/dd/yyyy");
-        add("dd-MMM-yyyy");
-        add("EEE, dd MMM yyyy HH:mm:ss zzz");
-        add("yyyy-MM-dd HH:mm:ss");
-        add("HH:mm:ss");
-    }};
-
     @Override
     public Date convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
         Date date;
         if (fieldValue.getClass().equals(Long.class)){
             date = new Date((Long) fieldValue);
         }else {
-            /*for (String format : formatList) {
-                try {
-                    SimpleDateFormat dateFormat = new SimpleDateFormat(format);
-                    date = dateFormat.parse(String.valueOf(fieldValue));
-                    break;
-                } catch (ParseException ignored) {
-                }
-            }
-            if (null == date) {
-                logger.error("Unrecognized date format");
-                throw new IllegalAccessException("Unrecognized date format");
-            }*/
             date = (Date) fieldValue;
         }
         return date;
