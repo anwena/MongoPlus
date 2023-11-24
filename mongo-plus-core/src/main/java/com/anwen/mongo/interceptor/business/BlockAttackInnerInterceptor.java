@@ -1,7 +1,6 @@
 package com.anwen.mongo.interceptor.business;
 
 import com.anwen.mongo.cache.global.OrderCache;
-import com.anwen.mongo.domain.MongoPlusInterceptorException;
 import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.model.command.CommandFailed;
 import com.anwen.mongo.model.command.CommandStarted;

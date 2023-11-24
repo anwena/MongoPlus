@@ -4,7 +4,6 @@ import com.anwen.mongo.domain.MongoPlusInterceptorException;
 import com.anwen.mongo.model.command.CommandFailed;
 import com.anwen.mongo.model.command.CommandStarted;
 import com.anwen.mongo.model.command.CommandSucceeded;
-import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.event.CommandFailedEvent;
 import com.mongodb.event.CommandListener;
 import com.mongodb.event.CommandStartedEvent;

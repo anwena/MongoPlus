@@ -54,7 +54,7 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         this.mongoDBCollectionProperty = mongoDBCollectionProperty;
         setConversion();
         setMetaObjectHandler();
-        setMetaObjectHandler();
+        setDocumentHandler();
         setInterceptor();
     }
 
