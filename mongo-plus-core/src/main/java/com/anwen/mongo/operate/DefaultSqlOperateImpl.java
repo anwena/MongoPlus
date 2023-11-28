@@ -225,27 +225,27 @@ public class DefaultSqlOperateImpl implements SqlOperate {
     }
 
     @Override
-    public Boolean doRemoveBatchByIds(Collection<Serializable> idList, Class<?> clazz) {
+    public Boolean doRemoveBatchByIds(Collection<? extends Serializable> idList, Class<?> clazz) {
         return null;
     }
 
     @Override
-    public Boolean doRemoveBatchByIds(ClientSession clientSession, Collection<Serializable> idList, Class<?> clazz) {
+    public Boolean doRemoveBatchByIds(ClientSession clientSession, Collection<? extends Serializable> idList, Class<?> clazz) {
         return null;
     }
 
     @Override
-    public Boolean doRemoveBatchByIds(String collectionName, Collection<Serializable> idList) {
+    public Boolean doRemoveBatchByIds(String collectionName, Collection<? extends Serializable> idList) {
         return null;
     }
 
     @Override
-    public Boolean doRemoveBatchByIds(ClientSession clientSession, String collectionName, Collection<Serializable> idList) {
+    public Boolean doRemoveBatchByIds(ClientSession clientSession, String collectionName, Collection<? extends Serializable> idList) {
         return null;
     }
 
     @Override
-    public Boolean executeRemoveBatchByIds(ClientSession clientSession, Collection<Serializable> idList, MongoCollection<Document> collection) {
+    public Boolean executeRemoveBatchByIds(ClientSession clientSession, Collection<? extends Serializable> idList, MongoCollection<Document> collection) {
         return null;
     }
 
@@ -330,12 +330,12 @@ public class DefaultSqlOperateImpl implements SqlOperate {
     }
 
     @Override
-    public List<Map<String, Object>> doGetByIds(String collectionName, Collection<Serializable> ids) {
+    public List<Map<String, Object>> doGetByIds(String collectionName, Collection<? extends Serializable> ids) {
         return null;
     }
 
     @Override
-    public List<Map<String, Object>> doGetByIds(ClientSession clientSession, String collectionName, Collection<Serializable> ids) {
+    public List<Map<String, Object>> doGetByIds(ClientSession clientSession, String collectionName, Collection<? extends Serializable> ids) {
         return null;
     }
 
@@ -410,12 +410,12 @@ public class DefaultSqlOperateImpl implements SqlOperate {
     }
 
     @Override
-    public <T> List<T> doGetByIds(Collection<Serializable> ids, Class<T> clazz) {
+    public <T> List<T> doGetByIds(Collection<? extends Serializable> ids, Class<T> clazz) {
         return null;
     }
 
     @Override
-    public <T> List<T> doGetByIds(ClientSession clientSession, Collection<Serializable> ids, Class<T> clazz) {
+    public <T> List<T> doGetByIds(ClientSession clientSession, Collection<? extends Serializable> ids, Class<T> clazz) {
         return null;
     }
 

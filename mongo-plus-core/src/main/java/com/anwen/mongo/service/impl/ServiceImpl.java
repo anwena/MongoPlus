@@ -212,12 +212,12 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
-    public Boolean removeBatchByIds(Collection<Serializable> idList) {
+    public Boolean removeBatchByIds(Collection<? extends Serializable> idList) {
         return sqlExecute.doRemoveBatchByIds(idList,clazz);
     }
 
     @Override
-    public Boolean removeBatchByIds(ClientSession clientSession, Collection<Serializable> idList) {
+    public Boolean removeBatchByIds(ClientSession clientSession, Collection<? extends Serializable> idList) {
         return sqlExecute.doRemoveBatchByIds(clientSession,idList,clazz);
     }
 
@@ -352,12 +352,12 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
-    public List<T> getByIds(Collection<Serializable> ids) {
+    public List<T> getByIds(Collection<? extends Serializable> ids) {
         return sqlExecute.doGetByIds(ids,clazz);
     }
 
     @Override
-    public List<T> getByIds(ClientSession clientSession, Collection<Serializable> ids) {
+    public List<T> getByIds(ClientSession clientSession, Collection<? extends Serializable> ids) {
         return sqlExecute.doGetByIds(clientSession,ids,clazz);
     }
 

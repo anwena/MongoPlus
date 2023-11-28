@@ -46,9 +46,9 @@ public interface InjectQuery extends CommInjectQuery {
 
     Map<String,Object> getById(ClientSession clientSession,String collectionName ,Serializable id);
 
-    List<Map<String,Object>> getByIds(String collectionName , Collection<Serializable> ids);
+    List<Map<String,Object>> getByIds(String collectionName , Collection<? extends Serializable> ids);
 
-    List<Map<String,Object>> getByIds(ClientSession clientSession,String collectionName , Collection<Serializable> ids);
+    List<Map<String,Object>> getByIds(ClientSession clientSession,String collectionName , Collection<? extends Serializable> ids);
 
     /**
      * 添加
@@ -243,7 +243,7 @@ public interface InjectQuery extends CommInjectQuery {
      * @author JiaChaoYang
      * @since 2023/2/9 13:59
      */
-    Boolean removeBatchByIds(String collectionName,Collection<Serializable> idList);
+    Boolean removeBatchByIds(String collectionName,Collection<? extends Serializable> idList);
 
     /**
      * 根据id批量删除
@@ -253,7 +253,7 @@ public interface InjectQuery extends CommInjectQuery {
      * @author JiaChaoYang
      * @since 2023/2/9 13:59
      */
-    Boolean removeBatchByIds(ClientSession clientSession,String collectionName,Collection<Serializable> idList);
+    Boolean removeBatchByIds(ClientSession clientSession,String collectionName,Collection<? extends Serializable> idList);
 
     /**
      * 获取单个，返回T类型的对象

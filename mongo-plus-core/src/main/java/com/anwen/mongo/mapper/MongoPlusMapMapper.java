@@ -159,12 +159,12 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
-    public List<Map<String, Object>> getByIds(String collectionName , Collection<Serializable> ids) {
+    public List<Map<String, Object>> getByIds(String collectionName , Collection<? extends Serializable> ids) {
         return sqlExecute.doGetByIds(collectionName,ids);
     }
 
     @Override
-    public List<Map<String, Object>> getByIds(ClientSession clientSession, String collectionName, Collection<Serializable> ids) {
+    public List<Map<String, Object>> getByIds(ClientSession clientSession, String collectionName, Collection<? extends Serializable> ids) {
         return sqlExecute.doGetByIds(clientSession,collectionName,ids);
     }
 
@@ -259,12 +259,12 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
-    public Boolean removeBatchByIds(String collectionName, Collection<Serializable> idList) {
+    public Boolean removeBatchByIds(String collectionName, Collection<? extends Serializable> idList) {
         return sqlExecute.doRemoveBatchByIds(collectionName,idList);
     }
 
     @Override
-    public Boolean removeBatchByIds(ClientSession clientSession, String collectionName, Collection<Serializable> idList) {
+    public Boolean removeBatchByIds(ClientSession clientSession, String collectionName, Collection<? extends Serializable> idList) {
         return sqlExecute.doRemoveBatchByIds(clientSession,collectionName,idList);
     }
 
