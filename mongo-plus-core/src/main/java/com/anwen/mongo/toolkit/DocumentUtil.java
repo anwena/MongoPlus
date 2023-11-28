@@ -126,6 +126,7 @@ public class DocumentUtil {
                 //手动设置id值，永远优先
                 if (fieldValue != null){
                     resultMap.put(SqlOperationConstant._ID,fieldValue);
+                    continue;
                 }
                 if (isSave && !idAnnotation.saveField()) {
                     continue;
