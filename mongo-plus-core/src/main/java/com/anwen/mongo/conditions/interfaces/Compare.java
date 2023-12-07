@@ -320,7 +320,7 @@ public interface Compare<T,Children> extends Serializable {
      * @author JiaChaoYang
      * @date 2023/6/20/020
      */
-    Children in(boolean condition, SFunction<T,Object> column, Collection<Object> valueList);
+    Children in(boolean condition, SFunction<T,Object> column, Collection<?> valueList);
 
     /**
      * 多值查询
@@ -330,7 +330,7 @@ public interface Compare<T,Children> extends Serializable {
      * @author JiaChaoYang
      * @date 2023/6/20/020
      */
-    Children in(SFunction<T,Object> column, Collection<Object> valueList);
+    Children in(SFunction<T,Object> column, Collection<?> valueList);
 
     /**
      * 多值查询
@@ -341,7 +341,7 @@ public interface Compare<T,Children> extends Serializable {
      * @author JiaChaoYang
      * @date 2023/6/20/020
      */
-    Children in(boolean condition, String column, Collection<Object> valueList);
+    Children in(boolean condition, String column, Collection<?> valueList);
 
     /**
      * 多值查询
@@ -351,7 +351,7 @@ public interface Compare<T,Children> extends Serializable {
      * @author JiaChaoYang
      * @date 2023/6/20/020
      */
-    Children in(String column, Collection<Object> valueList);
+    Children in(String column, Collection<?> valueList);
 
     /**
      * 不包含
@@ -362,7 +362,7 @@ public interface Compare<T,Children> extends Serializable {
      * @author JiaChaoYang
      * @date 2023/7/15 15:57
     */
-    Children nin(boolean condition , SFunction<T,Object> column , Collection<Object> valueList);
+    Children nin(boolean condition , SFunction<T,Object> column , Collection<?> valueList);
 
     /**
      * 不包含
@@ -372,7 +372,7 @@ public interface Compare<T,Children> extends Serializable {
      * @author JiaChaoYang
      * @date 2023/7/15 15:57
     */
-    Children nin(SFunction<T,Object> column , Collection<Object> valueList);
+    Children nin(SFunction<T,Object> column , Collection<?> valueList);
 
     /**
      * 不包含
@@ -383,7 +383,7 @@ public interface Compare<T,Children> extends Serializable {
      * @author JiaChaoYang
      * @date 2023/7/15 15:58
     */
-    Children nin(boolean condition , String column , Collection<Object> valueList);
+    Children nin(boolean condition , String column , Collection<?> valueList);
 
     /**
      * 不包含
@@ -393,7 +393,7 @@ public interface Compare<T,Children> extends Serializable {
      * @author JiaChaoYang
      * @date 2023/7/15 15:58
     */
-    Children nin(String column , Collection<Object> valueList);
+    Children nin(String column , Collection<?> valueList);
 
     /**
      * 并且 在or中使用
