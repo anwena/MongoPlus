@@ -1,9 +1,9 @@
 package com.anwen.mongo.codec;
 
 import com.anwen.mongo.cache.codec.BsonWriterCache;
-import com.anwen.mongo.cache.codec.CodecCache;
 import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.anwen.mongo.toolkit.CustomClassUtil;
+import com.anwen.mongo.toolkit.codec.RegisterCodecUtil;
 import org.bson.BsonReader;
 import org.bson.BsonType;
 import org.bson.BsonWriter;
@@ -46,9 +46,10 @@ public class GenericCodec<T> implements Codec<T> {
         this.clazz = clazz;
     }
 
+    @SuppressWarnings("rawtypes")
     public Codec getCodec(Class<?> clazz){
         try {
-            return CodecCache.codecMap.get(clazz);
+            return RegisterCodecUtil.getCodec(clazz);
         }catch (CodecConfigurationException e){
             if (logger.isDebugEnabled()){
                 logger.debug(e.getMessage());
@@ -66,6 +67,7 @@ public class GenericCodec<T> implements Codec<T> {
         BsonWriterCache.bsonWriterMap.put(this.clazz,writer);
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public void setBson(BsonWriter writer, T value, EncoderContext encoderContext) {
         if (value == null){
             return;
