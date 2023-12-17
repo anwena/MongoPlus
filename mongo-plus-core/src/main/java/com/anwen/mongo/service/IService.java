@@ -249,7 +249,7 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @since 2023/2/9 13:59
     */
-    Boolean removeBatchByIds(Collection<Serializable> idList);
+    Boolean removeBatchByIds(Collection<? extends Serializable> idList);
 
     /**
      * 根据id批量删除
@@ -258,7 +258,7 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @since 2023/2/9 13:59
     */
-    Boolean removeBatchByIds(ClientSession clientSession,Collection<Serializable> idList);
+    Boolean removeBatchByIds(ClientSession clientSession,Collection<? extends Serializable> idList);
 
     /**
      * 查询所有
@@ -382,9 +382,9 @@ public interface IService<T> {
     */
     T getById(ClientSession clientSession,Serializable id);
 
-    List<T> getByIds(Collection<Serializable> ids);
+    List<T> getByIds(Collection<? extends Serializable> ids);
 
-    List<T> getByIds(ClientSession clientSession,Collection<Serializable> ids);
+    List<T> getByIds(ClientSession clientSession,Collection<? extends Serializable> ids);
 
     /**
      * 查询sql，传入值为json，如{eq:XXX}

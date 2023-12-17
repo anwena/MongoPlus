@@ -215,42 +215,42 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
     }
 
     @Override
-    public Children in(boolean condition, SFunction<T, Object> column, Collection<Object> valueList) {
+    public Children in(boolean condition, SFunction<T, Object> column, Collection<?> valueList) {
         return condition ? in(column,valueList) : typedThis;
     }
 
     @Override
-    public Children in(SFunction<T, Object> column, Collection<Object> valueList) {
+    public Children in(SFunction<T, Object> column, Collection<?> valueList) {
         return getBaseCondition(column,valueList);
     }
 
     @Override
-    public Children in(boolean condition, String column, Collection<Object> valueList) {
+    public Children in(boolean condition, String column, Collection<?> valueList) {
         return condition ? in(column,valueList) : typedThis;
     }
 
     @Override
-    public Children in(String column, Collection<Object> valueList) {
+    public Children in(String column, Collection<?> valueList) {
         return getBaseCondition(column,valueList);
     }
 
     @Override
-    public Children nin(boolean condition, SFunction<T, Object> column, Collection<Object> valueList) {
+    public Children nin(boolean condition, SFunction<T, Object> column, Collection<?> valueList) {
         return condition ? nin(column,valueList) : typedThis;
     }
 
     @Override
-    public Children nin(SFunction<T, Object> column, Collection<Object> valueList) {
+    public Children nin(SFunction<T, Object> column, Collection<?> valueList) {
         return getBaseCondition(column,valueList);
     }
 
     @Override
-    public Children nin(boolean condition, String column, Collection<Object> valueList) {
+    public Children nin(boolean condition, String column, Collection<?> valueList) {
         return condition ? nin(column,valueList) : typedThis;
     }
 
     @Override
-    public Children nin(String column, Collection<Object> valueList) {
+    public Children nin(String column, Collection<?> valueList) {
         return getBaseCondition(column,valueList);
     }
 

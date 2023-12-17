@@ -108,15 +108,15 @@ public interface SqlOperate {
 
     Boolean doRemoveByColumn(ClientSession clientSession,String collectionName,String column, String value);
 
-    Boolean doRemoveBatchByIds(Collection<Serializable> idList,Class<?> clazz);
+    Boolean doRemoveBatchByIds(Collection<? extends Serializable> idList,Class<?> clazz);
 
-    Boolean doRemoveBatchByIds(ClientSession clientSession,Collection<Serializable> idList,Class<?> clazz);
+    Boolean doRemoveBatchByIds(ClientSession clientSession,Collection<? extends Serializable> idList,Class<?> clazz);
 
-    Boolean doRemoveBatchByIds(String collectionName,Collection<Serializable> idList);
+    Boolean doRemoveBatchByIds(String collectionName,Collection<? extends Serializable> idList);
 
-    Boolean doRemoveBatchByIds(ClientSession clientSession,String collectionName,Collection<Serializable> idList);
+    Boolean doRemoveBatchByIds(ClientSession clientSession,String collectionName,Collection<? extends Serializable> idList);
 
-    Boolean executeRemoveBatchByIds(ClientSession clientSession,Collection<Serializable> idList,MongoCollection<Document> collection);
+    Boolean executeRemoveBatchByIds(ClientSession clientSession,Collection<? extends Serializable> idList,MongoCollection<Document> collection);
 
     <T> List<T> doList(Class<T> clazz);
 
@@ -150,8 +150,8 @@ public interface SqlOperate {
 
     Map<String, Object> doGetById(ClientSession clientSession,String collectionName, Serializable id);
 
-    List<Map<String,Object>> doGetByIds(String collectionName, Collection<Serializable> ids);
-    List<Map<String,Object>> doGetByIds(ClientSession clientSession,String collectionName, Collection<Serializable> ids);
+    List<Map<String,Object>> doGetByIds(String collectionName, Collection<? extends Serializable> ids);
+    List<Map<String,Object>> doGetByIds(ClientSession clientSession,String collectionName, Collection<? extends Serializable> ids);
     <T> List<T> doList(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,Class<T> clazz);
     <T> List<T> doList(ClientSession clientSession,List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,Class<T> clazz);
     <T> T doOne(List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,Class<T> clazz);
@@ -177,9 +177,9 @@ public interface SqlOperate {
 
     boolean doIsExistMap(ClientSession clientSession,String collectionName, Serializable id);
 
-    <T> List<T> doGetByIds(Collection<Serializable> ids,Class<T> clazz);
+    <T> List<T> doGetByIds(Collection<? extends Serializable> ids,Class<T> clazz);
 
-    <T> List<T> doGetByIds(ClientSession clientSession,Collection<Serializable> ids,Class<T> clazz);
+    <T> List<T> doGetByIds(ClientSession clientSession,Collection<? extends Serializable> ids,Class<T> clazz);
 
     Boolean doUpdate(List<CompareCondition> compareConditionList,Class<?> clazz);
 

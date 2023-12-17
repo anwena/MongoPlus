@@ -415,23 +415,23 @@ public class SqlExecute {
     }
 
 
-    public Boolean doRemoveBatchByIds(Collection<Serializable> idList,Class<?> clazz) {
+    public Boolean doRemoveBatchByIds(Collection<? extends Serializable> idList,Class<?> clazz) {
         return doRemoveBatchByIds(MongoTransactionContext.getClientSessionContext(),idList,clazz);
     }
 
-    public Boolean doRemoveBatchByIds(ClientSession clientSession,Collection<Serializable> idList,Class<?> clazz) {
+    public Boolean doRemoveBatchByIds(ClientSession clientSession,Collection<? extends Serializable> idList,Class<?> clazz) {
         return executeRemoveBatchByIds(clientSession,idList,getCollection(clazz));
     }
 
-    public Boolean doRemoveBatchByIds(String collectionName,Collection<Serializable> idList) {
+    public Boolean doRemoveBatchByIds(String collectionName,Collection<? extends Serializable> idList) {
         return doRemoveBatchByIds(MongoTransactionContext.getClientSessionContext(),collectionName,idList);
     }
 
-    public Boolean doRemoveBatchByIds(ClientSession clientSession,String collectionName,Collection<Serializable> idList) {
+    public Boolean doRemoveBatchByIds(ClientSession clientSession,String collectionName,Collection<? extends Serializable> idList) {
         return executeRemoveBatchByIds(clientSession,idList,getCollection(collectionName));
     }
 
-    public Boolean executeRemoveBatchByIds(ClientSession clientSession,Collection<Serializable> idList,MongoCollection<Document> collection){
+    public Boolean executeRemoveBatchByIds(ClientSession clientSession,Collection<? extends Serializable> idList,MongoCollection<Document> collection){
         List<Serializable> convertedIds = idList.stream()
                 .map(id -> ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id)
                 .collect(Collectors.toList());
@@ -520,11 +520,11 @@ public class SqlExecute {
         return Optional.ofNullable(clientSession).map(session -> collection.find(session,queryBasic)).orElseGet(() -> collection.find(queryBasic)).first();
     }
 
-    public List<Map<String,Object>> doGetByIds(String collectionName, Collection<Serializable> ids) {
+    public List<Map<String,Object>> doGetByIds(String collectionName, Collection<? extends Serializable> ids) {
         return doGetByIds(null,collectionName,ids);
     }
 
-    public List<Map<String,Object>> doGetByIds(ClientSession clientSession,String collectionName, Collection<Serializable> ids) {
+    public List<Map<String,Object>> doGetByIds(ClientSession clientSession,String collectionName, Collection<? extends Serializable> ids) {
         BasicDBObject basicDBObject = checkIdType(ids);
         MongoCollection<Document> collection = getCollection(collectionName);
         return Converter.convertDocumentToMap(Optional.ofNullable(clientSession).map(session -> collection.find(session,basicDBObject,Map.class)).orElseGet(() -> collection.find(basicDBObject,Map.class)));
@@ -600,11 +600,11 @@ public class SqlExecute {
         return Optional.ofNullable(clientSession).map(session -> collection.countDocuments(session,queryBasic)).orElseGet(() -> collection.countDocuments(queryBasic)) >= 1;
     }
 
-    public <T> List<T> doGetByIds(Collection<Serializable> ids,Class<T> clazz) {
+    public <T> List<T> doGetByIds(Collection<? extends Serializable> ids,Class<T> clazz) {
         return doGetByIds(MongoTransactionContext.getClientSessionContext(),ids,clazz);
     }
 
-    public <T> List<T> doGetByIds(ClientSession clientSession,Collection<Serializable> ids,Class<T> clazz) {
+    public <T> List<T> doGetByIds(ClientSession clientSession,Collection<? extends Serializable> ids,Class<T> clazz) {
         MongoCollection<Document> collection = getCollection(clazz);
         BasicDBObject basicDBObject = checkIdType(ids);
         return DocumentMapperConvert.mapDocumentList(Optional.ofNullable(clientSession).map(session -> collection.find(session,basicDBObject)).orElseGet(() -> collection.find(basicDBObject)), clazz);
@@ -656,7 +656,7 @@ public class SqlExecute {
         return Converter.convertDocumentToMap(Optional.ofNullable(clientSession).map(session -> collection.find(session,basicDBObject,Map.class)).orElseGet(() -> collection.find(basicDBObject,Map.class)));
     }
 
-    private BasicDBObject checkIdType(Collection<Serializable> ids) {
+    private BasicDBObject checkIdType(Collection<? extends Serializable> ids) {
         List<Serializable> convertedIds = ids.stream()
                 .map(id -> ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id)
                 .collect(Collectors.toList());
