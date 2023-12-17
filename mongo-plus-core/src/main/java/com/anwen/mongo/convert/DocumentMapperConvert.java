@@ -11,6 +11,8 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.ListIndexesIterable;
 import com.mongodb.client.MongoCursor;
 import org.bson.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -28,6 +30,8 @@ import java.util.Optional;
  * @Version: 1.0
  */
 public class DocumentMapperConvert {
+
+    private static final Logger logger = LoggerFactory.getLogger(DocumentMapperConvert.class);
 
     /**
      * 将一个 Document 对象转换成指定类型的对象
@@ -113,6 +117,16 @@ public class DocumentMapperConvert {
                 continue;
             }
             Object fieldValue = Objects.equals(fieldName, SqlOperationConstant._ID) ? String.valueOf(doc.get(fieldName)) : doc.get(fieldName);
+            if (fieldValue instanceof String){
+                try {
+                    String value = String.valueOf(fieldValue);
+                    if (StringUtils.isBlank(value)){
+                        fieldValue = null;
+                    }
+                }catch (Exception e){
+                    logger.warn("Unable to convert to String, no action taken");
+                }
+            }
             ConversionService.setValue(field,obj,fieldValue);
         }
 

@@ -56,7 +56,7 @@ public class BeanMapUtilByReflect {
 
     public static String getFieldName(Field field) {
         CollectionField collectionField = field.getAnnotation(CollectionField.class);
-        if (collectionField != null) {
+        if (collectionField != null && StringUtils.isNotBlank(collectionField.value())) {
             return collectionField.value();
         }
         return field.getName();
