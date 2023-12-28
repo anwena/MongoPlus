@@ -560,21 +560,19 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
     }
 
     public Children getBaseCondition(String column, Object value){
-        compareList.add(CompareCondition.builder().condition(new Throwable().getStackTrace()[1].getMethodName()).column(column).value(value).type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.AND.getKey()).build());
+        compareList.add(CompareCondition.builder().condition(Thread.currentThread().getStackTrace()[2].getMethodName()).column(column).value(value).type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.AND.getKey()).build());
         return typedThis;
     }
 
     public Children getChildBaseCondition(String column, Object value,Integer logic){
         this.compareList.add(CompareCondition.builder().type(CompareEnum.QUERY.getKey()).logicType(logic).childCondition(new ArrayList<CompareCondition>(){{
-            add(CompareCondition.builder().condition(new Throwable().getStackTrace()[1].getMethodName()).column(column).value(value).build());
+            add(CompareCondition.builder().condition(Thread.currentThread().getStackTrace()[2].getMethodName()).column(column).value(value).build());
         }}).build());
-//        compareList.add(CompareCondition.builder().condition(new Throwable().getStackTrace()[1].getMethodName()).column(column).value(value).type(CompareEnum.QUERY.getKey()).logicType(logic).build());
         return typedThis;
     }
 
     public Children getChildBaseCondition(String column, List<CompareCondition> value,Integer logic){
         this.compareList.add(CompareCondition.builder().column(column).type(CompareEnum.QUERY.getKey()).logicType(logic).childCondition(value).build());
-//        compareList.add(CompareCondition.builder().condition(new Throwable().getStackTrace()[1].getMethodName()).column(column).value(value).type(CompareEnum.QUERY.getKey()).logicType(logic).build());
         return typedThis;
     }
 
@@ -594,21 +592,19 @@ public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Ch
     }
 
     public Children getBaseCondition(SFunction<T, Object> column, Object value){
-        compareList.add(CompareCondition.builder().condition(new Throwable().getStackTrace()[1].getMethodName()).column(column.getFieldNameLine()).value(value).type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.AND.getKey()).build());
+        compareList.add(CompareCondition.builder().condition(Thread.currentThread().getStackTrace()[2].getMethodName()).column(column.getFieldNameLine()).value(value).type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.AND.getKey()).build());
         return typedThis;
     }
 
     public Children getChildBaseCondition(SFunction<?,Object> column,List<CompareCondition> value,Integer logic){
         this.compareList.add(CompareCondition.builder().column(column.getFieldNameLine()).type(CompareEnum.QUERY.getKey()).logicType(logic).childCondition(value).build());
-//        compareList.add(CompareCondition.builder().condition(new Throwable().getStackTrace()[1].getMethodName()).column(column.getFieldNameLine()).value(value).type(CompareEnum.QUERY.getKey()).logicType(logic).build());
         return typedThis;
     }
 
     public Children getChildBaseCondition(SFunction<?,Object> column,Object value,Integer logic){
         this.compareList.add(CompareCondition.builder().type(CompareEnum.QUERY.getKey()).logicType(logic).childCondition(new ArrayList<CompareCondition>(){{
-            add(CompareCondition.builder().condition(new Throwable().getStackTrace()[1].getMethodName()).column(column.getFieldNameLine()).value(value).build());
+            add(CompareCondition.builder().condition(Thread.currentThread().getStackTrace()[2].getMethodName()).column(column.getFieldNameLine()).value(value).build());
         }}).build());
-//        compareList.add(CompareCondition.builder().condition(new Throwable().getStackTrace()[1].getMethodName()).column(column.getFieldNameLine()).value(value).type(CompareEnum.QUERY.getKey()).logicType(logic).build());
         return typedThis;
     }
 

@@ -27,7 +27,6 @@ public class MapConversionStrategy implements ConversionStrategy<Map<?,?>> {
             throw new MongoException("FieldValue Type Not Is Document");
         }
         Type[] typeArguments = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();
-        Class<?> keyClazz = (Class<?>) typeArguments[0];
         Class<?> valueClazz = (Class<?>) typeArguments[1];
         if (valueClazz.equals(Object.class)){
             return (Document) fieldValue;

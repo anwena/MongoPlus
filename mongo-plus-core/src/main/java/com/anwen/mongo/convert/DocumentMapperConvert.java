@@ -117,16 +117,6 @@ public class DocumentMapperConvert {
                 continue;
             }
             Object fieldValue = Objects.equals(fieldName, SqlOperationConstant._ID) ? String.valueOf(doc.get(fieldName)) : doc.get(fieldName);
-            if (fieldValue instanceof String){
-                try {
-                    String value = String.valueOf(fieldValue);
-                    if (StringUtils.isBlank(value)){
-                        fieldValue = null;
-                    }
-                }catch (Exception e){
-                    logger.warn("Unable to convert to String, no action taken");
-                }
-            }
             ConversionService.setValue(field,obj,fieldValue);
         }
 

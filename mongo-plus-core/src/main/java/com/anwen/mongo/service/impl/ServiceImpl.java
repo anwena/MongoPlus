@@ -7,6 +7,7 @@ import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conditions.update.LambdaUpdateChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
+import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
@@ -39,8 +40,18 @@ public class ServiceImpl<T> implements IService<T>{
 
     private SqlExecute sqlExecute;
 
+    private ExecutorFactory factory;
+
     public void setSqlOperation(SqlExecute sqlExecute) {
         this.sqlExecute = sqlExecute;
+    }
+
+    public void setFactory(ExecutorFactory factory){
+        this.factory = factory;
+    }
+
+    public ExecutorFactory getFactory(){
+        return factory;
     }
 
     private Class<T> clazz;
@@ -80,17 +91,12 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public Boolean save(T entity) {
-        return sqlExecute.doSave(entity);
-    }
-
-    @Override
-    public Boolean save(ClientSession clientSession, T entity) {
-        return sqlExecute.doSave(clientSession,entity);
+        return factory.getExecute().save(entity);
     }
 
     @Override
     public Boolean saveBatch(Collection<T> entityList) {
-        return sqlExecute.doSaveBatch(entityList);
+        return factory.getExecute().saveBatch(entityList);
     }
 
     @Override

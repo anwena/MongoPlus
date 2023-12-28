@@ -22,7 +22,7 @@ public interface DocumentHandler {
 
     /**
      * 处理Document
-     * @param document 添加时最终生成的Document
+     * @param document 修改时最终生成的Document
      * @author JiaChaoYang
      * @date 2023/11/23 12:59
      */

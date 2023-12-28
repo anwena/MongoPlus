@@ -21,9 +21,7 @@ import com.mongodb.client.model.CollationStrength;
 import org.bson.BsonValue;
 import org.bson.conversions.Bson;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author JiaChaoYang
@@ -35,6 +33,8 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
     List<BasicDBObject> basicDBObjectList = new ArrayList<>();
 
     BasicDBObject optionsBasicDBObject = new BasicDBObject();
+
+    Map<String,Integer> orderMap = new HashMap<>();
 
     protected final Children typedThis = (Children) this;
 

@@ -1,16 +1,22 @@
 package com.anwen.mongo.toolkit;
 
 import com.anwen.mongo.constant.SqlOperationConstant;
+import com.mongodb.MongoException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.util.stream.Collectors.joining;
 
 public final class StringUtils {
+
+    static Logger logger = LoggerFactory.getLogger(StringUtils.class);
 
     /**
      * 字符串 is
@@ -90,6 +96,19 @@ public final class StringUtils {
      */
     public static boolean isNotBlank(String str) {
         return !isBlank(str);
+    }
+
+    public static String isNotBlankAndConvert(Object value){
+        try {
+            String str = String.valueOf(value);
+            if (isBlank(str)){
+                throw new MongoException("value is empty");
+            }
+            return str;
+        } catch (Exception e) {
+            logger.error("Conversion to String failed, reason for failure: {}",e.getMessage());
+            throw new MongoException("Conversion to String failed");
+        }
     }
 
     /**

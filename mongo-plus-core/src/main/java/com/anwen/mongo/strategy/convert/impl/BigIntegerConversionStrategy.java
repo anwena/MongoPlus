@@ -1,6 +1,7 @@
 package com.anwen.mongo.strategy.convert.impl;
 
 import com.anwen.mongo.strategy.convert.ConversionStrategy;
+import com.anwen.mongo.toolkit.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,11 +19,12 @@ public class BigIntegerConversionStrategy implements ConversionStrategy<BigInteg
 
     @Override
     public BigInteger convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
+        BigInteger value = null;
         try {
-            return new BigInteger(String.valueOf(fieldValue));
+            value = new BigInteger(StringUtils.isNotBlankAndConvert(fieldValue));
         }catch (Exception e){
             logger.error("Convert fieldValue To BigDecimal Fail,Exception Message: {}",e.getMessage(),e);
         }
-        return null;
+        return value;
     }
 }

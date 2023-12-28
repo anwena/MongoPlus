@@ -59,17 +59,46 @@ public class SqlExecute {
 
     private static final Logger logger = LoggerFactory.getLogger(SqlExecute.class);
 
+    /**
+     * 缓存mongoCollection
+     * @author JiaChaoYang
+     * @date 2023/12/28 10:58
+    */
     private Map<String, MongoCollection<Document>> collectionMap = new ConcurrentHashMap<>();
 
+    /**
+     * 从数据源
+     * @author JiaChaoYang
+     * @date 2023/12/28 10:58
+    */
     private List<SlaveDataSource> slaveDataSources;
 
+    /**
+     * 属性配置
+     * @author JiaChaoYang
+     * @date 2023/12/28 10:59
+    */
     private BaseProperty baseProperty;
 
+    /**
+     * mongo客户端
+     * @author JiaChaoYang
+     * @date 2023/12/28 10:59
+    */
     private MongoClient mongoClient;
 
-    // 实例化 ConnectMongoDB 对象，用于保存连接
+    /**
+     * 实例化 ConnectMongoDB 对象，用于保存连接
+     * @author JiaChaoYang
+     * @date 2023/12/28 10:59
+    */
     private ConnectMongoDB connectMongoDB;
 
+    /**
+     * 集合名转换策略
+     * @author JiaChaoYang
+     * @date 2023/12/28 10:59
+    */
     private CollectionNameConvert collectionNameConvert;
 
     private String createIndex = null;
@@ -1051,7 +1080,6 @@ public class SqlExecute {
     }
 
     private <T> Document processIdField(T entity,Boolean skip){
-        // TODO 反射较多，考虑使用缓存
         Document tableFieldMap = DocumentUtil.checkTableField(entity,true);
         fillId(entity, tableFieldMap);
         if (HandlerCache.documentHandler != null && !skip){

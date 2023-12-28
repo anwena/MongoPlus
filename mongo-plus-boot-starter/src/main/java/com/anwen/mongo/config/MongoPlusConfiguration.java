@@ -2,6 +2,7 @@ package com.anwen.mongo.config;
 
 import com.anwen.mongo.cache.global.MongoClientCache;
 import com.anwen.mongo.convert.CollectionNameConvert;
+import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.interceptor.BaseInterceptor;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
@@ -64,6 +65,17 @@ public class MongoPlusConfiguration {
         sqlExecute.setMongoClient(this.mongoClient);
         this.sqlExecute = sqlExecute;
         return sqlExecute;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ExecutorFactory executeFactory(){
+        return ExecutorFactory.builder()
+                .baseProperty(mongoDBConnectProperty)
+                .collectionNameConvert(MongoCollectionUtils.build(mongoDBCollectionProperty.getMappingStrategy()))
+                .slaveDataSourceList(mongoDBConnectProperty.getSlaveDataSource())
+                .mongoClient(this.mongoClient)
+                .build();
     }
 
     @Bean("mongo")
