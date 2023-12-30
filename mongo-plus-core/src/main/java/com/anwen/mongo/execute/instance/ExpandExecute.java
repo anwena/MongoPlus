@@ -9,7 +9,7 @@ import com.mongodb.client.MongoClient;
 import java.util.Map;
 
 /**
- * 扩展执行器类，自定义执行器应该继承该类
+ * 扩展执行器类，自定义执行器应该继承该类，但只能拿到最终条件
  *
  * @author JiaChaoYang
  * @project mongo-plus

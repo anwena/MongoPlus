@@ -90,8 +90,33 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    public Class<T> getGenericityClass() {
+        if (clazz != null) {
+            return clazz;
+        }
+        Type superClassType = getClass().getGenericSuperclass();
+        ParameterizedType pt = (ParameterizedType) superClassType;
+        Type genType = pt.getActualTypeArguments()[0];
+
+        if (genType instanceof Class) {
+            clazz = (Class<T>) genType;
+        } else if (genType instanceof TypeVariable) {
+            // 处理泛型类型是 TypeVariable 的情况
+            clazz = (Class<T>) Object.class;
+        } else {
+            throw new IllegalArgumentException("Unsupported generic type: " + genType);
+        }
+        return clazz;
+    }
+
+    @Override
     public Boolean save(T entity) {
         return factory.getExecute().save(entity);
+    }
+
+    @Override
+    public Boolean save(ClientSession clientSession, T entity) {
+        return sqlExecute.doSave(clientSession,entity);
     }
 
     @Override
@@ -106,7 +131,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public Boolean saveOrUpdate(T entity) {
-        return sqlExecute.doSaveOrUpdate(entity);
+        return factory.getExecute().saveOrUpdate(entity);
     }
 
     @Override
@@ -116,7 +141,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public Boolean saveOrUpdateBatch(Collection<T> entityList) {
-        return sqlExecute.doSaveOrUpdateBatch(entityList);
+        return factory.getExecute().saveOrUpdateBatch(entityList);
     }
 
     @Override
@@ -126,7 +151,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public Boolean updateById(T entity) {
-        return sqlExecute.doUpdateById(entity);
+        return factory.getExecute().updateById(entity);
     }
 
     @Override
@@ -136,7 +161,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public Boolean updateBatchByIds(Collection<T> entityList) {
-        return sqlExecute.doUpdateBatchByIds(entityList);
+        return factory.getExecute().updateBatchByIds(entityList);
     }
 
     @Override
@@ -146,7 +171,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public Boolean updateByColumn(T entity, SFunction<T, Object> column) {
-        return sqlExecute.doUpdateByColumn(entity,column);
+        return factory.getExecute().updateByColumn(entity,column);
     }
 
     @Override
@@ -156,7 +181,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public Boolean updateByColumn(T entity, String column) {
-        return sqlExecute.doUpdateByColumn(entity,column);
+        return factory.getExecute().updateByColumn(entity,column);
     }
 
     @Override
@@ -166,7 +191,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public Boolean remove(UpdateChainWrapper<T, ?> updateChainWrapper) {
-        return sqlExecute.doRemove(updateChainWrapper.getCompareList(),clazz);
+        return factory.getExecute().remove(updateChainWrapper.getCompareList(),clazz);
     }
 
     @Override
@@ -176,7 +201,10 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public Boolean update(UpdateChainWrapper<T, ?> updateChainWrapper) {
-        return update(null,updateChainWrapper);
+        List<CompareCondition> compareConditionList = new ArrayList<>();
+        compareConditionList.addAll(updateChainWrapper.getCompareList());
+        compareConditionList.addAll(updateChainWrapper.getUpdateCompareList());
+        return factory.getExecute().update(compareConditionList,clazz);
     }
 
     @Override
@@ -189,7 +217,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public Boolean removeById(Serializable id) {
-        return sqlExecute.doRemoveById(id,clazz);
+        return factory.getExecute().removeById(id,clazz);
     }
 
     @Override
@@ -199,7 +227,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public Boolean removeByColumn(SFunction<T, Object> column, Object value) {
-        return sqlExecute.doRemoveByColumn(column,value,clazz);
+        return factory.getExecute().removeByColumn(column,value,clazz);
     }
 
     @Override
@@ -209,7 +237,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public Boolean removeByColumn(String column, Object value) {
-        return sqlExecute.doRemoveByColumn(column,value,clazz);
+        return factory.getExecute().removeByColumn(column,value,clazz);
     }
 
     @Override
@@ -219,7 +247,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public Boolean removeBatchByIds(Collection<? extends Serializable> idList) {
-        return sqlExecute.doRemoveBatchByIds(idList,clazz);
+        return factory.getExecute().removeBatchByIds(idList,clazz);
     }
 
     @Override
@@ -229,7 +257,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public List<T> list() {
-        return sqlExecute.doList(clazz);
+        return factory.getExecute().list(clazz);
     }
 
     @Override
@@ -239,7 +267,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public List<T> aggregateList(AggregateChainWrapper<T, ?> queryChainWrapper) {
-        return sqlExecute.doAggregateList(queryChainWrapper.getBaseAggregateList(),queryChainWrapper.getBasicDBObjectList(),queryChainWrapper.getOptionsBasicDBObject(),clazz);
+        return factory.getExecute().aggregateList(queryChainWrapper.getBaseAggregateList(),queryChainWrapper.getBasicDBObjectList(),queryChainWrapper.getOptionsBasicDBObject(),clazz);
     }
 
     @Override
@@ -249,7 +277,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public T one(QueryChainWrapper<T,?> queryChainWrapper) {
-        return sqlExecute.doOne(queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),clazz);
+        return factory.getExecute().one(queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),clazz);
     }
 
     @Override
@@ -259,7 +287,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public T limitOne(QueryChainWrapper<T, ?> queryChainWrapper) {
-        return sqlExecute.doLimitOne(queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),queryChainWrapper.getOrderList(),clazz);
+        return factory.getExecute().limitOne(queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),queryChainWrapper.getOrderList(),clazz);
     }
 
     @Override
@@ -269,7 +297,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public List<T> list(QueryChainWrapper<T,?> queryChainWrapper) {
-        return sqlExecute.doList(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),clazz);
+        return factory.getExecute().list(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),clazz);
     }
 
     @Override
@@ -279,7 +307,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public List<T> list(AggregateChainWrapper<T,?> queryChainWrapper) {
-        return sqlExecute.doAggregateList(queryChainWrapper.getBaseAggregateList(),queryChainWrapper.getBasicDBObjectList(),queryChainWrapper.getOptionsBasicDBObject(),clazz);
+        return factory.getExecute().aggregateList(queryChainWrapper.getBaseAggregateList(),queryChainWrapper.getBasicDBObjectList(),queryChainWrapper.getOptionsBasicDBObject(),clazz);
     }
 
     @Override
@@ -289,7 +317,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public long count() {
-        return sqlExecute.doCount(clazz);
+        return factory.getExecute().count(clazz);
     }
 
     @Override
@@ -299,7 +327,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public long count(QueryChainWrapper<T, ?> queryChainWrapper) {
-        return sqlExecute.doCount(queryChainWrapper.getCompareList(),clazz);
+        return factory.getExecute().count(queryChainWrapper.getCompareList(),clazz);
     }
 
     @Override
@@ -309,7 +337,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public PageResult<T> page(QueryChainWrapper<T,?> queryChainWrapper, Integer pageNum, Integer pageSize){
-        return sqlExecute.doPage(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(), pageNum,pageSize,clazz);
+        return factory.getExecute().page(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(), pageNum,pageSize,clazz);
     }
 
     @Override
@@ -319,7 +347,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public PageResult<T> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam) {
-        return page(null,queryChainWrapper,pageParam);
+        return factory.getExecute().page(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),pageParam.getPageNum(),pageParam.getPageSize(),clazz);
     }
 
     @Override
@@ -339,7 +367,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public PageResult<T> page(Integer pageNum, Integer pageSize) {
-        return sqlExecute.doPage(null,null,null,null,pageNum,pageSize,clazz);
+        return factory.getExecute().page(null,null,null,null,pageNum,pageSize,clazz);
     }
 
     @Override
@@ -349,7 +377,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public T getById(Serializable id) {
-        return sqlExecute.doGetById(id,clazz);
+        return factory.getExecute().getById(id,clazz);
     }
 
     @Override
@@ -359,7 +387,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public List<T> getByIds(Collection<? extends Serializable> ids) {
-        return sqlExecute.doGetByIds(ids,clazz);
+        return factory.getExecute().getByIds(ids,clazz);
     }
 
     @Override
@@ -373,13 +401,18 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
-    public List<T> sql(ClientSession clientSession,String sql) {
+    public List<T> sql(ClientSession clientSession,String sql)   {
         return sqlExecute.doSql(clientSession,sql,clazz);
     }
 
     @Override
+    public List<T> queryCommand(String command) {
+        return factory.getExecute().queryCommand(command,clazz);
+    }
+
+    @Override
     public List<T> getByColumn(SFunction<T, Object> field, Object fieldValue) {
-        return sqlExecute.doGetByColumn(field.getFieldNameLine(), fieldValue,clazz);
+        return factory.getExecute().getByColumn(field.getFieldNameLine(), fieldValue,clazz);
     }
 
     @Override
@@ -389,7 +422,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public List<T> getByColumn(String field, Object fieldValue) {
-        return sqlExecute.doGetByColumn(field,fieldValue,clazz);
+        return factory.getExecute().getByColumn(field,fieldValue,clazz);
     }
 
     @Override
@@ -404,7 +437,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public String createIndex(Bson bson) {
-        return sqlExecute.createIndex(bson,getMongoCollection());
+        return factory.getExecute().createIndex(bson,getMongoCollection());
     }
 
     @Override
@@ -414,17 +447,17 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public String createIndex(Bson bson, IndexOptions indexOptions) {
-        return sqlExecute.createIndex(bson,indexOptions,getMongoCollection());
+        return factory.getExecute().createIndex(bson,indexOptions,getMongoCollection());
     }
 
     @Override
     public List<String> createIndexes(List<IndexModel> indexes) {
-        return sqlExecute.createIndexes(indexes,getMongoCollection());
+        return factory.getExecute().createIndexes(indexes,getMongoCollection());
     }
 
     @Override
     public List<String> createIndexes(List<IndexModel> indexes, CreateIndexOptions createIndexOptions) {
-        return sqlExecute.createIndexes(indexes,createIndexOptions,getMongoCollection());
+        return factory.getExecute().createIndexes(indexes,createIndexOptions,getMongoCollection());
     }
 
     @Override
@@ -439,7 +472,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public List<Document> listIndexes() {
-        return sqlExecute.listIndexes(getMongoCollection());
+        return factory.getExecute().listIndexes(getMongoCollection());
     }
 
     @Override
@@ -449,22 +482,22 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public void dropIndex(String indexName) {
-        sqlExecute.dropIndex(indexName,getMongoCollection());
+        factory.getExecute().dropIndex(indexName,getMongoCollection());
     }
 
     @Override
     public void dropIndex(String indexName, DropIndexOptions dropIndexOptions) {
-        sqlExecute.dropIndex(indexName,dropIndexOptions,getMongoCollection());
+        factory.getExecute().dropIndex(indexName,dropIndexOptions,getMongoCollection());
     }
 
     @Override
     public void dropIndex(Bson keys) {
-        sqlExecute.dropIndex(keys,getMongoCollection());
+        factory.getExecute().dropIndex(keys,getMongoCollection());
     }
 
     @Override
     public void dropIndex(Bson keys, DropIndexOptions dropIndexOptions) {
-        sqlExecute.dropIndex(keys,dropIndexOptions,getMongoCollection());
+        factory.getExecute().dropIndex(keys,dropIndexOptions,getMongoCollection());
     }
 
     @Override
@@ -489,7 +522,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public void dropIndexes() {
-        sqlExecute.dropIndexes(getMongoCollection());
+        factory.getExecute().dropIndexes(getMongoCollection());
     }
 
     @Override
@@ -499,7 +532,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public void dropIndexes(DropIndexOptions dropIndexOptions) {
-        sqlExecute.dropIndexes(dropIndexOptions,getMongoCollection());
+        factory.getExecute().dropIndexes(dropIndexOptions,getMongoCollection());
     }
 
     @Override

@@ -45,6 +45,7 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @since 2023/2/9 13:27
      */
+    @Deprecated
     Boolean save(ClientSession clientSession,T entity);
 
 
@@ -64,6 +65,7 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @since 2023/2/9 13:56
      */
+    @Deprecated
     Boolean saveBatch(ClientSession clientSession,Collection<T> entityList);
 
     /**
@@ -82,6 +84,7 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @since 2023/2/9 13:57
     */
+    @Deprecated
     Boolean saveOrUpdate(ClientSession clientSession,T entity);
 
     /**
@@ -100,6 +103,7 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @since 2023/2/9 13:57
     */
+    @Deprecated
     Boolean saveOrUpdateBatch(ClientSession clientSession,Collection<T> entityList);
 
     /**
@@ -118,10 +122,12 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @since 2023/2/9 13:28
     */
+    @Deprecated
     Boolean updateById(ClientSession clientSession,T entity);
 
     Boolean updateBatchByIds(Collection<T> entityList);
 
+    @Deprecated
     Boolean updateBatchByIds(ClientSession clientSession,Collection<T> entityList);
 
     /**
@@ -142,10 +148,12 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @since 2023/2/9 13:46
     */
+    @Deprecated
     Boolean updateByColumn(ClientSession clientSession,T entity, SFunction<T, Object> column);
 
     Boolean updateByColumn(T entity, String column);
 
+    @Deprecated
     Boolean updateByColumn(ClientSession clientSession,T entity, String column);
 
     /**
@@ -165,6 +173,7 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @date 2023/10/20 0:51
      */
+    @Deprecated
     Boolean remove(ClientSession clientSession,UpdateChainWrapper<T,?> updateChainWrapper);
 
     /**
@@ -184,6 +193,7 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @date 2023/10/20 0:51
      */
+    @Deprecated
     Boolean update(ClientSession clientSession,UpdateChainWrapper<T,?> updateChainWrapper);
 
     /**
@@ -202,6 +212,7 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @since 2023/2/9 13:47
     */
+    @Deprecated
     Boolean removeById(ClientSession clientSession,Serializable id);
 
     /**
@@ -220,6 +231,7 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @since 2023/2/9 14:01
     */
+    @Deprecated
     Boolean removeByColumn(ClientSession clientSession,SFunction<T, Object> column, Object value);
 
     /**
@@ -240,6 +252,7 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @since 2023/2/9 14:05
     */
+    @Deprecated
     Boolean removeByColumn(ClientSession clientSession,String column,Object value);
 
     /**
@@ -258,6 +271,7 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @since 2023/2/9 13:59
     */
+    @Deprecated
     Boolean removeBatchByIds(ClientSession clientSession,Collection<? extends Serializable> idList);
 
     /**
@@ -274,14 +288,17 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @since 2023/2/10 9:48
     */
+    @Deprecated
     List<T> list(ClientSession clientSession);
 
     List<T> aggregateList(AggregateChainWrapper<T,?> queryChainWrapper);
 
+    @Deprecated
     List<T> aggregateList(ClientSession clientSession,AggregateChainWrapper<T,?> queryChainWrapper);
 
     T one(QueryChainWrapper<T,?> queryChainWrapper);
 
+    @Deprecated
     T one(ClientSession clientSession,QueryChainWrapper<T,?> queryChainWrapper);
 
     /**
@@ -300,22 +317,27 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @date 2023/7/20 23:20
      */
+    @Deprecated
     T limitOne(ClientSession clientSession,QueryChainWrapper<T,?> queryChainWrapper);
 
     List<T> list(QueryChainWrapper<T ,?> queryChainWrapper);
 
+    @Deprecated
     List<T> list(ClientSession clientSession,QueryChainWrapper<T ,?> queryChainWrapper);
 
     List<T> list(AggregateChainWrapper<T,?> queryChainWrapper);
 
+    @Deprecated
     List<T> list(ClientSession clientSession,AggregateChainWrapper<T,?> queryChainWrapper);
 
     long count();
 
+    @Deprecated
     long count(ClientSession clientSession);
 
     long count(QueryChainWrapper<T,?> queryChainWrapper);
 
+    @Deprecated
     long count(ClientSession clientSession,QueryChainWrapper<T,?> queryChainWrapper);
 
     /**
@@ -334,6 +356,7 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @date 2023/6/25/025
     */
+    @Deprecated
     PageResult<T> page(ClientSession clientSession,PageParam pageParam);
 
     /**
@@ -354,14 +377,17 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @date 2023/6/25/025
     */
+    @Deprecated
     PageResult<T> page(ClientSession clientSession,Integer pageNum,Integer pageSize);
 
     PageResult<T> page(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize);
 
+    @Deprecated
     PageResult<T> page(ClientSession clientSession,QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize);
 
     PageResult<T> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam);
 
+    @Deprecated
     PageResult<T> page(ClientSession clientSession,QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam);
 
     /**
@@ -380,20 +406,34 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @date 2023/6/25/025
     */
+    @Deprecated
     T getById(ClientSession clientSession,Serializable id);
 
     List<T> getByIds(Collection<? extends Serializable> ids);
 
+    @Deprecated
     List<T> getByIds(ClientSession clientSession,Collection<? extends Serializable> ids);
 
     /**
      * 查询sql，传入值为json，如{eq:XXX}
+     * ps: <p style="color:red;">替换接口为：{@link com.anwen.mongo.service.IService#queryCommand(String)}</p>
      * @author JiaChaoYang
      * @date 2023/10/8 22:15
     */
+    @Deprecated
     List<T> sql(String sql);
 
+    @Deprecated
     List<T> sql(ClientSession clientSession,String sql);
+
+    /**
+     * 命令查询接口，传入值为json，如{eq:XXX}
+     * @param command 命令json
+     * @return java.util.List<T>
+     * @author JiaChaoYang
+     * @date 2023/12/30 23:28
+    */
+    List<T> queryCommand(String command);
 
     /**
      * 根据某一列查询
@@ -405,6 +445,7 @@ public interface IService<T> {
     */
     List<T> getByColumn(SFunction<T,Object> field,Object fieldValue);
 
+    @Deprecated
     List<T> getByColumn(ClientSession clientSession,SFunction<T,Object> field,Object fieldValue);
 
     /**
@@ -417,6 +458,7 @@ public interface IService<T> {
     */
     List<T> getByColumn(String field,Object fieldValue);
 
+    @Deprecated
     List<T> getByColumn(ClientSession clientSession,String field,Object fieldValue);
 
     /**
@@ -426,6 +468,7 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @date 2023/11/15 14:04
      */
+    @Deprecated
     String createIndex(ClientSession clientSession,Bson bson);
 
     /**
@@ -446,6 +489,7 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @date 2023/11/15 15:37
     */
+    @Deprecated
     String createIndex(ClientSession clientSession, Bson bson, IndexOptions indexOptions);
 
     /**
@@ -477,16 +521,7 @@ public interface IService<T> {
     */
     List<String> createIndexes(List<IndexModel> indexes, CreateIndexOptions createIndexOptions);
 
-    /**
-     * 创建多个索引。
-     *
-     * @param clientSession 要与此操作关联的客户端会话
-     * @param indexes 索引列表
-     * @return 索引名称列表
-     * @since 3.6
-     * @mongodb.server.release 3.6
-     * @mongodb.driver.manual reference/command/createIndexes Create indexes
-     */
+
     /**
      * 创建多个索引
      * @param clientSession 要与此操作关联的客户端会话
@@ -495,6 +530,7 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @date 2023/11/15 15:35
     */
+    @Deprecated
     List<String> createIndexes(ClientSession clientSession, List<IndexModel> indexes);
 
     /**
@@ -506,6 +542,7 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @date 2023/11/15 15:36
     */
+    @Deprecated
     List<String> createIndexes(ClientSession clientSession, List<IndexModel> indexes, CreateIndexOptions createIndexOptions);
 
     /**
@@ -521,6 +558,7 @@ public interface IService<T> {
      * @param clientSession 要与此操作关联的客户端会话
      * @return 列表索引可迭代接口
      */
+    @Deprecated
     List<Document> listIndexes(ClientSession clientSession);
 
     /**
@@ -560,6 +598,7 @@ public interface IService<T> {
      * @param clientSession 要与此操作关联的客户端会话
      * @param indexName 要删除的索引的名称
      */
+    @Deprecated
     void dropIndex(ClientSession clientSession, String indexName);
 
     /**
@@ -568,6 +607,7 @@ public interface IService<T> {
      * @param clientSession 要与此操作关联的客户端会话
      * @param keys 要删除的索引的键
      */
+    @Deprecated
     void dropIndex(ClientSession clientSession, Bson keys);
 
     /**
@@ -577,6 +617,7 @@ public interface IService<T> {
      * @param indexName 要删除的索引的名称
      * @param dropIndexOptions 删除索引时要使用的选项
      */
+    @Deprecated
     void dropIndex(ClientSession clientSession, String indexName, DropIndexOptions dropIndexOptions);
 
     /**
@@ -586,6 +627,7 @@ public interface IService<T> {
      * @param keys 要删除的索引的键
      * @param dropIndexOptions 删除索引时要使用的选项
      */
+    @Deprecated
     void dropIndex(ClientSession clientSession, Bson keys, DropIndexOptions dropIndexOptions);
 
     /**
@@ -599,6 +641,7 @@ public interface IService<T> {
      *
      * @param clientSession 要与此操作关联的客户端会话
      */
+    @Deprecated
     void dropIndexes(ClientSession clientSession);
 
     /**
@@ -615,11 +658,15 @@ public interface IService<T> {
      * @param clientSession 要与此操作关联的客户端会话
      * @param dropIndexOptions 删除索引时要使用的选项
      */
+    @Deprecated
     void dropIndexes(ClientSession clientSession, DropIndexOptions dropIndexOptions);
 
     SqlExecute getSqlOperation();
 
+    @Deprecated
     Class<T> getGenericityClazz();
+
+    Class<T> getGenericityClass();
 
 
     LambdaQueryChainWrapper<T> lambdaQuery();

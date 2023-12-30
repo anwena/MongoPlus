@@ -2,6 +2,7 @@ package com.anwen.mongo.config;
 
 import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.cache.global.InterceptorCache;
+import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.handlers.DocumentHandler;
 import com.anwen.mongo.handlers.MetaObjectHandler;
@@ -39,6 +40,8 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
 
     private final SqlExecute sqlExecute;
 
+    private final ExecutorFactory factory;
+
     private final ApplicationContext applicationContext;
 
     private final MongoDBLogProperty mongoDBLogProperty;
@@ -47,11 +50,12 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
 
     Logger logger = LoggerFactory.getLogger(MongoPlusAutoConfiguration.class);
 
-    public MongoPlusAutoConfiguration(MongoDBLogProperty mongoDBLogProperty,MongoDBCollectionProperty mongoDBCollectionProperty,SqlExecute sqlExecute, ApplicationContext applicationContext) {
+    public MongoPlusAutoConfiguration(MongoDBLogProperty mongoDBLogProperty, MongoDBCollectionProperty mongoDBCollectionProperty, SqlExecute sqlExecute, ExecutorFactory executeFactory, ApplicationContext applicationContext) {
         this.sqlExecute = sqlExecute;
         this.applicationContext = applicationContext;
         this.mongoDBLogProperty = mongoDBLogProperty;
         this.mongoDBCollectionProperty = mongoDBCollectionProperty;
+        this.factory = executeFactory;
         setConversion();
         setMetaObjectHandler();
         setDocumentHandler();
@@ -71,6 +75,8 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         sqlExecute.init(clazz);
         serviceImpl.setClazz(clazz);
         serviceImpl.setSqlOperation(sqlExecute);
+        factory.init(clazz);
+        serviceImpl.setFactory(factory);
     }
 
     /**

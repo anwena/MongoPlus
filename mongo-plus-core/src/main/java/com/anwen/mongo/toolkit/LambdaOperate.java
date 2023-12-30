@@ -7,6 +7,7 @@ import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.context.MongoTransactionContext;
 import com.anwen.mongo.convert.Converter;
 import com.anwen.mongo.convert.DocumentMapperConvert;
+import com.anwen.mongo.model.BaseLambdaQueryResult;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 import com.mongodb.BasicDBObject;
@@ -35,32 +36,22 @@ public class LambdaOperate {
         return Converter.convertDocumentToMap(iterable,size);
     }
 
-    public Map<String,BasicDBObject> baseLambdaQuery(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
+    public BaseLambdaQueryResult baseLambdaQuery(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
         BasicDBObject sortCond = new BasicDBObject();
-        if (orderList != null && !orderList.isEmpty()) {
+        if (CollUtil.isNotEmpty(orderList)) {
             orderList.forEach(order -> sortCond.put(order.getColumn(), order.getType()));
         }
         BasicDBObject basicDBObject = BuildCondition.buildQueryCondition(compareConditionList);
-        if (null != basicDBObjectList && !basicDBObjectList.isEmpty()){
+        if (CollUtil.isNotEmpty(basicDBObjectList)){
             basicDBObjectList.forEach(basic -> {
                 basicDBObject.putAll(basic.toMap());
             });
         }
-        return new ConcurrentHashMap<String,BasicDBObject>(){{
-            put("basicDBObject",basicDBObject);
-            put("projectionList",BuildCondition.buildProjection(projectionList));
-            put("sortCond",sortCond);
-        }};
+        return new BaseLambdaQueryResult(basicDBObject,BuildCondition.buildProjection(projectionList),sortCond);
     }
 
-    public <T> PageResult<T> getLambdaQueryResultPage(List<CompareCondition> compareConditionList, List<Order> orderList, List<Projection> projectionList, List<BasicDBObject> basicDBObjectList, PageParam pageParams, Class<T> clazz) {
-        return getLambdaQueryResultPage(MongoTransactionContext.getClientSessionContext(),compareConditionList,orderList,projectionList,basicDBObjectList,pageParams,clazz);
-    }
-
-    public <T> PageResult<T> getLambdaQueryResultPage(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, PageParam pageParams,Class<T> clazz) {
+    public <T> PageResult<T> getLambdaQueryResultPage(FindIterable<Document> documentFindIterable,long totalSize, PageParam pageParams,Class<T> clazz) {
         PageResult<T> pageResult = new PageResult<>();
-        FindIterable<Document> documentFindIterable = baseLambdaQuery(compareConditionList, orderList,projectionList,basicDBObjectList,clazz);
-        long totalSize = doCount(compareConditionList,clazz);
         pageResult.setPageNum(pageParams.getPageNum());
         pageResult.setPageSize(pageParams.getPageSize());
         pageResult.setTotalSize(totalSize);
@@ -69,20 +60,20 @@ public class LambdaOperate {
         return pageResult;
     }
 
-    public PageResult<Map<String, Object>> getLambdaQueryResultPage(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, PageParam pageParams) {
-        return getLambdaQueryResultPage(MongoTransactionContext.getClientSessionContext(),collectionName,compareConditionList,orderList,projectionList,basicDBObjectList,pageParams);
-    }
-
-    public PageResult<Map<String, Object>> getLambdaQueryResultPage(ClientSession clientSession,String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, PageParam pageParams) {
-        PageResult<Map<String, Object>> pageResult = new PageResult<>();
-        FindIterable<Map> documentFindIterable = baseLambdaQuery(clientSession,collectionName, compareConditionList, orderList,projectionList,basicDBObjectList);
-        long totalSize = doCount(collectionName,compareConditionList);
-        pageResult.setPageNum(pageParams.getPageNum());
-        pageResult.setPageSize(pageParams.getPageSize());
-        pageResult.setTotalSize(totalSize);
-        pageResult.setTotalPages((totalSize + pageParams.getPageSize() - 1) / pageParams.getPageSize());
-        pageResult.setContentData(Converter.convertDocumentToMap(documentFindIterable.skip((pageParams.getPageNum() - 1) * pageParams.getPageSize()).limit(pageParams.getPageSize())));
-        return pageResult;
-    }
+//    public PageResult<Map<String, Object>> getLambdaQueryResultPage(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, PageParam pageParams) {
+//        return getLambdaQueryResultPage(MongoTransactionContext.getClientSessionContext(),collectionName,compareConditionList,orderList,projectionList,basicDBObjectList,pageParams);
+//    }
+//
+//    public PageResult<Map<String, Object>> getLambdaQueryResultPage(ClientSession clientSession,String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, PageParam pageParams) {
+//        PageResult<Map<String, Object>> pageResult = new PageResult<>();
+//        FindIterable<Map> documentFindIterable = baseLambdaQuery(clientSession,collectionName, compareConditionList, orderList,projectionList,basicDBObjectList);
+//        long totalSize = doCount(collectionName,compareConditionList);
+//        pageResult.setPageNum(pageParams.getPageNum());
+//        pageResult.setPageSize(pageParams.getPageSize());
+//        pageResult.setTotalSize(totalSize);
+//        pageResult.setTotalPages((totalSize + pageParams.getPageSize() - 1) / pageParams.getPageSize());
+//        pageResult.setContentData(Converter.convertDocumentToMap(documentFindIterable.skip((pageParams.getPageNum() - 1) * pageParams.getPageSize()).limit(pageParams.getPageSize())));
+//        return pageResult;
+//    }
 
 }

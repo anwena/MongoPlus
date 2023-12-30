@@ -20,7 +20,7 @@ public class MongoTransactionSynchronization implements TransactionSynchronizati
     @Override
     public void afterCommit() {
 //        TransactionSynchronization.super.afterCommit();
-        mongoPlusTransactionalManager.doCommit();
+//        mongoPlusTransactionalManager.doCommit();
     }
 
     @Override
