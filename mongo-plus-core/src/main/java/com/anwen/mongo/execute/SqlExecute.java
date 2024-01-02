@@ -55,6 +55,7 @@ import static com.anwen.mongo.toolkit.BeanMapUtilByReflect.getIdField;
  * @CreateTime: 2023-02-16 20:35
  * @Version: 1.0
  */
+@Deprecated
 public class SqlExecute {
 
     private static final Logger logger = LoggerFactory.getLogger(SqlExecute.class);

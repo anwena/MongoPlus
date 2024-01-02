@@ -117,7 +117,7 @@ public class ExecutorFactory {
      * @author JiaChaoYang
      * @date 2023/12/28 14:49
     */
-    public Execute getExecute(){
+    public AbstractExecute getExecute(){
         ClientSession clientSessionContext = MongoTransactionContext.getClientSessionContext();
         if (clientSessionContext != null) {
             return new SessionExecute(mongoClient,baseProperty, collectionNameConvert,collectionManager,clientSessionContext);
@@ -133,7 +133,7 @@ public class ExecutorFactory {
      * @author JiaChaoYang
      * @date 2023/12/28 16:03
     */
-    public Execute getExecute(Class<? extends Execute> clazz, Map<Object,Object> expandParam){
+    public AbstractExecute getExecute(Class<? extends AbstractExecute> clazz, Map<Object,Object> expandParam){
         Constructor<?> constructor;
         try {
             constructor = clazz.getConstructor(MongoClient.class, BaseProperty.class, CollectionNameConvert.class,CollectionManager.class,Map.class);
@@ -142,7 +142,7 @@ public class ExecutorFactory {
             throw new RuntimeException(e);
         }
         try {
-            return (Execute) constructor.newInstance(mongoClient,baseProperty,collectionNameConvert,collectionManager,expandParam);
+            return (AbstractExecute) constructor.newInstance(mongoClient,baseProperty,collectionNameConvert,collectionManager,expandParam);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             logger.error("Instance creation failed, exception reason: {}",e.getMessage());
             throw new RuntimeException(e);

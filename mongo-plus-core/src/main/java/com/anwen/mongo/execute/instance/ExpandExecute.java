@@ -2,7 +2,7 @@ package com.anwen.mongo.execute.instance;
 
 import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.convert.CollectionNameConvert;
-import com.anwen.mongo.execute.Execute;
+import com.anwen.mongo.execute.AbstractExecute;
 import com.anwen.mongo.model.BaseProperty;
 import com.mongodb.client.MongoClient;
 
@@ -15,7 +15,7 @@ import java.util.Map;
  * @project mongo-plus
  * @date 2023-12-28 15:57
  **/
-public abstract class ExpandExecute extends Execute {
+public abstract class ExpandExecute extends AbstractExecute {
 
     /**
      * 拓展参数，可能为null，取决执行器工厂的获取实例方法

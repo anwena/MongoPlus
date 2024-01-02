@@ -3,7 +3,7 @@ package com.anwen.mongo.execute.instance;
 import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.convert.DocumentMapperConvert;
-import com.anwen.mongo.execute.Execute;
+import com.anwen.mongo.execute.AbstractExecute;
 import com.anwen.mongo.model.BaseProperty;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.*;
@@ -27,11 +27,11 @@ import java.util.List;
  * @project mongo-plus
  * @date 2023-12-28 11:03
  **/
-public class SessionExecute extends Execute {
+public class SessionExecute extends AbstractExecute {
 
     private final ClientSession clientSession;
 
-    public SessionExecute(MongoClient mongoClient, BaseProperty baseProperty, CollectionNameConvert collectionNameConvert, CollectionManager collectionManager,ClientSession clientSession) {
+    public SessionExecute(MongoClient mongoClient, BaseProperty baseProperty, CollectionNameConvert collectionNameConvert, CollectionManager collectionManager, ClientSession clientSession) {
         super(mongoClient, baseProperty, collectionNameConvert, collectionManager);
         this.clientSession = clientSession;
     }
@@ -42,92 +42,92 @@ public class SessionExecute extends Execute {
     }
 
     @Override
-    protected InsertManyResult doSaveBatch(List<Document> documentList, MongoCollection<Document> collection) {
+    public InsertManyResult doSaveBatch(List<Document> documentList, MongoCollection<Document> collection) {
         return collection.insertMany(clientSession,documentList);
     }
 
     @Override
-    protected UpdateResult doUpdateById(BasicDBObject filter, BasicDBObject update, MongoCollection<Document> collection) {
+    public UpdateResult doUpdateById(BasicDBObject filter, BasicDBObject update, MongoCollection<Document> collection) {
         return collection.updateOne(clientSession,filter,update);
     }
 
     @Override
-    protected UpdateResult doUpdateByColumn(Bson filter, Document document, MongoCollection<Document> collection) {
+    public UpdateResult doUpdateByColumn(Bson filter, Document document, MongoCollection<Document> collection) {
         return collection.updateMany(clientSession,filter,document);
     }
 
     @Override
-    protected DeleteResult executeRemove(Bson filterId, MongoCollection<Document> collection) {
+    public DeleteResult executeRemove(Bson filterId, MongoCollection<Document> collection) {
         return collection.deleteOne(clientSession,filterId);
     }
 
     @Override
-    protected DeleteResult executeRemoveByColumn(Bson filter, MongoCollection<Document> collection) {
+    public DeleteResult executeRemoveByColumn(Bson filter, MongoCollection<Document> collection) {
         return collection.deleteMany(clientSession,filter);
     }
 
     @Override
-    protected DeleteResult executeRemoveBatchByIds(Bson objectIdBson, MongoCollection<Document> collection) {
+    public DeleteResult executeRemoveBatchByIds(Bson objectIdBson, MongoCollection<Document> collection) {
         return collection.deleteMany(clientSession,objectIdBson);
     }
 
     @Override
-    protected FindIterable<Document> doList(MongoCollection<Document> collection) {
+    public FindIterable<Document> doList(MongoCollection<Document> collection) {
         return collection.find(clientSession);
     }
 
     @Override
-    protected FindIterable<Document> doList(BasicDBObject basicDBObject, BasicDBObject projectionList, BasicDBObject sortCond, MongoCollection<Document> collection) {
+    public FindIterable<Document> doList(BasicDBObject basicDBObject, BasicDBObject projectionList, BasicDBObject sortCond, MongoCollection<Document> collection) {
         return collection.find(clientSession,basicDBObject).projection(projectionList).sort(sortCond);
     }
 
     @Override
-    protected AggregateIterable<Document> doAggregateList(List<BasicDBObject> aggregateConditionList, MongoCollection<Document> collection) {
+    public AggregateIterable<Document> doAggregateList(List<BasicDBObject> aggregateConditionList, MongoCollection<Document> collection) {
         return collection.aggregate(clientSession,aggregateConditionList);
     }
 
     @Override
-    protected FindIterable<Document> doGetById(BasicDBObject queryBasic, MongoCollection<Document> collection) {
+    public FindIterable<Document> doGetById(BasicDBObject queryBasic, MongoCollection<Document> collection) {
         return collection.find(clientSession,queryBasic);
     }
 
     @Override
-    protected long executeExist(BasicDBObject queryBasic, MongoCollection<Document> collection) {
+    public long executeExist(BasicDBObject queryBasic, MongoCollection<Document> collection) {
         return collection.countDocuments(clientSession,queryBasic);
     }
 
     @Override
-    protected FindIterable<Document> doGetByIds(BasicDBObject basicDBObject, MongoCollection<Document> collection) {
+    public FindIterable<Document> doGetByIds(BasicDBObject basicDBObject, MongoCollection<Document> collection) {
         return collection.find(clientSession,basicDBObject);
     }
 
     @Override
-    protected UpdateResult executeUpdate(BasicDBObject queryBasic, BasicDBObject updateBasic, MongoCollection<Document> collection) {
+    public UpdateResult executeUpdate(BasicDBObject queryBasic, BasicDBObject updateBasic, MongoCollection<Document> collection) {
         return collection.updateMany(clientSession,queryBasic,updateBasic);
     }
 
     @Override
-    protected DeleteResult executeRemove(BasicDBObject deleteBasic, MongoCollection<Document> collection) {
+    public DeleteResult executeRemove(BasicDBObject deleteBasic, MongoCollection<Document> collection) {
         return collection.deleteMany(clientSession,deleteBasic);
     }
 
     @Override
-    protected long executeCountByCondition(BasicDBObject basicDBObject, MongoCollection<Document> collection) {
+    public long executeCountByCondition(BasicDBObject basicDBObject, MongoCollection<Document> collection) {
         return collection.countDocuments(clientSession,basicDBObject);
     }
 
     @Override
-    protected long doCount(MongoCollection<Document> collection) {
+    public long doCount(MongoCollection<Document> collection) {
         return collection.countDocuments(clientSession);
     }
 
     @Override
-    protected FindIterable<Document> doQueryCommand(BasicDBObject basicDBObject, MongoCollection<Document> collection) {
+    public FindIterable<Document> doQueryCommand(BasicDBObject basicDBObject, MongoCollection<Document> collection) {
         return collection.find(clientSession,basicDBObject);
     }
 
     @Override
-    protected FindIterable<Document> doGetByColumn(Bson filter, MongoCollection<Document> collection) {
+    public FindIterable<Document> doGetByColumn(Bson filter, MongoCollection<Document> collection) {
         return collection.find(clientSession,filter);
     }
 
