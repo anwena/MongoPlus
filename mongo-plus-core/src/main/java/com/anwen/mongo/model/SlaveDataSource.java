@@ -10,7 +10,7 @@ package com.anwen.mongo.model;
  */
 public class SlaveDataSource extends BaseProperty{
     /**
-     * 数据源名称
+     * 数据源名称,他应该是唯一的，不可重复
      **/
     private String slaveName;
 

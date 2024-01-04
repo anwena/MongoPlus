@@ -10,11 +10,13 @@ import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.interceptor.business.BlockAttackInnerInterceptor;
 import com.anwen.mongo.interceptor.business.LogInterceptor;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
+import com.anwen.mongo.property.MongoDBConnectProperty;
 import com.anwen.mongo.property.MongoDBLogProperty;
 import com.anwen.mongo.service.IService;
 import com.anwen.mongo.service.impl.ServiceImpl;
 import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.strategy.convert.ConversionStrategy;
+import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.anwen.mongo.toolkit.CollUtil;
 import com.mongodb.MongoException;
 import org.slf4j.Logger;
@@ -48,14 +50,17 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
 
     private final MongoDBCollectionProperty mongoDBCollectionProperty;
 
+    private final MongoDBConnectProperty mongoDBConnectProperty;
+
     Logger logger = LoggerFactory.getLogger(MongoPlusAutoConfiguration.class);
 
-    public MongoPlusAutoConfiguration(MongoDBLogProperty mongoDBLogProperty, MongoDBCollectionProperty mongoDBCollectionProperty, SqlExecute sqlExecute, ExecutorFactory executeFactory, ApplicationContext applicationContext) {
+    public MongoPlusAutoConfiguration(MongoDBLogProperty mongoDBLogProperty, MongoDBCollectionProperty mongoDBCollectionProperty, SqlExecute sqlExecute, ExecutorFactory executeFactory, ApplicationContext applicationContext, MongoDBConnectProperty mongoDBConnectProperty) {
         this.sqlExecute = sqlExecute;
         this.applicationContext = applicationContext;
         this.mongoDBLogProperty = mongoDBLogProperty;
         this.mongoDBCollectionProperty = mongoDBCollectionProperty;
         this.factory = executeFactory;
+        this.mongoDBConnectProperty = mongoDBConnectProperty;
         setConversion();
         setMetaObjectHandler();
         setDocumentHandler();
@@ -77,6 +82,7 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         serviceImpl.setSqlOperation(sqlExecute);
         factory.init(clazz);
         serviceImpl.setFactory(factory);
+        serviceImpl.setDataSourceName(ClassTypeUtil.getDataSourceName(clazz,mongoDBConnectProperty.getSlaveDataSource()));
     }
 
     /**

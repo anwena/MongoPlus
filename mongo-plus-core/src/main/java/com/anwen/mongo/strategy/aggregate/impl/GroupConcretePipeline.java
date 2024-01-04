@@ -56,12 +56,12 @@ public class GroupConcretePipeline implements PipelineStrategy {
         this.accumulatorList = accumulatorList;
     }
 
-    public GroupConcretePipeline(String _id, String resultMappingField, String operator, String field) {
+    public GroupConcretePipeline(String _id, String resultMappingField, String operator, Object field) {
         this._id = _id;
         this.accumulatorList = Collections.singletonList(new Accumulator(resultMappingField, operator, field));
     }
 
-    public GroupConcretePipeline(List<GroupField> _idList , String resultMappingField, String operator, String field,boolean multiple) {
+    public GroupConcretePipeline(List<GroupField> _idList , String resultMappingField, String operator, Object field,boolean multiple) {
         this._idList = _idList;
         this.accumulatorList = Collections.singletonList(new Accumulator(resultMappingField, operator, field));
     }

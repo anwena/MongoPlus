@@ -18,7 +18,11 @@ public class MongoTransactionalOperate {
      * @date 2023/9/10 16:44
      */
     public static ClientSession createTransaction() {
-        return MongoClientCache.mongoClient.startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
+        return createTransaction("master");
+    }
+
+    public static ClientSession createTransaction(String dataSourceName){
+        return MongoClientCache.mongoClientMap.get(dataSourceName).startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
     }
 
     /**
@@ -27,7 +31,11 @@ public class MongoTransactionalOperate {
      * @date 2023/9/10 16:47
     */
     public static ClientSession startTransaction(){
-        ClientSession clientSession = MongoClientCache.mongoClient.startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
+        return startTransaction("master");
+    }
+
+    public static ClientSession startTransaction(String dataSourceName){
+        ClientSession clientSession = MongoClientCache.mongoClientMap.get(dataSourceName).startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
         clientSession.startTransaction();
         return clientSession;
     }

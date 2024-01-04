@@ -258,9 +258,9 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * @author JiaChaoYang
      * @date 2023/8/17 22:51
     */
-    Children group(SFunction<T,Object> _id , String resultMappingField,String operator,String field);
+    Children group(SFunction<T,Object> _id , String resultMappingField,String operator,Object field);
 
-    Children groupFunc(List<FuncGroupField<?>> _id , String resultMappingField,String operator,String field);
+    Children groupFunc(List<FuncGroupField<?>> _id , String resultMappingField,String operator,Object field);
 
     /**
      * 对所有文档记录进行分组，然后计算聚合结果
@@ -272,9 +272,9 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * @author JiaChaoYang
      * @date 2023/8/17 22:51
      */
-    Children group(String _id , String resultMappingField,String operator,String field);
+    Children group(String _id , String resultMappingField,String operator,Object field);
 
-    Children group(List<GroupField> _id , String resultMappingField,String operator,String field);
+    Children group(List<GroupField> _id , String resultMappingField,String operator,Object field);
 
     /**
      * 对所有文档记录进行分组，然后计算聚合结果
@@ -286,9 +286,9 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * @author JiaChaoYang
      * @date 2023/8/17 22:51
      */
-    Children group(SFunction<T,Object> _id , String resultMappingField, GroupTypeEnum operator, String field);
+    Children group(SFunction<T,Object> _id , String resultMappingField, GroupTypeEnum operator, Object field);
 
-    Children groupFunc(List<FuncGroupField<?>> _id , String resultMappingField, GroupTypeEnum operator, String field);
+    Children groupFunc(List<FuncGroupField<?>> _id , String resultMappingField, GroupTypeEnum operator, Object field);
 
     /**
      * 对所有文档记录进行分组，然后计算聚合结果
@@ -300,9 +300,9 @@ public interface Aggregate<T,Children> extends Project<T,Children> {
      * @author JiaChaoYang
      * @date 2023/8/17 22:51
      */
-    Children group(String _id , String resultMappingField, GroupTypeEnum operator, String field);
+    Children group(String _id , String resultMappingField, GroupTypeEnum operator, Object field);
 
-    Children group(List<GroupField> _id , String resultMappingField, GroupTypeEnum operator, String field);
+    Children group(List<GroupField> _id , String resultMappingField, GroupTypeEnum operator, Object field);
 
     /**
      * 对所有文档记录进行分组，然后计算聚合结果

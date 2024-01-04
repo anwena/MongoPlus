@@ -11,10 +11,12 @@ public interface ChainUpdate {
 
     boolean update();
 
+    @Deprecated
     boolean update(ClientSession clientSession);
 
     boolean remove();
 
+    @Deprecated
     boolean remove(ClientSession clientSession);
 
 }

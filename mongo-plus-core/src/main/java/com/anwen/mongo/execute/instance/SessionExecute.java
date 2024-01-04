@@ -4,7 +4,6 @@ import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.execute.AbstractExecute;
-import com.anwen.mongo.model.BaseProperty;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.*;
 import com.mongodb.client.model.CreateIndexOptions;
@@ -31,8 +30,8 @@ public class SessionExecute extends AbstractExecute {
 
     private final ClientSession clientSession;
 
-    public SessionExecute(MongoClient mongoClient, BaseProperty baseProperty, CollectionNameConvert collectionNameConvert, CollectionManager collectionManager, ClientSession clientSession) {
-        super(mongoClient, baseProperty, collectionNameConvert, collectionManager);
+    public SessionExecute(CollectionNameConvert collectionNameConvert, CollectionManager collectionManager, ClientSession clientSession) {
+        super(collectionNameConvert, collectionManager);
         this.clientSession = clientSession;
     }
 

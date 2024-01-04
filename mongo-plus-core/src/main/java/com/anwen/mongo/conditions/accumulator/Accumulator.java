@@ -26,12 +26,12 @@ public class Accumulator {
      * @author JiaChaoYang
      * @date 2023/8/17 20:11
     */
-    private String field;
+    private Object field;
 
-    public Accumulator(String condition, String field) {
+    public Accumulator(String condition, Object field) {
         this.condition = condition;
         this.field = field;
-        this.resultMappingField = field;
+        this.resultMappingField = String.valueOf(field);
     }
 
     public static AccumulatorBuilder builder() {
@@ -46,7 +46,7 @@ public class Accumulator {
         return this.condition;
     }
 
-    public String getField() {
+    public Object getField() {
         return this.field;
     }
 
@@ -58,7 +58,7 @@ public class Accumulator {
         this.condition = condition;
     }
 
-    public void setField(String field) {
+    public void setField(Object field) {
         this.field = field;
     }
 
@@ -130,7 +130,7 @@ public class Accumulator {
         return "Accumulator(resultMappingField=" + this.getResultMappingField() + ", condition=" + this.getCondition() + ", field=" + this.getField() + ")";
     }
 
-    public Accumulator(String resultMappingField, String condition, String field) {
+    public Accumulator(String resultMappingField, String condition, Object field) {
         this.resultMappingField = resultMappingField;
         this.condition = condition;
         this.field = field;

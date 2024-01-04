@@ -58,19 +58,13 @@ public abstract class AbstractExecute implements Execute {
     */
     private int num = 1;
 
-    private final MongoClient mongoClient;
-
-    private final BaseProperty baseProperty;
-
     private final CollectionManager collectionManager;
 
     private final CollectionNameConvert collectionNameConvert;
 
     private final LambdaOperate lambdaOperate = new LambdaOperate();
 
-    public AbstractExecute(MongoClient mongoClient, BaseProperty baseProperty, CollectionNameConvert collectionNameConvert, CollectionManager collectionManager) {
-        this.mongoClient = mongoClient;
-        this.baseProperty = baseProperty;
+    public AbstractExecute(CollectionNameConvert collectionNameConvert, CollectionManager collectionManager) {
         this.collectionNameConvert = collectionNameConvert;
         this.collectionManager = collectionManager;
     }

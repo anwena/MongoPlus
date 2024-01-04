@@ -4,11 +4,9 @@ import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.execute.AbstractExecute;
-import com.anwen.mongo.model.BaseProperty;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.CreateIndexOptions;
 import com.mongodb.client.model.DropIndexOptions;
@@ -33,8 +31,8 @@ import java.util.List;
 public class DefaultExecute extends AbstractExecute {
 
 
-    public DefaultExecute(MongoClient mongoClient, BaseProperty baseProperty, CollectionNameConvert collectionNameConvert, CollectionManager collectionManager) {
-        super(mongoClient, baseProperty, collectionNameConvert, collectionManager);
+    public DefaultExecute(CollectionNameConvert collectionNameConvert, CollectionManager collectionManager) {
+        super(collectionNameConvert, collectionManager);
     }
 
     @Override

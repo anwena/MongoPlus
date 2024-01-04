@@ -31,12 +31,12 @@ public class CollectionManager {
 
     private final CollectionNameConvert collectionNameConvert;
 
-    private final BaseProperty baseProperty;
+    private final String database;
 
-    public CollectionManager(MongoClient mongoClient, CollectionNameConvert collectionNameConvert, BaseProperty baseProperty) {
+    public CollectionManager(MongoClient mongoClient, CollectionNameConvert collectionNameConvert, String database) {
         this.mongoClient = mongoClient;
         this.collectionNameConvert = collectionNameConvert;
-        this.baseProperty = baseProperty;
+        this.database = database;
     }
 
     /**
@@ -65,7 +65,7 @@ public class CollectionManager {
         MongoCollection<Document> mongoCollection;
         // 检查连接是否需要重新创建
         if (!this.collectionMap.containsKey(collectionName)) {
-            mongoCollection = new ConnectMongoDB(mongoClient, baseProperty.getDatabase(), collectionName).open();
+            mongoCollection = new ConnectMongoDB(mongoClient, database, collectionName).open();
             this.collectionMap.put(collectionName, mongoCollection);
         }else {
             mongoCollection = this.collectionMap.get(collectionName);

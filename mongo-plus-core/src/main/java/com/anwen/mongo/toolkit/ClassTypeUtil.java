@@ -1,7 +1,10 @@
 package com.anwen.mongo.toolkit;
 
 import com.anwen.mongo.annotation.ID;
+import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.cache.codec.MapCodecCache;
+import com.anwen.mongo.domain.InitMongoCollectionException;
+import com.anwen.mongo.model.SlaveDataSource;
 import com.mongodb.MongoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -281,6 +284,26 @@ public class ClassTypeUtil {
             entityClass = entityClass.getSuperclass();
         }
         return entityClass;
+    }
+
+    public static String getDataSourceName(Class<?> clazz,List<SlaveDataSource> slaveDataSourceList){
+        String dataSourceName = "master";
+        if (clazz.isAnnotationPresent(CollectionName.class)) {
+            CollectionName annotation = clazz.getAnnotation(CollectionName.class);
+            String dataSource = annotation.dataSource();
+            if (StringUtils.isNotBlank(dataSource) && CollUtil.isNotEmpty(slaveDataSourceList)) {
+                Optional<SlaveDataSource> matchingSlave = slaveDataSourceList.stream()
+                        .filter(slave -> Objects.equals(dataSource, slave.getSlaveName()))
+                        .findFirst();
+                if (matchingSlave.isPresent()) {
+                    SlaveDataSource slave = matchingSlave.get();
+                    dataSourceName = slave.getSlaveName();
+                } else {
+                    throw new InitMongoCollectionException("No matching slave data source configured");
+                }
+            }
+        }
+        return dataSourceName;
     }
 
 }

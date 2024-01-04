@@ -409,13 +409,13 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
     }
 
     @Override
-    public Children group(SFunction<T, Object> _id, String resultMappingField, String operator, String field) {
+    public Children group(SFunction<T, Object> _id, String resultMappingField, String operator, Object field) {
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(_id.getFieldNameLine(), resultMappingField, operator, field)));
         return typedThis;
     }
 
     @Override
-    public Children groupFunc(List<FuncGroupField<?>> _id, String resultMappingField, String operator, String field) {
+    public Children groupFunc(List<FuncGroupField<?>> _id, String resultMappingField, String operator, Object field) {
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(new ArrayList<GroupField>(){{
             _id.forEach(funcGroupField -> {
                 add(new GroupField(funcGroupField.getGroupField(),funcGroupField.getField()));
@@ -425,25 +425,25 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
     }
 
     @Override
-    public Children group(String _id, String resultMappingField, String operator, String field) {
+    public Children group(String _id, String resultMappingField, String operator, Object field) {
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(_id, resultMappingField, operator, field)));
         return typedThis;
     }
 
     @Override
-    public Children group(List<GroupField> _id, String resultMappingField, String operator, String field) {
+    public Children group(List<GroupField> _id, String resultMappingField, String operator, Object field) {
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(_id, resultMappingField, operator, field,true)));
         return typedThis;
     }
 
     @Override
-    public Children group(SFunction<T, Object> _id, String resultMappingField, GroupTypeEnum operator, String field) {
+    public Children group(SFunction<T, Object> _id, String resultMappingField, GroupTypeEnum operator, Object field) {
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(_id.getFieldNameLine(), resultMappingField, operator.getOperator(), field)));
         return typedThis;
     }
 
     @Override
-    public Children groupFunc(List<FuncGroupField<?>> _id, String resultMappingField, GroupTypeEnum operator, String field) {
+    public Children groupFunc(List<FuncGroupField<?>> _id, String resultMappingField, GroupTypeEnum operator, Object field) {
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(new ArrayList<GroupField>(){{
             _id.forEach(funcGroupField -> {
                 add(new GroupField(funcGroupField.getGroupField(),funcGroupField.getField()));
@@ -453,13 +453,13 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
     }
 
     @Override
-    public Children group(String _id, String resultMappingField, GroupTypeEnum operator, String field) {
+    public Children group(String _id, String resultMappingField, GroupTypeEnum operator, Object field) {
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(_id, resultMappingField, operator.getOperator(), field)));
         return typedThis;
     }
 
     @Override
-    public Children group(List<GroupField> _id, String resultMappingField, GroupTypeEnum operator, String field) {
+    public Children group(List<GroupField> _id, String resultMappingField, GroupTypeEnum operator, Object field) {
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new GroupConcretePipeline(_id, resultMappingField, operator.getOperator(), field,true)));
         return typedThis;
     }

@@ -1,6 +1,7 @@
 package com.anwen.mongo.conditions.update;
 
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
+import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.execute.SqlExecute;
 import com.mongodb.client.ClientSession;
 
@@ -11,16 +12,25 @@ public class LambdaUpdateChainWrapper<T> extends UpdateChainWrapper<T,LambdaUpda
 
     private final SqlExecute sqlExecute;
 
-    private final Class<T> clazz;
+    private final ExecutorFactory factory;
 
-    public LambdaUpdateChainWrapper(SqlExecute sqlExecute,Class<T> clazz) {
+    private final Class<T> clazz;
+    
+    private final String dataSourceName;
+
+    public LambdaUpdateChainWrapper(SqlExecute sqlExecute,ExecutorFactory factory,Class<T> clazz,String dataSourceName) {
         this.sqlExecute = sqlExecute;
+        this.factory = factory;
         this.clazz = clazz;
+        this.dataSourceName = dataSourceName;
     }
 
     @Override
     public boolean update(){
-        return update(null);
+        List<CompareCondition> compareConditionList = new ArrayList<>();
+        compareConditionList.addAll(getCompareList());
+        compareConditionList.addAll(getUpdateCompareList());
+        return factory.getExecute(dataSourceName).update(compareConditionList,clazz);
     }
 
     @Override
@@ -33,7 +43,7 @@ public class LambdaUpdateChainWrapper<T> extends UpdateChainWrapper<T,LambdaUpda
 
     @Override
     public boolean remove() {
-        return sqlExecute.doRemove(getCompareList(),clazz);
+        return factory.getExecute(dataSourceName).remove(getCompareList(),clazz);
     }
 
     @Override

@@ -24,6 +24,5 @@ public @interface CollectionName {
      * @author JiaChaoYang
      * @date 2023/10/17 0:22
     */
-    @Deprecated
-    String dataSource() default "";
+    String dataSource() default "master";
 }

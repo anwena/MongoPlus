@@ -20,6 +20,7 @@ public interface ChainAggregate<T> {
      * @author JiaChaoYang
      * @date 2023/7/20 23:13
      */
+    @Deprecated
     List<T> list(ClientSession clientSession);
 
 }

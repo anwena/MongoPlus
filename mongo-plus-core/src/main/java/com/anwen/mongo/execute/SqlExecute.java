@@ -109,28 +109,25 @@ public class SqlExecute {
 
     public void init(Class<?> clazz) {
         String tableName = clazz.getSimpleName().toLowerCase();
+        String database = baseProperty.getDatabase();
         if (clazz.isAnnotationPresent(CollectionName.class)) {
             CollectionName annotation = clazz.getAnnotation(CollectionName.class);
             tableName = annotation.value();
             String dataSource = annotation.dataSource();
-            if (StringUtils.isNotBlank(dataSource)) {
+            if (StringUtils.isNotBlank(dataSource) && CollUtil.isNotEmpty(slaveDataSources)) {
                 Optional<SlaveDataSource> matchingSlave = slaveDataSources.stream()
                         .filter(slave -> Objects.equals(dataSource, slave.getSlaveName()))
                         .findFirst();
                 if (matchingSlave.isPresent()) {
                     SlaveDataSource slave = matchingSlave.get();
-                    baseProperty.setHost(slave.getHost());
-                    baseProperty.setPort(slave.getPort());
-                    baseProperty.setDatabase(slave.getDatabase());
-                    baseProperty.setUsername(slave.getUsername());
-                    baseProperty.setPassword(slave.getPassword());
+                    database = slave.getDatabase();
                 } else {
                     throw new InitMongoCollectionException("No matching slave data source configured");
                 }
             }
         }
         try {
-            connectMongoDB = new ConnectMongoDB(mongoClient, baseProperty.getDatabase(), tableName);
+            connectMongoDB = new ConnectMongoDB(mongoClient, database, tableName);
             MongoCollection<Document> collection = connectMongoDB.open();
             collectionMap.put(tableName, collection);
         } catch (MongoException e) {

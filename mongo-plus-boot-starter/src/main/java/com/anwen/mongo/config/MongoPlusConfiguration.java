@@ -6,8 +6,10 @@ import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.interceptor.BaseInterceptor;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
+import com.anwen.mongo.model.BaseProperty;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBConnectProperty;
+import com.anwen.mongo.toolkit.CollUtil;
 import com.anwen.mongo.toolkit.MongoCollectionUtils;
 import com.anwen.mongo.toolkit.UrlJoint;
 import com.anwen.mongo.transactional.MongoTransactionalAspect;
@@ -18,7 +20,6 @@ import com.mongodb.client.MongoClients;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.DependsOn;
 
 import java.util.Collections;
 
@@ -34,8 +35,6 @@ public class MongoPlusConfiguration {
 
     private final MongoDBCollectionProperty mongoDBCollectionProperty;
 
-    private MongoClient mongoClient;
-
     private SqlExecute sqlExecute;
 
     public SqlExecute getSqlExecute() {
@@ -45,11 +44,36 @@ public class MongoPlusConfiguration {
     public MongoPlusConfiguration(MongoDBConnectProperty mongoDBConnectProperty, MongoDBCollectionProperty mongoDBCollectionProperty) {
         this.mongoDBConnectProperty = mongoDBConnectProperty;
         this.mongoDBCollectionProperty = mongoDBCollectionProperty;
+        if (CollUtil.isNotEmpty(mongoDBConnectProperty.getSlaveDataSource())) {
+            mongoDBConnectProperty.getSlaveDataSource().forEach(slaveDataSource -> {
+                MongoClientCache.mongoClientMap.put(slaveDataSource.getSlaveName(), getMongoClient(slaveDataSource));
+            });
+        }
     }
+
+    /**
+     * 这里将MongoClient注册为Bean，但是只是给MongoTemplate使用，master的client
+     * @author JiaChaoYang
+     * @date 2024/1/4 23:49
+    */
+    @Bean("mongo")
+    @ConditionalOnMissingBean
+    public MongoClient mongo(){
+        MongoClient mongoClient = getMongoClient(mongoDBConnectProperty);
+        MongoClientCache.mongoClientMap.put("master",mongoClient);
+        return mongoClient;
+    }
+
+    private MongoClient getMongoClient(BaseProperty baseProperty){
+        return MongoClients.create(MongoClientSettings.builder()
+                .applyConnectionString(new ConnectionString(new UrlJoint(baseProperty).jointMongoUrl())).commandListenerList(Collections.singletonList(new BaseInterceptor())).build());
+    }
+
+
 
     @Bean("sqlExecute")
     @ConditionalOnMissingBean
-    public SqlExecute sqlExecute() {
+    public SqlExecute sqlExecute(MongoClient mongo) {
         if (this.sqlExecute != null) {
             return this.sqlExecute;
         }
@@ -59,10 +83,7 @@ public class MongoPlusConfiguration {
         CollectionNameConvert collectionNameConvert =
                 MongoCollectionUtils.build(mongoDBCollectionProperty.getMappingStrategy());
         sqlExecute.setCollectionNameConvert(collectionNameConvert);
-        UrlJoint urlJoint = new UrlJoint(mongoDBConnectProperty);
-        this.mongoClient = MongoClients.create(MongoClientSettings.builder()
-                .applyConnectionString(new ConnectionString(urlJoint.jointMongoUrl())).commandListenerList(Collections.singletonList(new BaseInterceptor())).build());
-        sqlExecute.setMongoClient(this.mongoClient);
+        sqlExecute.setMongoClient(mongo);
         this.sqlExecute = sqlExecute;
         return sqlExecute;
     }
@@ -74,16 +95,7 @@ public class MongoPlusConfiguration {
                 .baseProperty(mongoDBConnectProperty)
                 .collectionNameConvert(MongoCollectionUtils.build(mongoDBCollectionProperty.getMappingStrategy()))
                 .slaveDataSourceList(mongoDBConnectProperty.getSlaveDataSource())
-                .mongoClient(this.mongoClient)
                 .build();
-    }
-
-    @Bean("mongo")
-    @ConditionalOnMissingBean
-    @DependsOn("sqlExecute")
-    public MongoClient mongo() {
-        MongoClientCache.mongoClient = this.mongoClient;
-        return this.mongoClient;
     }
 
     @Bean("mongoPlusMapMapper")
@@ -95,8 +107,8 @@ public class MongoPlusConfiguration {
     @Bean("mongoTransactionalAspect")
     @Deprecated
     @ConditionalOnMissingBean
-    public MongoTransactionalAspect mongoTransactionalAspect() {
-        return new MongoTransactionalAspect(this.mongoClient);
+    public MongoTransactionalAspect mongoTransactionalAspect(MongoClient mongoClient) {
+        return new MongoTransactionalAspect(mongoClient);
     }
 
 }

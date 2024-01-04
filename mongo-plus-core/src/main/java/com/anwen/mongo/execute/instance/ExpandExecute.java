@@ -25,7 +25,7 @@ public abstract class ExpandExecute extends AbstractExecute {
     public Map<Object,Object> expandExecuteMap;
 
     public ExpandExecute(MongoClient mongoClient, BaseProperty baseProperty, CollectionNameConvert collectionNameConvert, CollectionManager collectionManager, Map<Object, Object> expandExecuteMap) {
-        super(mongoClient, baseProperty, collectionNameConvert, collectionManager);
+        super(collectionNameConvert, collectionManager);
         this.expandExecuteMap = expandExecuteMap;
     }
 }

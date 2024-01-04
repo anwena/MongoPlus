@@ -27,6 +27,7 @@ public interface ChainQuery<T> {
      * @author JiaChaoYang
      * @date 2023/7/20 23:13
      */
+    @Deprecated
     List<T> list(ClientSession clientSession);
 
     /**
@@ -45,6 +46,7 @@ public interface ChainQuery<T> {
      * @author JiaChaoYang
      * @date 2023/7/20 23:13
      */
+    @Deprecated
     T one(ClientSession clientSession);
 
     /**
@@ -61,6 +63,7 @@ public interface ChainQuery<T> {
      * @author JiaChaoYang
      * @date 2023/7/20 23:12
      */
+    @Deprecated
     T limitOne(ClientSession clientSession);
 
     /**
@@ -79,6 +82,7 @@ public interface ChainQuery<T> {
      * @author JiaChaoYang
      * @date 2023/7/20 23:17
      */
+    @Deprecated
     PageResult<T> page(ClientSession clientSession,PageParam pageParam);
 
     /**
@@ -99,10 +103,12 @@ public interface ChainQuery<T> {
      * @author JiaChaoYang
      * @date 2023/7/20 23:17
      */
+    @Deprecated
     PageResult<T> page(ClientSession clientSession,Integer pageNum, Integer pageSize);
 
     long count();
 
+    @Deprecated
     long count(ClientSession clientSession);
 
 }
