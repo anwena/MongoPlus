@@ -19,9 +19,19 @@ import java.util.Map;
  **/
 public class MongoClientManager {
 
+    /**
+     * Mongo的客户端
+     * @author JiaChaoYang
+     * @date 2024/1/6 1:33
+    */
     protected final Map<String, MongoClient> mongoClientMap = new HashMap<>();
 
-
+    /**
+     * 封装后的Client
+     * @author JiaChaoYang
+     * @date 2024/1/6 1:34
+    */
+    protected final Map<String,MongoPlusClient> mongoPlusClientMap = new HashMap<>();
 
     public void setMongoClient(String key,MongoClient mongoClient){
         mongoClientMap.put(key,mongoClient);
@@ -31,13 +41,12 @@ public class MongoClientManager {
         return mongoClientMap.get(key);
     }
 
-}
-class A{
-    BaseProperty baseProperty;
+    public void setMongoPlusClient(String key,MongoPlusClient mongoPlusClient){
+        mongoPlusClientMap.put(key,mongoPlusClient);
+    }
 
-    MongoClient mongoClient;
+    public MongoPlusClient getMongoPlusClient(String key){
+        return mongoPlusClientMap.get(key);
+    }
 
-    List<MongoDatabase> mongoDatabase;
-
-    CollectionManager collectionManager;
 }

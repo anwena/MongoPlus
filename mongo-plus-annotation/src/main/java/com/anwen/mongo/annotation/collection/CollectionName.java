@@ -20,9 +20,16 @@ public @interface CollectionName {
     String value();
 
     /**
-     * 多数据源还有一点问题
+     * 多数据源选项，对应配置文件中的slaveName
      * @author JiaChaoYang
      * @date 2023/10/17 0:22
     */
     String dataSource() default "master";
+    
+    /**
+     * 选择数据库，如果配置了多个数据库，这里则必须配置，否则抛出
+     * @author JiaChaoYang
+     * @date 2024/1/6 1:50
+    */ 
+    String database() default "default";
 }

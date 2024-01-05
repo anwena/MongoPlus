@@ -9,6 +9,7 @@ import com.anwen.mongo.handlers.MetaObjectHandler;
 import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.interceptor.business.BlockAttackInnerInterceptor;
 import com.anwen.mongo.interceptor.business.LogInterceptor;
+import com.anwen.mongo.manager.MongoClientManager;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBConnectProperty;
 import com.anwen.mongo.property.MongoDBLogProperty;
@@ -27,10 +28,7 @@ import org.springframework.context.ApplicationContext;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -73,7 +71,9 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
                 .values()
                 .stream()
                 .filter(s -> s instanceof ServiceImpl)
-                .forEach(s -> setSqlExecute((ServiceImpl<?>) s, s.getGenericityClazz()));
+                .forEach(s -> {
+                    setSqlExecute((ServiceImpl<?>) s, s.getGenericityClazz());
+                });
     }
 
     private void setSqlExecute(ServiceImpl<?> serviceImpl,Class<?> clazz) {
@@ -82,7 +82,9 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         serviceImpl.setSqlOperation(sqlExecute);
         factory.init(clazz);
         serviceImpl.setFactory(factory);
-        serviceImpl.setDataSourceName(ClassTypeUtil.getDataSourceName(clazz,mongoDBConnectProperty.getSlaveDataSource()));
+        Map<String, String> dataSourceNameAndDatabase = ClassTypeUtil.getDataSourceNameAndDatabase(clazz, mongoDBConnectProperty.getSlaveDataSource());
+        serviceImpl.setDataSourceName(dataSourceNameAndDatabase.get("dataSourceName"));
+        serviceImpl.setDatabase(dataSourceNameAndDatabase.get("database"));
     }
 
     /**

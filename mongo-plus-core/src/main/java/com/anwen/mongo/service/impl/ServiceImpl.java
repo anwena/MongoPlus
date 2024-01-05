@@ -58,6 +58,16 @@ public class ServiceImpl<T> implements IService<T>{
 
     private String dataSourceName;
 
+    private String database;
+
+    public String getDatabase() {
+        return database;
+    }
+
+    public void setDatabase(String database) {
+        this.database = database;
+    }
+
     public String getDataSourceName() {
         return dataSourceName;
     }
@@ -121,7 +131,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public Boolean save(T entity) {
-        return factory.getExecute(dataSourceName).save(entity);
+        return factory.getExecute(dataSourceName,database).save(entity);
     }
 
     @Override

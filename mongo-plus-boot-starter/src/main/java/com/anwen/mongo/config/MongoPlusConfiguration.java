@@ -1,10 +1,11 @@
 package com.anwen.mongo.config;
 
-import com.anwen.mongo.cache.global.MongoClientCache;
+import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.interceptor.BaseInterceptor;
+import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.manager.MongoClientManager;
 import com.anwen.mongo.manager.MongoClientManagerInstance;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
@@ -19,11 +20,15 @@ import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCursor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author JiaChaoYang
@@ -61,15 +66,25 @@ public class MongoPlusConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public MongoClientManager mongoClientManager(MongoClient mongoClient){
+    public MongoClientManager mongoClientManager(MongoClient mongoClient) {
         MongoClientManagerInstance managerInstance = new MongoClientManagerInstance();
-        managerInstance.setMongoClient("master",mongoClient);
+        initializeMongoPlusClient(managerInstance, "master", mongoClient);
+
         if (CollUtil.isNotEmpty(mongoDBConnectProperty.getSlaveDataSource())) {
             mongoDBConnectProperty.getSlaveDataSource().forEach(slaveDataSource -> {
-                managerInstance.setMongoClient(slaveDataSource.getSlaveName(),getMongoClient(slaveDataSource));
+                MongoClient slaveMongoClient = getMongoClient(slaveDataSource);
+                initializeMongoPlusClient(managerInstance, slaveDataSource.getSlaveName(), slaveMongoClient);
             });
         }
         return managerInstance;
+    }
+
+    private void initializeMongoPlusClient(MongoClientManagerInstance managerInstance, String clientName, MongoClient mongoClient) {
+        MongoPlusClient mongoPlusClient = new MongoPlusClient();
+        mongoPlusClient.setBaseProperty(mongoDBConnectProperty);
+        mongoPlusClient.setMongoClient(mongoClient);
+        mongoPlusClient.setCollectionManager(new HashMap<>());
+        managerInstance.setMongoPlusClient(clientName, mongoPlusClient);
     }
 
     private MongoClient getMongoClient(BaseProperty baseProperty){
