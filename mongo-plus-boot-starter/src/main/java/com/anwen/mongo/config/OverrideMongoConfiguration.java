@@ -16,8 +16,8 @@ public class OverrideMongoConfiguration extends MongoAutoConfiguration {
 
     private final MongoClient mongoClient;
 
-    public OverrideMongoConfiguration(MongoClient mongo){
-        this.mongoClient = mongo;
+    public OverrideMongoConfiguration(MongoClient mongoClient){
+        this.mongoClient = mongoClient;
     }
 
     @Override
