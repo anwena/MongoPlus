@@ -16,6 +16,7 @@ import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.MongoException;
 import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,6 +103,7 @@ public class ExecutorFactory {
         try {
             String finalCollectionName = collectionName;
             final String[] finalDataBaseName = {dataBaseName[0]};
+            List<MongoDatabase> mongoDatabaseList = new ArrayList<>();
             mongoPlusClient.setCollectionManager(new LinkedHashMap<String,CollectionManager>(){{
                 String database = mongoPlusClient.getBaseProperty().getDatabase();
                 List<String> list = Arrays.stream(database.split(",")).collect(Collectors.toList());
@@ -113,11 +115,13 @@ public class ExecutorFactory {
                     if (Objects.equals(db, finalDataBaseName[0])){
                         ConnectMongoDB connectMongoDB = new ConnectMongoDB(mongoPlusClient.getMongoClient(), db, finalCollectionName);
                         MongoCollection<Document> collection = connectMongoDB.open();
+                        mongoDatabaseList.add(connectMongoDB.getMongoDatabase());
                         collectionManager.setCollectionMap(finalCollectionName,collection);
                     }
                     put(db,collectionManager);
                 });
             }});
+            mongoPlusClient.setMongoDatabase(mongoDatabaseList);
         } catch (MongoException e) {
             logger.error("Failed to connect to MongoDB: {}", e.getMessage(), e);
         }
