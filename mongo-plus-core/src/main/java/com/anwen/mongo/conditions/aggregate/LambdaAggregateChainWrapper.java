@@ -17,18 +17,21 @@ public class LambdaAggregateChainWrapper<T> extends AggregateChainWrapper<T,Lamb
     
     private final String dataSourceName;
 
+    private final String database;
+
     private final Class<T> clazz;
 
-    public LambdaAggregateChainWrapper(SqlExecute sqlExecute,ExecutorFactory factory,Class<T> clazz,String dataSourceName) {
+    public LambdaAggregateChainWrapper(SqlExecute sqlExecute,ExecutorFactory factory,Class<T> clazz,String dataSourceName,String database) {
         this.sqlExecute = sqlExecute;
         this.factory = factory;
         this.clazz = clazz;
         this.dataSourceName = dataSourceName;
+        this.database = database;
     }
 
     @Override
     public List<T> list() {
-        return factory.getExecute(dataSourceName).aggregateList(super.baseAggregateList,super.getBasicDBObjectList(),super.getOptionsBasicDBObject(),clazz);
+        return factory.getExecute(dataSourceName,database).aggregateList(super.baseAggregateList,super.getBasicDBObjectList(),super.getOptionsBasicDBObject(),clazz);
     }
 
     @Override

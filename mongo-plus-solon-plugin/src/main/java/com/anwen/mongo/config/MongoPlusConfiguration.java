@@ -1,6 +1,6 @@
 package com.anwen.mongo.config;
 
-import com.anwen.mongo.cache.global.MongoClientCache;
+import com.anwen.mongo.cache.global.MongoPlusClientCache;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.interceptor.BaseInterceptor;
@@ -54,7 +54,7 @@ public class MongoPlusConfiguration {
         UrlJoint urlJoint = new UrlJoint(mongoDBConnectProperty);
         this.mongoClient = MongoClients.create(MongoClientSettings.builder()
                 .applyConnectionString(new ConnectionString(urlJoint.jointMongoUrl())).addCommandListener(new BaseInterceptor()).build());
-        MongoClientCache.mongoClient = this.mongoClient;
+        MongoPlusClientCache.mongoClient = this.mongoClient;
         sqlExecute.setMongoClient(this.mongoClient);
         this.sqlExecute = sqlExecute;
         return sqlExecute;

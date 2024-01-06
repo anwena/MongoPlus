@@ -24,7 +24,7 @@ public @interface CollectionName {
      * @author JiaChaoYang
      * @date 2023/10/17 0:22
     */
-    String dataSource() default "master";
+    String dataSource() default "";
     
     /**
      * 选择数据库，如果配置了多个数据库，这里则必须配置，否则抛出

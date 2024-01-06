@@ -288,7 +288,7 @@ public class ClassTypeUtil {
 
     public static Map<String, String> getDataSourceNameAndDatabase(Class<?> clazz, List<SlaveDataSource> slaveDataSourceList){
         String dataSourceName = "master";
-        String database = "default";
+        String database = "";
         if (clazz.isAnnotationPresent(CollectionName.class)) {
             CollectionName annotation = clazz.getAnnotation(CollectionName.class);
             String dataSource = annotation.dataSource();

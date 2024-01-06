@@ -9,7 +9,6 @@ import com.anwen.mongo.handlers.MetaObjectHandler;
 import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.interceptor.business.BlockAttackInnerInterceptor;
 import com.anwen.mongo.interceptor.business.LogInterceptor;
-import com.anwen.mongo.manager.MongoClientManager;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBConnectProperty;
 import com.anwen.mongo.property.MongoDBLogProperty;
@@ -71,13 +70,11 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
                 .values()
                 .stream()
                 .filter(s -> s instanceof ServiceImpl)
-                .forEach(s -> {
-                    setSqlExecute((ServiceImpl<?>) s, s.getGenericityClazz());
-                });
+                .forEach(s -> setSqlExecute((ServiceImpl<?>) s, s.getGenericityClass()));
     }
 
     private void setSqlExecute(ServiceImpl<?> serviceImpl,Class<?> clazz) {
-        sqlExecute.init(clazz);
+//        sqlExecute.init(clazz);
         serviceImpl.setClazz(clazz);
         serviceImpl.setSqlOperation(sqlExecute);
         factory.init(clazz);

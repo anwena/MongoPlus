@@ -1,6 +1,6 @@
 package com.anwen.mongo.transactional;
 
-import com.anwen.mongo.cache.global.MongoClientCache;
+import com.anwen.mongo.cache.global.MongoPlusClientCache;
 import com.mongodb.ClientSessionOptions;
 import com.mongodb.client.ClientSession;
 
@@ -22,7 +22,7 @@ public class MongoTransactionalOperate {
     }
 
     public static ClientSession createTransaction(String dataSourceName){
-        return MongoClientCache.mongoClientMap.get(dataSourceName).startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
+        return MongoPlusClientCache.mongoPlusClientMap.get(dataSourceName).getMongoClient().startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
     }
 
     /**
@@ -35,7 +35,7 @@ public class MongoTransactionalOperate {
     }
 
     public static ClientSession startTransaction(String dataSourceName){
-        ClientSession clientSession = MongoClientCache.mongoClientMap.get(dataSourceName).startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
+        ClientSession clientSession = MongoPlusClientCache.mongoPlusClientMap.get(dataSourceName).getMongoClient().startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
         clientSession.startTransaction();
         return clientSession;
     }

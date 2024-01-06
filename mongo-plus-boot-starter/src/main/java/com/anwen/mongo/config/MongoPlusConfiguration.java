@@ -1,13 +1,13 @@
 package com.anwen.mongo.config;
 
-import com.anwen.mongo.conn.CollectionManager;
+import com.anwen.mongo.cache.global.MongoPlusClientCache;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.interceptor.BaseInterceptor;
 import com.anwen.mongo.manager.MongoPlusClient;
-import com.anwen.mongo.manager.MongoClientManager;
-import com.anwen.mongo.manager.MongoClientManagerInstance;
+import com.anwen.mongo.manager.MongoPlusClientManager;
+import com.anwen.mongo.manager.MongoPlusClientManagerInstance;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
 import com.anwen.mongo.model.BaseProperty;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
@@ -20,15 +20,12 @@ import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCursor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author JiaChaoYang
@@ -66,25 +63,26 @@ public class MongoPlusConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public MongoClientManager mongoClientManager(MongoClient mongoClient) {
-        MongoClientManagerInstance managerInstance = new MongoClientManagerInstance();
-        initializeMongoPlusClient(managerInstance, "master", mongoClient);
+    public MongoPlusClientManager mongoClientManager(MongoClient mongoClient) {
+        MongoPlusClientManagerInstance managerInstance = new MongoPlusClientManagerInstance();
+        initializeMongoPlusClient(managerInstance, "master", mongoClient,mongoDBConnectProperty);
 
         if (CollUtil.isNotEmpty(mongoDBConnectProperty.getSlaveDataSource())) {
             mongoDBConnectProperty.getSlaveDataSource().forEach(slaveDataSource -> {
                 MongoClient slaveMongoClient = getMongoClient(slaveDataSource);
-                initializeMongoPlusClient(managerInstance, slaveDataSource.getSlaveName(), slaveMongoClient);
+                initializeMongoPlusClient(managerInstance, slaveDataSource.getSlaveName(), slaveMongoClient,slaveDataSource);
             });
         }
         return managerInstance;
     }
 
-    private void initializeMongoPlusClient(MongoClientManagerInstance managerInstance, String clientName, MongoClient mongoClient) {
+    private void initializeMongoPlusClient(MongoPlusClientManagerInstance managerInstance, String clientName, MongoClient mongoClient,BaseProperty baseProperty) {
         MongoPlusClient mongoPlusClient = new MongoPlusClient();
-        mongoPlusClient.setBaseProperty(mongoDBConnectProperty);
+        mongoPlusClient.setBaseProperty(baseProperty);
         mongoPlusClient.setMongoClient(mongoClient);
         mongoPlusClient.setCollectionManager(new HashMap<>());
         managerInstance.setMongoPlusClient(clientName, mongoPlusClient);
+        MongoPlusClientCache.mongoPlusClientMap.put(clientName,mongoPlusClient);
     }
 
     private MongoClient getMongoClient(BaseProperty baseProperty){
@@ -113,12 +111,12 @@ public class MongoPlusConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public ExecutorFactory executeFactory(MongoClientManager mongoClientManager){
+    public ExecutorFactory executeFactory(MongoPlusClientManager mongoPlusClientManager){
         return ExecutorFactory.builder()
                 .baseProperty(mongoDBConnectProperty)
                 .collectionNameConvert(MongoCollectionUtils.build(mongoDBCollectionProperty.getMappingStrategy()))
                 .slaveDataSourceList(mongoDBConnectProperty.getSlaveDataSource())
-                .mongoClientManager(mongoClientManager)
+                .mongoPlusClientManager(mongoPlusClientManager)
                 .build();
     }
 

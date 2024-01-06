@@ -8,15 +8,13 @@ import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.domain.InitMongoCollectionException;
 import com.anwen.mongo.execute.instance.DefaultExecute;
 import com.anwen.mongo.execute.instance.SessionExecute;
-import com.anwen.mongo.manager.MongoClientManager;
+import com.anwen.mongo.manager.MongoPlusClientManager;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.model.BaseProperty;
 import com.anwen.mongo.model.SlaveDataSource;
-import com.anwen.mongo.toolkit.CollUtil;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.MongoException;
 import com.mongodb.client.ClientSession;
-import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 import org.slf4j.Logger;
@@ -24,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * 执行器工厂
@@ -75,7 +74,7 @@ public class ExecutorFactory {
      * @author JiaChaoYang
      * @date 2024/1/5 15:36
     */
-    private MongoClientManager mongoClientManager;
+    private MongoPlusClientManager mongoPlusClientManager;
 
     /**
      * 初始化工厂
@@ -84,43 +83,44 @@ public class ExecutorFactory {
     */
     public void init(Class<?> clazz) {
         String collectionName = clazz.getSimpleName().toLowerCase();
-
-
         MongoPlusClient mongoPlusClient;
-        String dataSource;
+        String dataSourceName = "master";
+        final String[] dataBaseName = {"default"};
         if (clazz.isAnnotationPresent(CollectionName.class)) {
             CollectionName annotation = clazz.getAnnotation(CollectionName.class);
             collectionName = annotation.value();
-            dataSource = annotation.dataSource();
-            mongoPlusClient = mongoClientManager.getMongoPlusClient(dataSource);
-            if (mongoPlusClient == null){
-                throw new InitMongoCollectionException("No matching slave data source configured");
+            String dataSource = annotation.dataSource();
+            dataBaseName[0] = annotation.database();
+            if (StringUtils.isNotBlank(dataSource)){
+                dataSourceName = dataSource;
             }
-        } else {
-            dataSource = "master";
-            mongoPlusClient = mongoClientManager.getMongoPlusClient("master");
+        }
+        mongoPlusClient = mongoPlusClientManager.getMongoPlusClient(dataSourceName);
+        if (mongoPlusClient == null){
+            throw new InitMongoCollectionException("No matching slave data source configured");
         }
         try {
             String finalCollectionName = collectionName;
-            mongoPlusClient.setCollectionManager(new HashMap<String,Map<String,CollectionManager>>(){{
+            final String[] finalDataBaseName = {dataBaseName[0]};
+            mongoPlusClient.setCollectionManager(new LinkedHashMap<String,CollectionManager>(){{
                 String database = mongoPlusClient.getBaseProperty().getDatabase();
-                Arrays.stream(database.split(",")).forEach(db -> {
-                    put(dataSource,new HashMap<String,CollectionManager>(){{
-                        ConnectMongoDB connectMongoDB = new ConnectMongoDB(mongoPlusClient.getMongoClient(), database, finalCollectionName);
+                List<String> list = Arrays.stream(database.split(",")).collect(Collectors.toList());
+                if (Objects.equals(finalDataBaseName[0], "default")){
+                    finalDataBaseName[0] = list.get(0);
+                }
+                list.forEach(db -> {
+                    CollectionManager collectionManager = new CollectionManager(mongoPlusClient.getMongoClient(), collectionNameConvert, db);
+                    if (Objects.equals(db, finalDataBaseName[0])){
+                        ConnectMongoDB connectMongoDB = new ConnectMongoDB(mongoPlusClient.getMongoClient(), db, finalCollectionName);
                         MongoCollection<Document> collection = connectMongoDB.open();
-                        CollectionManager collectionManager = new CollectionManager(mongoPlusClient.getMongoClient(), collectionNameConvert, db);
                         collectionManager.setCollectionMap(finalCollectionName,collection);
-                        put(db,collectionManager);
-                    }});
+                    }
+                    put(db,collectionManager);
                 });
             }});
         } catch (MongoException e) {
             logger.error("Failed to connect to MongoDB: {}", e.getMessage(), e);
         }
-    }
-
-    public MongoClient getMongoClient(String dataSourceName){
-        return mongoClientManager.getMongoClient(dataSourceName);
     }
 
     /**
@@ -130,7 +130,15 @@ public class ExecutorFactory {
     */
     public AbstractExecute getExecute(String dataSourceName,String database) {
         ClientSession clientSessionContext = MongoTransactionContext.getClientSessionContext();
-        CollectionManager collectionManager = mongoClientManager.getMongoPlusClient(dataSourceName).getCollectionManager().get(dataSourceName).get(database);
+        Map<String, CollectionManager> managerMap = mongoPlusClientManager.getMongoPlusClient(dataSourceName).getCollectionManager();
+        if (managerMap.keySet().size() <= 1 || StringUtils.isBlank(database)){
+            database = managerMap.keySet().stream().findFirst().get();
+        }
+        CollectionManager collectionManager = managerMap.get(database);
+        if (null == collectionManager){
+            logger.error("Unknown database '{}'",database);
+            throw new MongoException(String.format("Unknown database '%s'",database));
+        }
         if (clientSessionContext != null) {
             return new SessionExecute(collectionNameConvert,collectionManager,clientSessionContext);
         }
@@ -189,12 +197,12 @@ public class ExecutorFactory {
         this.collectionNameConvert = collectionNameConvert;
     }
 
-    public MongoClientManager getMongoClientManager() {
-        return mongoClientManager;
+    public MongoPlusClientManager getMongoClientManager() {
+        return mongoPlusClientManager;
     }
 
-    public void setMongoClientManager(MongoClientManager mongoClientManager) {
-        this.mongoClientManager = mongoClientManager;
+    public void setMongoClientManager(MongoPlusClientManager mongoPlusClientManager) {
+        this.mongoPlusClientManager = mongoPlusClientManager;
     }
 
     protected boolean canEqual(Object other) {
@@ -224,10 +232,11 @@ public class ExecutorFactory {
         return Objects.hash(logger, getSlaveDataSourceList(), getBaseProperty(), getCollectionNameConvert(), collectionManagerMap);
     }
 
-    public ExecutorFactory(List<SlaveDataSource> slaveDataSourceList, BaseProperty baseProperty, CollectionNameConvert collectionNameConvert,MongoClientManager mongoClientManager) {
+    public ExecutorFactory(List<SlaveDataSource> slaveDataSourceList, BaseProperty baseProperty, CollectionNameConvert collectionNameConvert, MongoPlusClientManager mongoPlusClientManager) {
         this.slaveDataSourceList = slaveDataSourceList;
         this.baseProperty = baseProperty;
         this.collectionNameConvert = collectionNameConvert;
+        this.mongoPlusClientManager = mongoPlusClientManager;
     }
 
     public ExecutorFactory() {
@@ -238,7 +247,7 @@ public class ExecutorFactory {
         private BaseProperty baseProperty;
         private CollectionNameConvert collectionNameConvert;
 
-        private MongoClientManager mongoClientManager;
+        private MongoPlusClientManager mongoPlusClientManager;
 
         ExecuteFactoryBuilder() {
         }
@@ -258,13 +267,13 @@ public class ExecutorFactory {
             return this;
         }
 
-        public ExecuteFactoryBuilder mongoClientManager(MongoClientManager mongoClientManager){
-            this.mongoClientManager = mongoClientManager;
+        public ExecuteFactoryBuilder mongoPlusClientManager(MongoPlusClientManager mongoPlusClientManager){
+            this.mongoPlusClientManager = mongoPlusClientManager;
             return this;
         }
 
         public ExecutorFactory build() {
-            return new ExecutorFactory(this.slaveDataSourceList, this.baseProperty, this.collectionNameConvert,this.mongoClientManager);
+            return new ExecutorFactory(this.slaveDataSourceList, this.baseProperty, this.collectionNameConvert,this.mongoPlusClientManager);
         }
     }
 

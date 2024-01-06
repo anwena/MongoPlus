@@ -26,13 +26,13 @@ public class MongoPlusClient {
      * @author JiaChaoYang
      * @date 2024/1/6 2:12
     */
-    private Map<String, Map<String,CollectionManager>> collectionManager;
+    private Map<String,CollectionManager> collectionManager;
 
-    public Map<String, Map<String, CollectionManager>> getCollectionManager() {
+    public Map<String,CollectionManager> getCollectionManager() {
         return collectionManager;
     }
 
-    public void setCollectionManager(Map<String, Map<String, CollectionManager>> collectionManager) {
+    public void setCollectionManager(Map<String,CollectionManager> collectionManager) {
         this.collectionManager = collectionManager;
     }
 
