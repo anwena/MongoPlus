@@ -6,13 +6,9 @@ import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.interceptor.BaseInterceptor;
 import com.anwen.mongo.manager.MongoPlusClient;
-import com.anwen.mongo.manager.MongoPlusClientManager;
-import com.anwen.mongo.manager.MongoPlusClientManagerInstance;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
-import com.anwen.mongo.model.BaseProperty;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBConnectProperty;
-import com.anwen.mongo.toolkit.CollUtil;
 import com.anwen.mongo.toolkit.MongoCollectionUtils;
 import com.anwen.mongo.toolkit.UrlJoint;
 import com.anwen.mongo.transactional.MongoTransactionalAspect;
@@ -20,12 +16,12 @@ import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
 import java.util.Collections;
-import java.util.HashMap;
 
 /**
  * @author JiaChaoYang
@@ -58,39 +54,19 @@ public class MongoPlusConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public MongoClient mongoClient(){
-        return getMongoClient(mongoDBConnectProperty);
+        return MongoClients.create(MongoClientSettings.builder()
+                .applyConnectionString(new ConnectionString(new UrlJoint(mongoDBConnectProperty).jointMongoUrl())).commandListenerList(Collections.singletonList(new BaseInterceptor())).build());
     }
 
     @Bean
-    @ConditionalOnMissingBean
-    public MongoPlusClientManager mongoClientManager(MongoClient mongoClient) {
-        MongoPlusClientManagerInstance managerInstance = new MongoPlusClientManagerInstance();
-        initializeMongoPlusClient(managerInstance, "master", mongoClient,mongoDBConnectProperty);
-
-        if (CollUtil.isNotEmpty(mongoDBConnectProperty.getSlaveDataSource())) {
-            mongoDBConnectProperty.getSlaveDataSource().forEach(slaveDataSource -> {
-                MongoClient slaveMongoClient = getMongoClient(slaveDataSource);
-                initializeMongoPlusClient(managerInstance, slaveDataSource.getSlaveName(), slaveMongoClient,slaveDataSource);
-            });
-        }
-        return managerInstance;
-    }
-
-    private void initializeMongoPlusClient(MongoPlusClientManagerInstance managerInstance, String clientName, MongoClient mongoClient,BaseProperty baseProperty) {
+    @ConditionalOnMissingBean(MongoPlusClient.class)
+    public MongoPlusClient mongoPlusClient(MongoClient mongoClient){
         MongoPlusClient mongoPlusClient = new MongoPlusClient();
-        mongoPlusClient.setBaseProperty(baseProperty);
         mongoPlusClient.setMongoClient(mongoClient);
-        mongoPlusClient.setCollectionManager(new HashMap<>());
-        managerInstance.setMongoPlusClient(clientName, mongoPlusClient);
-        MongoPlusClientCache.mongoPlusClientMap.put(clientName,mongoPlusClient);
+        mongoPlusClient.setBaseProperty(mongoDBConnectProperty);
+        MongoPlusClientCache.mongoPlusClient = mongoPlusClient;
+        return mongoPlusClient;
     }
-
-    private MongoClient getMongoClient(BaseProperty baseProperty){
-        return MongoClients.create(MongoClientSettings.builder()
-                .applyConnectionString(new ConnectionString(new UrlJoint(baseProperty).jointMongoUrl())).commandListenerList(Collections.singletonList(new BaseInterceptor())).build());
-    }
-
-
 
     @Bean("sqlExecute")
     @ConditionalOnMissingBean
@@ -110,13 +86,17 @@ public class MongoPlusConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean(CollectionNameConvert.class)
+    public CollectionNameConvert collectionNameConvert(){
+        return MongoCollectionUtils.build(mongoDBCollectionProperty.getMappingStrategy());
+    }
+
+    @Bean
     @ConditionalOnMissingBean
-    public ExecutorFactory executeFactory(MongoPlusClientManager mongoPlusClientManager){
+    public ExecutorFactory executeFactory(CollectionNameConvert collectionNameConvert){
         return ExecutorFactory.builder()
                 .baseProperty(mongoDBConnectProperty)
-                .collectionNameConvert(MongoCollectionUtils.build(mongoDBCollectionProperty.getMappingStrategy()))
-                .slaveDataSourceList(mongoDBConnectProperty.getSlaveDataSource())
-                .mongoPlusClientManager(mongoPlusClientManager)
+                .collectionNameConvert(collectionNameConvert)
                 .build();
     }
 

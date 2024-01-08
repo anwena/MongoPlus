@@ -19,6 +19,7 @@ public class MongoDBConnectProperty extends BaseProperty {
      * @author: JiaChaoYang
      * @date: 2023/2/18 15:03
      **/
+    @Deprecated
     private List<SlaveDataSource> slaveDataSource;
 
     public List<SlaveDataSource> getSlaveDataSource() {

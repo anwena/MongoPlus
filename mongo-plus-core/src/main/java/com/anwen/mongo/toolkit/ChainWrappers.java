@@ -24,16 +24,16 @@ import java.util.Map;
 */ 
 public final class ChainWrappers {
 
-    public static <T> LambdaQueryChainWrapper<T> lambdaQueryChain(SqlExecute sqlExecute, ExecutorFactory factory, Class<T> clazz,String dataSourceName,String database){
-        return new LambdaQueryChainWrapper<>(sqlExecute,factory, clazz,dataSourceName,database);
+    public static <T> LambdaQueryChainWrapper<T> lambdaQueryChain(SqlExecute sqlExecute, ExecutorFactory factory, Class<T> clazz,String database){
+        return new LambdaQueryChainWrapper<>(sqlExecute,factory, clazz,database);
     }
 
-    public static <T> LambdaAggregateChainWrapper<T> lambdaAggregateChain(SqlExecute sqlExecute,ExecutorFactory factory,Class<T> clazz,String dataSourceName,String database){
-        return new LambdaAggregateChainWrapper<>(sqlExecute,factory,clazz,dataSourceName,database);
+    public static <T> LambdaAggregateChainWrapper<T> lambdaAggregateChain(SqlExecute sqlExecute,ExecutorFactory factory,Class<T> clazz,String database){
+        return new LambdaAggregateChainWrapper<>(sqlExecute,factory,clazz,database);
     }
 
-    public static <T> LambdaUpdateChainWrapper<T> lambdaUpdateChain(SqlExecute sqlExecute,ExecutorFactory factory,Class<T> clazz,String dataSourceName,String database){
-        return new LambdaUpdateChainWrapper<>(sqlExecute,factory,clazz,dataSourceName,database);
+    public static <T> LambdaUpdateChainWrapper<T> lambdaUpdateChain(SqlExecute sqlExecute,ExecutorFactory factory,Class<T> clazz,String database){
+        return new LambdaUpdateChainWrapper<>(sqlExecute,factory,clazz,database);
     }
 
     public static <T> UpdateChainWrapper<T, UpdateWrapper<T>> lambdaUpdateChain(){

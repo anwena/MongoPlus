@@ -15,16 +15,13 @@ public class LambdaUpdateChainWrapper<T> extends UpdateChainWrapper<T,LambdaUpda
     private final ExecutorFactory factory;
 
     private final Class<T> clazz;
-    
-    private final String dataSourceName;
 
     private final String database;
 
-    public LambdaUpdateChainWrapper(SqlExecute sqlExecute,ExecutorFactory factory,Class<T> clazz,String dataSourceName,String database) {
+    public LambdaUpdateChainWrapper(SqlExecute sqlExecute,ExecutorFactory factory,Class<T> clazz,String database) {
         this.sqlExecute = sqlExecute;
         this.factory = factory;
         this.clazz = clazz;
-        this.dataSourceName = dataSourceName;
         this.database = database;
     }
 
@@ -33,7 +30,7 @@ public class LambdaUpdateChainWrapper<T> extends UpdateChainWrapper<T,LambdaUpda
         List<CompareCondition> compareConditionList = new ArrayList<>();
         compareConditionList.addAll(getCompareList());
         compareConditionList.addAll(getUpdateCompareList());
-        return factory.getExecute(dataSourceName,database).update(compareConditionList,clazz);
+        return factory.getExecute(database).update(compareConditionList,clazz);
     }
 
     @Override
@@ -46,7 +43,7 @@ public class LambdaUpdateChainWrapper<T> extends UpdateChainWrapper<T,LambdaUpda
 
     @Override
     public boolean remove() {
-        return factory.getExecute(dataSourceName,database).remove(getCompareList(),clazz);
+        return factory.getExecute(database).remove(getCompareList(),clazz);
     }
 
     @Override

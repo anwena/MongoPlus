@@ -20,22 +20,19 @@ public class LambdaQueryChainWrapper<T> extends QueryChainWrapper<T,LambdaQueryC
     private final ExecutorFactory factory;
 
     private final Class<T> clazz;
-    
-    private final String dataSourceName;
 
     private final String database;
 
-    public LambdaQueryChainWrapper(SqlExecute sqlExecute,ExecutorFactory factory, Class<T> clazz,String dataSourceName,String database){
+    public LambdaQueryChainWrapper(SqlExecute sqlExecute,ExecutorFactory factory, Class<T> clazz,String database){
         this.sqlExecute = sqlExecute;
         this.factory = factory;
         this.clazz = clazz;
-        this.dataSourceName = dataSourceName;
         this.database = database;
     }
 
     @Override
     public List<T> list() {
-        return factory.getExecute(dataSourceName,database).list(getCompareList(), getOrderList(),getProjectionList(),getBasicDBObjectList(),clazz);
+        return factory.getExecute(database).list(getCompareList(), getOrderList(),getProjectionList(),getBasicDBObjectList(),clazz);
     }
 
     @Override
@@ -45,7 +42,7 @@ public class LambdaQueryChainWrapper<T> extends QueryChainWrapper<T,LambdaQueryC
 
     @Override
     public T one() {
-        return factory.getExecute(dataSourceName,database).one(getCompareList(),getProjectionList(),getBasicDBObjectList(),clazz);
+        return factory.getExecute(database).one(getCompareList(),getProjectionList(),getBasicDBObjectList(),clazz);
     }
 
     @Override
@@ -55,7 +52,7 @@ public class LambdaQueryChainWrapper<T> extends QueryChainWrapper<T,LambdaQueryC
 
     @Override
     public T limitOne() {
-        return factory.getExecute(dataSourceName,database).limitOne(getCompareList(),getProjectionList(),getBasicDBObjectList(),getOrderList(),clazz);
+        return factory.getExecute(database).limitOne(getCompareList(),getProjectionList(),getBasicDBObjectList(),getOrderList(),clazz);
     }
 
     @Override
@@ -65,7 +62,7 @@ public class LambdaQueryChainWrapper<T> extends QueryChainWrapper<T,LambdaQueryC
 
     @Override
     public PageResult<T> page(PageParam pageParam) {
-        return factory.getExecute(dataSourceName,database).page(getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList(),pageParam.getPageNum(),pageParam.getPageSize(),clazz);
+        return factory.getExecute(database).page(getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList(),pageParam.getPageNum(),pageParam.getPageSize(),clazz);
     }
 
     @Override
@@ -75,7 +72,7 @@ public class LambdaQueryChainWrapper<T> extends QueryChainWrapper<T,LambdaQueryC
 
     @Override
     public PageResult<T> page(Integer pageNum, Integer pageSize) {
-        return factory.getExecute(dataSourceName,database).page(getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList(),pageNum,pageSize,clazz);
+        return factory.getExecute(database).page(getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList(),pageNum,pageSize,clazz);
     }
 
     @Override
@@ -85,7 +82,7 @@ public class LambdaQueryChainWrapper<T> extends QueryChainWrapper<T,LambdaQueryC
 
     @Override
     public long count() {
-        return factory.getExecute(dataSourceName,database).count(getCompareList(),clazz);
+        return factory.getExecute(database).count(getCompareList(),clazz);
     }
 
     @Override

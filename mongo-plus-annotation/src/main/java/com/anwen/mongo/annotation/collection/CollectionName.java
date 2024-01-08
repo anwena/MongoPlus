@@ -24,6 +24,7 @@ public @interface CollectionName {
      * @author JiaChaoYang
      * @date 2023/10/17 0:22
     */
+    @Deprecated
     String dataSource() default "";
     
     /**
@@ -31,5 +32,5 @@ public @interface CollectionName {
      * @author JiaChaoYang
      * @date 2024/1/6 1:50
     */ 
-    String database() default "default";
+    String database() default "";
 }

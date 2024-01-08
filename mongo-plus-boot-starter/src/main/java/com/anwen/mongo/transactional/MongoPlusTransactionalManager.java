@@ -1,7 +1,6 @@
 package com.anwen.mongo.transactional;
 
 import com.anwen.mongo.context.MongoTransactionSpring;
-import com.anwen.mongo.incrementer.id.Sequence;
 import com.mongodb.ClientSessionOptions;
 import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoClient;

@@ -1,7 +1,11 @@
 package com.anwen.mongo.config;
 
+import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.cache.global.InterceptorCache;
+import com.anwen.mongo.conn.CollectionManager;
+import com.anwen.mongo.conn.ConnectMongoDB;
+import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.handlers.DocumentHandler;
@@ -9,16 +13,18 @@ import com.anwen.mongo.handlers.MetaObjectHandler;
 import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.interceptor.business.BlockAttackInnerInterceptor;
 import com.anwen.mongo.interceptor.business.LogInterceptor;
+import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
-import com.anwen.mongo.property.MongoDBConnectProperty;
 import com.anwen.mongo.property.MongoDBLogProperty;
 import com.anwen.mongo.service.IService;
 import com.anwen.mongo.service.impl.ServiceImpl;
 import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.strategy.convert.ConversionStrategy;
-import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.anwen.mongo.toolkit.CollUtil;
 import com.mongodb.MongoException;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -41,23 +47,26 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
 
     private final ExecutorFactory factory;
 
+    private final MongoPlusClient mongoPlusClient;
+
     private final ApplicationContext applicationContext;
 
     private final MongoDBLogProperty mongoDBLogProperty;
 
     private final MongoDBCollectionProperty mongoDBCollectionProperty;
 
-    private final MongoDBConnectProperty mongoDBConnectProperty;
+    private final CollectionNameConvert collectionNameConvert;
 
     Logger logger = LoggerFactory.getLogger(MongoPlusAutoConfiguration.class);
 
-    public MongoPlusAutoConfiguration(MongoDBLogProperty mongoDBLogProperty, MongoDBCollectionProperty mongoDBCollectionProperty, SqlExecute sqlExecute, ExecutorFactory executeFactory, ApplicationContext applicationContext, MongoDBConnectProperty mongoDBConnectProperty) {
+    public MongoPlusAutoConfiguration(MongoDBLogProperty mongoDBLogProperty, MongoDBCollectionProperty mongoDBCollectionProperty, SqlExecute sqlExecute, ExecutorFactory executeFactory, MongoPlusClient mongoPlusClient, ApplicationContext applicationContext, CollectionNameConvert collectionNameConvert) {
         this.sqlExecute = sqlExecute;
+        this.mongoPlusClient = mongoPlusClient;
         this.applicationContext = applicationContext;
         this.mongoDBLogProperty = mongoDBLogProperty;
         this.mongoDBCollectionProperty = mongoDBCollectionProperty;
         this.factory = executeFactory;
-        this.mongoDBConnectProperty = mongoDBConnectProperty;
+        this.collectionNameConvert = collectionNameConvert;
         setConversion();
         setMetaObjectHandler();
         setDocumentHandler();
@@ -77,11 +86,44 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
 //        sqlExecute.init(clazz);
         serviceImpl.setClazz(clazz);
         serviceImpl.setSqlOperation(sqlExecute);
-        factory.init(clazz);
+        String database = initFactory(clazz);
+        //这里需要将MongoPlusClient给工厂
+        factory.setMongoPlusClient(mongoPlusClient);
+        serviceImpl.setDatabase(database);
         serviceImpl.setFactory(factory);
-        Map<String, String> dataSourceNameAndDatabase = ClassTypeUtil.getDataSourceNameAndDatabase(clazz, mongoDBConnectProperty.getSlaveDataSource());
-        serviceImpl.setDataSourceName(dataSourceNameAndDatabase.get("dataSourceName"));
-        serviceImpl.setDatabase(dataSourceNameAndDatabase.get("database"));
+    }
+
+    public String initFactory(Class<?> clazz) {
+        String collectionName = clazz.getSimpleName().toLowerCase();
+        final String[] dataBaseName = {""};
+        if (clazz.isAnnotationPresent(CollectionName.class)) {
+            CollectionName annotation = clazz.getAnnotation(CollectionName.class);
+            collectionName = annotation.value();
+            dataBaseName[0] = annotation.database();
+        }
+        try {
+            String finalCollectionName = collectionName;
+            final String[] finalDataBaseName = {dataBaseName[0]};
+            List<MongoDatabase> mongoDatabaseList = new ArrayList<>();
+            mongoPlusClient.setCollectionManager(new LinkedHashMap<String, CollectionManager>(){{
+                String database = mongoPlusClient.getBaseProperty().getDatabase();
+                Arrays.stream(database.split(",")).collect(Collectors.toList()).forEach(db -> {
+                    CollectionManager collectionManager = new CollectionManager(mongoPlusClient.getMongoClient(), collectionNameConvert, db);
+                    ConnectMongoDB connectMongoDB = new ConnectMongoDB(mongoPlusClient.getMongoClient(), db, finalCollectionName);
+                    MongoDatabase mongoDatabase = mongoPlusClient.getMongoClient().getDatabase(db);
+                    mongoDatabaseList.add(mongoDatabase);
+                    if (Objects.equals(db, finalDataBaseName[0])){
+                        MongoCollection<Document> collection = connectMongoDB.open(mongoDatabase);
+                        collectionManager.setCollectionMap(finalCollectionName,collection);
+                    }
+                    put(db,collectionManager);
+                });
+            }});
+            mongoPlusClient.setMongoDatabase(mongoDatabaseList);
+        } catch (MongoException e) {
+            logger.error("Failed to connect to MongoDB: {}", e.getMessage(), e);
+        }
+        return dataBaseName[0];
     }
 
     /**
