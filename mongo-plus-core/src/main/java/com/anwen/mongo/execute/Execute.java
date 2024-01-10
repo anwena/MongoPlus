@@ -1,5 +1,6 @@
 package com.anwen.mongo.execute;
 
+import com.anwen.mongo.model.AggregateBasicDBObject;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
@@ -42,7 +43,7 @@ public interface Execute {
 
     FindIterable<Document> doList(BasicDBObject basicDBObject, BasicDBObject projectionList, BasicDBObject sortCond, MongoCollection<Document> collection);
 
-    AggregateIterable<Document> doAggregateList(List<BasicDBObject> aggregateConditionList,MongoCollection<Document> collection);
+    AggregateIterable<Document> doAggregateList(List<AggregateBasicDBObject> aggregateConditionList, MongoCollection<Document> collection);
 
     FindIterable<Document> doGetById(BasicDBObject queryBasic,MongoCollection<Document> collection);
 

@@ -866,11 +866,11 @@ public class SqlExecute {
         ifPresentOrElse(clientSession,session -> collection.dropIndexes(session,dropIndexOptions),() -> collection.dropIndexes(dropIndexOptions));
     }
 
-    public <T> List<T> doAggregateList(List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject,Class<T> clazz){
+    public <T> List<T> doAggregateList(List<BaseAggregate> aggregateList,List<AggregateBasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject,Class<T> clazz){
         return doAggregateList((ClientSession) null,aggregateList,basicDBObjectList,optionsBasicDBObject,clazz);
     }
 
-    public <T> List<T> doAggregateList(ClientSession clientSession,List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject,Class<T> clazz){
+    public <T> List<T> doAggregateList(ClientSession clientSession,List<BaseAggregate> aggregateList,List<AggregateBasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject,Class<T> clazz){
         MongoCollection<Document> collection = getCollection(clazz);
         List<BasicDBObject> aggregateConditionList = new ArrayList<BasicDBObject>() {{
             aggregateList.forEach(aggregate -> add(new BasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate())));
@@ -881,11 +881,11 @@ public class SqlExecute {
         return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),clazz);
     }
 
-    public List<Map<String,Object>> doAggregateList(String collectionName,List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject){
+    public List<Map<String,Object>> doAggregateList(String collectionName,List<BaseAggregate> aggregateList,List<AggregateBasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject){
         return doAggregateList(MongoTransactionContext.getClientSessionContext(),collectionName,aggregateList,basicDBObjectList,optionsBasicDBObject);
     }
 
-    public List<Map<String,Object>> doAggregateList(ClientSession clientSession,String collectionName,List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject){
+    public List<Map<String,Object>> doAggregateList(ClientSession clientSession,String collectionName,List<BaseAggregate> aggregateList,List<AggregateBasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject){
         MongoCollection<Document> collection = getCollection(collectionName);
         List<BasicDBObject> aggregateConditionList = new ArrayList<BasicDBObject>() {{
             aggregateList.forEach(aggregate -> add(new BasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate())));
@@ -896,11 +896,11 @@ public class SqlExecute {
         return Converter.convertDocumentToMap(aggregateIterable.iterator());
     }
 
-    public <E> List<E> doAggregateList(String collectionName,List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject,Class<E> clazz){
+    public <E> List<E> doAggregateList(String collectionName,List<BaseAggregate> aggregateList,List<AggregateBasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject,Class<E> clazz){
         return doAggregateList(MongoTransactionContext.getClientSessionContext(),collectionName,aggregateList,basicDBObjectList,optionsBasicDBObject,clazz);
     }
 
-    public <E> List<E> doAggregateList(ClientSession clientSession,String collectionName,List<BaseAggregate> aggregateList,List<BasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject,Class<E> clazz){
+    public <E> List<E> doAggregateList(ClientSession clientSession,String collectionName,List<BaseAggregate> aggregateList,List<AggregateBasicDBObject> basicDBObjectList,BasicDBObject optionsBasicDBObject,Class<E> clazz){
         MongoCollection<Document> collection = getCollection(collectionName);
         List<BasicDBObject> aggregateConditionList = new ArrayList<BasicDBObject>() {{
             aggregateList.forEach(aggregate -> add(new BasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate())));

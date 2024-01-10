@@ -4,6 +4,7 @@ import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.execute.AbstractExecute;
+import com.anwen.mongo.model.AggregateBasicDBObject;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.ClientSession;
@@ -84,7 +85,7 @@ public class SessionExecute extends AbstractExecute {
     }
 
     @Override
-    public AggregateIterable<Document> doAggregateList(List<BasicDBObject> aggregateConditionList, MongoCollection<Document> collection) {
+    public AggregateIterable<Document> doAggregateList(List<AggregateBasicDBObject> aggregateConditionList, MongoCollection<Document> collection) {
         return collection.aggregate(clientSession,aggregateConditionList);
     }
 

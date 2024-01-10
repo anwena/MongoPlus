@@ -53,11 +53,12 @@ MyBatisPlus就是可以不用像MyBatis一样写过多的sql语句，Mongo-Plus�
 * v2.0.5    增加管道函数实现，增加自增id策略，修改实体类映射关系
 * v2.0.6    修复已知问题，增加实物操作，增加对spring3的支持，增加对solon框架的支持，增加管道函数的options，修改结构
 * v2.0.6.1  修复依赖引入问题
+* 不再此处更新 更新日志
 ### 文档
 文档地址： https://www.mongoplus.cn/
 
 ### 联系我们
-遇到任何问题请联系我<br/>
+遇到任何问题或者加入群聊，请联系我<br/>
 v：JiaChaoYang_<br/>
 <img src="wx.png" alt="微信">
 
