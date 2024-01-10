@@ -29,6 +29,11 @@ public class LambdaQueryChainInjectWrapper extends QueryChainWrapper<Map<String,
     }
 
     @Override
+    public List<Map<String, Object>> list(String database, String collectionName) {
+        return null;
+    }
+
+    @Override
     public List<Map<String, Object>> list(ClientSession clientSession, String collectionName) {
         return sqlExecute.doList(clientSession,collectionName,getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList());
     }

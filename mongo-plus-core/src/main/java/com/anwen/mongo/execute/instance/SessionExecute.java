@@ -4,6 +4,7 @@ import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.execute.AbstractExecute;
+import com.anwen.mongo.model.AggregateBasicDBObject;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.ClientSession;
@@ -79,12 +80,22 @@ public class SessionExecute extends AbstractExecute {
     }
 
     @Override
+    public <T> FindIterable<T> doList(MongoCollection<Document> collection, Class<T> clazz) {
+        return collection.find(clientSession,clazz);
+    }
+
+    @Override
     public FindIterable<Document> doList(BasicDBObject basicDBObject, BasicDBObject projectionList, BasicDBObject sortCond, MongoCollection<Document> collection) {
         return collection.find(clientSession,basicDBObject).projection(projectionList).sort(sortCond);
     }
 
     @Override
-    public AggregateIterable<Document> doAggregateList(List<BasicDBObject> aggregateConditionList, MongoCollection<Document> collection) {
+    public <T> FindIterable<T> doList(BasicDBObject basicDBObject, BasicDBObject projectionList, BasicDBObject sortCond, MongoCollection<Document> collection, Class<T> clazz) {
+        return collection.find(clientSession,basicDBObject,clazz).projection(projectionList).sort(sortCond);
+    }
+
+    @Override
+    public AggregateIterable<Document> doAggregateList(List<AggregateBasicDBObject> aggregateConditionList, MongoCollection<Document> collection) {
         return collection.aggregate(clientSession,aggregateConditionList);
     }
 
@@ -129,8 +140,18 @@ public class SessionExecute extends AbstractExecute {
     }
 
     @Override
+    public <T> FindIterable<T> doQueryCommand(BasicDBObject basicDBObject, MongoCollection<Document> collection, Class<T> clazz) {
+        return collection.find(clientSession,basicDBObject,clazz);
+    }
+
+    @Override
     public FindIterable<Document> doGetByColumn(Bson filter, MongoCollection<Document> collection) {
         return collection.find(clientSession,filter);
+    }
+
+    @Override
+    public <T> FindIterable<T> doGetByColumn(Bson filter, MongoCollection<Document> collection, Class<T> clazz) {
+        return collection.find(clientSession,filter,clazz);
     }
 
     @Override

@@ -15,10 +15,7 @@ import com.anwen.mongo.domain.MongoQueryException;
 import com.anwen.mongo.enums.AggregateOptionsEnum;
 import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
-import com.anwen.mongo.model.BaseAggregate;
-import com.anwen.mongo.model.BaseLambdaQueryResult;
-import com.anwen.mongo.model.PageParam;
-import com.anwen.mongo.model.PageResult;
+import com.anwen.mongo.model.*;
 import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.support.SFunction;
 import com.anwen.mongo.toolkit.*;
@@ -203,11 +200,12 @@ public abstract class AbstractExecute implements Execute {
         return lambdaOperate.getLambdaQueryResult(doList(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(),collectionManager.getCollection(clazz)),clazz);
     }
 
-    public <T> List<T> aggregateList(List<BaseAggregate> aggregateList, List<BasicDBObject> basicDBObjectList, BasicDBObject optionsBasicDBObject, Class<T> clazz){
-        List<BasicDBObject> aggregateConditionList = new ArrayList<BasicDBObject>() {{
-            aggregateList.forEach(aggregate -> add(new BasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate())));
+    public <T> List<T> aggregateList(List<BaseAggregate> aggregateList, List<AggregateBasicDBObject> basicDBObjectList, BasicDBObject optionsBasicDBObject, Class<T> clazz){
+        List<AggregateBasicDBObject> aggregateConditionList = new ArrayList<AggregateBasicDBObject>() {{
+            aggregateList.forEach(aggregate -> add(new AggregateBasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate(),aggregate.getOrder())));
             addAll(basicDBObjectList);
         }};
+        aggregateConditionList.sort(Comparator.comparingInt(AggregateBasicDBObject::getOrder));
         AggregateIterable<Document> aggregateIterable = doAggregateList(aggregateConditionList, collectionManager.getCollection(clazz));
         aggregateOptions(aggregateIterable,optionsBasicDBObject);
         return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),clazz);

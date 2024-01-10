@@ -2,12 +2,16 @@ package com.anwen.mongo.model;
 
 import com.anwen.mongo.strategy.aggregate.PipelineStrategy;
 
+import java.util.Objects;
+
 /**
  * @author JiaChaoYang
  **/
 public class BaseAggregate {
 
     private String type;
+
+    private Integer order;
 
     private PipelineStrategy pipelineStrategy;
 
@@ -27,64 +31,42 @@ public class BaseAggregate {
         this.pipelineStrategy = pipelineStrategy;
     }
 
-    public boolean equals(Object o) {
-        if (o == this) {
-            return true;
-        } else if (!(o instanceof BaseAggregate)) {
-            return false;
-        } else {
-            BaseAggregate other = (BaseAggregate)o;
-            if (!other.canEqual(this)) {
-                return false;
-            } else {
-                Object this$type = this.getType();
-                Object other$type = other.getType();
-                if (this$type == null) {
-                    if (other$type != null) {
-                        return false;
-                    }
-                } else if (!this$type.equals(other$type)) {
-                    return false;
-                }
-
-                Object this$pipelineStrategy = this.getPipelineStrategy();
-                Object other$pipelineStrategy = other.getPipelineStrategy();
-                if (this$pipelineStrategy == null) {
-                    if (other$pipelineStrategy != null) {
-                        return false;
-                    }
-                } else if (!this$pipelineStrategy.equals(other$pipelineStrategy)) {
-                    return false;
-                }
-
-                return true;
-            }
-        }
+    public Integer getOrder() {
+        return order;
     }
 
-    protected boolean canEqual(Object other) {
-        return other instanceof BaseAggregate;
+    public void setOrder(Integer order) {
+        this.order = order;
     }
 
-    public int hashCode() {
-        int result = 1;
-        Object $type = this.getType();
-        result = result * 59 + ($type == null ? 43 : $type.hashCode());
-        Object $pipelineStrategy = this.getPipelineStrategy();
-        result = result * 59 + ($pipelineStrategy == null ? 43 : $pipelineStrategy.hashCode());
-        return result;
-    }
-
-    public String toString() {
-        return "BaseAggregate(type=" + this.getType() + ", pipelineStrategy=" + this.getPipelineStrategy() + ")";
-    }
-
-    public BaseAggregate(String type, PipelineStrategy pipelineStrategy) {
+    public BaseAggregate(String type, PipelineStrategy pipelineStrategy, Integer order) {
         this.type = type;
+        this.order = order;
         this.pipelineStrategy = pipelineStrategy;
     }
 
     public BaseAggregate() {
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof BaseAggregate)) return false;
+        BaseAggregate that = (BaseAggregate) o;
+        return Objects.equals(getType(), that.getType()) && Objects.equals(getOrder(), that.getOrder()) && Objects.equals(getPipelineStrategy(), that.getPipelineStrategy());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getType(), getOrder(), getPipelineStrategy());
+    }
+
+    @Override
+    public String toString() {
+        return "BaseAggregate{" +
+                "type='" + type + '\'' +
+                ", order=" + order +
+                ", pipelineStrategy=" + pipelineStrategy +
+                '}';
+    }
 }

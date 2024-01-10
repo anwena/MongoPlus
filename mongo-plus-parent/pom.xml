@@ -8,7 +8,7 @@
     <artifactId>mongo-plus-parent</artifactId>
     <packaging>pom</packaging>
     <name>mongo-plus-parent</name>
-    <version>2.0.7.3</version>
+    <version>2.0.8</version>
     <description>mongo-plus版本控制</description>
     <url>https://gitee.com/anwena/mongo-plus</url>
     <inceptionYear>2023</inceptionYear>
@@ -50,7 +50,7 @@
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <mongoplus.version>2.0.7.3</mongoplus.version>
+        <mongoplus.version>2.0.8</mongoplus.version>
         <mongodb-driver-sync.version>4.9.0</mongodb-driver-sync.version>
         <fastjson.version>1.2.83</fastjson.version>
         <slf4j-api.version>1.7.36</slf4j-api.version>
