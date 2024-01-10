@@ -102,8 +102,8 @@ public class MongoPlusConfiguration {
 
     @Bean("mongoPlusMapMapper")
     @ConditionalOnMissingBean
-    public MongoPlusMapMapper mongoPlusMapMapper(SqlExecute sqlExecute) {
-        return new MongoPlusMapMapper(sqlExecute);
+    public MongoPlusMapMapper mongoPlusMapMapper(SqlExecute sqlExecute,ExecutorFactory factory) {
+        return new MongoPlusMapMapper(sqlExecute,factory);
     }
 
     @Bean("mongoTransactionalAspect")

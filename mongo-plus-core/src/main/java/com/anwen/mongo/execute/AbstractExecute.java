@@ -133,20 +133,10 @@ public abstract class AbstractExecute implements Execute {
 
     public <T> Boolean updateById(T entity) {
         Document document = DocumentUtil.checkUpdateField(entity,false);
-        BasicDBObject filter = getFilter(document);
+        BasicDBObject filter = ExecuteUtil.getFilter(document);
         BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
         MongoCollection<Document> collection = collectionManager.getCollection(ClassTypeUtil.getClass(entity));
         return doUpdateById(filter,update,collection).getModifiedCount() >= 1;
-    }
-
-    private BasicDBObject getFilter(Map<String, Object> entityMap) {
-        if (!entityMap.containsKey(SqlOperationConstant._ID)) {
-            throw new MongoException("_id undefined");
-        }
-        Object _idValue = entityMap.get(SqlOperationConstant._ID);
-        BasicDBObject filter = new BasicDBObject(SqlOperationConstant._ID, ObjectId.isValid(String.valueOf(_idValue)) ? new ObjectId(String.valueOf(entityMap.get(SqlOperationConstant._ID))) : _idValue);
-        entityMap.remove(SqlOperationConstant._ID);
-        return filter;
     }
 
     public <T> Boolean updateBatchByIds(Collection<T> entityList) {

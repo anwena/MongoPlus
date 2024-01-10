@@ -10,6 +10,7 @@ import com.anwen.mongo.model.BaseLambdaQueryResult;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 import com.mongodb.BasicDBObject;
+import com.mongodb.client.ClientSession;
 import com.mongodb.client.FindIterable;
 import org.bson.Document;
 
@@ -54,6 +55,16 @@ public class LambdaOperate {
         pageResult.setTotalSize(totalSize);
         pageResult.setTotalPages((totalSize + pageParams.getPageSize() - 1) / pageParams.getPageSize());
         pageResult.setContentData(DocumentMapperConvert.mapDocumentList(documentFindIterable.skip((pageParams.getPageNum() - 1) * pageParams.getPageSize()).limit(pageParams.getPageSize()), clazz));
+        return pageResult;
+    }
+
+    public PageResult<Map<String, Object>> getLambdaQueryResultPage(FindIterable<Map> documentFindIterable,long totalSize, PageParam pageParams) {
+        PageResult<Map<String, Object>> pageResult = new PageResult<>();
+        pageResult.setPageNum(pageParams.getPageNum());
+        pageResult.setPageSize(pageParams.getPageSize());
+        pageResult.setTotalSize(totalSize);
+        pageResult.setTotalPages((totalSize + pageParams.getPageSize() - 1) / pageParams.getPageSize());
+        pageResult.setContentData(Converter.convertDocumentToMap(documentFindIterable.skip((pageParams.getPageNum() - 1) * pageParams.getPageSize()).limit(pageParams.getPageSize())));
         return pageResult;
     }
 

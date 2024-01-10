@@ -76,8 +76,18 @@ public class DefaultExecute extends AbstractExecute {
     }
 
     @Override
+    public <T> FindIterable<T> doList(MongoCollection<Document> collection, Class<T> clazz) {
+        return collection.find(clazz);
+    }
+
+    @Override
     public FindIterable<Document> doList(BasicDBObject basicDBObject, BasicDBObject projectionList, BasicDBObject sortCond, MongoCollection<Document> collection) {
         return collection.find(basicDBObject).projection(projectionList).sort(sortCond);
+    }
+
+    @Override
+    public <T> FindIterable<T> doList(BasicDBObject basicDBObject, BasicDBObject projectionList, BasicDBObject sortCond, MongoCollection<Document> collection, Class<T> clazz) {
+        return collection.find(basicDBObject,clazz).projection(projectionList).sort(sortCond);
     }
 
     @Override
@@ -126,8 +136,18 @@ public class DefaultExecute extends AbstractExecute {
     }
 
     @Override
+    public <T> FindIterable<T> doQueryCommand(BasicDBObject basicDBObject, MongoCollection<Document> collection, Class<T> clazz) {
+        return collection.find(basicDBObject,clazz);
+    }
+
+    @Override
     public FindIterable<Document> doGetByColumn(Bson filter, MongoCollection<Document> collection) {
         return collection.find(filter);
+    }
+
+    @Override
+    public <T> FindIterable<T> doGetByColumn(Bson filter, MongoCollection<Document> collection, Class<T> clazz) {
+        return collection.find(filter,clazz);
     }
 
     @Override

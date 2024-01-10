@@ -40,7 +40,11 @@ public interface Execute {
 
     FindIterable<Document> doList(MongoCollection<Document> collection);
 
+    <T> FindIterable<T> doList(MongoCollection<Document> collection,Class<T> clazz);
+
     FindIterable<Document> doList(BasicDBObject basicDBObject, BasicDBObject projectionList, BasicDBObject sortCond, MongoCollection<Document> collection);
+
+    <T> FindIterable<T> doList(BasicDBObject basicDBObject, BasicDBObject projectionList, BasicDBObject sortCond, MongoCollection<Document> collection,Class<T> clazz);
 
     AggregateIterable<Document> doAggregateList(List<BasicDBObject> aggregateConditionList,MongoCollection<Document> collection);
 
@@ -60,7 +64,11 @@ public interface Execute {
 
     FindIterable<Document> doQueryCommand(BasicDBObject basicDBObject,MongoCollection<Document> collection);
 
+    <T> FindIterable<T> doQueryCommand(BasicDBObject basicDBObject,MongoCollection<Document> collection,Class<T> clazz);
+
     FindIterable<Document> doGetByColumn(Bson filter,MongoCollection<Document> collection);
+
+    <T> FindIterable<T> doGetByColumn(Bson filter,MongoCollection<Document> collection,Class<T> clazz);
 
     String createIndex(Bson bson,MongoCollection<Document> collection);
 

@@ -8,6 +8,7 @@ import com.anwen.mongo.conditions.interfaces.Inject.InjectQuery;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
+import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
@@ -32,8 +33,11 @@ import java.util.Map;
 public class MongoPlusMapMapper implements InjectQuery {
     private final SqlExecute sqlExecute;
 
-    public MongoPlusMapMapper(SqlExecute sqlExecute) {
+    private final ExecutorFactory factory;
+
+    public MongoPlusMapMapper(SqlExecute sqlExecute, ExecutorFactory factory) {
         this.sqlExecute = sqlExecute;
+        this.factory = factory;
     }
 
     /**
@@ -60,6 +64,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public List<Map<String, Object>> list(String collectionName) {
         return sqlExecute.doList(collectionName);
+    }
+
+    @Override
+    public List<Map<String, Object>> list(String database, String collectionName) {
+        return null;
     }
 
     @Override

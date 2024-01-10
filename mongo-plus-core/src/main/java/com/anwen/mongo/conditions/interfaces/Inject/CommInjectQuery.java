@@ -6,6 +6,7 @@ import com.mongodb.client.ClientSession;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * 公共条件
@@ -21,6 +22,16 @@ public interface CommInjectQuery {
      * @date 2023/7/20 23:17
      */
     List<Map<String,Object>> list(String collectionName);
+
+    /**
+     * 获取列表 返回Map<String,Object>类型的List
+     * @param database 数据库
+     * @param collectionName collectionName 集合名
+     * @return java.util.List<java.util.Map<java.lang.String,java.lang.Object>>
+     * @author JiaChaoYang
+     * @date 2024/1/10 21:58
+    */
+    List<Map<String,Object>> list(String database,String collectionName);
 
     /**
      * 获取列表 返回Map<String,Object>类型的List
