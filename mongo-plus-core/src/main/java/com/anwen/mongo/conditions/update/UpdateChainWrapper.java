@@ -8,6 +8,7 @@ import com.anwen.mongo.enums.LogicTypeEnum;
 import com.anwen.mongo.support.SFunction;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -45,13 +46,85 @@ public class UpdateChainWrapper<T,Children extends UpdateChainWrapper<T,Children
         return getBaseUpdateCompare(column,value);
     }
 
+    @Override
+    public Children push(boolean condition, SFunction<T, Object> column, Object value) {
+        return condition ? push(column,value) : typedThis;
+    }
+
+    @Override
+    public Children push(SFunction<T, Object> column, Object value) {
+        return getBaseUpdateCompare(column,value);
+    }
+
+    @Override
+    public Children push(boolean condition, String column, Object value) {
+        return condition ? push(column,value) : typedThis;
+    }
+
+    @Override
+    public Children push(String column, Object value) {
+        return getBaseUpdateCompare(column,value);
+    }
+
+    @Override
+    public Children push(boolean condition, SFunction<T, Object> column, Object... value) {
+        return condition ? push(column,value) : typedThis;
+    }
+
+    @Override
+    public Children push(SFunction<T, Object> column, Object... value) {
+        for (Object o : value) {
+            getBaseUpdateCompare(column,o);
+        }
+        return typedThis;
+    }
+
+    @Override
+    public Children push(boolean condition, String column, Object... value) {
+        return condition ? push(column,value) : typedThis;
+    }
+
+    @Override
+    public Children push(String column, Object... value) {
+        for (Object o : value) {
+            getBaseUpdateCompare(column,o);
+        }
+        return typedThis;
+    }
+
+    @Override
+    public Children push(boolean condition, SFunction<T, Object> column, List<?> value) {
+        return condition ? push(column,value) : typedThis;
+    }
+
+    @Override
+    public Children push(SFunction<T, Object> column, List<?> value) {
+        for (Object o : value) {
+            getBaseUpdateCompare(column,o);
+        }
+        return typedThis;
+    }
+
+    @Override
+    public Children push(boolean condition, String column, List<?> value) {
+        return condition ? push(column,value) : typedThis;
+    }
+
+    @Override
+    public Children push(String column, List<?> value) {
+        for (Object o : value) {
+            getBaseUpdateCompare(column,o);
+        }
+        return typedThis;
+    }
+
     private Children getBaseUpdateCompare(SFunction<T, Object> column, Object value){
-        updateCompareList.add(CompareCondition.builder().condition(new Throwable().getStackTrace()[1].getMethodName()).column(column.getFieldNameLine()).value(value).type(CompareEnum.UPDATE.getKey()).logicType(LogicTypeEnum.AND.getKey()).build());
+        updateCompareList.add(CompareCondition.builder().condition(Thread.currentThread().getStackTrace()[2].getMethodName()).column(column.getFieldNameLine()).value(value).type(CompareEnum.UPDATE.getKey()).logicType(LogicTypeEnum.AND.getKey()).build());
         return typedThis;
     }
 
     private Children getBaseUpdateCompare(String column, Object value){
-        updateCompareList.add(CompareCondition.builder().condition(new Throwable().getStackTrace()[1].getMethodName()).column(column).value(value).type(CompareEnum.UPDATE.getKey()).logicType(LogicTypeEnum.AND.getKey()).build());
+        updateCompareList.add(CompareCondition.builder().condition(Thread.currentThread().getStackTrace()[2].getMethodName()).column(column).value(value).type(CompareEnum.UPDATE.getKey()).logicType(LogicTypeEnum.AND.getKey()).build());
         return typedThis;
     }
 

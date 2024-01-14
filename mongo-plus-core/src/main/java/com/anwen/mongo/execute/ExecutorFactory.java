@@ -1,7 +1,6 @@
 package com.anwen.mongo.execute;
 
 import com.anwen.mongo.conn.CollectionManager;
-import com.anwen.mongo.conn.ConnectMongoDB;
 import com.anwen.mongo.context.MongoTransactionContext;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.execute.inject.InjectAbstractExecute;
@@ -10,7 +9,6 @@ import com.anwen.mongo.execute.instance.SessionExecute;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.model.BaseProperty;
 import com.anwen.mongo.toolkit.StringUtils;
-import com.mongodb.MongoException;
 import com.mongodb.client.ClientSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

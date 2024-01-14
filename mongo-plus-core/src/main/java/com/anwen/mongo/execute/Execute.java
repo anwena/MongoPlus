@@ -1,11 +1,8 @@
 package com.anwen.mongo.execute;
 
-import com.anwen.mongo.context.MongoTransactionContext;
-import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.model.AggregateBasicDBObject;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.AggregateIterable;
-import com.mongodb.client.ClientSession;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.CreateIndexOptions;
@@ -20,7 +17,6 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * 抽象的执行器
@@ -53,7 +49,11 @@ public interface Execute {
 
     AggregateIterable<Document> doAggregateList(List<AggregateBasicDBObject> aggregateConditionList,MongoCollection<Document> collection);
 
+    <T> AggregateIterable<T> doAggregateList(List<AggregateBasicDBObject> aggregateConditionList,MongoCollection<Document> collection,Class<T> clazz);
+
     FindIterable<Document> doGetById(BasicDBObject queryBasic,MongoCollection<Document> collection);
+
+    <T> FindIterable<T> doGetByIds(BasicDBObject queryBasic, MongoCollection<Document> collection, Class<T> clazz);
 
     long executeExist(BasicDBObject queryBasic, MongoCollection<Document> collection);
 

@@ -15,15 +15,12 @@ import com.anwen.mongo.domain.MongoQueryException;
 import com.anwen.mongo.enums.AggregateOptionsEnum;
 import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
-import com.anwen.mongo.execute.inject.InjectAbstractExecute;
 import com.anwen.mongo.model.*;
 import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.support.SFunction;
 import com.anwen.mongo.toolkit.*;
 import com.mongodb.BasicDBObject;
-import com.mongodb.MongoException;
 import com.mongodb.client.AggregateIterable;
-import com.mongodb.client.ClientSession;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.*;
@@ -249,11 +246,17 @@ public abstract class AbstractExecute implements Execute {
 
     public Boolean update(List<CompareCondition> compareConditionList,Class<?> clazz) {
         BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareConditionList);
-        BasicDBObject updateBasic = BuildCondition.buildUpdateValue(compareConditionList);
+        List<CompareCondition> pushConditionList = compareConditionList.stream().filter(compareCondition -> Objects.equals(compareCondition.getCondition(), SpecialConditionEnum.PUSH.getSubCondition())).collect(Collectors.toList());
+        List<CompareCondition> setConditionList = compareConditionList.stream().filter(compareCondition -> Objects.equals(compareCondition.getCondition(), SpecialConditionEnum.SET.getSubCondition())).collect(Collectors.toList());
         BasicDBObject basicDBObject = new BasicDBObject() {{
-            append(SpecialConditionEnum.SET.getCondition(), updateBasic);
+            if (CollUtil.isNotEmpty(setConditionList)){
+                append(SpecialConditionEnum.SET.getCondition(), BuildCondition.buildUpdateValue(setConditionList));
+            }
+            if (CollUtil.isNotEmpty(pushConditionList)){
+                append(SpecialConditionEnum.PUSH.getCondition(), BuildCondition.buildPushUpdateValue(pushConditionList));
+            }
         }};
-        return executeUpdate(queryBasic,basicDBObject,collectionManager.getCollection(clazz)).getModifiedCount() >= 1;
+        return executeUpdate(queryBasic,DocumentUtil.handleBasicDBObject(basicDBObject),collectionManager.getCollection(clazz)).getModifiedCount() >= 1;
     }
 
     public Boolean remove(List<CompareCondition> compareConditionList,Class<?> clazz) {

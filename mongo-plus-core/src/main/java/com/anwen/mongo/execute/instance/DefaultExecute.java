@@ -4,7 +4,6 @@ import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.execute.AbstractExecute;
-import com.anwen.mongo.execute.inject.InjectAbstractExecute;
 import com.anwen.mongo.model.AggregateBasicDBObject;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.AggregateIterable;
@@ -98,8 +97,18 @@ public class DefaultExecute extends AbstractExecute {
     }
 
     @Override
+    public <T> AggregateIterable<T> doAggregateList(List<AggregateBasicDBObject> aggregateConditionList, MongoCollection<Document> collection, Class<T> clazz) {
+        return collection.aggregate(aggregateConditionList, clazz);
+    }
+
+    @Override
     public FindIterable<Document> doGetById(BasicDBObject queryBasic, MongoCollection<Document> collection) {
         return collection.find(queryBasic);
+    }
+
+    @Override
+    public <T> FindIterable<T> doGetByIds(BasicDBObject queryBasic, MongoCollection<Document> collection, Class<T> clazz) {
+        return collection.find(queryBasic,clazz);
     }
 
     @Override

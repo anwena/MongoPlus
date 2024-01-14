@@ -22,7 +22,9 @@ import com.mongodb.client.model.CollationStrength;
 import org.bson.BsonValue;
 import org.bson.conversions.Bson;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author JiaChaoYang

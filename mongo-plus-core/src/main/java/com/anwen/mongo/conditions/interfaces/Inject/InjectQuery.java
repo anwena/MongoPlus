@@ -28,6 +28,8 @@ public interface InjectQuery extends CommInjectQuery {
 
     List<Map<String,Object>> list(String collectionName, QueryChainWrapper<Map<String,Object>,?> queryChainWrapper);
 
+    List<Map<String,Object>> list(String database,String collectionName, QueryChainWrapper<Map<String,Object>,?> queryChainWrapper);
+
     List<Map<String,Object>> list(ClientSession clientSession,String collectionName, QueryChainWrapper<Map<String,Object>,?> queryChainWrapper);
 
     List<Map<String,Object>> aggregateList(String collectionName, AggregateChainWrapper<Map<String,Object>,?> queryChainWrapper);

@@ -100,8 +100,17 @@ public class SessionExecute extends AbstractExecute {
     }
 
     @Override
+    public <T> AggregateIterable<T> doAggregateList(List<AggregateBasicDBObject> aggregateConditionList, MongoCollection<Document> collection, Class<T> clazz) {
+        return collection.aggregate(clientSession,aggregateConditionList, clazz);
+    }
+    @Override
     public FindIterable<Document> doGetById(BasicDBObject queryBasic, MongoCollection<Document> collection) {
         return collection.find(clientSession,queryBasic);
+    }
+
+    @Override
+    public <T> FindIterable<T> doGetByIds(BasicDBObject queryBasic, MongoCollection<Document> collection, Class<T> clazz) {
+        return collection.find(queryBasic,clazz);
     }
 
     @Override

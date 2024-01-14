@@ -1,16 +1,8 @@
 package com.anwen.mongo.model;
 
 import com.mongodb.BasicDBObject;
-import com.mongodb.DBObjectCodec;
-import org.bson.UuidRepresentation;
-import org.bson.codecs.Codec;
-import org.bson.codecs.Decoder;
-import org.bson.codecs.DecoderContext;
-import org.bson.json.JsonReader;
 
 import java.util.Map;
-
-import static org.bson.codecs.configuration.CodecRegistries.withUuidRepresentation;
 
 /**
  * 继承BasicDBObject，实现增加排序

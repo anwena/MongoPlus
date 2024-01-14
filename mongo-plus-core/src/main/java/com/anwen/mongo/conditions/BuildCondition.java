@@ -11,6 +11,7 @@ import com.anwen.mongo.enums.CompareEnum;
 import com.anwen.mongo.enums.LogicTypeEnum;
 import com.anwen.mongo.enums.QueryOperatorEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
+import com.anwen.mongo.toolkit.CollUtil;
 import com.anwen.mongo.toolkit.ObjectIdUtil;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.BasicDBObject;
@@ -33,7 +34,7 @@ public class BuildCondition {
      */
     public static BasicDBObject buildProjection(List<Projection> projectionList){
         return new BasicDBObject(){{
-            if (projectionList != null && !projectionList.isEmpty()) {
+            if (CollUtil.isNotEmpty(projectionList)) {
                 projectionList.forEach(projection -> put(projection.getColumn(), projection.getValue()));
             }
         }};
@@ -47,7 +48,7 @@ public class BuildCondition {
      */
     public static BasicDBObject buildQueryCondition(List<CompareCondition> compareConditionList) {
         return new MongoPlusBasicDBObject(){{
-            if (compareConditionList != null && !compareConditionList.isEmpty()) {
+            if (CollUtil.isNotEmpty(compareConditionList)) {
                 compareConditionList.stream().filter(compareCondition -> compareCondition.getType() == CompareEnum.QUERY.getKey()).collect(Collectors.toList()).forEach(compare -> {
                     if (Objects.equals(compare.getCondition(), QueryOperatorEnum.LIKE.getValue()) && StringUtils.isNotBlank(String.valueOf(compare.getValue()))) {
                         put(compare.getColumn(), new BasicDBObject(SpecialConditionEnum.REGEX.getCondition(), compare.getValue()));
@@ -123,6 +124,18 @@ public class BuildCondition {
         }};
     }
 
+    public static BasicDBObject buildPushUpdateValue(List<CompareCondition> compareConditionList) {
+        List<CompareCondition> conditionList = compareConditionList.stream().filter(compareCondition -> compareCondition.getType() == CompareEnum.UPDATE.getKey()).collect(Collectors.toList());
+        List<String> columnList = conditionList.stream().map(CompareCondition::getColumn).distinct().collect(Collectors.toList());
+        //必须得这样做，为了兼容追加参数只追加一个、而且不是数组的情况
+        return new BasicDBObject(){{
+            columnList.forEach(column -> {
+                List<Object> valueList = conditionList.stream().filter(condition -> Objects.equals(condition.getColumn(), column)).map(CompareCondition::getValue).collect(Collectors.toList());
+                put(column,new BasicDBObject(SpecialConditionEnum.EACH.getCondition(),valueList));
+            });
+        }};
+    }
+
     public static BasicDBObject buildReplaceRoot(Boolean reserveOriginalDocument,List<ReplaceRoot> replaceRootList){
         return new BasicDBObject(){{
             if (replaceRootList.size() == 1 && !reserveOriginalDocument){
@@ -151,11 +164,9 @@ public class BuildCondition {
      */
     public static MongoPlusBasicDBObject buildGroup(List<Accumulator> accumulatorList){
         return new MongoPlusBasicDBObject(){{
-            accumulatorList.forEach(accumulator -> {
-                put(accumulator.getResultMappingField(),new BasicDBObject(){{
-                    put("$"+accumulator.getCondition(),accumulator.getField());
-                }});
-            });
+            accumulatorList.forEach(accumulator -> put(accumulator.getResultMappingField(),new BasicDBObject(){{
+                put("$"+accumulator.getCondition(),accumulator.getField());
+            }}));
         }};
     }
 

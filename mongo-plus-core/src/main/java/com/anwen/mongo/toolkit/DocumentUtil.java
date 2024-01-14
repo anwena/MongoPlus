@@ -8,6 +8,7 @@ import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.handlers.DocumentHandler;
+import com.mongodb.BasicDBObject;
 import org.bson.Document;
 import org.bson.types.Binary;
 
@@ -90,6 +91,27 @@ public class DocumentUtil {
         document = Document.parse(jsonString);
         document.putAll(result);
         return document;
+    }
+
+    public static BasicDBObject handleBasicDBObject(BasicDBObject basicDBObject){
+        BasicDBObject result = new BasicDBObject();
+        PropertyFilter propertyFilter = (object, name, value) -> {
+            if (value instanceof LocalDate
+                    || value instanceof LocalDateTime
+                    || value instanceof LocalTime
+                    || value instanceof Date
+                    || value instanceof Binary) {
+                result.put(name,value);
+                return false;
+            }
+            return true;
+        };
+        String jsonString = JSON.toJSONString(basicDBObject, new SerializeConfig() {{
+            addFilter(BasicDBObject.class, propertyFilter);
+        }});
+        basicDBObject = BasicDBObject.parse(jsonString);
+        basicDBObject.putAll(result.toBsonDocument());
+        return basicDBObject;
     }
 
     /**
