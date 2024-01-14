@@ -4,6 +4,7 @@ import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.execute.AbstractExecute;
+import com.anwen.mongo.execute.inject.InjectAbstractExecute;
 import com.anwen.mongo.model.AggregateBasicDBObject;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.AggregateIterable;
@@ -152,57 +153,57 @@ public class DefaultExecute extends AbstractExecute {
     }
 
     @Override
-    public String createIndex(Bson bson, MongoCollection<Document> collection) {
+    public String doCreateIndex(Bson bson, MongoCollection<Document> collection) {
         return collection.createIndex(bson);
     }
 
     @Override
-    public String createIndex(Bson bson, IndexOptions indexOptions, MongoCollection<Document> collection) {
+    public String doCreateIndex(Bson bson, IndexOptions indexOptions, MongoCollection<Document> collection) {
         return collection.createIndex(bson,indexOptions);
     }
 
     @Override
-    public List<String> createIndexes(List<IndexModel> indexes, MongoCollection<Document> collection) {
+    public List<String> doCreateIndexes(List<IndexModel> indexes, MongoCollection<Document> collection) {
         return collection.createIndexes(indexes);
     }
 
     @Override
-    public List<String> createIndexes(List<IndexModel> indexes, CreateIndexOptions createIndexOptions, MongoCollection<Document> collection) {
+    public List<String> doCreateIndexes(List<IndexModel> indexes, CreateIndexOptions createIndexOptions, MongoCollection<Document> collection) {
         return collection.createIndexes(indexes,createIndexOptions);
     }
 
     @Override
-    public List<Document> listIndexes(MongoCollection<Document> collection) {
+    public List<Document> doListIndexes(MongoCollection<Document> collection) {
         return DocumentMapperConvert.indexesIterableToDocument(collection.listIndexes());
     }
 
     @Override
-    public void dropIndex(String indexName, MongoCollection<Document> collection) {
+    public void doDropIndex(String indexName, MongoCollection<Document> collection) {
         collection.dropIndex(indexName);
     }
 
     @Override
-    public void dropIndex(String indexName, DropIndexOptions dropIndexOptions, MongoCollection<Document> collection) {
+    public void doDropIndex(String indexName, DropIndexOptions dropIndexOptions, MongoCollection<Document> collection) {
         collection.dropIndex(indexName,dropIndexOptions);
     }
 
     @Override
-    public void dropIndex(Bson keys, MongoCollection<Document> collection) {
+    public void doDropIndex(Bson keys, MongoCollection<Document> collection) {
         collection.dropIndex(keys);
     }
 
     @Override
-    public void dropIndex(Bson keys, DropIndexOptions dropIndexOptions, MongoCollection<Document> collection) {
+    public void doDropIndex(Bson keys, DropIndexOptions dropIndexOptions, MongoCollection<Document> collection) {
         collection.dropIndex(keys,dropIndexOptions);
     }
 
     @Override
-    public void dropIndexes(MongoCollection<Document> collection) {
+    public void doDropIndexes(MongoCollection<Document> collection) {
         collection.dropIndexes();
     }
 
     @Override
-    public void dropIndexes(DropIndexOptions dropIndexOptions, MongoCollection<Document> collection) {
+    public void doDropIndexes(DropIndexOptions dropIndexOptions, MongoCollection<Document> collection) {
         collection.dropIndexes(dropIndexOptions);
     }
 }

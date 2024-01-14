@@ -406,11 +406,13 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    @Deprecated
     public List<T> sql(String sql) {
         return sqlExecute.doSql(sql,clazz);
     }
 
     @Override
+    @Deprecated
     public List<T> sql(ClientSession clientSession,String sql)   {
         return sqlExecute.doSql(clientSession,sql,clazz);
     }
@@ -447,7 +449,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public String createIndex(Bson bson) {
-        return factory.getExecute(database).createIndex(bson,getMongoCollection());
+        return factory.getExecute(database).createIndex(bson,clazz);
     }
 
     @Override
@@ -457,17 +459,17 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public String createIndex(Bson bson, IndexOptions indexOptions) {
-        return factory.getExecute(database).createIndex(bson,indexOptions,getMongoCollection());
+        return factory.getExecute(database).createIndex(bson,indexOptions,clazz);
     }
 
     @Override
     public List<String> createIndexes(List<IndexModel> indexes) {
-        return factory.getExecute(database).createIndexes(indexes,getMongoCollection());
+        return factory.getExecute(database).createIndexes(indexes,clazz);
     }
 
     @Override
     public List<String> createIndexes(List<IndexModel> indexes, CreateIndexOptions createIndexOptions) {
-        return factory.getExecute(database).createIndexes(indexes,createIndexOptions,getMongoCollection());
+        return factory.getExecute(database).createIndexes(indexes,createIndexOptions,clazz);
     }
 
     @Override
@@ -482,7 +484,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public List<Document> listIndexes() {
-        return factory.getExecute(database).listIndexes(getMongoCollection());
+        return factory.getExecute(database).listIndexes(clazz);
     }
 
     @Override
@@ -492,22 +494,22 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public void dropIndex(String indexName) {
-        factory.getExecute(database).dropIndex(indexName,getMongoCollection());
+        factory.getExecute(database).dropIndex(indexName,clazz);
     }
 
     @Override
     public void dropIndex(String indexName, DropIndexOptions dropIndexOptions) {
-        factory.getExecute(database).dropIndex(indexName,dropIndexOptions,getMongoCollection());
+        factory.getExecute(database).dropIndex(indexName,dropIndexOptions,clazz);
     }
 
     @Override
     public void dropIndex(Bson keys) {
-        factory.getExecute(database).dropIndex(keys,getMongoCollection());
+        factory.getExecute(database).dropIndex(keys,clazz);
     }
 
     @Override
     public void dropIndex(Bson keys, DropIndexOptions dropIndexOptions) {
-        factory.getExecute(database).dropIndex(keys,dropIndexOptions,getMongoCollection());
+        factory.getExecute(database).dropIndex(keys,dropIndexOptions,clazz);
     }
 
     @Override
@@ -532,7 +534,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public void dropIndexes() {
-        factory.getExecute(database).dropIndexes(getMongoCollection());
+        factory.getExecute(database).dropIndexes(clazz);
     }
 
     @Override
@@ -542,7 +544,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public void dropIndexes(DropIndexOptions dropIndexOptions) {
-        factory.getExecute(database).dropIndexes(dropIndexOptions,getMongoCollection());
+        factory.getExecute(database).dropIndexes(dropIndexOptions,clazz);
     }
 
     @Override

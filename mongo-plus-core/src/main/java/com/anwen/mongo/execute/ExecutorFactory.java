@@ -4,6 +4,7 @@ import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.conn.ConnectMongoDB;
 import com.anwen.mongo.context.MongoTransactionContext;
 import com.anwen.mongo.convert.CollectionNameConvert;
+import com.anwen.mongo.execute.inject.InjectAbstractExecute;
 import com.anwen.mongo.execute.instance.DefaultExecute;
 import com.anwen.mongo.execute.instance.SessionExecute;
 import com.anwen.mongo.manager.MongoPlusClient;
@@ -65,7 +66,23 @@ public class ExecutorFactory {
      * @date 2023/12/28 14:49
     */
     public AbstractExecute getExecute(String database) {
+        return getExecute(getCollectionManager(database));
+    }
+
+    public AbstractExecute getExecute(CollectionManager collectionManager){
         ClientSession clientSessionContext = MongoTransactionContext.getClientSessionContext();
+        if (clientSessionContext != null) {
+            return new SessionExecute(collectionNameConvert,collectionManager,clientSessionContext);
+        }
+        return new DefaultExecute(collectionNameConvert,collectionManager);
+    }
+
+    public InjectAbstractExecute getInjectExecute(String database){
+        CollectionManager collectionManager = getCollectionManager(database);
+        return new InjectAbstractExecute(collectionManager,getExecute(collectionManager));
+    }
+
+    public CollectionManager getCollectionManager(String database){
         Map<String, CollectionManager> managerMap = mongoPlusClient.getCollectionManager();
         if (managerMap.keySet().size() <= 1 || StringUtils.isBlank(database)){
             database = managerMap.keySet().stream().findFirst().get();
@@ -76,10 +93,7 @@ public class ExecutorFactory {
             mongoPlusClient.getMongoDatabase().add(mongoPlusClient.getMongoClient().getDatabase(database));
             mongoPlusClient.getCollectionManager().put(database,collectionManager);
         }
-        if (clientSessionContext != null) {
-            return new SessionExecute(collectionNameConvert,collectionManager,clientSessionContext);
-        }
-        return new DefaultExecute(collectionNameConvert,collectionManager);
+        return collectionManager;
     }
 
 //    /**

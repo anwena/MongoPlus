@@ -50,25 +50,25 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     public LambdaQueryChainInjectWrapper lambdaQuery(){
-        return new LambdaQueryChainInjectWrapper(sqlExecute);
+        return new LambdaQueryChainInjectWrapper(sqlExecute,factory);
     }
 
     public LambdaAggregateChainInjectWrapper lambdaAggregate(){
-        return new LambdaAggregateChainInjectWrapper(sqlExecute);
+        return new LambdaAggregateChainInjectWrapper(sqlExecute,factory);
     }
 
     public LambdaUpdateChainInjectWrapper lambdaUpdate(){
-        return new LambdaUpdateChainInjectWrapper(sqlExecute);
+        return new LambdaUpdateChainInjectWrapper(sqlExecute,factory);
     }
 
     @Override
     public List<Map<String, Object>> list(String collectionName) {
-        return sqlExecute.doList(collectionName);
+        return list("",collectionName);
     }
 
     @Override
     public List<Map<String, Object>> list(String database, String collectionName) {
-        return null;
+        return factory.getInjectExecute(database).list(collectionName);
     }
 
     @Override
@@ -92,6 +92,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
+    public List<Map<String, Object>> aggregateList(String database, String collectionName, AggregateChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
+        return factory.getInjectExecute(database)(collectionName, queryChainWrapper.getBaseAggregateList(), queryChainWrapper.getBasicDBObjectList(),queryChainWrapper.getOptionsBasicDBObject());
+    }
+
+    @Override
     public List<Map<String, Object>> aggregateList(ClientSession clientSession, String collectionName, AggregateChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
         return sqlExecute.doAggregateList(clientSession,collectionName, queryChainWrapper.getBaseAggregateList(), queryChainWrapper.getBasicDBObjectList(),queryChainWrapper.getOptionsBasicDBObject());
     }
@@ -102,6 +107,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
+    public Map<String, Object> one(String database, String collectionName, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
+        return null;
+    }
+
+    @Override
     public Map<String, Object> one(ClientSession clientSession, String collectionName, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
         return sqlExecute.doOne(clientSession,collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
     }
@@ -109,6 +119,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public Map<String, Object> limitOne(String collectionName, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
         return sqlExecute.doLimitOne(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),queryChainWrapper.getOrderList());
+    }
+
+    @Override
+    public Map<String, Object> limitOne(String database, String collectionName, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
+        return null;
     }
 
     @Override
@@ -123,6 +138,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
+    public PageResult<Map<String, Object>> page(String database, String collectionName, PageParam pageParam) {
+        return null;
+    }
+
+    @Override
     public PageResult<Map<String, Object>> page(ClientSession clientSession, String collectionName, PageParam pageParam) {
         return sqlExecute.doPage(clientSession,collectionName,pageParam.getPageNum(),pageParam.getPageSize());
     }
@@ -130,6 +150,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public PageResult<Map<String, Object>> page(String collectionName, PageParam pageParam, QueryChainWrapper<Map<String,Object>,?> queryChainWrapper) {
         return sqlExecute.doPage(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),pageParam.getPageNum(),pageParam.getPageSize());
+    }
+
+    @Override
+    public PageResult<Map<String, Object>> page(String database, String collectionName, PageParam pageParam, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
+        return null;
     }
 
     @Override
@@ -143,6 +168,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
+    public PageResult<Map<String, Object>> page(String database, String collectionName, Integer pageNum, Integer pageSize) {
+        return null;
+    }
+
+    @Override
     public PageResult<Map<String, Object>> page(ClientSession clientSession, String collectionName, Integer pageNum, Integer pageSize) {
         return sqlExecute.doPage(clientSession,collectionName,pageNum,pageSize);
     }
@@ -150,6 +180,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public PageResult<Map<String, Object>> page(String collectionName, Integer pageNum, Integer pageSize, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
         return sqlExecute.doPage(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),pageNum,pageSize);
+    }
+
+    @Override
+    public PageResult<Map<String, Object>> page(String database, String collectionName, Integer pageNum, Integer pageSize, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
+        return null;
     }
 
     @Override
@@ -163,6 +198,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
+    public Map<String, Object> getById(String database, String collectionName, Serializable id) {
+        return null;
+    }
+
+    @Override
     public Map<String, Object> getById(ClientSession clientSession, String collectionName, Serializable id) {
         return sqlExecute.doGetById(clientSession,collectionName,id);
     }
@@ -170,6 +210,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public List<Map<String, Object>> getByIds(String collectionName , Collection<? extends Serializable> ids) {
         return sqlExecute.doGetByIds(collectionName,ids);
+    }
+
+    @Override
+    public List<Map<String, Object>> getByIds(String database, String collectionName, Collection<? extends Serializable> ids) {
+        return null;
     }
 
     @Override
@@ -183,6 +228,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
+    public Boolean save(String database, String collectionName, Map<String, Object> entityMap) {
+        return null;
+    }
+
+    @Override
     public Boolean save(ClientSession clientSession, String collectionName, Map<String, Object> entityMap) {
         return sqlExecute.doSave(clientSession,collectionName,entityMap);
     }
@@ -190,6 +240,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public Boolean saveBatch(String collectionName, Collection<Map<String, Object>> entityMapList) {
         return sqlExecute.doSaveBatch(collectionName,entityMapList);
+    }
+
+    @Override
+    public Boolean saveBatch(String database, String collectionName, Collection<Map<String, Object>> entityMapList) {
+        return null;
     }
 
     @Override
@@ -203,6 +258,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
+    public Boolean saveOrUpdate(String database, String collectionName, Map<String, Object> entityMap) {
+        return null;
+    }
+
+    @Override
     public Boolean saveOrUpdate(ClientSession clientSession, String collectionName, Map<String, Object> entityMap) {
         return sqlExecute.doSaveOrUpdate(clientSession,collectionName,entityMap);
     }
@@ -210,6 +270,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public Boolean saveOrUpdateBatch(String collectionName, Collection<Map<String, Object>> entityMapList) {
         return sqlExecute.doSaveOrUpdateBatch(collectionName,entityMapList);
+    }
+
+    @Override
+    public Boolean saveOrUpdateBatch(String database, String collectionName, Collection<Map<String, Object>> entityMapList) {
+        return null;
     }
 
     @Override
@@ -223,6 +288,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
+    public Boolean updateById(String database, String collectionName, Map<String, Object> entityMap) {
+        return null;
+    }
+
+    @Override
     public Boolean updateById(ClientSession clientSession, String collectionName, Map<String, Object> entityMap) {
         return sqlExecute.doUpdateById(clientSession,collectionName,entityMap);
     }
@@ -230,6 +300,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public Boolean updateBatchByIds(String collectionName, Collection<Map<String, Object>> entityMapList) {
         return sqlExecute.doUpdateBatchByIds(collectionName,entityMapList);
+    }
+
+    @Override
+    public Boolean updateBatchByIds(String database, String collectionName, Collection<Map<String, Object>> entityMapList) {
+        return null;
     }
 
     @Override
@@ -243,6 +318,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
+    public Boolean updateByColumn(String database, String collectionName, Map<String, Object> entityMap, String column) {
+        return null;
+    }
+
+    @Override
     public Boolean updateByColumn(ClientSession clientSession, String collectionName, Map<String, Object> entityMap, String column) {
         return sqlExecute.doUpdateByColumn(clientSession,collectionName,entityMap,column);
     }
@@ -250,6 +330,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public Boolean removeById(String collectionName, Serializable id) {
         return sqlExecute.doRemoveById(collectionName,id);
+    }
+
+    @Override
+    public Boolean removeById(String database, String collectionName, Serializable id) {
+        return null;
     }
 
     @Override
@@ -263,6 +348,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
+    public Boolean removeByColumn(String database, String collectionName, String column, String value) {
+        return null;
+    }
+
+    @Override
     public Boolean removeByColumn(ClientSession clientSession, String collectionName, String column, String value) {
         return sqlExecute.doRemoveByColumn(clientSession,collectionName,column,value);
     }
@@ -270,6 +360,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public Boolean removeBatchByIds(String collectionName, Collection<? extends Serializable> idList) {
         return sqlExecute.doRemoveBatchByIds(collectionName,idList);
+    }
+
+    @Override
+    public Boolean removeBatchByIds(String database, String collectionName, Collection<? extends Serializable> idList) {
+        return null;
     }
 
     @Override
@@ -283,6 +378,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
+    public long count(String database, String collectionName, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
+        return 0;
+    }
+
+    @Override
     public long count(ClientSession clientSession, String collectionName, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
         return sqlExecute.doCount(clientSession,collectionName,queryChainWrapper.getCompareList());
     }
@@ -290,6 +390,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public List<Map<String, Object>> getByColumn(String collectionName,String field, Object fieldValue) {
         return sqlExecute.doGetByColumn(collectionName,field,fieldValue);
+    }
+
+    @Override
+    public List<Map<String, Object>> getByColumn(String database, String collectionName, String field, Object fieldValue) {
+        return null;
     }
 
     @Override
@@ -303,6 +408,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
+    public Boolean remove(String database, String collectionName, UpdateChainWrapper<Map<String, Object>, ?> updateChainWrapper) {
+        return null;
+    }
+
+    @Override
     public Boolean remove(ClientSession clientSession, String collectionName, UpdateChainWrapper<Map<String, Object>, ?> updateChainWrapper) {
         return sqlExecute.doRemove(clientSession,collectionName,updateChainWrapper.getCompareList());
     }
@@ -310,6 +420,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public Boolean update(String collectionName, UpdateChainWrapper<Map<String, Object>, ?> updateChainWrapper) {
         return update(null,collectionName,updateChainWrapper);
+    }
+
+    @Override
+    public Boolean update(String database, String collectionName, UpdateChainWrapper<Map<String, Object>, ?> updateChainWrapper) {
+        return null;
     }
 
     @Override
@@ -331,6 +446,16 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
+    public List<Map<String, Object>> queryCommand(String collectionName,String command) {
+        return factory.getInjectExecute(null).queryCommand(collectionName,command);
+    }
+
+    @Override
+    public List<Map<String, Object>> queryCommand(String database, String collectionName, String command) {
+        return null;
+    }
+
+    @Override
     public String createIndex(ClientSession clientSession,String collectionName,Bson bson) {
         return sqlExecute.createIndex(clientSession,bson,getMongoCollection(collectionName));
     }
@@ -338,6 +463,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public String createIndex(String collectionName,Bson bson) {
         return sqlExecute.createIndex(bson,getMongoCollection(collectionName));
+    }
+
+    @Override
+    public String createIndex(String database, String collectionName, Bson bson) {
+        return null;
     }
 
     @Override
@@ -351,13 +481,28 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
+    public String createIndex(String database, String collectionName, Bson bson, IndexOptions indexOptions) {
+        return null;
+    }
+
+    @Override
     public List<String> createIndexes(String collectionName,List<IndexModel> indexes) {
         return sqlExecute.createIndexes(indexes,getMongoCollection(collectionName));
     }
 
     @Override
+    public List<String> createIndexes(String database, String collectionName, List<IndexModel> indexes) {
+        return null;
+    }
+
+    @Override
     public List<String> createIndexes(String collectionName,List<IndexModel> indexes, CreateIndexOptions createIndexOptions) {
         return sqlExecute.createIndexes(indexes,createIndexOptions,getMongoCollection(collectionName));
+    }
+
+    @Override
+    public List<String> createIndexes(String database, String collectionName, List<IndexModel> indexes, CreateIndexOptions createIndexOptions) {
+        return null;
     }
 
     @Override
@@ -376,6 +521,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
+    public List<Document> listIndexes(String database, String collectionName) {
+        return null;
+    }
+
+    @Override
     public List<Document> listIndexes(ClientSession clientSession,String collectionName) {
         return sqlExecute.listIndexes(clientSession,getMongoCollection(collectionName));
     }
@@ -386,8 +536,18 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
+    public void dropIndex(String database, String collectionName, String indexName) {
+
+    }
+
+    @Override
     public void dropIndex(String collectionName,String indexName, DropIndexOptions dropIndexOptions) {
         sqlExecute.dropIndex(indexName,dropIndexOptions,getMongoCollection(collectionName));
+    }
+
+    @Override
+    public void dropIndex(String database, String collectionName, String indexName, DropIndexOptions dropIndexOptions) {
+
     }
 
     @Override
@@ -396,8 +556,18 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
+    public void dropIndex(String database, String collectionName, Bson keys) {
+
+    }
+
+    @Override
     public void dropIndex(String collectionName,Bson keys, DropIndexOptions dropIndexOptions) {
         sqlExecute.dropIndex(keys,dropIndexOptions,getMongoCollection(collectionName));
+    }
+
+    @Override
+    public void dropIndex(String database, String collectionName, Bson keys, DropIndexOptions dropIndexOptions) {
+
     }
 
     @Override
@@ -426,6 +596,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
+    public void dropIndexes(String database, String collectionName) {
+
+    }
+
+    @Override
     public void dropIndexes(ClientSession clientSession,String collectionName) {
         sqlExecute.dropIndexes(clientSession,getMongoCollection(collectionName));
     }
@@ -436,6 +611,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
+    public void dropIndexes(String database, String collectionName, DropIndexOptions dropIndexOptions) {
+
+    }
+
+    @Override
     public void dropIndexes(ClientSession clientSession, String collectionName,DropIndexOptions dropIndexOptions) {
         sqlExecute.dropIndexes(clientSession,dropIndexOptions,getMongoCollection(collectionName));
     }
@@ -443,6 +623,11 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public long count(String collectionName) {
         return sqlExecute.doCount(collectionName);
+    }
+
+    @Override
+    public long count(String database, String collectionName) {
+        return 0;
     }
 
     @Override

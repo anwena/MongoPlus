@@ -5,6 +5,7 @@ import com.anwen.mongo.conditions.interfaces.Inject.InjectUpdate;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.enums.CompareEnum;
 import com.anwen.mongo.enums.LogicTypeEnum;
+import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.execute.SqlExecute;
 import com.mongodb.client.ClientSession;
 
@@ -23,8 +24,11 @@ public class LambdaUpdateChainInjectWrapper extends AbstractChainWrapper<String,
 
     private final SqlExecute sqlExecute;
 
-    public LambdaUpdateChainInjectWrapper(SqlExecute sqlExecute) {
+    private final ExecutorFactory factory;
+
+    public LambdaUpdateChainInjectWrapper(SqlExecute sqlExecute, ExecutorFactory factory) {
         this.sqlExecute = sqlExecute;
+        this.factory = factory;
     }
 
     @Override

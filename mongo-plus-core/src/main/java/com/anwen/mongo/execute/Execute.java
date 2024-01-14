@@ -1,8 +1,11 @@
 package com.anwen.mongo.execute;
 
+import com.anwen.mongo.context.MongoTransactionContext;
+import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.model.AggregateBasicDBObject;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.ClientSession;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.CreateIndexOptions;
@@ -17,6 +20,7 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 抽象的执行器
@@ -71,26 +75,26 @@ public interface Execute {
 
     <T> FindIterable<T> doGetByColumn(Bson filter,MongoCollection<Document> collection,Class<T> clazz);
 
-    String createIndex(Bson bson,MongoCollection<Document> collection);
+    String doCreateIndex(Bson bson,MongoCollection<Document> collection);
 
-    String createIndex(Bson bson, IndexOptions indexOptions, MongoCollection<Document> collection);
+    String doCreateIndex(Bson bson,IndexOptions indexOptions,MongoCollection<Document> collection);
 
-    List<String> createIndexes(List<IndexModel> indexes, MongoCollection<Document> collection);
+    List<String> doCreateIndexes(List<IndexModel> indexes,MongoCollection<Document> collection);
 
-    List<String> createIndexes(List<IndexModel> indexes, CreateIndexOptions createIndexOptions, MongoCollection<Document> collection);
+    List<String> doCreateIndexes(List<IndexModel> indexes, CreateIndexOptions createIndexOptions,MongoCollection<Document> collection);
 
-    List<Document> listIndexes(MongoCollection<Document> collection);
+    List<Document> doListIndexes(MongoCollection<Document> collection);
 
-    void dropIndex(String indexName,MongoCollection<Document> collection);
+    void doDropIndex(String indexName,MongoCollection<Document> collection);
 
-    void dropIndex(String indexName, DropIndexOptions dropIndexOptions, MongoCollection<Document> collection);
+    void doDropIndex(String indexName,DropIndexOptions dropIndexOptions,MongoCollection<Document> collection);
 
-    void dropIndex(Bson keys,MongoCollection<Document> collection);
+    void doDropIndex(Bson keys,MongoCollection<Document> collection);
 
-    void dropIndex(Bson keys,DropIndexOptions dropIndexOptions,MongoCollection<Document> collection);
+    void doDropIndex(Bson keys,DropIndexOptions dropIndexOptions,MongoCollection<Document> collection);
 
-    void dropIndexes(MongoCollection<Document> collection);
+    void doDropIndexes(MongoCollection<Document> collection);
 
-    void dropIndexes(DropIndexOptions dropIndexOptions,MongoCollection<Document> collection);
+    void doDropIndexes(DropIndexOptions dropIndexOptions,MongoCollection<Document> collection);
 
 }

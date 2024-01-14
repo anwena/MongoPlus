@@ -155,57 +155,57 @@ public class SessionExecute extends AbstractExecute {
     }
 
     @Override
-    public String createIndex(Bson bson, MongoCollection<Document> collection) {
+    public String doCreateIndex(Bson bson, MongoCollection<Document> collection) {
         return collection.createIndex(clientSession,bson);
     }
 
     @Override
-    public String createIndex(Bson bson, IndexOptions indexOptions, MongoCollection<Document> collection) {
+    public String doCreateIndex(Bson bson, IndexOptions indexOptions, MongoCollection<Document> collection) {
         return collection.createIndex(clientSession,bson,indexOptions);
     }
 
     @Override
-    public List<String> createIndexes(List<IndexModel> indexes, MongoCollection<Document> collection) {
+    public List<String> doCreateIndexes(List<IndexModel> indexes, MongoCollection<Document> collection) {
         return collection.createIndexes(clientSession,indexes);
     }
 
     @Override
-    public List<String> createIndexes(List<IndexModel> indexes, CreateIndexOptions createIndexOptions, MongoCollection<Document> collection) {
+    public List<String> doCreateIndexes(List<IndexModel> indexes, CreateIndexOptions createIndexOptions, MongoCollection<Document> collection) {
         return collection.createIndexes(clientSession,indexes,createIndexOptions);
     }
 
     @Override
-    public List<Document> listIndexes(MongoCollection<Document> collection) {
+    public List<Document> doListIndexes(MongoCollection<Document> collection) {
         return DocumentMapperConvert.indexesIterableToDocument(collection.listIndexes(clientSession));
     }
 
     @Override
-    public void dropIndex(String indexName, MongoCollection<Document> collection) {
+    public void doDropIndex(String indexName, MongoCollection<Document> collection) {
         collection.dropIndex(clientSession,indexName);
     }
 
     @Override
-    public void dropIndex(String indexName, DropIndexOptions dropIndexOptions, MongoCollection<Document> collection) {
+    public void doDropIndex(String indexName, DropIndexOptions dropIndexOptions, MongoCollection<Document> collection) {
         collection.dropIndex(clientSession,indexName,dropIndexOptions);
     }
 
     @Override
-    public void dropIndex(Bson keys, MongoCollection<Document> collection) {
+    public void doDropIndex(Bson keys, MongoCollection<Document> collection) {
         collection.dropIndex(clientSession,keys);
     }
 
     @Override
-    public void dropIndex(Bson keys, DropIndexOptions dropIndexOptions, MongoCollection<Document> collection) {
+    public void doDropIndex(Bson keys, DropIndexOptions dropIndexOptions, MongoCollection<Document> collection) {
         collection.dropIndex(clientSession,keys,dropIndexOptions);
     }
 
     @Override
-    public void dropIndexes(MongoCollection<Document> collection) {
+    public void doDropIndexes(MongoCollection<Document> collection) {
         collection.dropIndexes(clientSession);
     }
 
     @Override
-    public void dropIndexes(DropIndexOptions dropIndexOptions, MongoCollection<Document> collection) {
+    public void doDropIndexes(DropIndexOptions dropIndexOptions, MongoCollection<Document> collection) {
         collection.dropIndexes(clientSession,dropIndexOptions);
     }
 }

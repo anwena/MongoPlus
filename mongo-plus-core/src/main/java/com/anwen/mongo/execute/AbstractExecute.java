@@ -15,6 +15,7 @@ import com.anwen.mongo.domain.MongoQueryException;
 import com.anwen.mongo.enums.AggregateOptionsEnum;
 import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
+import com.anwen.mongo.execute.inject.InjectAbstractExecute;
 import com.anwen.mongo.model.*;
 import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.support.SFunction;
@@ -22,12 +23,10 @@ import com.anwen.mongo.toolkit.*;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
 import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.ClientSession;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.Collation;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.FindOneAndUpdateOptions;
-import com.mongodb.client.model.ReturnDocument;
+import com.mongodb.client.model.*;
 import com.mongodb.client.result.InsertOneResult;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -113,7 +112,7 @@ public abstract class AbstractExecute implements Execute {
             if ((StringUtils.isBlank(idByEntity) || !isExist(idByEntity, entity.getClass()))) {
                 saveList.add(entity);
             } else {
-                updateList.addAll(entityList);
+                updateList.add(entity);
             }
         });
         boolean save = false;
@@ -277,6 +276,51 @@ public abstract class AbstractExecute implements Execute {
     public <T> List<T> getByColumn(String column,Object value,Class<T> clazz){
         Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(value)) ? new ObjectId(String.valueOf(value)) : value);
         return DocumentMapperConvert.mapDocumentList(doGetByColumn(filter,collectionManager.getCollection(clazz)),clazz);
+    }
+
+    public String createIndex(Bson bson,Class<?> clazz){
+        return doCreateIndex(bson,collectionManager.getCollection(clazz));
+    }
+
+    public String createIndex(Bson bson, IndexOptions indexOptions, Class<?> clazz){
+        return doCreateIndex(bson,indexOptions,collectionManager.getCollection(clazz));
+    }
+
+    public List<String> createIndexes(List<IndexModel> indexes,Class<?> clazz){
+        return doCreateIndexes(indexes,collectionManager.getCollection(clazz));
+    }
+
+
+    public List<String> createIndexes(List<IndexModel> indexes, CreateIndexOptions createIndexOptions,Class<?> clazz){
+        return doCreateIndexes(indexes,createIndexOptions,collectionManager.getCollection(clazz));
+    }
+
+    public List<Document> listIndexes(Class<?> clazz){
+        return doListIndexes(collectionManager.getCollection(clazz));
+    }
+
+    public void dropIndex(String indexName,Class<?> clazz){
+        doDropIndex(indexName,collectionManager.getCollection(clazz));
+    }
+
+    public void dropIndex(String indexName,DropIndexOptions dropIndexOptions,Class<?> clazz){
+        doDropIndex(indexName,dropIndexOptions,collectionManager.getCollection(clazz));
+    }
+
+    public void dropIndex(Bson keys,Class<?> clazz){
+        doDropIndex(keys,collectionManager.getCollection(clazz));
+    }
+
+    public void dropIndex(Bson keys,DropIndexOptions dropIndexOptions,Class<?> clazz){
+        doDropIndex(keys,dropIndexOptions,collectionManager.getCollection(clazz));
+    }
+
+    public void dropIndexes(Class<?> clazz){
+        doDropIndexes(collectionManager.getCollection(clazz));
+    }
+
+    public void dropIndexes(DropIndexOptions dropIndexOptions,Class<?> clazz){
+        doDropIndexes(dropIndexOptions,collectionManager.getCollection(clazz));
     }
 
     protected BasicDBObject checkIdType(Collection<? extends Serializable> ids) {

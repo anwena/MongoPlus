@@ -1,6 +1,7 @@
 package com.anwen.mongo.conditions.inject.aggregate;
 
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
+import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.execute.SqlExecute;
 import com.mongodb.client.ClientSession;
 
@@ -14,8 +15,11 @@ public class LambdaAggregateChainInjectWrapper extends AggregateChainWrapper<Map
 
     private final SqlExecute sqlExecute;
 
-    public LambdaAggregateChainInjectWrapper(SqlExecute sqlExecute) {
+    private final ExecutorFactory factory;
+
+    public LambdaAggregateChainInjectWrapper(SqlExecute sqlExecute, ExecutorFactory factory) {
         this.sqlExecute = sqlExecute;
+        this.factory = factory;
     }
 
     @Override

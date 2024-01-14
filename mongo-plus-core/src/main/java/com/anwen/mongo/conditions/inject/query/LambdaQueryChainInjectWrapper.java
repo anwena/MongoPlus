@@ -1,6 +1,7 @@
 package com.anwen.mongo.conditions.inject.query;
 
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
+import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
@@ -19,8 +20,11 @@ public class LambdaQueryChainInjectWrapper extends QueryChainWrapper<Map<String,
 
     private final SqlExecute sqlExecute;
 
-    public LambdaQueryChainInjectWrapper(SqlExecute sqlExecute) {
+    private final ExecutorFactory factory;
+
+    public LambdaQueryChainInjectWrapper(SqlExecute sqlExecute, ExecutorFactory factory) {
         this.sqlExecute = sqlExecute;
+        this.factory = factory;
     }
 
     @Override
