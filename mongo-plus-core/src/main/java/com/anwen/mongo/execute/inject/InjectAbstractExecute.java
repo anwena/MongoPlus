@@ -63,7 +63,7 @@ public class InjectAbstractExecute {
 
     public Boolean saveBatch(String collectionName, Collection<Map<String, Object>> entityList) {
         try {
-            List<Document> documentList = DocumentUtil.handleDocumentList(BeanMapUtilByReflect.mapListToDocumentList(entityList),true);
+            List<Document> documentList = DocumentUtil.handleMapList(entityList,true);
             return execute.doSaveBatch(documentList, collectionManager.getCollection(collectionName)).getInsertedIds().size() == entityList.size();
         } catch (Exception e) {
             logger.error("saveBatch fail , error info : {}", e.getMessage(), e);
@@ -77,6 +77,16 @@ public class InjectAbstractExecute {
             return save(collectionName,entityMap);
         }
         return isExist(collectionName,idValue) ? updateById(collectionName,entityMap) : save(collectionName,entityMap);
+    }
+
+    public <T> Boolean saveOrUpdateWrapper(String collectionName, Map<String, Object> entityMap,List<CompareCondition> compareConditionList){
+        long count = count(collectionName,compareConditionList);
+        if (count > 0){
+            BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareConditionList);
+            BasicDBObject updateField = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), DocumentUtil.handleMap(entityMap,false));
+            return execute.executeUpdate(queryBasic,updateField,collectionManager.getCollection(collectionName)).getModifiedCount() >= 1;
+        }
+        return save(collectionName,entityMap);
     }
 
     public Boolean saveOrUpdateBatch(String collectionName, Collection<Map<String, Object>> entityList) {
@@ -104,7 +114,7 @@ public class InjectAbstractExecute {
     public Boolean updateById(String collectionName, Map<String, Object> entityMap) {
         BasicDBObject filter = ExecuteUtil.getFilter(entityMap);
         BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), DocumentUtil.handleMap(entityMap,false));
-        return execute.doUpdateById(filter,update, collectionManager.getCollection(collectionName)).getModifiedCount() >= 1;
+        return execute.executeUpdate(filter,update, collectionManager.getCollection(collectionName)).getModifiedCount() >= 1;
     }
 
     public Boolean updateBatchByIds(String collectionName, Collection<Map<String, Object>> entityList) {
@@ -122,7 +132,7 @@ public class InjectAbstractExecute {
         Object columnValue = entityMap.get(column);
         Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(columnValue)) ? new ObjectId(String.valueOf(columnValue)) : columnValue);
         Document document = DocumentUtil.handleMap(entityMap,false);
-        return execute.doUpdateByColumn(filter,document, collectionManager.getCollection(collectionName)).getModifiedCount() >= 1;
+        return execute.executeUpdate(filter,document, collectionManager.getCollection(collectionName)).getModifiedCount() >= 1;
     }
 
     public Boolean removeById(String collectionName, Serializable id) {
@@ -132,7 +142,7 @@ public class InjectAbstractExecute {
 
     public Boolean removeByColumn(String collectionName,String column, Object value) {
         Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(value)) ? new ObjectId(String.valueOf(value)) : value);
-        return execute.executeRemoveByColumn(filter,collectionManager.getCollection(collectionName)).getDeletedCount() >= 1;
+        return execute.executeRemove(filter,collectionManager.getCollection(collectionName)).getDeletedCount() >= 1;
     }
 
     public Boolean removeBatchByIds(String collectionName,Collection<? extends Serializable> idList) {
@@ -140,7 +150,7 @@ public class InjectAbstractExecute {
                 .map(id -> ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id)
                 .collect(Collectors.toList());
         Bson objectIdBson = Filters.in(SqlOperationConstant._ID, convertedIds);
-        return execute.executeRemoveBatchByIds(objectIdBson, collectionManager.getCollection(collectionName)).getDeletedCount() >= 1;
+        return execute.executeRemove(objectIdBson, collectionManager.getCollection(collectionName)).getDeletedCount() >= 1;
     }
 
     public List<Map<String, Object>> list(String collectionName) {

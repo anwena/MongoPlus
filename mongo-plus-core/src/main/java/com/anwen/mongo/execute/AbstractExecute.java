@@ -101,6 +101,16 @@ public abstract class AbstractExecute implements Execute {
         return isExist(idByEntity,entity.getClass()) ? updateById(entity) : save(entity);
     }
 
+    public <T> Boolean saveOrUpdateWrapper(T entity,List<CompareCondition> compareConditionList){
+        long count = count(compareConditionList, entity.getClass());
+        if (count > 0){
+            BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareConditionList);
+            Document updateField = DocumentUtil.checkUpdateField(entity,false);
+            return executeUpdate(queryBasic,updateField,collectionManager.getCollection(ClassTypeUtil.getClass(entity))).getModifiedCount() >= 1;
+        }
+        return save(entity);
+    }
+
     public <T> Boolean saveOrUpdateBatch(Collection<T> entityList) {
         List<T> saveList = new ArrayList<>();
         List<T> updateList = new ArrayList<>();
@@ -129,7 +139,7 @@ public abstract class AbstractExecute implements Execute {
         BasicDBObject filter = ExecuteUtil.getFilter(document);
         BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
         MongoCollection<Document> collection = collectionManager.getCollection(ClassTypeUtil.getClass(entity));
-        return doUpdateById(filter,update,collection).getModifiedCount() >= 1;
+        return executeUpdate(filter,update,collection).getModifiedCount() >= 1;
     }
 
     public <T> Boolean updateBatchByIds(Collection<T> entityList) {
@@ -150,7 +160,7 @@ public abstract class AbstractExecute implements Execute {
         Bson filter = Filters.eq(column, ObjectId.isValid(valueOf) ? new ObjectId(valueOf) : filterValue);
         Document document = DocumentUtil.checkUpdateField(entity,false);
         MongoCollection<Document> collection = collectionManager.getCollection(ClassTypeUtil.getClass(entity));
-        return doUpdateByColumn(filter,document,collection).getModifiedCount() >= 1;
+        return executeUpdate(filter,document,collection).getModifiedCount() >= 1;
     }
 
     public Boolean removeById(Serializable id, Class<?> clazz) {
@@ -172,7 +182,7 @@ public abstract class AbstractExecute implements Execute {
 
     public Boolean executeRemoveByColumn(String column,Object value,MongoCollection<Document> collection){
         Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(value)) ? new ObjectId(String.valueOf(value)) : value);
-        return executeRemoveByColumn(filter,collection).getDeletedCount() >= 1;
+        return executeRemove(filter,collection).getDeletedCount() >= 1;
     }
 
     public Boolean removeBatchByIds(Collection<? extends Serializable> idList,Class<?> clazz) {
@@ -184,7 +194,7 @@ public abstract class AbstractExecute implements Execute {
                 .map(id -> ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id)
                 .collect(Collectors.toList());
         Bson objectIdBson = Filters.in(SqlOperationConstant._ID, convertedIds);
-        return executeRemoveBatchByIds(objectIdBson,collection).getDeletedCount() >= 1;
+        return executeRemove(objectIdBson,collection).getDeletedCount() >= 1;
     }
 
     public <T> List<T> list(Class<T> clazz) {

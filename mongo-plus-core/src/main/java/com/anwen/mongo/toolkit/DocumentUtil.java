@@ -31,7 +31,7 @@ import static com.anwen.mongo.toolkit.BeanMapUtilByReflect.getFillInsertAndUpdat
  **/
 public class DocumentUtil {
 
-    public static List<Document> handleMapList(List<Map<String,Object>> mapList,Boolean isSave){
+    public static List<Document> handleMapList(Collection<Map<String,Object>> mapList,Boolean isSave){
         return new ArrayList<Document>(){{
             mapList.forEach(map -> {
                 add(handleMap(map,isSave));

@@ -28,7 +28,7 @@ public @interface CollectionName {
     String dataSource() default "";
     
     /**
-     * 选择数据库，如果配置了多个数据库，这里则必须配置，否则抛出
+     * 选择数据库，可以写配置文件中没有的
      * @author JiaChaoYang
      * @date 2024/1/6 1:50
     */ 

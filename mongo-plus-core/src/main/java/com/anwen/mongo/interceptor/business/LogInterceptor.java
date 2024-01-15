@@ -32,11 +32,12 @@ public class LogInterceptor implements Interceptor {
 
     @Override
     public void commandSucceeded(CommandSucceeded commandSucceeded) {
+        System.out.println(commandSucceeded.getCommandName()+" results of execution ==> ");
         if (Objects.equals(commandSucceeded.getCommandName(), "find") || Objects.equals(commandSucceeded.getCommandName(), "aggregate")){
-            System.out.println(commandSucceeded.getCommandName()+" results of execution ==> ");
             System.out.println(commandSucceeded.getResponse().getDocument("cursor").get("firstBatch").asArray().getValues().size());
-        } else if (Objects.equals(commandSucceeded.getCommandName(), "insert") || Objects.equals(commandSucceeded.getCommandName(), "delete") || Objects.equals(commandSucceeded.getCommandName(),"update")) {
-            System.out.println(commandSucceeded.getCommandName()+" results of execution ==> ");
+        } else if (Objects.equals(commandSucceeded.getCommandName(), "update")) {
+            System.out.println(commandSucceeded.getResponse().get("nModified").asInt32().getValue());
+        } else if (Objects.equals(commandSucceeded.getCommandName(), "insert") || Objects.equals(commandSucceeded.getCommandName(), "delete")) {
             System.out.println(commandSucceeded.getResponse().get("n").asInt32().getValue());
         }
     }

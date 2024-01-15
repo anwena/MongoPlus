@@ -50,28 +50,8 @@ public class SessionExecute extends AbstractExecute {
     }
 
     @Override
-    public UpdateResult doUpdateById(BasicDBObject filter, BasicDBObject update, MongoCollection<Document> collection) {
-        return collection.updateOne(clientSession,filter,update);
-    }
-
-    @Override
-    public UpdateResult doUpdateByColumn(Bson filter, Document document, MongoCollection<Document> collection) {
-        return collection.updateMany(clientSession,filter,document);
-    }
-
-    @Override
-    public DeleteResult executeRemove(Bson filterId, MongoCollection<Document> collection) {
-        return collection.deleteOne(clientSession,filterId);
-    }
-
-    @Override
-    public DeleteResult executeRemoveByColumn(Bson filter, MongoCollection<Document> collection) {
-        return collection.deleteMany(clientSession,filter);
-    }
-
-    @Override
-    public DeleteResult executeRemoveBatchByIds(Bson objectIdBson, MongoCollection<Document> collection) {
-        return collection.deleteMany(clientSession,objectIdBson);
+    public DeleteResult executeRemove(Bson filter, MongoCollection<Document> collection) {
+        return collection.deleteOne(clientSession, filter);
     }
 
     @Override
@@ -124,7 +104,7 @@ public class SessionExecute extends AbstractExecute {
     }
 
     @Override
-    public UpdateResult executeUpdate(BasicDBObject queryBasic, BasicDBObject updateBasic, MongoCollection<Document> collection) {
+    public UpdateResult executeUpdate(Bson queryBasic, Bson updateBasic, MongoCollection<Document> collection) {
         return collection.updateMany(clientSession,queryBasic,updateBasic);
     }
 

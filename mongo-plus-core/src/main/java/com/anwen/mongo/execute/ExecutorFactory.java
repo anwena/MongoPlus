@@ -82,7 +82,7 @@ public class ExecutorFactory {
 
     public CollectionManager getCollectionManager(String database){
         Map<String, CollectionManager> managerMap = mongoPlusClient.getCollectionManager();
-        if (managerMap.keySet().size() <= 1 || StringUtils.isBlank(database)){
+        if (StringUtils.isBlank(database)){
             database = managerMap.keySet().stream().findFirst().get();
         }
         CollectionManager collectionManager = managerMap.get(database);

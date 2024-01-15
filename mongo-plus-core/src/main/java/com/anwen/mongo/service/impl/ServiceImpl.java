@@ -145,6 +145,11 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    public Boolean saveOrUpdateWrapper(T entity, QueryChainWrapper<T, ?> queryChainWrapper) {
+        return factory.getExecute(database).saveOrUpdateWrapper(entity,queryChainWrapper.getCompareList());
+    }
+
+    @Override
     public Boolean saveOrUpdate(ClientSession clientSession, T entity) {
         return sqlExecute.doSaveOrUpdate(clientSession,entity);
     }

@@ -47,28 +47,8 @@ public class DefaultExecute extends AbstractExecute {
     }
 
     @Override
-    public UpdateResult doUpdateById(BasicDBObject filter, BasicDBObject update, MongoCollection<Document> collection) {
-        return collection.updateOne(filter,update);
-    }
-
-    @Override
-    public UpdateResult doUpdateByColumn(Bson filter, Document document, MongoCollection<Document> collection) {
-        return collection.updateMany(filter,document);
-    }
-
-    @Override
-    public DeleteResult executeRemove(Bson filterId, MongoCollection<Document> collection) {
-        return collection.deleteOne(filterId);
-    }
-
-    @Override
-    public DeleteResult executeRemoveByColumn(Bson filter, MongoCollection<Document> collection) {
+    public DeleteResult executeRemove(Bson filter, MongoCollection<Document> collection) {
         return collection.deleteMany(filter);
-    }
-
-    @Override
-    public DeleteResult executeRemoveBatchByIds(Bson objectIdBson, MongoCollection<Document> collection) {
-        return collection.deleteMany(objectIdBson);
     }
 
     @Override
@@ -122,7 +102,7 @@ public class DefaultExecute extends AbstractExecute {
     }
 
     @Override
-    public UpdateResult executeUpdate(BasicDBObject queryBasic, BasicDBObject updateBasic, MongoCollection<Document> collection) {
+    public UpdateResult executeUpdate(Bson queryBasic, Bson updateBasic, MongoCollection<Document> collection) {
         return collection.updateMany(queryBasic,updateBasic);
     }
 

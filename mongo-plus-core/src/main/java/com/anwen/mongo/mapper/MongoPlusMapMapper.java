@@ -283,6 +283,16 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
+    public Boolean saveOrUpdateWrapper(String collectionName, Map<String, Object> entityMap, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
+        return saveOrUpdateWrapper(EMPTY,collectionName,entityMap,queryChainWrapper);
+    }
+
+    @Override
+    public Boolean saveOrUpdateWrapper(String database, String collectionName, Map<String, Object> entityMap, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
+        return factory.getInjectExecute(database).saveOrUpdateWrapper(collectionName,entityMap,queryChainWrapper.getCompareList());
+    }
+
+    @Override
     @Deprecated
     public Boolean saveOrUpdate(ClientSession clientSession, String collectionName, Map<String, Object> entityMap) {
         return sqlExecute.doSaveOrUpdate(clientSession,collectionName,entityMap);

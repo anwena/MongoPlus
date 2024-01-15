@@ -29,15 +29,7 @@ public interface Execute {
 
     InsertManyResult doSaveBatch(List<Document> documentList, MongoCollection<Document> collection);
 
-    UpdateResult doUpdateById(BasicDBObject filter, BasicDBObject update, MongoCollection<Document> collection);
-
-    UpdateResult doUpdateByColumn(Bson filter, Document document, MongoCollection<Document> collection);
-
-    DeleteResult executeRemove(Bson filterId, MongoCollection<Document> collection);
-
-    DeleteResult executeRemoveByColumn(Bson filter,MongoCollection<Document> collection);
-
-    DeleteResult executeRemoveBatchByIds(Bson objectIdBson,MongoCollection<Document> collection);
+    DeleteResult executeRemove(Bson filter, MongoCollection<Document> collection);
 
     FindIterable<Document> doList(MongoCollection<Document> collection);
 
@@ -59,7 +51,7 @@ public interface Execute {
 
     FindIterable<Document> doGetByIds(BasicDBObject basicDBObject,MongoCollection<Document> collection);
 
-    UpdateResult executeUpdate(BasicDBObject queryBasic,BasicDBObject updateBasic,MongoCollection<Document> collection);
+    UpdateResult executeUpdate(Bson queryBasic,Bson updateBasic,MongoCollection<Document> collection);
 
     DeleteResult executeRemove(BasicDBObject deleteBasic,MongoCollection<Document> collection);
 

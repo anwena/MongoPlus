@@ -78,6 +78,16 @@ public interface IService<T> {
     Boolean saveOrUpdate(T entity);
 
     /**
+     * 根据传入wrapper条件判断添加还是删除，并不判断id，只根据wrapper条件，可能会id重复
+     * @param entity 对象
+     * @param queryChainWrapper 条件
+     * @return java.lang.Boolean
+     * @author JiaChaoYang
+     * @date 2024/1/15 23:15
+    */
+    Boolean saveOrUpdateWrapper(T entity,QueryChainWrapper<T ,?> queryChainWrapper);
+
+    /**
      * 添加或修改
      * @param entity 对象
      * @return java.lang.Boolean
