@@ -143,7 +143,7 @@ public interface InjectQuery extends CommInjectQuery {
     Boolean saveOrUpdate(String database,String collectionName , Map<String,Object> entityMap);
 
     /**
-     * 根据传入wrapper条件判断添加还是删除，并不判断id，只根据wrapper条件，可能会id重复
+     * 根据传入wrapper条件判断添加还是删除，传递_id并不会修改
      * @param entityMap map对象
      * @param queryChainWrapper 条件
      * @return java.lang.Boolean
@@ -153,7 +153,7 @@ public interface InjectQuery extends CommInjectQuery {
     Boolean saveOrUpdateWrapper(String collectionName,Map<String,Object> entityMap,QueryChainWrapper<Map<String,Object>,?> queryChainWrapper);
 
     /**
-     * 根据传入wrapper条件判断添加还是删除，并不判断id，只根据wrapper条件，可能会id重复
+     * 根据传入wrapper条件判断添加还是删除，传递_id并不会修改
      * @param entityMap map对象
      * @param queryChainWrapper 条件
      * @return java.lang.Boolean
