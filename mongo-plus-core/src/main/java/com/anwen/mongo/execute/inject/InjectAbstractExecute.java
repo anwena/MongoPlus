@@ -83,7 +83,9 @@ public class InjectAbstractExecute {
         long count = count(collectionName,compareConditionList);
         if (count > 0){
             BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareConditionList);
-            BasicDBObject updateField = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), DocumentUtil.handleMap(entityMap,false));
+            Document document = DocumentUtil.handleMap(entityMap, false);
+            document.remove(SqlOperationConstant._ID);
+            BasicDBObject updateField = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
             return execute.executeUpdate(queryBasic,updateField,collectionManager.getCollection(collectionName)).getModifiedCount() >= 1;
         }
         return save(collectionName,entityMap);

@@ -105,7 +105,9 @@ public abstract class AbstractExecute implements Execute {
         long count = count(compareConditionList, entity.getClass());
         if (count > 0){
             BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareConditionList);
-            Document updateField = DocumentUtil.checkUpdateField(entity,false);
+            Document document = DocumentUtil.checkUpdateField(entity,false);
+            document.remove(SqlOperationConstant._ID);
+            BasicDBObject updateField = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
             return executeUpdate(queryBasic,updateField,collectionManager.getCollection(ClassTypeUtil.getClass(entity))).getModifiedCount() >= 1;
         }
         return save(entity);
