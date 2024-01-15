@@ -334,7 +334,7 @@ public abstract class AbstractExecute implements Execute {
     }
 
     protected <T> Document processIdField(T entity,Boolean skip){
-        Document tableFieldMap = DocumentUtil.checkTableField(entity,true);
+        Document tableFieldMap = DocumentUtil.checkTableField(entity);
         fillId(entity, tableFieldMap);
         if (HandlerCache.documentHandler != null && !skip){
             //经过一下Document处理器
