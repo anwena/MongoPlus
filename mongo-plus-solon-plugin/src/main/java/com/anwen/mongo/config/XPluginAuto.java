@@ -16,7 +16,7 @@ public class XPluginAuto implements Plugin {
     public void start(AppContext context) throws Throwable {
         //mongo-plus插件配置
         context.beanMake(MongoPlusConfiguration.class);
-        context.beanInterceptorAdd(MongoTransactional.class,new MongoTransactionalAspect(MongoPlusClientCache.mongoClient));
+        context.beanInterceptorAdd(MongoTransactional.class,new MongoTransactionalAspect(MongoPlusClientCache.mongoPlusClient.getMongoClient()));
         context.beanMake(MongoDBFieldProperty.class);
     }
 }

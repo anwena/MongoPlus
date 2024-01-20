@@ -31,7 +31,7 @@ public class MongoTransactionalAspect implements Interceptor {
     @Override
     public Object doIntercept(Invocation inv) throws Throwable {
         if (mongoClient == null){
-            mongoClient = MongoPlusClientCache.mongoClient;
+            mongoClient = MongoPlusClientCache.mongoPlusClient.getMongoClient();
         }
         AtomicReference<Object> invoke = new AtomicReference<>();
         Optional.ofNullable(inv.method().getAnnotation(MongoTransactional.class)).map(mongoTransactional -> {

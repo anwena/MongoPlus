@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 执行器工厂
@@ -26,13 +25,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ExecutorFactory {
 
     private final Logger logger = LoggerFactory.getLogger(ExecutorFactory.class);
-
-    /**
-     * mongo客户端
-     * @author JiaChaoYang
-     * @date 2023/12/28 10:59
-     */
-//    private MongoClient mongoClient;
 
     /**
      * 属性配置
@@ -51,19 +43,15 @@ public class ExecutorFactory {
     private MongoPlusClient mongoPlusClient;
 
     /**
-     * 连接管理器,结构为：{"dataSourceName":{"database":ConnectionManager(){"collection":MongoCollection}}}
-     * @author JiaChaoYang
-     * @date 2023/12/28 14:15
-    */
-    private final Map<String,Map<String,CollectionManager>> collectionManagerMap = new ConcurrentHashMap<>();
-
-
-    /**
      * 获取执行器
      * @author JiaChaoYang
      * @date 2023/12/28 14:49
     */
     public AbstractExecute getExecute(String database) {
+        return getExecute(getCollectionManager(database));
+    }
+
+    public Execute getExecuteInterface(String database){
         return getExecute(getCollectionManager(database));
     }
 
@@ -155,12 +143,12 @@ public class ExecutorFactory {
         if (this == o) return true;
         if (!(o instanceof ExecutorFactory)) return false;
         ExecutorFactory that = (ExecutorFactory) o;
-        return Objects.equals(logger, that.logger) && Objects.equals(getBaseProperty(), that.getBaseProperty()) && Objects.equals(getCollectionNameConvert(), that.getCollectionNameConvert()) && Objects.equals(getMongoPlusClient(), that.getMongoPlusClient()) && Objects.equals(collectionManagerMap, that.collectionManagerMap);
+        return Objects.equals(logger, that.logger) && Objects.equals(getBaseProperty(), that.getBaseProperty()) && Objects.equals(getCollectionNameConvert(), that.getCollectionNameConvert()) && Objects.equals(getMongoPlusClient(), that.getMongoPlusClient());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(logger, getBaseProperty(), getCollectionNameConvert(), getMongoPlusClient(), collectionManagerMap);
+        return Objects.hash(logger, getBaseProperty(), getCollectionNameConvert(), getMongoPlusClient());
     }
 
     @Override
@@ -169,7 +157,6 @@ public class ExecutorFactory {
                 "baseProperty=" + baseProperty +
                 ", collectionNameConvert=" + collectionNameConvert +
                 ", mongoPlusClient=" + mongoPlusClient +
-                ", collectionManagerMap=" + collectionManagerMap +
                 '}';
     }
 

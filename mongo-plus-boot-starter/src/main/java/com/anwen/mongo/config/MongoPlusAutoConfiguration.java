@@ -7,7 +7,6 @@ import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.conn.ConnectMongoDB;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.execute.ExecutorFactory;
-import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.handlers.DocumentHandler;
 import com.anwen.mongo.handlers.MetaObjectHandler;
 import com.anwen.mongo.interceptor.Interceptor;
@@ -43,8 +42,6 @@ import java.util.stream.Collectors;
 @EnableConfigurationProperties(MongoDBLogProperty.class)
 public class MongoPlusAutoConfiguration implements InitializingBean {
 
-    private final SqlExecute sqlExecute;
-
     private final ExecutorFactory factory;
 
     private final MongoPlusClient mongoPlusClient;
@@ -59,8 +56,7 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
 
     Logger logger = LoggerFactory.getLogger(MongoPlusAutoConfiguration.class);
 
-    public MongoPlusAutoConfiguration(MongoDBLogProperty mongoDBLogProperty, MongoDBCollectionProperty mongoDBCollectionProperty, SqlExecute sqlExecute, ExecutorFactory executeFactory, MongoPlusClient mongoPlusClient, ApplicationContext applicationContext, CollectionNameConvert collectionNameConvert) {
-        this.sqlExecute = sqlExecute;
+    public MongoPlusAutoConfiguration(MongoDBLogProperty mongoDBLogProperty, MongoDBCollectionProperty mongoDBCollectionProperty, ExecutorFactory executeFactory, MongoPlusClient mongoPlusClient, ApplicationContext applicationContext, CollectionNameConvert collectionNameConvert) {
         this.mongoPlusClient = mongoPlusClient;
         this.applicationContext = applicationContext;
         this.mongoDBLogProperty = mongoDBLogProperty;
@@ -83,9 +79,7 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
     }
 
     private void setSqlExecute(ServiceImpl<?> serviceImpl,Class<?> clazz) {
-//        sqlExecute.init(clazz);
         serviceImpl.setClazz(clazz);
-        serviceImpl.setSqlOperation(sqlExecute);
         String database = initFactory(clazz);
         //这里需要将MongoPlusClient给工厂
         factory.setMongoPlusClient(mongoPlusClient);

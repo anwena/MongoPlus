@@ -3,7 +3,6 @@ package com.anwen.mongo.config;
 import com.anwen.mongo.cache.global.MongoPlusClientCache;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.execute.ExecutorFactory;
-import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.interceptor.BaseInterceptor;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
@@ -34,12 +33,6 @@ public class MongoPlusConfiguration {
 
     private final MongoDBCollectionProperty mongoDBCollectionProperty;
 
-    private SqlExecute sqlExecute;
-
-    public SqlExecute getSqlExecute() {
-        return sqlExecute;
-    }
-
     public MongoPlusConfiguration(MongoDBConnectProperty mongoDBConnectProperty, MongoDBCollectionProperty mongoDBCollectionProperty) {
         this.mongoDBConnectProperty = mongoDBConnectProperty;
         this.mongoDBCollectionProperty = mongoDBCollectionProperty;
@@ -67,23 +60,6 @@ public class MongoPlusConfiguration {
         return mongoPlusClient;
     }
 
-    @Bean("sqlExecute")
-    @ConditionalOnMissingBean
-    public SqlExecute sqlExecute(MongoClient mongo) {
-        if (this.sqlExecute != null) {
-            return this.sqlExecute;
-        }
-        SqlExecute sqlExecute = new SqlExecute();
-        sqlExecute.setSlaveDataSources(mongoDBConnectProperty.getSlaveDataSource());
-        sqlExecute.setBaseProperty(mongoDBConnectProperty);
-        CollectionNameConvert collectionNameConvert =
-                MongoCollectionUtils.build(mongoDBCollectionProperty.getMappingStrategy());
-        sqlExecute.setCollectionNameConvert(collectionNameConvert);
-        sqlExecute.setMongoClient(mongo);
-        this.sqlExecute = sqlExecute;
-        return sqlExecute;
-    }
-
     @Bean
     @ConditionalOnMissingBean(CollectionNameConvert.class)
     public CollectionNameConvert collectionNameConvert(){
@@ -101,8 +77,8 @@ public class MongoPlusConfiguration {
 
     @Bean("mongoPlusMapMapper")
     @ConditionalOnMissingBean
-    public MongoPlusMapMapper mongoPlusMapMapper(SqlExecute sqlExecute,ExecutorFactory factory) {
-        return new MongoPlusMapMapper(sqlExecute,factory);
+    public MongoPlusMapMapper mongoPlusMapMapper(ExecutorFactory factory) {
+        return new MongoPlusMapMapper(factory);
     }
 
     @Bean("mongoTransactionalAspect")

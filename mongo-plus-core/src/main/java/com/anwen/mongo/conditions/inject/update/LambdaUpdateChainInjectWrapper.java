@@ -6,11 +6,8 @@ import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.enums.CompareEnum;
 import com.anwen.mongo.enums.LogicTypeEnum;
 import com.anwen.mongo.execute.ExecutorFactory;
-import com.anwen.mongo.execute.SqlExecute;
-import com.mongodb.client.ClientSession;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import static com.anwen.mongo.toolkit.StringPool.EMPTY;
@@ -25,12 +22,9 @@ public class LambdaUpdateChainInjectWrapper extends AbstractChainWrapper<String,
 
     private final List<CompareCondition> updateCompareList = new ArrayList<>();
 
-    private final SqlExecute sqlExecute;
-
     private final ExecutorFactory factory;
 
-    public LambdaUpdateChainInjectWrapper(SqlExecute sqlExecute, ExecutorFactory factory) {
-        this.sqlExecute = sqlExecute;
+    public LambdaUpdateChainInjectWrapper(ExecutorFactory factory) {
         this.factory = factory;
     }
 
@@ -96,14 +90,6 @@ public class LambdaUpdateChainInjectWrapper extends AbstractChainWrapper<String,
         return factory.getInjectExecute(database).update(collectionName,compareConditionList);
     }
 
-    @Deprecated
-    public boolean update(ClientSession clientSession,String collectionName){
-        List<CompareCondition> compareConditionList = new ArrayList<>();
-        compareConditionList.addAll(getCompareList());
-        compareConditionList.addAll(getUpdateCompareList());
-        return sqlExecute.doUpdate(clientSession,collectionName,compareConditionList);
-    }
-
     public boolean remove(String collectionName) {
         return remove(EMPTY,collectionName);
     }
@@ -112,16 +98,8 @@ public class LambdaUpdateChainInjectWrapper extends AbstractChainWrapper<String,
         return factory.getInjectExecute(database).remove(collectionName,getCompareList());
     }
 
-    @Deprecated
-    public boolean remove(ClientSession clientSession,String collectionName) {
-        return sqlExecute.doRemove(clientSession,collectionName,getCompareList());
-    }
-
     public List<CompareCondition> getUpdateCompareList() {
         return updateCompareList;
     }
 
-    public SqlExecute getSqlOperation() {
-        return sqlExecute;
-    }
 }

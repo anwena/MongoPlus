@@ -3,7 +3,6 @@ package com.anwen.mongo.conditions.interfaces;
 import com.anwen.mongo.support.SFunction;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.List;
 
 public interface Update<Children, T> extends Serializable {

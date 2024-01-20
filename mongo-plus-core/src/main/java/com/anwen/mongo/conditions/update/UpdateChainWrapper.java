@@ -8,7 +8,6 @@ import com.anwen.mongo.enums.LogicTypeEnum;
 import com.anwen.mongo.support.SFunction;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**

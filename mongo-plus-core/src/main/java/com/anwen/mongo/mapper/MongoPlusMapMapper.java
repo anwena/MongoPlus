@@ -9,10 +9,8 @@ import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.execute.ExecutorFactory;
-import com.anwen.mongo.execute.SqlExecute;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
-import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.CreateIndexOptions;
 import com.mongodb.client.model.DropIndexOptions;
@@ -33,12 +31,9 @@ import static com.anwen.mongo.toolkit.StringPool.EMPTY;
  * @author JiaChaoYang
  **/
 public class MongoPlusMapMapper implements InjectQuery {
-    private final SqlExecute sqlExecute;
-
     private final ExecutorFactory factory;
 
-    public MongoPlusMapMapper(SqlExecute sqlExecute, ExecutorFactory factory) {
-        this.sqlExecute = sqlExecute;
+    public MongoPlusMapMapper(ExecutorFactory factory) {
         this.factory = factory;
     }
 
@@ -47,20 +42,29 @@ public class MongoPlusMapMapper implements InjectQuery {
      * @author JiaChaoYang
      * @date 2023/11/15 13:43
      */
+    public MongoCollection<Document> getMongoCollection(String database,String collectionName){
+        return factory.getCollectionManager(database).getCollection(collectionName);
+    }
+
+    /**
+     * 获取当前操作对象的连接，以便使用MongoDriver的语法
+     * @author JiaChaoYang
+     * @date 2023/11/15 13:43
+     */
     public MongoCollection<Document> getMongoCollection(String collectionName){
-        return this.sqlExecute.getCollection(collectionName);
+        return factory.getCollectionManager(EMPTY).getCollection(collectionName);
     }
 
     public LambdaQueryChainInjectWrapper lambdaQuery(){
-        return new LambdaQueryChainInjectWrapper(sqlExecute,factory);
+        return new LambdaQueryChainInjectWrapper(factory);
     }
 
     public LambdaAggregateChainInjectWrapper lambdaAggregate(){
-        return new LambdaAggregateChainInjectWrapper(sqlExecute,factory);
+        return new LambdaAggregateChainInjectWrapper(factory);
     }
 
     public LambdaUpdateChainInjectWrapper lambdaUpdate(){
-        return new LambdaUpdateChainInjectWrapper(sqlExecute,factory);
+        return new LambdaUpdateChainInjectWrapper(factory);
     }
 
     @Override
@@ -74,12 +78,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
-    @Deprecated
-    public List<Map<String, Object>> list(ClientSession clientSession, String collectionName) {
-        return sqlExecute.doList(clientSession,collectionName);
-    }
-
-    @Override
     public List<Map<String, Object>> list(String collectionName, QueryChainWrapper<Map<String,Object>,?> queryChainWrapper) {
         return list(EMPTY,collectionName,queryChainWrapper);
     }
@@ -87,12 +85,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public List<Map<String, Object>> list(String database, String collectionName, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
         return factory.getInjectExecute(database).list(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
-    }
-
-    @Override
-    @Deprecated
-    public List<Map<String, Object>> list(ClientSession clientSession, String collectionName, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
-        return sqlExecute.doList(clientSession,collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
     }
 
     @Override
@@ -106,12 +98,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
-    @Deprecated
-    public List<Map<String, Object>> aggregateList(ClientSession clientSession, String collectionName, AggregateChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
-        return sqlExecute.doAggregateList(clientSession,collectionName, queryChainWrapper.getBaseAggregateList(), queryChainWrapper.getBasicDBObjectList(),queryChainWrapper.getOptionsBasicDBObject());
-    }
-
-    @Override
     public Map<String, Object> one(String collectionName, QueryChainWrapper<Map<String,Object>,?> queryChainWrapper) {
         return one(EMPTY,collectionName,queryChainWrapper);
     }
@@ -119,12 +105,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public Map<String, Object> one(String database, String collectionName, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
         return factory.getInjectExecute(database).one(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
-    }
-
-    @Override
-    @Deprecated
-    public Map<String, Object> one(ClientSession clientSession, String collectionName, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
-        return sqlExecute.doOne(clientSession,collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
     }
 
     @Override
@@ -138,13 +118,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
-    @Deprecated
-    public Map<String, Object> limitOne(ClientSession clientSession, String collectionName, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
-        return sqlExecute.doLimitOne(clientSession,collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),queryChainWrapper.getOrderList());
-    }
-
-
-    @Override
     public PageResult<Map<String, Object>> page(String collectionName, PageParam pageParam) {
         return page(EMPTY,collectionName,pageParam);
     }
@@ -152,12 +125,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public PageResult<Map<String, Object>> page(String database, String collectionName, PageParam pageParam) {
         return factory.getInjectExecute(database).page(collectionName,null,null,null,null,pageParam.getPageNum(),pageParam.getPageSize());
-    }
-
-    @Override
-    @Deprecated
-    public PageResult<Map<String, Object>> page(ClientSession clientSession, String collectionName, PageParam pageParam) {
-        return sqlExecute.doPage(clientSession,collectionName,pageParam.getPageNum(),pageParam.getPageSize());
     }
 
     @Override
@@ -171,12 +138,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
-    @Deprecated
-    public PageResult<Map<String, Object>> page(ClientSession clientSession, String collectionName, PageParam pageParam, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
-        return sqlExecute.doPage(clientSession,collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),pageParam.getPageNum(),pageParam.getPageSize());
-    }
-
-    @Override
     public PageResult<Map<String, Object>> page(String collectionName, Integer pageNum, Integer pageSize) {
         return page(EMPTY,collectionName,pageNum,pageSize);
     }
@@ -184,12 +145,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public PageResult<Map<String, Object>> page(String database, String collectionName, Integer pageNum, Integer pageSize) {
         return page(collectionName,new PageParam(pageNum,pageSize));
-    }
-
-    @Override
-    @Deprecated
-    public PageResult<Map<String, Object>> page(ClientSession clientSession, String collectionName, Integer pageNum, Integer pageSize) {
-        return sqlExecute.doPage(clientSession,collectionName,pageNum,pageSize);
     }
 
     @Override
@@ -203,12 +158,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
-    @Deprecated
-    public PageResult<Map<String, Object>> page(ClientSession clientSession, String collectionName, Integer pageNum, Integer pageSize, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
-        return sqlExecute.doPage(clientSession,collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),pageNum,pageSize);
-    }
-
-    @Override
     public Map<String, Object> getById(String collectionName , Serializable id) {
         return getById(EMPTY,collectionName,id);
     }
@@ -216,12 +165,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public Map<String, Object> getById(String database, String collectionName, Serializable id) {
         return factory.getInjectExecute(database).getById(collectionName,id);
-    }
-
-    @Override
-    @Deprecated
-    public Map<String, Object> getById(ClientSession clientSession, String collectionName, Serializable id) {
-        return sqlExecute.doGetById(clientSession,collectionName,id);
     }
 
     @Override
@@ -235,12 +178,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
-    @Deprecated
-    public List<Map<String, Object>> getByIds(ClientSession clientSession, String collectionName, Collection<? extends Serializable> ids) {
-        return sqlExecute.doGetByIds(clientSession,collectionName,ids);
-    }
-
-    @Override
     public Boolean save(String collectionName, Map<String, Object> entityMap) {
         return save(EMPTY,collectionName,entityMap);
     }
@@ -251,12 +188,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
-    @Deprecated
-    public Boolean save(ClientSession clientSession, String collectionName, Map<String, Object> entityMap) {
-        return sqlExecute.doSave(clientSession,collectionName,entityMap);
-    }
-
-    @Override
     public Boolean saveBatch(String collectionName, Collection<Map<String, Object>> entityMapList) {
         return saveBatch(EMPTY,collectionName,entityMapList);
     }
@@ -264,12 +195,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public Boolean saveBatch(String database, String collectionName, Collection<Map<String, Object>> entityMapList) {
         return factory.getInjectExecute(database).saveBatch(collectionName,entityMapList);
-    }
-
-    @Override
-    @Deprecated
-    public Boolean saveBatch(ClientSession clientSession, String collectionName, Collection<Map<String, Object>> entityMapList) {
-        return sqlExecute.doSaveBatch(clientSession,collectionName,entityMapList);
     }
 
     @Override
@@ -293,12 +218,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
-    @Deprecated
-    public Boolean saveOrUpdate(ClientSession clientSession, String collectionName, Map<String, Object> entityMap) {
-        return sqlExecute.doSaveOrUpdate(clientSession,collectionName,entityMap);
-    }
-
-    @Override
     public Boolean saveOrUpdateBatch(String collectionName, Collection<Map<String, Object>> entityMapList) {
         return saveOrUpdateBatch(EMPTY,collectionName,entityMapList);
     }
@@ -306,12 +225,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public Boolean saveOrUpdateBatch(String database, String collectionName, Collection<Map<String, Object>> entityMapList) {
         return factory.getInjectExecute(database).saveOrUpdateBatch(collectionName,entityMapList);
-    }
-
-    @Override
-    @Deprecated
-    public Boolean saveOrUpdateBatch(ClientSession clientSession, String collectionName, Collection<Map<String, Object>> entityMapList) {
-        return sqlExecute.doSaveOrUpdateBatch(clientSession,collectionName,entityMapList);
     }
 
     @Override
@@ -325,12 +238,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
-    @Deprecated
-    public Boolean updateById(ClientSession clientSession, String collectionName, Map<String, Object> entityMap) {
-        return sqlExecute.doUpdateById(clientSession,collectionName,entityMap);
-    }
-
-    @Override
     public Boolean updateBatchByIds(String collectionName, Collection<Map<String, Object>> entityMapList) {
         return updateBatchByIds(EMPTY,collectionName,entityMapList);
     }
@@ -338,12 +245,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public Boolean updateBatchByIds(String database, String collectionName, Collection<Map<String, Object>> entityMapList) {
         return factory.getInjectExecute(database).updateBatchByIds(collectionName,entityMapList);
-    }
-
-    @Override
-    @Deprecated
-    public Boolean updateBatchByIds(ClientSession clientSession, String collectionName, Collection<Map<String, Object>> entityMapList) {
-        return sqlExecute.doUpdateBatchByIds(clientSession,collectionName,entityMapList);
     }
 
     @Override
@@ -357,12 +258,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
-    @Deprecated
-    public Boolean updateByColumn(ClientSession clientSession, String collectionName, Map<String, Object> entityMap, String column) {
-        return sqlExecute.doUpdateByColumn(clientSession,collectionName,entityMap,column);
-    }
-
-    @Override
     public Boolean removeById(String collectionName, Serializable id) {
         return removeById(EMPTY,collectionName,id);
     }
@@ -370,12 +265,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public Boolean removeById(String database, String collectionName, Serializable id) {
         return factory.getInjectExecute(database).removeById(collectionName,id);
-    }
-
-    @Override
-    @Deprecated
-    public Boolean removeById(ClientSession clientSession, String collectionName, Serializable id) {
-        return sqlExecute.doRemoveById(clientSession,collectionName,id);
     }
 
     @Override
@@ -389,12 +278,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
-    @Deprecated
-    public Boolean removeByColumn(ClientSession clientSession, String collectionName, String column, String value) {
-        return sqlExecute.doRemoveByColumn(clientSession,collectionName,column,value);
-    }
-
-    @Override
     public Boolean removeBatchByIds(String collectionName, Collection<? extends Serializable> idList) {
         return removeBatchByIds(EMPTY,collectionName,idList);
     }
@@ -402,12 +285,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public Boolean removeBatchByIds(String database, String collectionName, Collection<? extends Serializable> idList) {
         return factory.getInjectExecute(database).removeBatchByIds(collectionName,idList);
-    }
-
-    @Override
-    @Deprecated
-    public Boolean removeBatchByIds(ClientSession clientSession, String collectionName, Collection<? extends Serializable> idList) {
-        return sqlExecute.doRemoveBatchByIds(clientSession,collectionName,idList);
     }
 
     @Override
@@ -421,12 +298,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
-    @Deprecated
-    public long count(ClientSession clientSession, String collectionName, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
-        return sqlExecute.doCount(clientSession,collectionName,queryChainWrapper.getCompareList());
-    }
-
-    @Override
     public List<Map<String, Object>> getByColumn(String collectionName,String field, Object fieldValue) {
         return getByColumn(EMPTY,collectionName,field,fieldValue);
     }
@@ -437,12 +308,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
-    @Deprecated
-    public List<Map<String, Object>> getByColumn(ClientSession clientSession, String collection, String field, Object fieldValue) {
-        return sqlExecute.doGetByColumn(clientSession,collection,field,fieldValue);
-    }
-
-    @Override
     public Boolean remove(String collectionName, UpdateChainWrapper<Map<String, Object>, ?> updateChainWrapper) {
         return remove(EMPTY,collectionName,updateChainWrapper);
     }
@@ -450,12 +315,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public Boolean remove(String database, String collectionName, UpdateChainWrapper<Map<String, Object>, ?> updateChainWrapper) {
         return factory.getInjectExecute(database).remove(collectionName,updateChainWrapper.getCompareList());
-    }
-
-    @Override
-    @Deprecated
-    public Boolean remove(ClientSession clientSession, String collectionName, UpdateChainWrapper<Map<String, Object>, ?> updateChainWrapper) {
-        return sqlExecute.doRemove(clientSession,collectionName,updateChainWrapper.getCompareList());
     }
 
     @Override
@@ -472,27 +331,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
-    @Deprecated
-    public Boolean update(ClientSession clientSession, String collectionName, UpdateChainWrapper<Map<String, Object>, ?> updateChainWrapper) {
-        List<CompareCondition> compareConditionList = new ArrayList<>();
-        compareConditionList.addAll(updateChainWrapper.getCompareList());
-        compareConditionList.addAll(updateChainWrapper.getUpdateCompareList());
-        return sqlExecute.doUpdate(clientSession,collectionName,compareConditionList);
-    }
-
-    @Override
-    @Deprecated
-    public List<Map<String, Object>> sql(String collectionName, String sql) {
-        return sqlExecute.doSql(collectionName,sql);
-    }
-
-    @Override
-    @Deprecated
-    public List<Map<String, Object>> sql(ClientSession clientSession, String collectionName, String sql) {
-        return sqlExecute.doSql(clientSession, collectionName,sql);
-    }
-
-    @Override
     public List<Map<String, Object>> queryCommand(String collectionName,String command) {
         return queryCommand(EMPTY,collectionName,command);
     }
@@ -503,12 +341,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
-    @Deprecated
-    public String createIndex(ClientSession clientSession,String collectionName,Bson bson) {
-        return sqlExecute.createIndex(clientSession,bson,getMongoCollection(collectionName));
-    }
-
-    @Override
     public String createIndex(String collectionName,Bson bson) {
         return createIndex(EMPTY,collectionName,bson);
     }
@@ -516,12 +348,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public String createIndex(String database, String collectionName, Bson bson) {
         return factory.getInjectExecute(database).createIndex(collectionName,bson);
-    }
-
-    @Override
-    @Deprecated
-    public String createIndex(ClientSession clientSession,String collectionName, Bson bson, IndexOptions indexOptions) {
-        return sqlExecute.createIndex(clientSession,bson,indexOptions,getMongoCollection(collectionName));
     }
 
     @Override
@@ -555,18 +381,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
-    @Deprecated
-    public List<String> createIndexes(ClientSession clientSession, String collectionName,List<IndexModel> indexes) {
-        return sqlExecute.createIndexes(clientSession,indexes,getMongoCollection(collectionName));
-    }
-
-    @Override
-    @Deprecated
-    public List<String> createIndexes(ClientSession clientSession, String collectionName,List<IndexModel> indexes, CreateIndexOptions createIndexOptions) {
-        return sqlExecute.createIndexes(clientSession,indexes,createIndexOptions,getMongoCollection(collectionName));
-    }
-
-    @Override
     public List<Document> listIndexes(String collectionName) {
         return listIndexes(EMPTY,collectionName);
     }
@@ -574,12 +388,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public List<Document> listIndexes(String database, String collectionName) {
         return factory.getInjectExecute(database).listIndexes(collectionName);
-    }
-
-    @Override
-    @Deprecated
-    public List<Document> listIndexes(ClientSession clientSession,String collectionName) {
-        return sqlExecute.listIndexes(clientSession,getMongoCollection(collectionName));
     }
 
     @Override
@@ -623,30 +431,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
-    @Deprecated
-    public void dropIndex(ClientSession clientSession,String collectionName, String indexName) {
-        sqlExecute.dropIndex(clientSession,indexName,getMongoCollection(collectionName));
-    }
-
-    @Override
-    @Deprecated
-    public void dropIndex(ClientSession clientSession, String collectionName,Bson keys) {
-        sqlExecute.dropIndex(clientSession,keys,getMongoCollection(collectionName));
-    }
-
-    @Override
-    @Deprecated
-    public void dropIndex(ClientSession clientSession, String collectionName,String indexName, DropIndexOptions dropIndexOptions) {
-        sqlExecute.dropIndex(clientSession,indexName,dropIndexOptions,getMongoCollection(collectionName));
-    }
-
-    @Override
-    @Deprecated
-    public void dropIndex(ClientSession clientSession, String collectionName,Bson keys, DropIndexOptions dropIndexOptions) {
-        sqlExecute.dropIndex(clientSession,keys,dropIndexOptions,getMongoCollection(collectionName));
-    }
-
-    @Override
     public void dropIndexes(String collectionName) {
         dropIndexes(EMPTY,collectionName);
     }
@@ -654,12 +438,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public void dropIndexes(String database, String collectionName) {
         factory.getInjectExecute(database).dropIndexes(collectionName);
-    }
-
-    @Override
-    @Deprecated
-    public void dropIndexes(ClientSession clientSession,String collectionName) {
-        sqlExecute.dropIndexes(clientSession,getMongoCollection(collectionName));
     }
 
     @Override
@@ -673,12 +451,6 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
-    @Deprecated
-    public void dropIndexes(ClientSession clientSession, String collectionName,DropIndexOptions dropIndexOptions) {
-        sqlExecute.dropIndexes(clientSession,dropIndexOptions,getMongoCollection(collectionName));
-    }
-
-    @Override
     public long count(String collectionName) {
         return count(EMPTY,collectionName);
     }
@@ -686,11 +458,5 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public long count(String database, String collectionName) {
         return factory.getInjectExecute(database).count(collectionName);
-    }
-
-    @Override
-    @Deprecated
-    public long count(ClientSession clientSession, String collectionName) {
-        return sqlExecute.doCount(clientSession,collectionName);
     }
 }
