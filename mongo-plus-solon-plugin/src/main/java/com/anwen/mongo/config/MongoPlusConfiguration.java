@@ -32,18 +32,14 @@ import java.util.Optional;
 @Configuration
 public class MongoPlusConfiguration {
 
-    private final MongoDBConnectProperty mongoDBConnectProperty;
+    @Inject("${mongo-plus.data.mongodb}")
+    private MongoDBConnectProperty mongoDBConnectProperty;
 
-    private final MongoDBCollectionProperty mongoDBCollectionProperty;
-
-    public MongoPlusConfiguration(@Inject("${mongo-plus.data.mongodb}") MongoDBConnectProperty mongoDBConnectProperty,@Inject(value = "${mongo-plus.configuration.collection}",required = false) MongoDBCollectionProperty mongoDBCollectionProperty) {
-        mongoDBCollectionProperty = Optional.ofNullable(mongoDBCollectionProperty).orElseGet(MongoDBCollectionProperty::new);
-        this.mongoDBCollectionProperty = mongoDBCollectionProperty;
-        this.mongoDBConnectProperty = mongoDBConnectProperty;
-    }
+    @Inject(value = "${mongo-plus.configuration.collection}",required = false)
+    private MongoDBCollectionProperty mongoDBCollectionProperty;
 
     /**
-     * 这里将MongoClient注册为Bean，但是只是给MongoTemplate使用，master的client
+     * 将MongoClient注册为Bean
      * @author JiaChaoYang
      * @date 2024/1/4 23:49
      */
@@ -67,6 +63,7 @@ public class MongoPlusConfiguration {
     @Bean
     @Condition(onMissingBean = CollectionNameConvert.class)
     public CollectionNameConvert collectionNameConvert(){
+        mongoDBCollectionProperty = Optional.ofNullable(mongoDBCollectionProperty).orElseGet(MongoDBCollectionProperty::new);
         return MongoCollectionUtils.build(mongoDBCollectionProperty.getMappingStrategy());
     }
 
@@ -79,7 +76,7 @@ public class MongoPlusConfiguration {
                 .build();
     }
 
-    @Bean("mongoPlusMapMapper")
+    @Bean
     @Condition(onMissingBean = MongoPlusMapMapper.class)
     public MongoPlusMapMapper mongoPlusMapMapper(ExecutorFactory factory) {
         return new MongoPlusMapMapper(factory);

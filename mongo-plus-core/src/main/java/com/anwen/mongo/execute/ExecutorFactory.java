@@ -51,6 +51,11 @@ public class ExecutorFactory {
         return getExecute(getCollectionManager(database));
     }
 
+    /**
+     * 获取执行器
+     * @author JiaChaoYang
+     * @date 2024/1/20 23:32
+    */
     public Execute getExecuteInterface(String database){
         return getExecute(getCollectionManager(database));
     }

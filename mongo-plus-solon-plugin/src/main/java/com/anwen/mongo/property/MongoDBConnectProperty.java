@@ -2,6 +2,7 @@ package com.anwen.mongo.property;
 
 import com.anwen.mongo.model.BaseProperty;
 import com.anwen.mongo.model.SlaveDataSource;
+import org.noear.solon.annotation.Configuration;
 
 import java.util.List;
 
@@ -10,6 +11,7 @@ import java.util.List;
  * 属性文件配置
  * @since 2023-02-09 14:29
  **/
+@Configuration
 public class MongoDBConnectProperty extends BaseProperty {
 
     /**

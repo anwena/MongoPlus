@@ -54,6 +54,7 @@ public class MongoPlusAutoConfiguration {
     Logger logger = LoggerFactory.getLogger(MongoPlusAutoConfiguration.class);
 
     public MongoPlusAutoConfiguration(ExecutorFactory factory, MongoPlusClient mongoPlusClient, @Inject CollectionNameConvert collectionNameConvert, MongoDBLogProperty mongoDBLogProperty, MongoDBCollectionProperty mongoDBCollectionProperty){
+        mongoDBCollectionProperty = Optional.ofNullable(mongoDBCollectionProperty).orElseGet(MongoDBCollectionProperty::new);
         this.factory = factory;
         this.collectionNameConvert = collectionNameConvert;
         this.mongoPlusClient = mongoPlusClient;
@@ -62,7 +63,7 @@ public class MongoPlusAutoConfiguration {
         AppContext context = Solon.context();
         context.subBeansOfType(IService.class, bean -> {
             if (bean instanceof ServiceImpl){
-                setSqlExecute((ServiceImpl<?>) bean,bean.getGenericityClass());
+                setExecute((ServiceImpl<?>) bean,bean.getGenericityClass());
             }
         });
         //拿到转换器
@@ -80,7 +81,7 @@ public class MongoPlusAutoConfiguration {
      * @author JiaChaoYang
      * @date 2023/11/23 12:56
     */
-    private void setSqlExecute(ServiceImpl<?> serviceImpl,Class<?> clazz) {
+    private void setExecute(ServiceImpl<?> serviceImpl, Class<?> clazz) {
         serviceImpl.setClazz(clazz);
         String database = initFactory(clazz);
         //这里需要将MongoPlusClient给工厂
