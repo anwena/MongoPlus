@@ -16,10 +16,13 @@ import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.mongo.MongoProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.stream.Collectors;
 
 /**
  * @author JiaChaoYang
@@ -45,16 +48,16 @@ public class MongoPlusConfiguration {
     */
     @Bean
     @ConditionalOnMissingBean
-    public MongoClient mongoClient(){
+    public MongoClient mongo(){
         return MongoClients.create(MongoClientSettings.builder()
                 .applyConnectionString(new ConnectionString(new UrlJoint(mongoDBConnectProperty).jointMongoUrl())).commandListenerList(Collections.singletonList(new BaseInterceptor())).build());
     }
 
     @Bean
     @ConditionalOnMissingBean(MongoPlusClient.class)
-    public MongoPlusClient mongoPlusClient(MongoClient mongoClient){
+    public MongoPlusClient mongoPlusClient(MongoClient mongo){
         MongoPlusClient mongoPlusClient = new MongoPlusClient();
-        mongoPlusClient.setMongoClient(mongoClient);
+        mongoPlusClient.setMongoClient(mongo);
         mongoPlusClient.setBaseProperty(mongoDBConnectProperty);
         MongoPlusClientCache.mongoPlusClient = mongoPlusClient;
         return mongoPlusClient;
@@ -84,8 +87,8 @@ public class MongoPlusConfiguration {
     @Bean("mongoTransactionalAspect")
     @Deprecated
     @ConditionalOnMissingBean
-    public MongoTransactionalAspect mongoTransactionalAspect(MongoClient mongoClient) {
-        return new MongoTransactionalAspect(mongoClient);
+    public MongoTransactionalAspect mongoTransactionalAspect(MongoClient mongo) {
+        return new MongoTransactionalAspect(mongo);
     }
 
 }

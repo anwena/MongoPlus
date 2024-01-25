@@ -22,15 +22,15 @@ public class MongoPlusTransactionalManager extends AbstractPlatformTransactionMa
 
     Logger logger = LoggerFactory.getLogger(MongoPlusTransactionalManager.class);
 
-    private final MongoClient mongoClient;
+    private final MongoClient mongo;
 
-    public MongoPlusTransactionalManager(MongoClient mongoClient) {
-        this.mongoClient = mongoClient;
+    public MongoPlusTransactionalManager(MongoClient mongo) {
+        this.mongo = mongo;
     }
 
     @Override
     protected Object doGetTransaction() throws TransactionException {
-        return mongoClient.startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
+        return mongo.startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
     }
 
     @Override

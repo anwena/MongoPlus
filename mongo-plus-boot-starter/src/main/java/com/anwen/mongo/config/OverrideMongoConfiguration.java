@@ -12,7 +12,6 @@ import org.springframework.context.annotation.DependsOn;
  * 覆盖MongoTemplate的MongoClient
  * @author JiaChaoYang
  **/
-@DependsOn("mongoClient")
 public class OverrideMongoConfiguration extends MongoAutoConfiguration {
 
     private final MongoClient mongoClient;
