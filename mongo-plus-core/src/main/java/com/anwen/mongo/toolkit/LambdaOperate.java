@@ -51,9 +51,13 @@ public class LambdaOperate {
         PageResult<T> pageResult = new PageResult<>();
         pageResult.setPageNum(pageParams.getPageNum());
         pageResult.setPageSize(pageParams.getPageSize());
+        pageResult.setContentData(DocumentMapperConvert.mapDocumentList(documentFindIterable.skip((pageParams.getPageNum() - 1) * pageParams.getPageSize()).limit(pageParams.getPageSize()), clazz));
+        // 不查询总条数，总条数=当前页的总数
+        if (totalSize == -1) {
+            totalSize = pageResult.getContentData().size();
+        }
         pageResult.setTotalSize(totalSize);
         pageResult.setTotalPages((totalSize + pageParams.getPageSize() - 1) / pageParams.getPageSize());
-        pageResult.setContentData(DocumentMapperConvert.mapDocumentList(documentFindIterable.skip((pageParams.getPageNum() - 1) * pageParams.getPageSize()).limit(pageParams.getPageSize()), clazz));
         return pageResult;
     }
 

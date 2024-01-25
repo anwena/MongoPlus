@@ -10,10 +10,7 @@ import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.ClientSession;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.CreateIndexOptions;
-import com.mongodb.client.model.DropIndexOptions;
-import com.mongodb.client.model.IndexModel;
-import com.mongodb.client.model.IndexOptions;
+import com.mongodb.client.model.*;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.InsertManyResult;
 import com.mongodb.client.result.InsertOneResult;
@@ -116,6 +113,11 @@ public class SessionExecute extends AbstractExecute {
     @Override
     public long executeCountByCondition(BasicDBObject basicDBObject, MongoCollection<Document> collection) {
         return collection.countDocuments(clientSession,basicDBObject);
+    }
+
+    @Override
+    public long executeCountByCondition(BasicDBObject basicDBObject, MongoCollection<Document> collection, CountOptions var2) {
+        return collection.countDocuments(clientSession, basicDBObject, var2);
     }
 
     @Override
