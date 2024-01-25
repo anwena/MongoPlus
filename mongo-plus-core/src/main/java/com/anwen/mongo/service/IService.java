@@ -192,6 +192,16 @@ public interface IService<T> {
 
     /**
      * 分页查询
+     * @param pageParam 分页参数对象
+     * @param recentPageNum 查询最近n页的数据  {参数=null 表示仅查询当前页数据}  {参数取值[5-50] 表示查询最近[5-50]页的数据 建议recentPageNum等于10 参考 百度分页检索}
+     * @return com.anwen.mongo.sql.model.PageResult<T>
+     * @author JiaChaoYang
+     * @date 2023/6/25/025
+    */
+    PageResult<T> page(PageParam pageParam, Integer recentPageNum);
+
+    /**
+     * 分页查询
      * @param pageNum 当前页
      * @param pageSize 每页显示行数
      * @return com.anwen.mongo.sql.model.PageResult<T>
@@ -200,9 +210,24 @@ public interface IService<T> {
     */
     PageResult<T> page(Integer pageNum,Integer pageSize);
 
+    /**
+     * 分页查询
+     * @param pageNum 当前页
+     * @param pageSize 每页显示行数
+     * @param recentPageNum 查询最近n页的数据  {参数=null 表示仅查询当前页数据}  {参数取值[5-50] 表示查询最近[5-50]页的数据 建议recentPageNum等于10 参考 百度分页检索}
+     * @return com.anwen.mongo.sql.model.PageResult<T>
+     * @author JiaChaoYang
+     * @date 2023/6/25/025
+    */
+    PageResult<T> page(Integer pageNum,Integer pageSize, Integer recentPageNum);
+
     PageResult<T> page(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize);
 
     PageResult<T> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam);
+
+    PageResult<T> page(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize, Integer recentPageNum);
+
+    PageResult<T> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam, Integer recentPageNum);
 
     /**
      * 根据id查询单个
