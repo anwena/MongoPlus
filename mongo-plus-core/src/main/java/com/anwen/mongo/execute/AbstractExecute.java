@@ -14,6 +14,7 @@ import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.domain.MongoQueryException;
 import com.anwen.mongo.enums.AggregateOptionsEnum;
 import com.anwen.mongo.enums.IdTypeEnum;
+import com.anwen.mongo.enums.QueryOperatorEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.model.*;
 import com.anwen.mongo.strategy.convert.ConversionService;
@@ -240,6 +241,12 @@ public abstract class AbstractExecute implements Execute {
         return lambdaOperate.getLambdaQueryResultPage(iterable,count(compareConditionList,clazz),new PageParam(pageNum,pageSize),clazz);
     }
 
+    public <T> PageResult<T> page(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, Integer pageNum, Integer pageSize, Integer recentPageNum, Class<T> clazz) {
+        BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(compareConditionList, orderList, projectionList, basicDBObjectList);
+        FindIterable<Document> iterable = doList(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), collectionManager.getCollection(clazz));
+        return lambdaOperate.getLambdaQueryResultPage(iterable, recentPageCount(compareConditionList,clazz, pageNum,  pageSize, recentPageNum),new PageParam(pageNum,pageSize),clazz);
+    }
+
     public <T> T getById(Serializable id,Class<T> clazz) {
         BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id));
         return DocumentMapperConvert.mapDocument(doGetById(queryBasic,collectionManager.getCollection(clazz)).first(),clazz);
@@ -277,6 +284,36 @@ public abstract class AbstractExecute implements Execute {
 
     public long count(List<CompareCondition> compareConditionList,Class<?> clazz){
         return executeCountByCondition(BuildCondition.buildQueryCondition(compareConditionList),collectionManager.getCollection(clazz));
+    }
+
+    /**
+     * 分页查询 查询总条数
+     * @param compareConditionList
+     * @param clazz
+     * @param pageNum
+     * @param pageSize
+     * @param recentPageNum 查询最近n页的数据  {参数=null 表示仅查询当前页数据}  {参数取值[5-50] 表示查询最近[5-50]页的数据 建议recentPageNum等于10 参考 百度分页检索}
+     * @return
+     */
+    public long recentPageCount(List<CompareCondition> compareConditionList,Class<?> clazz, Integer pageNum, Integer pageSize, Integer recentPageNum){
+        if (recentPageNum == null || !(recentPageNum <= 50 && recentPageNum >= 5)) {
+            // 返回-1 表示不查询总条数
+            return -1L;
+        }
+        //分页查询  不查询实际总条数  需要单独查询  是否有数据
+        //如果recentPageNum = 10  第1-6页  总页数=10  从第7页开始 需要往后 + 4 页
+        int limitParam = (pageNum < (recentPageNum / 2 + 1 + recentPageNum % 2) ? recentPageNum : (pageNum + (recentPageNum / 2 + recentPageNum % 2 - 1))) * pageSize;
+        CountOptions countOptions = new CountOptions();
+        countOptions.skip(limitParam).limit(1);
+        long isExists = executeCountByCondition(BuildCondition.buildQueryCondition(compareConditionList), collectionManager.getCollection(clazz), countOptions);
+        //如果查询结果为空 则查询总条数，如果不为空则 limitParam为总条数
+        if (isExists == 0) {
+            // 查询真实总条数
+            CountOptions countOptionsReal = new CountOptions();
+            countOptionsReal.limit(limitParam);
+            return executeCountByCondition(BuildCondition.buildQueryCondition(compareConditionList), collectionManager.getCollection(clazz), countOptionsReal);
+        }
+        return limitParam;
     }
 
     public long count(Class<?> clazz){
