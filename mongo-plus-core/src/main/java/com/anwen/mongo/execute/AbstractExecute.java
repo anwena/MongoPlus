@@ -288,12 +288,12 @@ public abstract class AbstractExecute implements Execute {
 
     /**
      * 分页查询 查询总条数
-     * @param compareConditionList
-     * @param clazz
-     * @param pageNum
-     * @param pageSize
+     * @param compareConditionList 条件集合
+     * @param clazz result class
+     * @param pageNum 当前页
+     * @param pageSize 每页显示行数
      * @param recentPageNum 查询最近n页的数据  {参数=null 表示仅查询当前页数据}  {参数取值[5-50] 表示查询最近[5-50]页的数据 建议recentPageNum等于10 参考 百度分页检索}
-     * @return
+     * @return long
      */
     public long recentPageCount(List<CompareCondition> compareConditionList,Class<?> clazz, Integer pageNum, Integer pageSize, Integer recentPageNum){
         if (recentPageNum == null || !(recentPageNum <= 50 && recentPageNum >= 5)) {
