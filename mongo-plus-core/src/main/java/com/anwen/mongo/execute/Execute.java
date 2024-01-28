@@ -2,6 +2,7 @@ package com.anwen.mongo.execute;
 
 import com.anwen.mongo.model.AggregateBasicDBObject;
 import com.mongodb.BasicDBObject;
+import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
@@ -26,6 +27,8 @@ public interface Execute {
 
     InsertManyResult doSaveBatch(List<Document> documentList, MongoCollection<Document> collection);
 
+    BulkWriteResult bulkWrite(List<WriteModel<Document>> writeModelList, MongoCollection<Document> collection);
+
     DeleteResult executeRemove(Bson filter, MongoCollection<Document> collection);
 
     FindIterable<Document> doList(MongoCollection<Document> collection);
@@ -45,8 +48,6 @@ public interface Execute {
     <T> FindIterable<T> doGetByIds(BasicDBObject queryBasic, MongoCollection<Document> collection, Class<T> clazz);
 
     long executeExist(BasicDBObject queryBasic, MongoCollection<Document> collection);
-
-    FindIterable<Document> doGetByIds(BasicDBObject basicDBObject,MongoCollection<Document> collection);
 
     UpdateResult executeUpdate(Bson queryBasic,Bson updateBasic,MongoCollection<Document> collection);
 

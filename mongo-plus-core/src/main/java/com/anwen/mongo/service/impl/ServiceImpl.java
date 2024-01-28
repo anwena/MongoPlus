@@ -118,6 +118,11 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    public Boolean saveOrUpdateBatchWrapper(Collection<T> entityList, QueryChainWrapper<T, ?> queryChainWrapper) {
+        return factory.getExecute(database).saveOrUpdateBatchWrapper(entityList,queryChainWrapper.getCompareList());
+    }
+
+    @Override
     public Boolean updateById(T entity) {
         return factory.getExecute(database).updateById(entity);
     }

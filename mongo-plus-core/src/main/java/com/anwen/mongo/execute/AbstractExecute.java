@@ -21,6 +21,7 @@ import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.support.SFunction;
 import com.anwen.mongo.toolkit.*;
 import com.mongodb.BasicDBObject;
+import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
@@ -31,6 +32,7 @@ import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.security.ec.point.ProjectivePoint;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -115,42 +117,64 @@ public abstract class AbstractExecute implements Execute {
     }
 
     public <T> Boolean saveOrUpdateBatch(Collection<T> entityList) {
-        List<T> saveList = new ArrayList<>();
-        List<T> updateList = new ArrayList<>();
-        entityList.parallelStream().forEach(entity -> {
+        List<WriteModel<Document>> writeModelList = new ArrayList<>();
+        entityList.forEach(entity -> {
             String idByEntity = ClassTypeUtil.getIdByEntity(entity, true);
-            if ((StringUtils.isBlank(idByEntity) || !isExist(idByEntity, entity.getClass()))) {
-                saveList.add(entity);
+            if (StringUtils.isBlank(idByEntity)){
+                writeModelList.add(new InsertOneModel<>(processIdField(entity,false)));
             } else {
-                updateList.add(entity);
+                Map<String, BasicDBObject> basicDBObjectMap = getUpdate(entity);
+                writeModelList.add(new UpdateManyModel<>(basicDBObjectMap.get("filter"),basicDBObjectMap.get("update")));
             }
         });
-        boolean save = false;
-        boolean update = false;
-        if (!saveList.isEmpty()){
-            save = saveBatch(saveList);
-        }
-        if (!updateList.isEmpty()){
-            update = updateBatchByIds(updateList);
-        }
-        return save == update;
+        BulkWriteResult bulkWriteResult = bulkWrite(writeModelList,collectionManager.getCollection(entityList.stream().findFirst().get().getClass()));
+        return (bulkWriteResult.getModifiedCount() + bulkWriteResult.getInsertedCount()) == entityList.size();
+    }
+
+    public <T> Boolean saveOrUpdateBatchWrapper(Collection<T> entityList,List<CompareCondition> compareConditionList){
+        Class<?> clazz = entityList.stream().findFirst().get().getClass();
+        List<WriteModel<Document>> writeModelList = new ArrayList<>();
+        entityList.forEach(entity -> {
+            long count = count(compareConditionList, clazz);
+            if (count > 0){
+                BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareConditionList);
+                Document document = DocumentUtil.checkUpdateField(entity,false);
+                document.remove(SqlOperationConstant._ID);
+                BasicDBObject updateField = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
+                writeModelList.add(new UpdateManyModel<>(queryBasic,updateField));
+            } else {
+                writeModelList.add(new InsertOneModel<>(processIdField(entity,false)));
+            }
+        });
+        BulkWriteResult bulkWriteResult = bulkWrite(writeModelList, collectionManager.getCollection(clazz));
+        return (bulkWriteResult.getModifiedCount() + bulkWriteResult.getInsertedCount()) == entityList.size();
     }
 
 
     public <T> Boolean updateById(T entity) {
-        Document document = DocumentUtil.checkUpdateField(entity,false);
-        BasicDBObject filter = ExecuteUtil.getFilter(document);
-        BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
+        Map<String, BasicDBObject> basicDBObjectMap = getUpdate(entity);
         MongoCollection<Document> collection = collectionManager.getCollection(ClassTypeUtil.getClass(entity));
-        return executeUpdate(filter,update,collection).getModifiedCount() >= 1;
+        return executeUpdate(basicDBObjectMap.get("filter"),basicDBObjectMap.get("update"),collection).getModifiedCount() >= 1;
     }
 
     public <T> Boolean updateBatchByIds(Collection<T> entityList) {
-        int line = 0;
-        for (T entity : entityList) {
-            line += updateById(entity) ? 1 : 0;
-        }
-        return line == entityList.size();
+        List<WriteModel<Document>> writeModelList = new ArrayList<>();
+        entityList.forEach(entity -> {
+            Map<String, BasicDBObject> basicDBObjectMap = getUpdate(entity);
+            writeModelList.add(new UpdateManyModel<>(basicDBObjectMap.get("filter"),basicDBObjectMap.get("update")));
+        });
+        BulkWriteResult bulkWriteResult = bulkWrite(writeModelList,collectionManager.getCollection(entityList.stream().findFirst().get().getClass()));
+        return bulkWriteResult.getModifiedCount() == entityList.size();
+    }
+
+    public <T> Map<String,BasicDBObject> getUpdate(T entity){
+        Document document = DocumentUtil.checkUpdateField(entity,false);
+        BasicDBObject filter = ExecuteUtil.getFilter(document);
+        BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
+        return new HashMap<String,BasicDBObject>(){{
+           put("filter",filter);
+           put("update",update);
+        }};
     }
 
     public <T> Boolean updateByColumn(T entity, SFunction<T, Object> column) {
@@ -259,7 +283,7 @@ public abstract class AbstractExecute implements Execute {
 
     public <T> List<T> getByIds(Collection<? extends Serializable> ids,Class<T> clazz) {
         BasicDBObject basicDBObject = checkIdType(ids);
-        FindIterable<Document> iterable = doGetByIds(basicDBObject, collectionManager.getCollection(clazz));
+        FindIterable<Document> iterable = doGetById(basicDBObject, collectionManager.getCollection(clazz));
         return DocumentMapperConvert.mapDocumentList(iterable, clazz);
     }
 

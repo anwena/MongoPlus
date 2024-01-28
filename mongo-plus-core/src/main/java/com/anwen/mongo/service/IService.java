@@ -56,7 +56,7 @@ public interface IService<T> {
     Boolean saveOrUpdate(T entity);
 
     /**
-     * 根据传入wrapper条件判断添加还是删除，传递_id并不会修改
+     * 根据传入wrapper条件判断添加修改，传递_id并不会修改
      * @param entity 对象
      * @param queryChainWrapper 条件
      * @return java.lang.Boolean
@@ -73,6 +73,15 @@ public interface IService<T> {
      * @since 2023/2/9 13:57
     */
     Boolean saveOrUpdateBatch(Collection<T> entityList);
+
+    /**
+     * 根据传入wrapper条件判断批量添加修改，传递_id并不会修改
+     * @param entityList 对象集合
+     * @return java.lang.Boolean
+     * @author JiaChaoYang
+     * @since 2023/2/9 13:57
+     */
+    Boolean saveOrUpdateBatchWrapper(Collection<T> entityList,QueryChainWrapper<T,?> queryChainWrapper);
 
     /**
      * 修改

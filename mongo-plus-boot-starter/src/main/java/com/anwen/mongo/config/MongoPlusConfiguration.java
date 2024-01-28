@@ -7,6 +7,7 @@ import com.anwen.mongo.interceptor.BaseInterceptor;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
+import com.anwen.mongo.property.MongoDBConfigurationProperty;
 import com.anwen.mongo.property.MongoDBConnectProperty;
 import com.anwen.mongo.toolkit.MongoCollectionUtils;
 import com.anwen.mongo.toolkit.UrlJoint;
@@ -29,16 +30,19 @@ import java.util.stream.Collectors;
  * 连接配置
  * @since 2023-02-09 14:27
  **/
-@EnableConfigurationProperties(value = {MongoDBConnectProperty.class, MongoDBCollectionProperty.class})
+@EnableConfigurationProperties(value = {MongoDBConnectProperty.class, MongoDBCollectionProperty.class, MongoDBConfigurationProperty.class})
 public class MongoPlusConfiguration {
 
     private final MongoDBConnectProperty mongoDBConnectProperty;
 
     private final MongoDBCollectionProperty mongoDBCollectionProperty;
 
-    public MongoPlusConfiguration(MongoDBConnectProperty mongoDBConnectProperty, MongoDBCollectionProperty mongoDBCollectionProperty) {
+    private final MongoDBConfigurationProperty mongoDBConfigurationProperty;
+
+    public MongoPlusConfiguration(MongoDBConnectProperty mongoDBConnectProperty, MongoDBCollectionProperty mongoDBCollectionProperty, MongoDBConfigurationProperty mongoDBConfigurationProperty) {
         this.mongoDBConnectProperty = mongoDBConnectProperty;
         this.mongoDBCollectionProperty = mongoDBCollectionProperty;
+        this.mongoDBConfigurationProperty = mongoDBConfigurationProperty;
     }
 
     /**
@@ -60,6 +64,16 @@ public class MongoPlusConfiguration {
         mongoPlusClient.setMongoClient(mongo);
         mongoPlusClient.setBaseProperty(mongoDBConnectProperty);
         MongoPlusClientCache.mongoPlusClient = mongoPlusClient;
+        if (mongoDBConfigurationProperty.getBanner()){
+            System.out.println("___  ___                       ______ _           \n" +
+                    "|  \\/  |                       | ___ \\ |          \n" +
+                    "| .  . | ___  _ __   __ _  ___ | |_/ / |_   _ ___ \n" +
+                    "| |\\/| |/ _ \\| '_ \\ / _` |/ _ \\|  __/| | | | / __|\n" +
+                    "| |  | | (_) | | | | (_| | (_) | |   | | |_| \\__ \\\n" +
+                    "\\_|  |_/\\___/|_| |_|\\__, |\\___/\\_|   |_|\\__,_|___/\n" +
+                    "                     __/ |                        \n" +
+                    "                    |___/                         ");
+        }
         return mongoPlusClient;
     }
 

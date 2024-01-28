@@ -6,6 +6,7 @@ import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.execute.AbstractExecute;
 import com.anwen.mongo.model.AggregateBasicDBObject;
 import com.mongodb.BasicDBObject;
+import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.ClientSession;
 import com.mongodb.client.FindIterable;
@@ -44,6 +45,11 @@ public class SessionExecute extends AbstractExecute {
     @Override
     public InsertManyResult doSaveBatch(List<Document> documentList, MongoCollection<Document> collection) {
         return collection.insertMany(clientSession,documentList);
+    }
+
+    @Override
+    public BulkWriteResult bulkWrite(List<WriteModel<Document>> writeModelList, MongoCollection<Document> collection) {
+        return collection.bulkWrite(clientSession,writeModelList);
     }
 
     @Override
@@ -93,11 +99,6 @@ public class SessionExecute extends AbstractExecute {
     @Override
     public long executeExist(BasicDBObject queryBasic, MongoCollection<Document> collection) {
         return collection.countDocuments(clientSession,queryBasic);
-    }
-
-    @Override
-    public FindIterable<Document> doGetByIds(BasicDBObject basicDBObject, MongoCollection<Document> collection) {
-        return collection.find(clientSession,basicDBObject);
     }
 
     @Override
