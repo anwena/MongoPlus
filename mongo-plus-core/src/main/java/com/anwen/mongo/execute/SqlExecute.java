@@ -104,9 +104,6 @@ public class SqlExecute {
 
     private String createIndex = null;
 
-    private int num = 1;
-
-
     public void init(Class<?> clazz) {
         String tableName = clazz.getSimpleName().toLowerCase();
         String database = baseProperty.getDatabase();
@@ -1088,20 +1085,26 @@ public class SqlExecute {
     }
 
     private synchronized Integer getAutoId(Class<?> clazz) {
+        String collectionName = collectionNameConvert.convert(clazz);
         MongoCollection<Document> collection = getCollection("counters");
-        Document query = new Document(SqlOperationConstant._ID, collectionNameConvert.convert(clazz));
+        Document query = new Document(SqlOperationConstant._ID, collectionName);
         Document update = new Document("$inc", new Document(SqlOperationConstant.AUTO_NUM, 1));
-        Document document = Optional.ofNullable(MongoTransactionContext.getClientSessionContext()).map(session -> collection.findOneAndUpdate(session,query,update,new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER))).orElseGet(() -> collection.findOneAndUpdate(query,update,new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)));
-        if (document == null){
-            Integer finalNum = num;
-            collection.insertOne(new Document(new HashMap<String,Object>(){{
-                put(SqlOperationConstant._ID, collectionNameConvert.convert(clazz));
-                put(SqlOperationConstant.AUTO_NUM, finalNum);
-            }}));
-        }else {
-            num = Integer.parseInt(String.valueOf(document.get(SqlOperationConstant.AUTO_NUM)));
+        // 只锁当前collection
+        synchronized (collectionName.intern()) {
+            Document document = Optional.ofNullable(MongoTransactionContext.getClientSessionContext())
+                    .map(session -> collection.findOneAndUpdate(session, query, update, new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)))
+                    .orElseGet(() -> collection.findOneAndUpdate(query, update, new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)));
+            int finalNum = 1;
+            if (document == null) {
+                Map<String, Object> map = new HashMap<>();
+                map.put(SqlOperationConstant._ID, collectionNameConvert.convert(clazz));
+                map.put(SqlOperationConstant.AUTO_NUM, finalNum);
+                collection.insertOne(new Document(map));
+            } else {
+                finalNum = Integer.parseInt(String.valueOf(document.get(SqlOperationConstant.AUTO_NUM)));
+            }
+            return finalNum;
         }
-        return num;
     }
 
     private <T> void fillId(T entity, Document document) {
