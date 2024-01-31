@@ -8,7 +8,7 @@ package com.anwen.mongo.model;
  * @CreateTime: 2023-02-18 15:05
  * @Version: 1.0
  */
-public class SlaveDataSource extends BaseProperty{
+public class SlaveDataSource extends BaseProperty {
     /**
      * 数据源名称,他应该是唯一的，不可重复
      **/

@@ -1,7 +1,7 @@
 package com.anwen.mongo.transactional;
 
 import com.anwen.mongo.annotation.transactional.MongoTransactional;
-import com.anwen.mongo.cache.global.MongoClientCache;
+import com.anwen.mongo.cache.global.MongoPlusClientCache;
 import com.anwen.mongo.context.MongoTransactionContext;
 import com.anwen.mongo.context.MongoTransactionStatus;
 import com.mongodb.ClientSessionOptions;
@@ -31,7 +31,7 @@ public class MongoTransactionalAspect implements Interceptor {
     @Override
     public Object doIntercept(Invocation inv) throws Throwable {
         if (mongoClient == null){
-            mongoClient = MongoClientCache.mongoClient;
+            mongoClient = MongoPlusClientCache.mongoPlusClient.getMongoClient();
         }
         AtomicReference<Object> invoke = new AtomicReference<>();
         Optional.ofNullable(inv.method().getAnnotation(MongoTransactional.class)).map(mongoTransactional -> {

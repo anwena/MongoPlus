@@ -1,7 +1,6 @@
 package com.anwen.mongo.transactional;
 
 import com.anwen.mongo.context.MongoTransactionSpring;
-import com.anwen.mongo.incrementer.id.Sequence;
 import com.mongodb.ClientSessionOptions;
 import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoClient;
@@ -23,15 +22,15 @@ public class MongoPlusTransactionalManager extends AbstractPlatformTransactionMa
 
     Logger logger = LoggerFactory.getLogger(MongoPlusTransactionalManager.class);
 
-    private final MongoClient mongoClient;
+    private final MongoClient mongo;
 
-    public MongoPlusTransactionalManager(MongoClient mongoClient) {
-        this.mongoClient = mongoClient;
+    public MongoPlusTransactionalManager(MongoClient mongo) {
+        this.mongo = mongo;
     }
 
     @Override
     protected Object doGetTransaction() throws TransactionException {
-        return mongoClient.startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
+        return mongo.startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
     }
 
     @Override

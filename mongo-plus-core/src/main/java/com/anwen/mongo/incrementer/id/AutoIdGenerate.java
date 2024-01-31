@@ -1,7 +1,5 @@
 package com.anwen.mongo.incrementer.id;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**

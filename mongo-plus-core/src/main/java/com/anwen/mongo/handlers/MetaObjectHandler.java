@@ -23,9 +23,9 @@ public interface MetaObjectHandler {
     /**
      * 更新文档对象字段填充（用于更新时对公共字段的填充）
      *
-     * @param insertFillMap 插入文档字段，这里只有设置了自动填充的字段
+     * @param updateFillMap 更新文档字段，这里只有设置了自动填充的字段
      * @param document 插入文档对象
      */
-    void updateFill(Map<String,Object> insertFillMap,Document document);
+    void updateFill(Map<String,Object> updateFillMap,Document document);
 
 }

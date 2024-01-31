@@ -2,7 +2,6 @@ package com.anwen.mongo.property;
 
 import com.anwen.mongo.cache.global.OrderCache;
 import com.anwen.mongo.cache.global.PropertyCache;
-import com.anwen.mongo.interceptor.business.LogInterceptor;
 
 /**
  * @author JiaChaoYang

@@ -2,7 +2,6 @@ package com.anwen.mongo.conditions.interfaces.Inject;
 
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
-import com.mongodb.client.ClientSession;
 
 import java.util.List;
 import java.util.Map;
@@ -24,12 +23,13 @@ public interface CommInjectQuery {
 
     /**
      * 获取列表 返回Map<String,Object>类型的List
-     * @param collectionName 集合名
-     * @return {@link List < Map <String,Object>>}
+     * @param database 数据库
+     * @param collectionName collectionName 集合名
+     * @return java.util.List<java.util.Map<java.lang.String,java.lang.Object>>
      * @author JiaChaoYang
-     * @date 2023/7/20 23:17
-     */
-    List<Map<String,Object>> list(ClientSession clientSession,String collectionName);
+     * @date 2024/1/10 21:58
+    */
+    List<Map<String,Object>> list(String database,String collectionName);
 
     /**
      * 分页
@@ -49,7 +49,7 @@ public interface CommInjectQuery {
      * @author JiaChaoYang
      * @date 2023/7/20 23:19
      */
-    PageResult<Map<String,Object>> page(ClientSession clientSession,String collectionName, PageParam pageParam);
+    PageResult<Map<String,Object>> page(String database,String collectionName, PageParam pageParam);
 
     /**
      * 分页
@@ -71,7 +71,7 @@ public interface CommInjectQuery {
      * @author JiaChaoYang
      * @date 2023/7/20 23:20
      */
-    PageResult<Map<String,Object>> page(ClientSession clientSession,String collectionName , Integer pageNum, Integer pageSize);
+    PageResult<Map<String,Object>> page(String database,String collectionName , Integer pageNum, Integer pageSize);
 
     /**
      * 获取总行数
@@ -89,6 +89,6 @@ public interface CommInjectQuery {
      * @author JiaChaoYang
      * @date 2023/7/27 13:11
      */
-    long count(ClientSession clientSession,String collectionName);
+    long count(String database,String collectionName);
 
 }

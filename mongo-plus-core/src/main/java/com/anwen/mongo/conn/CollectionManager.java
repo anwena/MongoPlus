@@ -1,7 +1,6 @@
 package com.anwen.mongo.conn;
 
 import com.anwen.mongo.convert.CollectionNameConvert;
-import com.anwen.mongo.model.BaseProperty;
 import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.anwen.mongo.toolkit.codec.RegisterCodecUtil;
 import com.mongodb.client.MongoClient;

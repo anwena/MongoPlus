@@ -4,12 +4,14 @@ import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.execute.AbstractExecute;
+import com.anwen.mongo.model.AggregateBasicDBObject;
 import com.mongodb.BasicDBObject;
-import com.mongodb.client.*;
-import com.mongodb.client.model.CreateIndexOptions;
-import com.mongodb.client.model.DropIndexOptions;
-import com.mongodb.client.model.IndexModel;
-import com.mongodb.client.model.IndexOptions;
+import com.mongodb.bulk.BulkWriteResult;
+import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.ClientSession;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.*;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.InsertManyResult;
 import com.mongodb.client.result.InsertOneResult;
@@ -46,28 +48,13 @@ public class SessionExecute extends AbstractExecute {
     }
 
     @Override
-    public UpdateResult doUpdateById(BasicDBObject filter, BasicDBObject update, MongoCollection<Document> collection) {
-        return collection.updateOne(clientSession,filter,update);
+    public BulkWriteResult bulkWrite(List<WriteModel<Document>> writeModelList, MongoCollection<Document> collection) {
+        return collection.bulkWrite(clientSession,writeModelList);
     }
 
     @Override
-    public UpdateResult doUpdateByColumn(Bson filter, Document document, MongoCollection<Document> collection) {
-        return collection.updateMany(clientSession,filter,document);
-    }
-
-    @Override
-    public DeleteResult executeRemove(Bson filterId, MongoCollection<Document> collection) {
-        return collection.deleteOne(clientSession,filterId);
-    }
-
-    @Override
-    public DeleteResult executeRemoveByColumn(Bson filter, MongoCollection<Document> collection) {
-        return collection.deleteMany(clientSession,filter);
-    }
-
-    @Override
-    public DeleteResult executeRemoveBatchByIds(Bson objectIdBson, MongoCollection<Document> collection) {
-        return collection.deleteMany(clientSession,objectIdBson);
+    public DeleteResult executeRemove(Bson filter, MongoCollection<Document> collection) {
+        return collection.deleteOne(clientSession, filter);
     }
 
     @Override
@@ -76,18 +63,37 @@ public class SessionExecute extends AbstractExecute {
     }
 
     @Override
+    public <T> FindIterable<T> doList(MongoCollection<Document> collection, Class<T> clazz) {
+        return collection.find(clientSession,clazz);
+    }
+
+    @Override
     public FindIterable<Document> doList(BasicDBObject basicDBObject, BasicDBObject projectionList, BasicDBObject sortCond, MongoCollection<Document> collection) {
         return collection.find(clientSession,basicDBObject).projection(projectionList).sort(sortCond);
     }
 
     @Override
-    public AggregateIterable<Document> doAggregateList(List<BasicDBObject> aggregateConditionList, MongoCollection<Document> collection) {
+    public <T> FindIterable<T> doList(BasicDBObject basicDBObject, BasicDBObject projectionList, BasicDBObject sortCond, MongoCollection<Document> collection, Class<T> clazz) {
+        return collection.find(clientSession,basicDBObject,clazz).projection(projectionList).sort(sortCond);
+    }
+
+    @Override
+    public AggregateIterable<Document> doAggregateList(List<AggregateBasicDBObject> aggregateConditionList, MongoCollection<Document> collection) {
         return collection.aggregate(clientSession,aggregateConditionList);
     }
 
     @Override
+    public <T> AggregateIterable<T> doAggregateList(List<AggregateBasicDBObject> aggregateConditionList, MongoCollection<Document> collection, Class<T> clazz) {
+        return collection.aggregate(clientSession,aggregateConditionList, clazz);
+    }
+    @Override
     public FindIterable<Document> doGetById(BasicDBObject queryBasic, MongoCollection<Document> collection) {
         return collection.find(clientSession,queryBasic);
+    }
+
+    @Override
+    public <T> FindIterable<T> doGetByIds(BasicDBObject queryBasic, MongoCollection<Document> collection, Class<T> clazz) {
+        return collection.find(queryBasic,clazz);
     }
 
     @Override
@@ -96,12 +102,7 @@ public class SessionExecute extends AbstractExecute {
     }
 
     @Override
-    public FindIterable<Document> doGetByIds(BasicDBObject basicDBObject, MongoCollection<Document> collection) {
-        return collection.find(clientSession,basicDBObject);
-    }
-
-    @Override
-    public UpdateResult executeUpdate(BasicDBObject queryBasic, BasicDBObject updateBasic, MongoCollection<Document> collection) {
+    public UpdateResult executeUpdate(Bson queryBasic, Bson updateBasic, MongoCollection<Document> collection) {
         return collection.updateMany(clientSession,queryBasic,updateBasic);
     }
 
@@ -116,6 +117,11 @@ public class SessionExecute extends AbstractExecute {
     }
 
     @Override
+    public long executeCountByCondition(BasicDBObject basicDBObject, MongoCollection<Document> collection, CountOptions var2) {
+        return collection.countDocuments(clientSession, basicDBObject, var2);
+    }
+
+    @Override
     public long doCount(MongoCollection<Document> collection) {
         return collection.countDocuments(clientSession);
     }
@@ -126,62 +132,72 @@ public class SessionExecute extends AbstractExecute {
     }
 
     @Override
+    public <T> FindIterable<T> doQueryCommand(BasicDBObject basicDBObject, MongoCollection<Document> collection, Class<T> clazz) {
+        return collection.find(clientSession,basicDBObject,clazz);
+    }
+
+    @Override
     public FindIterable<Document> doGetByColumn(Bson filter, MongoCollection<Document> collection) {
         return collection.find(clientSession,filter);
     }
 
     @Override
-    public String createIndex(Bson bson, MongoCollection<Document> collection) {
+    public <T> FindIterable<T> doGetByColumn(Bson filter, MongoCollection<Document> collection, Class<T> clazz) {
+        return collection.find(clientSession,filter,clazz);
+    }
+
+    @Override
+    public String doCreateIndex(Bson bson, MongoCollection<Document> collection) {
         return collection.createIndex(clientSession,bson);
     }
 
     @Override
-    public String createIndex(Bson bson, IndexOptions indexOptions, MongoCollection<Document> collection) {
+    public String doCreateIndex(Bson bson, IndexOptions indexOptions, MongoCollection<Document> collection) {
         return collection.createIndex(clientSession,bson,indexOptions);
     }
 
     @Override
-    public List<String> createIndexes(List<IndexModel> indexes, MongoCollection<Document> collection) {
+    public List<String> doCreateIndexes(List<IndexModel> indexes, MongoCollection<Document> collection) {
         return collection.createIndexes(clientSession,indexes);
     }
 
     @Override
-    public List<String> createIndexes(List<IndexModel> indexes, CreateIndexOptions createIndexOptions, MongoCollection<Document> collection) {
+    public List<String> doCreateIndexes(List<IndexModel> indexes, CreateIndexOptions createIndexOptions, MongoCollection<Document> collection) {
         return collection.createIndexes(clientSession,indexes,createIndexOptions);
     }
 
     @Override
-    public List<Document> listIndexes(MongoCollection<Document> collection) {
+    public List<Document> doListIndexes(MongoCollection<Document> collection) {
         return DocumentMapperConvert.indexesIterableToDocument(collection.listIndexes(clientSession));
     }
 
     @Override
-    public void dropIndex(String indexName, MongoCollection<Document> collection) {
+    public void doDropIndex(String indexName, MongoCollection<Document> collection) {
         collection.dropIndex(clientSession,indexName);
     }
 
     @Override
-    public void dropIndex(String indexName, DropIndexOptions dropIndexOptions, MongoCollection<Document> collection) {
+    public void doDropIndex(String indexName, DropIndexOptions dropIndexOptions, MongoCollection<Document> collection) {
         collection.dropIndex(clientSession,indexName,dropIndexOptions);
     }
 
     @Override
-    public void dropIndex(Bson keys, MongoCollection<Document> collection) {
+    public void doDropIndex(Bson keys, MongoCollection<Document> collection) {
         collection.dropIndex(clientSession,keys);
     }
 
     @Override
-    public void dropIndex(Bson keys, DropIndexOptions dropIndexOptions, MongoCollection<Document> collection) {
+    public void doDropIndex(Bson keys, DropIndexOptions dropIndexOptions, MongoCollection<Document> collection) {
         collection.dropIndex(clientSession,keys,dropIndexOptions);
     }
 
     @Override
-    public void dropIndexes(MongoCollection<Document> collection) {
+    public void doDropIndexes(MongoCollection<Document> collection) {
         collection.dropIndexes(clientSession);
     }
 
     @Override
-    public void dropIndexes(DropIndexOptions dropIndexOptions, MongoCollection<Document> collection) {
+    public void doDropIndexes(DropIndexOptions dropIndexOptions, MongoCollection<Document> collection) {
         collection.dropIndexes(clientSession,dropIndexOptions);
     }
 }

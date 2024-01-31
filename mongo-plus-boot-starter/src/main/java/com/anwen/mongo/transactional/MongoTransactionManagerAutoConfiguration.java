@@ -13,7 +13,6 @@ import org.springframework.transaction.TransactionManager;
  *
  * @author JiaChaoYang
  **/
-@DependsOn("sqlExecute")
 public class MongoTransactionManagerAutoConfiguration {
 
     private final MongoClient mongoClient;

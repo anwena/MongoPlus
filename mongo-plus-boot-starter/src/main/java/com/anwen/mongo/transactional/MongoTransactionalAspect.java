@@ -20,11 +20,11 @@ public class MongoTransactionalAspect {
 
     private static final Logger logger = LoggerFactory.getLogger(MongoTransactionalAspect.class);
 
-    public MongoTransactionalAspect(MongoClient mongoClient) {
-        this.mongoClient = mongoClient;
-    }
+    private final MongoClient mongo;
 
-    private final MongoClient mongoClient;
+    public MongoTransactionalAspect(MongoClient mongo) {
+        this.mongo = mongo;
+    }
 
     @Around("@annotation(com.anwen.mongo.annotation.transactional.MongoTransactional)")
     public Object manageTransaction(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -50,7 +50,7 @@ public class MongoTransactionalAspect {
         //获取线程中的session
         ClientSession session = MongoTransactionContext.getClientSessionContext();
         if (session == null) {
-            session = mongoClient.startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
+            session = mongo.startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
             session.startTransaction();
             MongoTransactionStatus status = new MongoTransactionStatus(session);
             MongoTransactionContext.setTransactionStatus(status);

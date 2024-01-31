@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -117,6 +116,9 @@ public final class StringUtils {
      */
     public static boolean isBlank(String str) {
         if (str == null) {
+            return true;
+        }
+        if (str.equals("null")){
             return true;
         }
         int len = str.length();

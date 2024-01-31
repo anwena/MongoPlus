@@ -286,11 +286,13 @@ public class ClassTypeUtil {
         return entityClass;
     }
 
-    public static String getDataSourceName(Class<?> clazz,List<SlaveDataSource> slaveDataSourceList){
+    public static Map<String, String> getDataSourceNameAndDatabase(Class<?> clazz, List<SlaveDataSource> slaveDataSourceList){
         String dataSourceName = "master";
+        String database = "";
         if (clazz.isAnnotationPresent(CollectionName.class)) {
             CollectionName annotation = clazz.getAnnotation(CollectionName.class);
             String dataSource = annotation.dataSource();
+            database = annotation.database();
             if (StringUtils.isNotBlank(dataSource) && CollUtil.isNotEmpty(slaveDataSourceList)) {
                 Optional<SlaveDataSource> matchingSlave = slaveDataSourceList.stream()
                         .filter(slave -> Objects.equals(dataSource, slave.getSlaveName()))
@@ -303,7 +305,12 @@ public class ClassTypeUtil {
                 }
             }
         }
-        return dataSourceName;
+        String finalDataSourceName = dataSourceName;
+        String finalDatabase = database;
+        return new HashMap<String,String>(){{
+            put("dataSourceName", finalDataSourceName);
+            put("database", finalDatabase);
+        }};
     }
 
 }

@@ -7,13 +7,14 @@
     <parent>
         <groupId>com.gitee.anwena</groupId>
         <artifactId>mongo-plus-parent</artifactId>
-        <version>2.0.7.3</version>
+        <version>2.0.8-BETA</version>
+        <relativePath>../mongo-plus-parent/pom.xml</relativePath>
     </parent>
 
     <artifactId>mongo-plus-solon-plugin</artifactId>
     <name>mongo-plus-solon-plugin</name>
     <packaging>jar</packaging>
-    <version>1.1.1</version>
+    <version>${mongoplus.version}</version>
     <description>mongo-plus-solon-plugin主程序</description>
     <url>https://gitee.com/anwena/mongo-plus</url>
     <inceptionYear>2023</inceptionYear>
@@ -102,9 +103,14 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
                         <version>2.9.1</version>
+                        <configuration>
+                            <additionalJOptions>
+                                <additionalJOption>-Xdoclint:none</additionalJOption>
+                            </additionalJOptions>
+                        </configuration>
                         <executions>
                             <execution>
-                                <id>attach-javadocs</id>
+                                <phase>package</phase>
                                 <goals>
                                     <goal>jar</goal>
                                 </goals>

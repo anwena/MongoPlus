@@ -24,7 +24,7 @@ public class BaseProperty {
     private String port;
 
     /**
-     * TODO mongodb数据库名称，第二版本需要多数据源，可随时切换
+     * mongodb数据库名称
      * @since 2023/2/10 13:45
      */
     private String database;

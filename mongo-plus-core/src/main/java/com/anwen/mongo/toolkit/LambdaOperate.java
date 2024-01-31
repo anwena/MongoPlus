@@ -4,20 +4,17 @@ import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.interfaces.condition.Order;
-import com.anwen.mongo.context.MongoTransactionContext;
 import com.anwen.mongo.convert.Converter;
 import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.model.BaseLambdaQueryResult;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 import com.mongodb.BasicDBObject;
-import com.mongodb.client.ClientSession;
 import com.mongodb.client.FindIterable;
 import org.bson.Document;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * lambda形式调用，预构建条件
@@ -54,9 +51,23 @@ public class LambdaOperate {
         PageResult<T> pageResult = new PageResult<>();
         pageResult.setPageNum(pageParams.getPageNum());
         pageResult.setPageSize(pageParams.getPageSize());
+        pageResult.setContentData(DocumentMapperConvert.mapDocumentList(documentFindIterable.skip((pageParams.getPageNum() - 1) * pageParams.getPageSize()).limit(pageParams.getPageSize()), clazz));
+        // 不查询总条数，总条数=当前页的总数
+        if (totalSize == -1) {
+            totalSize = pageResult.getContentData().size();
+        }
         pageResult.setTotalSize(totalSize);
         pageResult.setTotalPages((totalSize + pageParams.getPageSize() - 1) / pageParams.getPageSize());
-        pageResult.setContentData(DocumentMapperConvert.mapDocumentList(documentFindIterable.skip((pageParams.getPageNum() - 1) * pageParams.getPageSize()).limit(pageParams.getPageSize()), clazz));
+        return pageResult;
+    }
+
+    public PageResult<Map<String, Object>> getLambdaQueryResultPage(FindIterable<Map> documentFindIterable,long totalSize, PageParam pageParams) {
+        PageResult<Map<String, Object>> pageResult = new PageResult<>();
+        pageResult.setPageNum(pageParams.getPageNum());
+        pageResult.setPageSize(pageParams.getPageSize());
+        pageResult.setTotalSize(totalSize);
+        pageResult.setTotalPages((totalSize + pageParams.getPageSize() - 1) / pageParams.getPageSize());
+        pageResult.setContentData(Converter.convertDocumentToMap(documentFindIterable.skip((pageParams.getPageNum() - 1) * pageParams.getPageSize()).limit(pageParams.getPageSize())));
         return pageResult;
     }
 

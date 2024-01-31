@@ -33,5 +33,4 @@ exclude:
   - name: All
     paths:
       - mongo-plus-core\src\main\java\com\anwen\mongo\convert\Converter.java
-      - mongo-plus-core\src\main\java\com\anwen\mongo\execute\SqlExecute.java
       - mongo-plus-core\src\main\java\com\anwen\mongo\model\PageResult.java

@@ -8,10 +8,10 @@ import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.handlers.DocumentHandler;
+import com.mongodb.BasicDBObject;
 import org.bson.Document;
 import org.bson.types.Binary;
 
-import java.io.File;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -31,7 +31,7 @@ import static com.anwen.mongo.toolkit.BeanMapUtilByReflect.getFillInsertAndUpdat
  **/
 public class DocumentUtil {
 
-    public static List<Document> handleMapList(List<Map<String,Object>> mapList,Boolean isSave){
+    public static List<Document> handleMapList(Collection<Map<String,Object>> mapList,Boolean isSave){
         return new ArrayList<Document>(){{
             mapList.forEach(map -> {
                 add(handleMap(map,isSave));
@@ -52,7 +52,7 @@ public class DocumentUtil {
     }
 
     public static <T> Document checkUpdateField(T entity,boolean isSave){
-        Document document = checkTableField(entity, isSave);
+        Document document = checkUpdateTableField(entity);
         return Optional.ofNullable(HandlerCache.documentHandler).map(checkSaveOrUpdate(isSave,Collections.singletonList(document)).andThen(documentList -> documentList.get(0))).orElse(document);
     }
 
@@ -93,23 +93,42 @@ public class DocumentUtil {
         return document;
     }
 
+    public static BasicDBObject handleBasicDBObject(BasicDBObject basicDBObject){
+        BasicDBObject result = new BasicDBObject();
+        PropertyFilter propertyFilter = (object, name, value) -> {
+            if (value instanceof LocalDate
+                    || value instanceof LocalDateTime
+                    || value instanceof LocalTime
+                    || value instanceof Date
+                    || value instanceof Binary) {
+                result.put(name,value);
+                return false;
+            }
+            return true;
+        };
+        String jsonString = JSON.toJSONString(basicDBObject, new SerializeConfig() {{
+            addFilter(BasicDBObject.class, propertyFilter);
+        }});
+        basicDBObject = BasicDBObject.parse(jsonString);
+        basicDBObject.putAll(result.toBsonDocument());
+        return basicDBObject;
+    }
+
     /**
      * 检查对象属性并返回属性值Map。
      * @param entity 对象实例
      * @return 属性值Map
      */
-    public static <T> Document checkTableField(T entity,boolean isSave) {
+    public static <T> Document checkTableField(T entity) {
         //定义添加自动填充字段
         Map<String,Object> insertFillMap = new HashMap<>();
-        //定义添加自动填充字段
-        Map<String,Object> updateFillMap = new HashMap<>();
         //定义返回结果Map
         Map<String, Object> resultMap = new HashMap<>();
         //获取实体class
         Class<?> entityClass = ClassTypeUtil.getClass(entity);
         //获取所有字段
         List<Field> fieldList = ClassTypeUtil.getFields(entityClass);
-        getFillInsertAndUpdateField(fieldList,insertFillMap,updateFillMap);
+        getFillInsertAndUpdateField(fieldList,insertFillMap,new HashMap<>());
         //设置所有属性可访问
         for (Field field : fieldList) {
             field.setAccessible(true);
@@ -128,7 +147,7 @@ public class DocumentUtil {
                     resultMap.put(SqlOperationConstant._ID,fieldValue);
                     continue;
                 }
-                if (isSave && !idAnnotation.saveField()) {
+                if (!idAnnotation.saveField()) {
                     continue;
                 }
             }
@@ -139,11 +158,44 @@ public class DocumentUtil {
         }
         Document document = handleDocument(new Document(resultMap));
         if (HandlerCache.metaObjectHandler != null){
-            if (isSave) {
-                HandlerCache.metaObjectHandler.insertFill(insertFillMap,document);
-            } else {
-                HandlerCache.metaObjectHandler.updateFill(updateFillMap,document);
+            HandlerCache.metaObjectHandler.insertFill(insertFillMap,document);
+        }
+        return document;
+    }
+
+    public static <T> Document checkUpdateTableField(T entity){
+        Map<String,Object> updateFillMap = new HashMap<>();
+        //定义返回结果Map
+        Map<String, Object> resultMap = new HashMap<>();
+        //获取实体class
+        Class<?> entityClass = ClassTypeUtil.getClass(entity);
+        //获取所有字段
+        List<Field> fieldList = ClassTypeUtil.getFields(entityClass);
+        getFillInsertAndUpdateField(fieldList,new HashMap<>(),updateFillMap);
+        //设置所有属性可访问
+        for (Field field : fieldList) {
+            field.setAccessible(true);
+            // 是否跳过解析
+            if (skipCheckField(field)) {
+                continue;
             }
+            // 属性名
+            String fieldName = getFieldName(field);
+            // 属性值
+            Object fieldValue = ReflectionUtils.getFieldValue(entity, field);
+            ID idAnnotation = field.getAnnotation(ID.class);
+            if (idAnnotation != null) {
+                resultMap.put(SqlOperationConstant._ID,fieldValue);
+                continue;
+            }
+            // 不为null再进行映射
+            if (fieldValue != null){
+                resultMap.put(fieldName, fieldValue);
+            }
+        }
+        Document document = handleDocument(new Document(resultMap));
+        if (HandlerCache.metaObjectHandler != null){
+            HandlerCache.metaObjectHandler.updateFill(updateFillMap,document);
         }
         return document;
     }

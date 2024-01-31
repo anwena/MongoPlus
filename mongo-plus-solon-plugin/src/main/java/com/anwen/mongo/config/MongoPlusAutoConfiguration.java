@@ -1,13 +1,18 @@
 package com.anwen.mongo.config;
 
+import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.cache.global.InterceptorCache;
-import com.anwen.mongo.execute.SqlExecute;
+import com.anwen.mongo.conn.CollectionManager;
+import com.anwen.mongo.conn.ConnectMongoDB;
+import com.anwen.mongo.convert.CollectionNameConvert;
+import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.handlers.DocumentHandler;
 import com.anwen.mongo.handlers.MetaObjectHandler;
 import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.interceptor.business.BlockAttackInnerInterceptor;
 import com.anwen.mongo.interceptor.business.LogInterceptor;
+import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBLogProperty;
 import com.anwen.mongo.service.IService;
@@ -16,6 +21,9 @@ import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.strategy.convert.ConversionStrategy;
 import com.anwen.mongo.toolkit.CollUtil;
 import com.mongodb.MongoException;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
 import org.noear.solon.Solon;
 import org.noear.solon.annotation.Inject;
 import org.noear.solon.core.AppContext;
@@ -24,9 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -35,7 +41,11 @@ import java.util.stream.Collectors;
  **/
 public class MongoPlusAutoConfiguration {
 
-    private final SqlExecute sqlExecute;
+    private final ExecutorFactory factory;
+
+    private final MongoPlusClient mongoPlusClient;
+
+    private final CollectionNameConvert collectionNameConvert;
 
     private final MongoDBLogProperty mongoDBLogProperty;
 
@@ -43,14 +53,17 @@ public class MongoPlusAutoConfiguration {
 
     Logger logger = LoggerFactory.getLogger(MongoPlusAutoConfiguration.class);
 
-    public MongoPlusAutoConfiguration(@Inject SqlExecute sqlExecute, MongoDBLogProperty mongoDBLogProperty, MongoDBCollectionProperty mongoDBCollectionProperty){
-        this.sqlExecute = sqlExecute;
+    public MongoPlusAutoConfiguration(ExecutorFactory factory, MongoPlusClient mongoPlusClient, @Inject CollectionNameConvert collectionNameConvert, MongoDBLogProperty mongoDBLogProperty, MongoDBCollectionProperty mongoDBCollectionProperty){
+        mongoDBCollectionProperty = Optional.ofNullable(mongoDBCollectionProperty).orElseGet(MongoDBCollectionProperty::new);
+        this.factory = factory;
+        this.collectionNameConvert = collectionNameConvert;
+        this.mongoPlusClient = mongoPlusClient;
         this.mongoDBLogProperty = mongoDBLogProperty;
         this.mongoDBCollectionProperty = mongoDBCollectionProperty;
         AppContext context = Solon.context();
         context.subBeansOfType(IService.class, bean -> {
             if (bean instanceof ServiceImpl){
-                setSqlExecute((ServiceImpl<?>) bean,bean.getGenericityClazz());
+                setExecute((ServiceImpl<?>) bean,bean.getGenericityClass());
             }
         });
         //拿到转换器
@@ -68,10 +81,46 @@ public class MongoPlusAutoConfiguration {
      * @author JiaChaoYang
      * @date 2023/11/23 12:56
     */
-    private void setSqlExecute(ServiceImpl<?> serviceImpl,Class<?> clazz) {
-        sqlExecute.init(clazz);
+    private void setExecute(ServiceImpl<?> serviceImpl, Class<?> clazz) {
         serviceImpl.setClazz(clazz);
-        serviceImpl.setSqlOperation(sqlExecute);
+        String database = initFactory(clazz);
+        //这里需要将MongoPlusClient给工厂
+        factory.setMongoPlusClient(mongoPlusClient);
+        serviceImpl.setDatabase(database);
+        serviceImpl.setFactory(factory);
+    }
+
+    public String initFactory(Class<?> clazz) {
+        String collectionName = clazz.getSimpleName().toLowerCase();
+        final String[] dataBaseName = {""};
+        if (clazz.isAnnotationPresent(CollectionName.class)) {
+            CollectionName annotation = clazz.getAnnotation(CollectionName.class);
+            collectionName = annotation.value();
+            dataBaseName[0] = annotation.database();
+        }
+        try {
+            String finalCollectionName = collectionName;
+            final String[] finalDataBaseName = {dataBaseName[0]};
+            List<MongoDatabase> mongoDatabaseList = new ArrayList<>();
+            mongoPlusClient.setCollectionManager(new LinkedHashMap<String, CollectionManager>(){{
+                String database = mongoPlusClient.getBaseProperty().getDatabase();
+                Arrays.stream(database.split(",")).collect(Collectors.toList()).forEach(db -> {
+                    CollectionManager collectionManager = new CollectionManager(mongoPlusClient.getMongoClient(), collectionNameConvert, db);
+                    ConnectMongoDB connectMongoDB = new ConnectMongoDB(mongoPlusClient.getMongoClient(), db, finalCollectionName);
+                    MongoDatabase mongoDatabase = mongoPlusClient.getMongoClient().getDatabase(db);
+                    mongoDatabaseList.add(mongoDatabase);
+                    if (Objects.equals(db, finalDataBaseName[0])){
+                        MongoCollection<Document> collection = connectMongoDB.open(mongoDatabase);
+                        collectionManager.setCollectionMap(finalCollectionName,collection);
+                    }
+                    put(db,collectionManager);
+                });
+            }});
+            mongoPlusClient.setMongoDatabase(mongoDatabaseList);
+        } catch (MongoException e) {
+            logger.error("Failed to connect to MongoDB: {}", e.getMessage(), e);
+        }
+        return dataBaseName[0];
     }
 
     /**

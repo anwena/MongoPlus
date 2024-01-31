@@ -53,11 +53,12 @@ Just like MyBatis, you don't need to write excessive SQL statements, and it's th
 * v2.0.5   Implement pipeline functions, add auto-increment ID strategy, modify entity mapping relationship
 * v2.0.6   Fix known issues, add transactional operations, add support for Spring 3, add support for Solon framework, add options for pipeline functions, modify structure
 * v2.0.6.1 Fix dependency import issues
+* Don't update update update logs here anymore
 ### Documentation
 Documentation： https://www.mongoplus.cn/
 
 ### Contact Us
-If you encounter any problems, please contact me<br/>
+If you encounter any problems or join a group chat, please contact me<br/>
 v: JiaChaoYang_<br/>
 <img src="wx.png" alt="WeChat">
 

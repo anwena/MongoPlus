@@ -9,6 +9,10 @@ public enum SpecialConditionEnum {
 
     SET("$set"),
 
+    PUSH("$push"),
+
+    EACH("$each"),
+
     IN("$in"),
 
     EQ("$eq"),
@@ -28,6 +32,10 @@ public enum SpecialConditionEnum {
 
     public String getCondition() {
         return condition;
+    }
+
+    public String getSubCondition(){
+        return condition.substring(1);
     }
 
     SpecialConditionEnum(String condition) {
