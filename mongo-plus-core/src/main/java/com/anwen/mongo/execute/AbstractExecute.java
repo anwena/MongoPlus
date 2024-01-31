@@ -414,7 +414,7 @@ public abstract class AbstractExecute implements Execute {
         // 每个Collection单独加锁
         synchronized (collectionName.intern()) {
             MongoCollection<Document> collection = collectionManager.getCollection("counters");
-            Document query = new Document(SqlOperationConstant._ID, collection);
+            Document query = new Document(SqlOperationConstant._ID, collectionName);
             Document update = new Document("$inc", new Document(SqlOperationConstant.AUTO_NUM, 1));
             Document document = Optional.ofNullable(MongoTransactionContext.getClientSessionContext())
                     .map(session -> collection.findOneAndUpdate(session, query, update, new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)))
