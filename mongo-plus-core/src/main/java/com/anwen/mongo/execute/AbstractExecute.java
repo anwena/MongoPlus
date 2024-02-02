@@ -3,9 +3,12 @@ package com.anwen.mongo.execute;
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.conditions.BuildCondition;
+import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.interfaces.condition.Order;
+import com.anwen.mongo.conditions.query.QueryChainWrapper;
+import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.context.MongoTransactionContext;
@@ -101,10 +104,10 @@ public abstract class AbstractExecute implements Execute {
         return isExist(idByEntity,entity.getClass()) ? updateById(entity) : save(entity);
     }
 
-    public <T> Boolean saveOrUpdateWrapper(T entity,List<CompareCondition> compareConditionList){
-        long count = count(compareConditionList, entity.getClass());
+    public <T> Boolean saveOrUpdateWrapper(T entity,QueryChainWrapper<T, ?> queryChainWrapper){
+        long count = count(queryChainWrapper, entity.getClass());
         if (count > 0){
-            BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareConditionList);
+            BasicDBObject queryBasic = BuildCondition.buildQueryCondition(queryChainWrapper.getCompareList());
             Document document = DocumentUtil.checkUpdateField(entity,false);
             document.remove(SqlOperationConstant._ID);
             BasicDBObject updateField = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
@@ -203,12 +206,15 @@ public abstract class AbstractExecute implements Execute {
         return DocumentMapperConvert.mapDocumentList(doList(collectionManager.getCollection(clazz)),clazz);
     }
 
-    public <T> List<T> list(List<CompareCondition> compareConditionList, List<Order> orderList, List<Projection> projectionList, List<BasicDBObject> basicDBObjectList, Class<T> clazz) {
-        BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(compareConditionList, orderList, projectionList, basicDBObjectList);
+    public <T> List<T> list(QueryChainWrapper<T,?> queryChainWrapper, Class<T> clazz) {
+        BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
         return lambdaOperate.getLambdaQueryResult(doList(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(),collectionManager.getCollection(clazz)),clazz);
     }
 
-    public <T> List<T> aggregateList(List<BaseAggregate> aggregateList, List<AggregateBasicDBObject> basicDBObjectList, BasicDBObject optionsBasicDBObject, Class<T> clazz){
+    public <T> List<T> aggregateList(AggregateChainWrapper<T, ?> queryChainWrapper, Class<T> clazz){
+        List<BaseAggregate> aggregateList = queryChainWrapper.getBaseAggregateList();
+        List<AggregateBasicDBObject> basicDBObjectList = queryChainWrapper.getBasicDBObjectList();
+        BasicDBObject optionsBasicDBObject = queryChainWrapper.getOptionsBasicDBObject();
         List<AggregateBasicDBObject> aggregateConditionList = new ArrayList<AggregateBasicDBObject>() {{
             aggregateList.forEach(aggregate -> add(new AggregateBasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate(),aggregate.getOrder())));
             addAll(basicDBObjectList);
@@ -219,8 +225,8 @@ public abstract class AbstractExecute implements Execute {
         return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),clazz);
     }
 
-    public <T> T one(List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,Class<T> clazz) {
-        BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(compareConditionList, null, projectionList, basicDBObjectList);
+    public <T> T one(QueryChainWrapper<T,?> queryChainWrapper,Class<T> clazz) {
+        BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),null,queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
         List<T> result = lambdaOperate.getLambdaQueryResult(doList(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(),collectionManager.getCollection(clazz)),clazz);
         if (result.size() > 1) {
             throw new MongoQueryException("query result greater than one line");
@@ -228,16 +234,16 @@ public abstract class AbstractExecute implements Execute {
         return !result.isEmpty() ? result.get(0) : null;
     }
 
-    public <T> T limitOne(List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,List<Order> orderList,Class<T> clazz) {
-        BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(compareConditionList, orderList, projectionList, basicDBObjectList);
+    public <T> T limitOne(QueryChainWrapper<T, ?> queryChainWrapper,Class<T> clazz) {
+        BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
         List<T> result = lambdaOperate.getLambdaQueryResult(doList(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(),collectionManager.getCollection(clazz)),clazz);
         return !result.isEmpty() ? result.get(0) : null;
     }
 
-    public <T> PageResult<T> page(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, Integer pageNum, Integer pageSize,Class<T> clazz) {
-        BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(compareConditionList, orderList, projectionList, basicDBObjectList);
+    public <T> PageResult<T> page(QueryChainWrapper<T,?> queryChainWrapper, Integer pageNum, Integer pageSize,Class<T> clazz) {
+        BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
         FindIterable<Document> iterable = doList(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), collectionManager.getCollection(clazz));
-        return lambdaOperate.getLambdaQueryResultPage(iterable,count(compareConditionList,clazz),new PageParam(pageNum,pageSize),clazz);
+        return lambdaOperate.getLambdaQueryResultPage(iterable,count(queryChainWrapper,clazz),new PageParam(pageNum,pageSize),clazz);
     }
 
     public <T> T getById(Serializable id,Class<T> clazz) {
@@ -256,7 +262,10 @@ public abstract class AbstractExecute implements Execute {
         return DocumentMapperConvert.mapDocumentList(iterable, clazz);
     }
 
-    public Boolean update(List<CompareCondition> compareConditionList,Class<?> clazz) {
+    public Boolean update(UpdateChainWrapper<?, ?> updateChainWrapper,Class<?> clazz) {
+        List<CompareCondition> compareConditionList = new ArrayList<>();
+        compareConditionList.addAll(updateChainWrapper.getCompareList());
+        compareConditionList.addAll(updateChainWrapper.getUpdateCompareList());
         BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareConditionList);
         List<CompareCondition> pushConditionList = compareConditionList.stream().filter(compareCondition -> Objects.equals(compareCondition.getCondition(), SpecialConditionEnum.PUSH.getSubCondition())).collect(Collectors.toList());
         List<CompareCondition> setConditionList = compareConditionList.stream().filter(compareCondition -> Objects.equals(compareCondition.getCondition(), SpecialConditionEnum.SET.getSubCondition())).collect(Collectors.toList());
@@ -271,12 +280,12 @@ public abstract class AbstractExecute implements Execute {
         return executeUpdate(queryBasic,DocumentUtil.handleBasicDBObject(basicDBObject),collectionManager.getCollection(clazz)).getModifiedCount() >= 1;
     }
 
-    public Boolean remove(List<CompareCondition> compareConditionList,Class<?> clazz) {
-        return executeRemove(BuildCondition.buildQueryCondition(compareConditionList),collectionManager.getCollection(clazz)).getDeletedCount() >= 1;
+    public Boolean remove(UpdateChainWrapper<?, ?> updateChainWrapper, Class<?> clazz) {
+        return executeRemove(BuildCondition.buildQueryCondition(updateChainWrapper.getCompareList()),collectionManager.getCollection(clazz)).getDeletedCount() >= 1;
     }
 
-    public long count(List<CompareCondition> compareConditionList,Class<?> clazz){
-        return executeCountByCondition(BuildCondition.buildQueryCondition(compareConditionList),collectionManager.getCollection(clazz));
+    public long count(QueryChainWrapper<?, ?> queryChainWrapper,Class<?> clazz){
+        return executeCountByCondition(BuildCondition.buildQueryCondition(queryChainWrapper.getCompareList()),collectionManager.getCollection(clazz));
     }
 
     public long count(Class<?> clazz){

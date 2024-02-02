@@ -23,6 +23,6 @@ public class LambdaAggregateChainWrapper<T> extends AggregateChainWrapper<T,Lamb
 
     @Override
     public List<T> list() {
-        return factory.getExecute(database).aggregateList(super.baseAggregateList,super.getBasicDBObjectList(),super.getOptionsBasicDBObject(),clazz);
+        return factory.getExecute(database).aggregateList(this,clazz);
     }
 }

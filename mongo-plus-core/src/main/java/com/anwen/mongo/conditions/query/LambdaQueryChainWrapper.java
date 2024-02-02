@@ -27,32 +27,32 @@ public class LambdaQueryChainWrapper<T> extends QueryChainWrapper<T,LambdaQueryC
 
     @Override
     public List<T> list() {
-        return factory.getExecute(database).list(getCompareList(), getOrderList(),getProjectionList(),getBasicDBObjectList(),clazz);
+        return factory.getExecute(database).list(this,clazz);
     }
 
     @Override
     public T one() {
-        return factory.getExecute(database).one(getCompareList(),getProjectionList(),getBasicDBObjectList(),clazz);
+        return factory.getExecute(database).one(this,clazz);
     }
 
     @Override
     public T limitOne() {
-        return factory.getExecute(database).limitOne(getCompareList(),getProjectionList(),getBasicDBObjectList(),getOrderList(),clazz);
+        return factory.getExecute(database).limitOne(this,clazz);
     }
 
     @Override
     public PageResult<T> page(PageParam pageParam) {
-        return factory.getExecute(database).page(getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList(),pageParam.getPageNum(),pageParam.getPageSize(),clazz);
+        return factory.getExecute(database).page(this,pageParam.getPageNum(),pageParam.getPageSize(),clazz);
     }
 
     @Override
     public PageResult<T> page(Integer pageNum, Integer pageSize) {
-        return factory.getExecute(database).page(getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList(),pageNum,pageSize,clazz);
+        return factory.getExecute(database).page(this,pageNum,pageSize,clazz);
     }
 
     @Override
     public long count() {
-        return factory.getExecute(database).count(getCompareList(),clazz);
+        return factory.getExecute(database).count(this,clazz);
     }
 
 }

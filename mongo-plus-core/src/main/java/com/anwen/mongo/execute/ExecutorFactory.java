@@ -8,6 +8,7 @@ import com.anwen.mongo.execute.instance.DefaultExecute;
 import com.anwen.mongo.execute.instance.SessionExecute;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.model.BaseProperty;
+import com.anwen.mongo.toolkit.StringPool;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.client.ClientSession;
 import org.slf4j.Logger;
@@ -15,6 +16,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Objects;
+
+import static com.anwen.mongo.toolkit.StringPool.EMPTY;
 
 /**
  * 执行器工厂
@@ -51,8 +54,16 @@ public class ExecutorFactory {
         return getExecute(getCollectionManager(database));
     }
 
+    public AbstractExecute getExecute(){
+        return getExecute(getCollectionManager(EMPTY));
+    }
+
     public Execute getExecuteInterface(String database){
         return getExecute(getCollectionManager(database));
+    }
+
+    public Execute getExecuteInterface(){
+        return getExecute(getCollectionManager(EMPTY));
     }
 
     public AbstractExecute getExecute(CollectionManager collectionManager){
@@ -140,8 +151,12 @@ public class ExecutorFactory {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ExecutorFactory)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ExecutorFactory)) {
+            return false;
+        }
         ExecutorFactory that = (ExecutorFactory) o;
         return Objects.equals(logger, that.logger) && Objects.equals(getBaseProperty(), that.getBaseProperty()) && Objects.equals(getCollectionNameConvert(), that.getCollectionNameConvert()) && Objects.equals(getMongoPlusClient(), that.getMongoPlusClient());
     }

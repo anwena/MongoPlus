@@ -109,7 +109,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public Boolean saveOrUpdateWrapper(T entity, QueryChainWrapper<T, ?> queryChainWrapper) {
-        return factory.getExecute(database).saveOrUpdateWrapper(entity,queryChainWrapper.getCompareList());
+        return factory.getExecute(database).saveOrUpdateWrapper(entity,queryChainWrapper);
     }
 
     @Override
@@ -139,15 +139,12 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public Boolean remove(UpdateChainWrapper<T, ?> updateChainWrapper) {
-        return factory.getExecute(database).remove(updateChainWrapper.getCompareList(),clazz);
+        return factory.getExecute(database).remove(updateChainWrapper,clazz);
     }
 
     @Override
     public Boolean update(UpdateChainWrapper<T, ?> updateChainWrapper) {
-        List<CompareCondition> compareConditionList = new ArrayList<>();
-        compareConditionList.addAll(updateChainWrapper.getCompareList());
-        compareConditionList.addAll(updateChainWrapper.getUpdateCompareList());
-        return factory.getExecute(database).update(compareConditionList,clazz);
+        return factory.getExecute(database).update(updateChainWrapper,clazz);
     }
 
     @Override
@@ -177,27 +174,27 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public List<T> aggregateList(AggregateChainWrapper<T, ?> queryChainWrapper) {
-        return factory.getExecute(database).aggregateList(queryChainWrapper.getBaseAggregateList(),queryChainWrapper.getBasicDBObjectList(),queryChainWrapper.getOptionsBasicDBObject(),clazz);
+        return factory.getExecute(database).aggregateList(queryChainWrapper,clazz);
     }
 
     @Override
     public T one(QueryChainWrapper<T,?> queryChainWrapper) {
-        return factory.getExecute(database).one(queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),clazz);
+        return factory.getExecute(database).one(queryChainWrapper,clazz);
     }
 
     @Override
     public T limitOne(QueryChainWrapper<T, ?> queryChainWrapper) {
-        return factory.getExecute(database).limitOne(queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),queryChainWrapper.getOrderList(),clazz);
+        return factory.getExecute(database).limitOne(queryChainWrapper,clazz);
     }
 
     @Override
     public List<T> list(QueryChainWrapper<T,?> queryChainWrapper) {
-        return factory.getExecute(database).list(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),clazz);
+        return factory.getExecute(database).list(queryChainWrapper,clazz);
     }
 
     @Override
     public List<T> list(AggregateChainWrapper<T,?> queryChainWrapper) {
-        return factory.getExecute(database).aggregateList(queryChainWrapper.getBaseAggregateList(),queryChainWrapper.getBasicDBObjectList(),queryChainWrapper.getOptionsBasicDBObject(),clazz);
+        return factory.getExecute(database).aggregateList(queryChainWrapper,clazz);
     }
 
     @Override
@@ -207,17 +204,17 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public long count(QueryChainWrapper<T, ?> queryChainWrapper) {
-        return factory.getExecute(database).count(queryChainWrapper.getCompareList(),clazz);
+        return factory.getExecute(database).count(queryChainWrapper,clazz);
     }
 
     @Override
     public PageResult<T> page(QueryChainWrapper<T,?> queryChainWrapper, Integer pageNum, Integer pageSize){
-        return factory.getExecute(database).page(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(), pageNum,pageSize,clazz);
+        return factory.getExecute(database).page(queryChainWrapper, pageNum,pageSize,clazz);
     }
 
     @Override
     public PageResult<T> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam) {
-        return factory.getExecute(database).page(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),pageParam.getPageNum(),pageParam.getPageSize(),clazz);
+        return page(queryChainWrapper,pageParam.getPageNum(),pageParam.getPageSize());
     }
 
     @Override
@@ -227,7 +224,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public PageResult<T> page(Integer pageNum, Integer pageSize) {
-        return factory.getExecute(database).page(null,null,null,null,pageNum,pageSize,clazz);
+        return page(new QueryChainWrapper<>(),pageNum,pageSize);
     }
 
     @Override
