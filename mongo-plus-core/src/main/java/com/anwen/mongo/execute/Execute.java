@@ -2,13 +2,11 @@ package com.anwen.mongo.execute;
 
 import com.anwen.mongo.model.AggregateBasicDBObject;
 import com.mongodb.BasicDBObject;
+import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.CreateIndexOptions;
-import com.mongodb.client.model.DropIndexOptions;
-import com.mongodb.client.model.IndexModel;
-import com.mongodb.client.model.IndexOptions;
+import com.mongodb.client.model.*;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.InsertManyResult;
 import com.mongodb.client.result.InsertOneResult;
@@ -28,6 +26,8 @@ public interface Execute {
     InsertOneResult doSave(Document document, MongoCollection<Document> collection);
 
     InsertManyResult doSaveBatch(List<Document> documentList, MongoCollection<Document> collection);
+
+    BulkWriteResult bulkWrite(List<WriteModel<Document>> writeModelList, MongoCollection<Document> collection);
 
     DeleteResult executeRemove(Bson filter, MongoCollection<Document> collection);
 
@@ -49,13 +49,13 @@ public interface Execute {
 
     long executeExist(BasicDBObject queryBasic, MongoCollection<Document> collection);
 
-    FindIterable<Document> doGetByIds(BasicDBObject basicDBObject,MongoCollection<Document> collection);
-
     UpdateResult executeUpdate(Bson queryBasic,Bson updateBasic,MongoCollection<Document> collection);
 
     DeleteResult executeRemove(BasicDBObject deleteBasic,MongoCollection<Document> collection);
 
     long executeCountByCondition(BasicDBObject basicDBObject,MongoCollection<Document> collection);
+
+    long executeCountByCondition(BasicDBObject basicDBObject,MongoCollection<Document> collection, CountOptions var2);
 
     long doCount(MongoCollection<Document> collection);
 

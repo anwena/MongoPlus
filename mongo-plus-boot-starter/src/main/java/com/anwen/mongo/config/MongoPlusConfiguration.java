@@ -7,6 +7,7 @@ import com.anwen.mongo.interceptor.BaseInterceptor;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
+import com.anwen.mongo.property.MongoDBConfigurationProperty;
 import com.anwen.mongo.property.MongoDBConnectProperty;
 import com.anwen.mongo.toolkit.MongoCollectionUtils;
 import com.anwen.mongo.toolkit.UrlJoint;
@@ -16,26 +17,32 @@ import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.mongo.MongoProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.stream.Collectors;
 
 /**
  * @author JiaChaoYang
  * 连接配置
  * @since 2023-02-09 14:27
  **/
-@EnableConfigurationProperties(value = {MongoDBConnectProperty.class, MongoDBCollectionProperty.class})
+@EnableConfigurationProperties(value = {MongoDBConnectProperty.class, MongoDBCollectionProperty.class, MongoDBConfigurationProperty.class})
 public class MongoPlusConfiguration {
 
     private final MongoDBConnectProperty mongoDBConnectProperty;
 
     private final MongoDBCollectionProperty mongoDBCollectionProperty;
 
-    public MongoPlusConfiguration(MongoDBConnectProperty mongoDBConnectProperty, MongoDBCollectionProperty mongoDBCollectionProperty) {
+    private final MongoDBConfigurationProperty mongoDBConfigurationProperty;
+
+    public MongoPlusConfiguration(MongoDBConnectProperty mongoDBConnectProperty, MongoDBCollectionProperty mongoDBCollectionProperty, MongoDBConfigurationProperty mongoDBConfigurationProperty) {
         this.mongoDBConnectProperty = mongoDBConnectProperty;
         this.mongoDBCollectionProperty = mongoDBCollectionProperty;
+        this.mongoDBConfigurationProperty = mongoDBConfigurationProperty;
     }
 
     /**
@@ -45,18 +52,28 @@ public class MongoPlusConfiguration {
     */
     @Bean
     @ConditionalOnMissingBean
-    public MongoClient mongoClient(){
+    public MongoClient mongo(){
         return MongoClients.create(MongoClientSettings.builder()
                 .applyConnectionString(new ConnectionString(new UrlJoint(mongoDBConnectProperty).jointMongoUrl())).commandListenerList(Collections.singletonList(new BaseInterceptor())).build());
     }
 
     @Bean
     @ConditionalOnMissingBean(MongoPlusClient.class)
-    public MongoPlusClient mongoPlusClient(MongoClient mongoClient){
+    public MongoPlusClient mongoPlusClient(MongoClient mongo){
         MongoPlusClient mongoPlusClient = new MongoPlusClient();
-        mongoPlusClient.setMongoClient(mongoClient);
+        mongoPlusClient.setMongoClient(mongo);
         mongoPlusClient.setBaseProperty(mongoDBConnectProperty);
         MongoPlusClientCache.mongoPlusClient = mongoPlusClient;
+        if (mongoDBConfigurationProperty.getBanner()){
+            System.out.println("___  ___                       ______ _           \n" +
+                    "|  \\/  |                       | ___ \\ |          \n" +
+                    "| .  . | ___  _ __   __ _  ___ | |_/ / |_   _ ___ \n" +
+                    "| |\\/| |/ _ \\| '_ \\ / _` |/ _ \\|  __/| | | | / __|\n" +
+                    "| |  | | (_) | | | | (_| | (_) | |   | | |_| \\__ \\\n" +
+                    "\\_|  |_/\\___/|_| |_|\\__, |\\___/\\_|   |_|\\__,_|___/\n" +
+                    "                     __/ |                        \n" +
+                    "                    |___/                         ");
+        }
         return mongoPlusClient;
     }
 
@@ -84,8 +101,8 @@ public class MongoPlusConfiguration {
     @Bean("mongoTransactionalAspect")
     @Deprecated
     @ConditionalOnMissingBean
-    public MongoTransactionalAspect mongoTransactionalAspect(MongoClient mongoClient) {
-        return new MongoTransactionalAspect(mongoClient);
+    public MongoTransactionalAspect mongoTransactionalAspect(MongoClient mongo) {
+        return new MongoTransactionalAspect(mongo);
     }
 
 }

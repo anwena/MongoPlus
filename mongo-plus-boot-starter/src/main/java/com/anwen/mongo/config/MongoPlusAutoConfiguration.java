@@ -75,10 +75,10 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
                 .values()
                 .stream()
                 .filter(s -> s instanceof ServiceImpl)
-                .forEach(s -> setSqlExecute((ServiceImpl<?>) s, s.getGenericityClass()));
+                .forEach(s -> setExecute((ServiceImpl<?>) s, s.getGenericityClass()));
     }
 
-    private void setSqlExecute(ServiceImpl<?> serviceImpl,Class<?> clazz) {
+    private void setExecute(ServiceImpl<?> serviceImpl, Class<?> clazz) {
         serviceImpl.setClazz(clazz);
         String database = initFactory(clazz);
         //这里需要将MongoPlusClient给工厂

@@ -118,6 +118,9 @@ public final class StringUtils {
         if (str == null) {
             return true;
         }
+        if (str.equals("null")){
+            return true;
+        }
         int len = str.length();
         if (len == 0) {
             return true;

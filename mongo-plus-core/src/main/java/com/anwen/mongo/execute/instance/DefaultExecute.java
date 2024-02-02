@@ -6,13 +6,11 @@ import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.execute.AbstractExecute;
 import com.anwen.mongo.model.AggregateBasicDBObject;
 import com.mongodb.BasicDBObject;
+import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.CreateIndexOptions;
-import com.mongodb.client.model.DropIndexOptions;
-import com.mongodb.client.model.IndexModel;
-import com.mongodb.client.model.IndexOptions;
+import com.mongodb.client.model.*;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.InsertManyResult;
 import com.mongodb.client.result.InsertOneResult;
@@ -44,6 +42,11 @@ public class DefaultExecute extends AbstractExecute {
     @Override
     public InsertManyResult doSaveBatch(List<Document> documentList, MongoCollection<Document> collection) {
         return collection.insertMany(documentList);
+    }
+
+    @Override
+    public BulkWriteResult bulkWrite(List<WriteModel<Document>> writeModelList, MongoCollection<Document> collection) {
+        return collection.bulkWrite(writeModelList);
     }
 
     @Override
@@ -97,11 +100,6 @@ public class DefaultExecute extends AbstractExecute {
     }
 
     @Override
-    public FindIterable<Document> doGetByIds(BasicDBObject basicDBObject, MongoCollection<Document> collection) {
-        return collection.find(basicDBObject);
-    }
-
-    @Override
     public UpdateResult executeUpdate(Bson queryBasic, Bson updateBasic, MongoCollection<Document> collection) {
         return collection.updateMany(queryBasic,updateBasic);
     }
@@ -114,6 +112,11 @@ public class DefaultExecute extends AbstractExecute {
     @Override
     public long executeCountByCondition(BasicDBObject basicDBObject, MongoCollection<Document> collection) {
         return collection.countDocuments(basicDBObject);
+    }
+
+    @Override
+    public long executeCountByCondition(BasicDBObject basicDBObject, MongoCollection<Document> collection, CountOptions var2) {
+        return collection.countDocuments(basicDBObject, var2);
     }
 
     @Override

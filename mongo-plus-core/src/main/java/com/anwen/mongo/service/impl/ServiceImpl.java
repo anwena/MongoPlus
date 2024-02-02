@@ -118,6 +118,11 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    public Boolean saveOrUpdateBatchWrapper(Collection<T> entityList, QueryChainWrapper<T, ?> queryChainWrapper) {
+        return factory.getExecute(database).saveOrUpdateBatchWrapper(entityList,queryChainWrapper);
+    }
+
+    @Override
     public Boolean updateById(T entity) {
         return factory.getExecute(database).updateById(entity);
     }
@@ -218,13 +223,33 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    public PageResult<T> page(QueryChainWrapper<T,?> queryChainWrapper, Integer pageNum, Integer pageSize, Integer recentPageNum){
+        return factory.getExecute(database).page(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(), pageNum,pageSize,recentPageNum,clazz);
+    }
+
+    @Override
+    public PageResult<T> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam, Integer recentPageNum) {
+        return factory.getExecute(database).page(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),pageParam.getPageNum(),pageParam.getPageSize(),recentPageNum,clazz);
+    }
+
+    @Override
     public PageResult<T> page(PageParam pageParam) {
         return page(pageParam.getPageNum(),pageParam.getPageSize());
     }
 
     @Override
+    public PageResult<T> page(PageParam pageParam, Integer recentPageNum) {
+        return page(pageParam.getPageNum(), pageParam.getPageSize(), recentPageNum);
+    }
+
+    @Override
     public PageResult<T> page(Integer pageNum, Integer pageSize) {
         return page(new QueryChainWrapper<>(),pageNum,pageSize);
+    }
+
+    @Override
+    public PageResult<T> page(Integer pageNum, Integer pageSize, Integer recentPageNum) {
+        return factory.getExecute(database).page(null,null,null,null,pageNum,pageSize,recentPageNum,clazz);
     }
 
     @Override

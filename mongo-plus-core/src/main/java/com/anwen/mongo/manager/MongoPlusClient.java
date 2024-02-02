@@ -22,7 +22,7 @@ public class MongoPlusClient {
     private List<MongoDatabase> mongoDatabase;
 
     /**
-     * 连接管理器,结构为：{"dataSourceName":{"database":ConnectionManager(){"collection":MongoCollection}}}
+     * 连接管理器
      * @author JiaChaoYang
      * @date 2024/1/6 2:12
     */

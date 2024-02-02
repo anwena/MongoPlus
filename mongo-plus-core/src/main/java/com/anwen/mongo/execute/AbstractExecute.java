@@ -17,12 +17,14 @@ import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.domain.MongoQueryException;
 import com.anwen.mongo.enums.AggregateOptionsEnum;
 import com.anwen.mongo.enums.IdTypeEnum;
+import com.anwen.mongo.enums.QueryOperatorEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.model.*;
 import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.support.SFunction;
 import com.anwen.mongo.toolkit.*;
 import com.mongodb.BasicDBObject;
+import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
@@ -33,6 +35,7 @@ import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.security.ec.point.ProjectivePoint;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -117,42 +120,64 @@ public abstract class AbstractExecute implements Execute {
     }
 
     public <T> Boolean saveOrUpdateBatch(Collection<T> entityList) {
-        List<T> saveList = new ArrayList<>();
-        List<T> updateList = new ArrayList<>();
-        entityList.parallelStream().forEach(entity -> {
+        List<WriteModel<Document>> writeModelList = new ArrayList<>();
+        entityList.forEach(entity -> {
             String idByEntity = ClassTypeUtil.getIdByEntity(entity, true);
-            if ((StringUtils.isBlank(idByEntity) || !isExist(idByEntity, entity.getClass()))) {
-                saveList.add(entity);
+            if (StringUtils.isBlank(idByEntity)){
+                writeModelList.add(new InsertOneModel<>(processIdField(entity,false)));
             } else {
-                updateList.add(entity);
+                Map<String, BasicDBObject> basicDBObjectMap = getUpdate(entity);
+                writeModelList.add(new UpdateManyModel<>(basicDBObjectMap.get("filter"),basicDBObjectMap.get("update")));
             }
         });
-        boolean save = false;
-        boolean update = false;
-        if (!saveList.isEmpty()){
-            save = saveBatch(saveList);
-        }
-        if (!updateList.isEmpty()){
-            update = updateBatchByIds(updateList);
-        }
-        return save == update;
+        BulkWriteResult bulkWriteResult = bulkWrite(writeModelList,collectionManager.getCollection(entityList.stream().findFirst().get().getClass()));
+        return (bulkWriteResult.getModifiedCount() + bulkWriteResult.getInsertedCount()) == entityList.size();
+    }
+
+    public <T> Boolean saveOrUpdateBatchWrapper(Collection<T> entityList,QueryChainWrapper<T, ?> queryChainWrapper){
+        Class<?> clazz = entityList.stream().findFirst().get().getClass();
+        List<WriteModel<Document>> writeModelList = new ArrayList<>();
+        entityList.forEach(entity -> {
+            long count = count(queryChainWrapper, clazz);
+            if (count > 0){
+                BasicDBObject queryBasic = BuildCondition.buildQueryCondition(queryChainWrapper.getCompareList());
+                Document document = DocumentUtil.checkUpdateField(entity,false);
+                document.remove(SqlOperationConstant._ID);
+                BasicDBObject updateField = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
+                writeModelList.add(new UpdateManyModel<>(queryBasic,updateField));
+            } else {
+                writeModelList.add(new InsertOneModel<>(processIdField(entity,false)));
+            }
+        });
+        BulkWriteResult bulkWriteResult = bulkWrite(writeModelList, collectionManager.getCollection(clazz));
+        return (bulkWriteResult.getModifiedCount() + bulkWriteResult.getInsertedCount()) == entityList.size();
     }
 
 
     public <T> Boolean updateById(T entity) {
-        Document document = DocumentUtil.checkUpdateField(entity,false);
-        BasicDBObject filter = ExecuteUtil.getFilter(document);
-        BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
+        Map<String, BasicDBObject> basicDBObjectMap = getUpdate(entity);
         MongoCollection<Document> collection = collectionManager.getCollection(ClassTypeUtil.getClass(entity));
-        return executeUpdate(filter,update,collection).getModifiedCount() >= 1;
+        return executeUpdate(basicDBObjectMap.get("filter"),basicDBObjectMap.get("update"),collection).getModifiedCount() >= 1;
     }
 
     public <T> Boolean updateBatchByIds(Collection<T> entityList) {
-        int line = 0;
-        for (T entity : entityList) {
-            line += updateById(entity) ? 1 : 0;
-        }
-        return line == entityList.size();
+        List<WriteModel<Document>> writeModelList = new ArrayList<>();
+        entityList.forEach(entity -> {
+            Map<String, BasicDBObject> basicDBObjectMap = getUpdate(entity);
+            writeModelList.add(new UpdateManyModel<>(basicDBObjectMap.get("filter"),basicDBObjectMap.get("update")));
+        });
+        BulkWriteResult bulkWriteResult = bulkWrite(writeModelList,collectionManager.getCollection(entityList.stream().findFirst().get().getClass()));
+        return bulkWriteResult.getModifiedCount() == entityList.size();
+    }
+
+    public <T> Map<String,BasicDBObject> getUpdate(T entity){
+        Document document = DocumentUtil.checkUpdateField(entity,false);
+        BasicDBObject filter = ExecuteUtil.getFilter(document);
+        BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
+        return new HashMap<String,BasicDBObject>(){{
+           put("filter",filter);
+           put("update",update);
+        }};
     }
 
     public <T> Boolean updateByColumn(T entity, SFunction<T, Object> column) {
@@ -246,6 +271,12 @@ public abstract class AbstractExecute implements Execute {
         return lambdaOperate.getLambdaQueryResultPage(iterable,count(queryChainWrapper,clazz),new PageParam(pageNum,pageSize),clazz);
     }
 
+    public <T> PageResult<T> page(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, Integer pageNum, Integer pageSize, Integer recentPageNum, Class<T> clazz) {
+        BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(compareConditionList, orderList, projectionList, basicDBObjectList);
+        FindIterable<Document> iterable = doList(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), collectionManager.getCollection(clazz));
+        return lambdaOperate.getLambdaQueryResultPage(iterable, recentPageCount(compareConditionList,clazz, pageNum,  pageSize, recentPageNum),new PageParam(pageNum,pageSize),clazz);
+    }
+
     public <T> T getById(Serializable id,Class<T> clazz) {
         BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id));
         return DocumentMapperConvert.mapDocument(doGetById(queryBasic,collectionManager.getCollection(clazz)).first(),clazz);
@@ -258,7 +289,7 @@ public abstract class AbstractExecute implements Execute {
 
     public <T> List<T> getByIds(Collection<? extends Serializable> ids,Class<T> clazz) {
         BasicDBObject basicDBObject = checkIdType(ids);
-        FindIterable<Document> iterable = doGetByIds(basicDBObject, collectionManager.getCollection(clazz));
+        FindIterable<Document> iterable = doGetById(basicDBObject, collectionManager.getCollection(clazz));
         return DocumentMapperConvert.mapDocumentList(iterable, clazz);
     }
 
@@ -286,6 +317,36 @@ public abstract class AbstractExecute implements Execute {
 
     public long count(QueryChainWrapper<?, ?> queryChainWrapper,Class<?> clazz){
         return executeCountByCondition(BuildCondition.buildQueryCondition(queryChainWrapper.getCompareList()),collectionManager.getCollection(clazz));
+    }
+
+    /**
+     * 分页查询 查询总条数
+     * @param compareConditionList 条件集合
+     * @param clazz result class
+     * @param pageNum 当前页
+     * @param pageSize 每页显示行数
+     * @param recentPageNum 查询最近n页的数据  {参数=null 表示仅查询当前页数据}  {参数取值[5-50] 表示查询最近[5-50]页的数据 建议recentPageNum等于10 参考 百度分页检索}
+     * @return long
+     */
+    public long recentPageCount(List<CompareCondition> compareConditionList,Class<?> clazz, Integer pageNum, Integer pageSize, Integer recentPageNum){
+        if (recentPageNum == null || !(recentPageNum <= 50 && recentPageNum >= 5)) {
+            // 返回-1 表示不查询总条数
+            return -1L;
+        }
+        //分页查询  不查询实际总条数  需要单独查询  是否有数据
+        //如果recentPageNum = 10  第1-6页  总页数=10  从第7页开始 需要往后 + 4 页
+        int limitParam = (pageNum < (recentPageNum / 2 + 1 + recentPageNum % 2) ? recentPageNum : (pageNum + (recentPageNum / 2 + recentPageNum % 2 - 1))) * pageSize;
+        CountOptions countOptions = new CountOptions();
+        countOptions.skip(limitParam).limit(1);
+        long isExists = executeCountByCondition(BuildCondition.buildQueryCondition(compareConditionList), collectionManager.getCollection(clazz), countOptions);
+        //如果查询结果为空 则查询总条数，如果不为空则 limitParam为总条数
+        if (isExists == 0) {
+            // 查询真实总条数
+            CountOptions countOptionsReal = new CountOptions();
+            countOptionsReal.limit(limitParam);
+            return executeCountByCondition(BuildCondition.buildQueryCondition(compareConditionList), collectionManager.getCollection(clazz), countOptionsReal);
+        }
+        return limitParam;
     }
 
     public long count(Class<?> clazz){
