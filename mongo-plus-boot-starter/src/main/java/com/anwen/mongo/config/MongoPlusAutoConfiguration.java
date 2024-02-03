@@ -56,12 +56,12 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
 
     Logger logger = LoggerFactory.getLogger(MongoPlusAutoConfiguration.class);
 
-    public MongoPlusAutoConfiguration(MongoDBLogProperty mongoDBLogProperty, MongoDBCollectionProperty mongoDBCollectionProperty, ExecutorFactory executeFactory, MongoPlusClient mongoPlusClient, ApplicationContext applicationContext, CollectionNameConvert collectionNameConvert) {
+    public MongoPlusAutoConfiguration(MongoDBLogProperty mongoDBLogProperty, MongoDBCollectionProperty mongoDBCollectionProperty, ExecutorFactory factory, MongoPlusClient mongoPlusClient, ApplicationContext applicationContext, CollectionNameConvert collectionNameConvert) {
         this.mongoPlusClient = mongoPlusClient;
         this.applicationContext = applicationContext;
         this.mongoDBLogProperty = mongoDBLogProperty;
         this.mongoDBCollectionProperty = mongoDBCollectionProperty;
-        this.factory = executeFactory;
+        this.factory = factory;
         this.collectionNameConvert = collectionNameConvert;
         setConversion();
         setMetaObjectHandler();

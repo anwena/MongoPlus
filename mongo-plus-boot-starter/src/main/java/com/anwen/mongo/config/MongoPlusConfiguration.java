@@ -16,6 +16,7 @@ import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
+import org.springframework.beans.factory.FactoryBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.mongo.MongoProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -85,9 +86,10 @@ public class MongoPlusConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public ExecutorFactory executeFactory(CollectionNameConvert collectionNameConvert){
+    public ExecutorFactory factory(CollectionNameConvert collectionNameConvert,MongoPlusClient mongoPlusClient){
         return ExecutorFactory.builder()
                 .baseProperty(mongoDBConnectProperty)
+                .mongoPlusClient(mongoPlusClient)
                 .collectionNameConvert(collectionNameConvert)
                 .build();
     }
@@ -99,7 +101,6 @@ public class MongoPlusConfiguration {
     }
 
     @Bean("mongoTransactionalAspect")
-    @Deprecated
     @ConditionalOnMissingBean
     public MongoTransactionalAspect mongoTransactionalAspect(MongoClient mongo) {
         return new MongoTransactionalAspect(mongo);
