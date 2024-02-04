@@ -407,6 +407,39 @@ public interface InjectQuery extends CommInjectQuery {
      */
     List<Map<String,Object>> queryCommand(String database,String collectionName,String command);
 
+
+    /**
+     * 是否存在
+     * @param id id
+     * @return java.lang.Boolean
+     * @author JiaChaoYang
+     * @date 2024/2/3 13:42
+     */
+    Boolean exist(String collectionName,Serializable id);
+
+    Boolean exist(String database,String collectionName,Serializable id);
+
+    /**
+     * 是否存在
+     * @param queryChainWrapper wrapper条件
+     * @return java.lang.Boolean
+     * @author JiaChaoYang
+     * @date 2024/2/3 13:41
+     */
+    Boolean exist(String collectionName,QueryChainWrapper<Map<String,Object>,?> queryChainWrapper);
+
+    Boolean exist(String database,String collectionName,QueryChainWrapper<Map<String,Object>,?> queryChainWrapper);
+
+
+    /**
+     * 根据条件修改
+     * @author JiaChaoYang
+     * @date 2024/2/3 13:10
+     */
+    Boolean update(String collectionName,Map<String,Object> entityMap,QueryChainWrapper<Map<String,Object>,?> queryChainWrapper);
+
+    Boolean update(String database,String collectionName,Map<String,Object> entityMap,QueryChainWrapper<Map<String,Object>,?> queryChainWrapper);
+
     /**
      * 创建索引
      * @param bson 描述索引键的对象，该对象不能为 null

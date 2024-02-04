@@ -4,6 +4,7 @@ import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.interfaces.condition.Order;
+import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.convert.Converter;
@@ -187,6 +188,11 @@ public class InjectAbstractExecute {
     public boolean isExist(String collectionName, Serializable id){
         BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id));
         return execute.executeExist(queryBasic,collectionManager.getCollection(collectionName)) >= 1;
+    }
+
+    public boolean isExist(String collectionName,QueryChainWrapper<?,?> queryChainWrapper){
+        BasicDBObject basicDBObject = BuildCondition.buildQueryCondition(queryChainWrapper.getCompareList());
+        return execute.executeExist(basicDBObject,collectionManager.getCollection(collectionName)) >= 1;
     }
 
     public List<Map<String,Object>> getByColumn(String collectionName,String column,Object value){

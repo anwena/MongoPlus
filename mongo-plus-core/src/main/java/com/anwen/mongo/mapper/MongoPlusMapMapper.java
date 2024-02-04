@@ -16,6 +16,7 @@ import com.mongodb.client.model.CreateIndexOptions;
 import com.mongodb.client.model.DropIndexOptions;
 import com.mongodb.client.model.IndexModel;
 import com.mongodb.client.model.IndexOptions;
+import com.sun.xml.internal.ws.util.xml.CDATA;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -338,6 +339,36 @@ public class MongoPlusMapMapper implements InjectQuery {
     @Override
     public List<Map<String, Object>> queryCommand(String database, String collectionName, String command) {
         return factory.getInjectExecute(database).queryCommand(collectionName,command);
+    }
+
+    @Override
+    public Boolean exist(String collectionName, Serializable id) {
+        return exist(EMPTY,collectionName,id);
+    }
+
+    @Override
+    public Boolean exist(String database, String collectionName, Serializable id) {
+        return factory.getInjectExecute(database).isExist(collectionName,id);
+    }
+
+    @Override
+    public Boolean exist(String collectionName, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
+        return exist(EMPTY,collectionName,queryChainWrapper);
+    }
+
+    @Override
+    public Boolean exist(String database, String collectionName, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
+        return factory.getInjectExecute(database).isExist(collectionName,queryChainWrapper);
+    }
+
+    @Override
+    public Boolean update(String collectionName, Map<String, Object> entityMap, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
+        return update(EMPTY,collectionName,entityMap,queryChainWrapper);
+    }
+
+    @Override
+    public Boolean update(String database, String collectionName, Map<String, Object> entityMap, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
+        return null;
     }
 
     @Override

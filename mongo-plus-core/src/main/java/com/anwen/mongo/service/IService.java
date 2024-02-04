@@ -4,6 +4,7 @@ import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper;
 import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
+import com.anwen.mongo.conditions.query.QueryWrapper;
 import com.anwen.mongo.conditions.update.LambdaUpdateChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.model.PageParam;
@@ -123,6 +124,13 @@ public interface IService<T> {
      * @date 2023/10/20 0:51
      */
     Boolean update(UpdateChainWrapper<T,?> updateChainWrapper);
+
+    /**
+     * 根据条件修改
+     * @author JiaChaoYang
+     * @date 2024/2/3 13:10
+    */
+    Boolean update(T entity,QueryChainWrapper<T,?> queryChainWrapper);
 
     /**
      * 根据id删除
@@ -277,6 +285,24 @@ public interface IService<T> {
      * @date 2023/10/19 23:30
     */
     List<T> getByColumn(String field,Object fieldValue);
+
+    /**
+     * 是否存在
+     * @param id id
+     * @return java.lang.Boolean
+     * @author JiaChaoYang
+     * @date 2024/2/3 13:42
+    */
+    Boolean exist(Serializable id);
+
+    /**
+     * 是否存在
+     * @param queryChainWrapper wrapper条件
+     * @return java.lang.Boolean
+     * @author JiaChaoYang
+     * @date 2024/2/3 13:41
+    */
+    Boolean exist(QueryChainWrapper<T,?> queryChainWrapper);
 
     /**
      * 创建索引

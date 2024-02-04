@@ -5,6 +5,7 @@ import com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
+import com.anwen.mongo.conditions.query.QueryWrapper;
 import com.anwen.mongo.conditions.update.LambdaUpdateChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.execute.ExecutorFactory;
@@ -153,6 +154,11 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    public Boolean update(T entity, QueryChainWrapper<T, ?> queryChainWrapper) {
+        return factory.getExecute(database).update(entity,queryChainWrapper);
+    }
+
+    @Override
     public Boolean removeById(Serializable id) {
         return factory.getExecute(database).removeById(id,clazz);
     }
@@ -244,7 +250,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public PageResult<T> page(Integer pageNum, Integer pageSize) {
-        return page(new QueryChainWrapper<>(),pageNum,pageSize);
+        return page(new QueryWrapper<>(),pageNum,pageSize);
     }
 
     @Override
@@ -275,6 +281,16 @@ public class ServiceImpl<T> implements IService<T>{
     @Override
     public List<T> getByColumn(String field, Object fieldValue) {
         return factory.getExecute(database).getByColumn(field,fieldValue,clazz);
+    }
+
+    @Override
+    public Boolean exist(Serializable id) {
+        return factory.getExecute(database).isExist(id,clazz);
+    }
+
+    @Override
+    public Boolean exist(QueryChainWrapper<T, ?> queryChainWrapper) {
+        return factory.getExecute(database).isExist(queryChainWrapper,clazz);
     }
 
     @Override

@@ -24,7 +24,7 @@ import java.util.List;
  * @author JiaChaoYang
  * @date 2023/6/24/024 0:49
 */
-public class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Children>> implements Compare<T,Children> {
+public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Children>> implements Compare<T,Children> {
 
     protected final Children typedThis = (Children) this;
 

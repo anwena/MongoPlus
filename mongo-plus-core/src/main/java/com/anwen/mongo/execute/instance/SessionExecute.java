@@ -93,7 +93,7 @@ public class SessionExecute extends AbstractExecute {
 
     @Override
     public <T> FindIterable<T> doGetByIds(BasicDBObject queryBasic, MongoCollection<Document> collection, Class<T> clazz) {
-        return collection.find(queryBasic,clazz);
+        return collection.find(clientSession,queryBasic,clazz);
     }
 
     @Override
