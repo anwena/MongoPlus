@@ -8,12 +8,14 @@ import com.anwen.mongo.execute.instance.DefaultExecute;
 import com.anwen.mongo.execute.instance.SessionExecute;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.model.BaseProperty;
+import com.anwen.mongo.proxy.ExecutorProxy;
 import com.anwen.mongo.toolkit.StringPool;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.client.ClientSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Proxy;
 import java.util.Map;
 import java.util.Objects;
 
@@ -68,10 +70,14 @@ public class ExecutorFactory {
 
     public AbstractExecute getExecute(CollectionManager collectionManager){
         ClientSession clientSessionContext = MongoTransactionContext.getClientSessionContext();
+        AbstractExecute abstractExecute;
         if (clientSessionContext != null) {
-            return new SessionExecute(collectionNameConvert,collectionManager,clientSessionContext);
+            abstractExecute = new SessionExecute(collectionNameConvert,collectionManager,clientSessionContext);
+        }else {
+            abstractExecute = new DefaultExecute(collectionNameConvert, collectionManager);
         }
-        return new DefaultExecute(collectionNameConvert,collectionManager);
+        Class<? extends AbstractExecute> clazz = abstractExecute.getClass();
+        return (AbstractExecute) Proxy.newProxyInstance(clazz.getClassLoader(),clazz.getInterfaces(),new ExecutorProxy(abstractExecute));
     }
 
     public InjectAbstractExecute getInjectExecute(String database){

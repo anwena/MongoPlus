@@ -16,7 +16,6 @@ import com.mongodb.client.model.CreateIndexOptions;
 import com.mongodb.client.model.DropIndexOptions;
 import com.mongodb.client.model.IndexModel;
 import com.mongodb.client.model.IndexOptions;
-import com.sun.xml.internal.ws.util.xml.CDATA;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 

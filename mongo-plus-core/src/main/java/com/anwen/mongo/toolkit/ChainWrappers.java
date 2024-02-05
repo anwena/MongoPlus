@@ -44,11 +44,11 @@ public final class ChainWrappers {
     }
 
     public static <T> QueryChainWrapper<T, QueryWrapper<T>> lambdaQueryChain(){
-        return new QueryChainWrapper<>();
+        return new QueryWrapper<>();
     }
 
     public static QueryChainWrapper<Map<String,Object>, InjectQueryWrapper> lambdaQueryChainInject(){
-        return new QueryChainWrapper<>();
+        return new InjectQueryWrapper();
     }
 
     public static <T> AggregateChainWrapper<T, AggregateWrapper<T>> lambdaAggregateChain(){

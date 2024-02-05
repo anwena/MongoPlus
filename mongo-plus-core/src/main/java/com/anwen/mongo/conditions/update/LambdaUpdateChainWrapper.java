@@ -22,15 +22,12 @@ public class LambdaUpdateChainWrapper<T> extends UpdateChainWrapper<T,LambdaUpda
 
     @Override
     public boolean update(){
-        List<CompareCondition> compareConditionList = new ArrayList<>();
-        compareConditionList.addAll(getCompareList());
-        compareConditionList.addAll(getUpdateCompareList());
-        return factory.getExecute(database).update(compareConditionList,clazz);
+        return factory.getExecute(database).update(this,clazz);
     }
 
     @Override
     public boolean remove() {
-        return factory.getExecute(database).remove(getCompareList(),clazz);
+        return factory.getExecute(database).remove(this,clazz);
     }
 
 }
