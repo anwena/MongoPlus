@@ -50,12 +50,12 @@ public class LambdaQueryChainWrapper<T> extends QueryChainWrapper<T,LambdaQueryC
 
     @Override
     public PageResult<T> page(PageParam pageParam, Integer recentPageNum) {
-        return baseMapper.page(getCompareList(), getOrderList(), getProjectionList(), getBasicDBObjectList(), pageParam.getPageNum(), pageParam.getPageSize(), recentPageNum, clazz);
+        return baseMapper.page(this, pageParam.getPageNum(), pageParam.getPageSize(), recentPageNum, clazz);
     }
 
     @Override
     public PageResult<T> page(Integer pageNum, Integer pageSize, Integer recentPageNum) {
-        return baseMapper.page(getCompareList(), getOrderList(), getProjectionList(), getBasicDBObjectList(), pageNum, pageSize, recentPageNum, clazz);
+        return baseMapper.page(this, pageNum, pageSize, recentPageNum, clazz);
     }
 
     @Override

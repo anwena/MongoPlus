@@ -1,4 +1,4 @@
-package com.anwen.mongo.interceptor;
+package com.anwen.mongo.listener;
 
 import com.anwen.mongo.domain.MongoPlusInterceptorException;
 import com.anwen.mongo.model.command.CommandFailed;
@@ -11,11 +11,11 @@ import com.mongodb.event.CommandSucceededEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class BaseInterceptor implements CommandListener {
+public class BaseListener implements CommandListener {
 
-    private final MongoPlusInterceptor mongoPlusInterceptor = new MongoPlusInterceptor();
+    private final MongoPlusListener mongoPlusInterceptor = new MongoPlusListener();
 
-    private final Logger logger = LoggerFactory.getLogger(BaseInterceptor.class);
+    private final Logger logger = LoggerFactory.getLogger(BaseListener.class);
 
     @Override
     public void commandStarted(CommandStartedEvent event) {

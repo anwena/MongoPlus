@@ -1,18 +1,18 @@
 package com.anwen.mongo.cache.global;
 
-import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.listener.Listener;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 拦截器
- *
  * @author JiaChaoYang
+ * @project mongo-plus
+ * @description 监听器
+ * @date 2023-11-22 17:13
  **/
-public class InterceptorCache {
+public class ListenerCache {
 
-    public static List<Interceptor> interceptors = new ArrayList<>();
+    public static List<Listener> listeners = new ArrayList<>();
 
 }

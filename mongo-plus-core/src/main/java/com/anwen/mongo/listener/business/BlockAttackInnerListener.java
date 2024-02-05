@@ -1,7 +1,7 @@
-package com.anwen.mongo.interceptor.business;
+package com.anwen.mongo.listener.business;
 
 import com.anwen.mongo.cache.global.OrderCache;
-import com.anwen.mongo.interceptor.Interceptor;
+import com.anwen.mongo.listener.Listener;
 import com.anwen.mongo.model.command.CommandFailed;
 import com.anwen.mongo.model.command.CommandStarted;
 import com.anwen.mongo.model.command.CommandSucceeded;
@@ -14,9 +14,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author JiaChaoYang
  **/
-public class BlockAttackInnerInterceptor implements Interceptor {
+public class BlockAttackInnerListener implements Listener {
 
-    Logger logger = LoggerFactory.getLogger(BlockAttackInnerInterceptor.class);
+    Logger logger = LoggerFactory.getLogger(BlockAttackInnerListener.class);
 
     @Override
     public void commandStarted(CommandStarted commandStarted) {

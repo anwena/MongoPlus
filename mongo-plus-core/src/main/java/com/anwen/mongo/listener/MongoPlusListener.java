@@ -1,6 +1,6 @@
-package com.anwen.mongo.interceptor;
+package com.anwen.mongo.listener;
 
-import com.anwen.mongo.cache.global.InterceptorCache;
+import com.anwen.mongo.cache.global.ListenerCache;
 import com.anwen.mongo.model.command.CommandFailed;
 import com.anwen.mongo.model.command.CommandStarted;
 import com.anwen.mongo.model.command.CommandSucceeded;
@@ -11,21 +11,21 @@ import com.anwen.mongo.model.command.CommandSucceeded;
  * @description MongoPlus拦截器
  * @date 2023-11-22 14:55
  **/
-public class MongoPlusInterceptor implements Interceptor {
+public class MongoPlusListener implements Listener {
 
     @Override
     public void commandStarted(CommandStarted commandStarted) {
-        InterceptorCache.interceptors.forEach(interceptor -> interceptor.commandStarted(commandStarted));
+        ListenerCache.listeners.forEach(interceptor -> interceptor.commandStarted(commandStarted));
     }
 
     @Override
     public void commandSucceeded(CommandSucceeded commandSucceeded) {
-        InterceptorCache.interceptors.forEach(interceptor -> interceptor.commandSucceeded(commandSucceeded));
+        ListenerCache.listeners.forEach(interceptor -> interceptor.commandSucceeded(commandSucceeded));
     }
 
     @Override
     public void commandFailed(CommandFailed commandFailed) {
-        InterceptorCache.interceptors.forEach(interceptor -> interceptor.commandFailed(commandFailed));
+        ListenerCache.listeners.forEach(interceptor -> interceptor.commandFailed(commandFailed));
     }
 
     @Override

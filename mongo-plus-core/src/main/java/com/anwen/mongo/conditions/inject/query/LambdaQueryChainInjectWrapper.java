@@ -19,10 +19,10 @@ import static com.anwen.mongo.toolkit.StringPool.EMPTY;
  **/
 public class LambdaQueryChainInjectWrapper extends QueryChainWrapper<Map<String,Object>, LambdaQueryChainInjectWrapper> implements ChainInject {
 
-    private final BaseMapper baseMapper;
+    private final ExecutorFactory factory;
 
-    public LambdaQueryChainInjectWrapper(BaseMapper baseMapper) {
-        this.baseMapper = baseMapper;
+    public LambdaQueryChainInjectWrapper(ExecutorFactory factory) {
+        this.factory = factory;
     }
 
     @Override
@@ -32,8 +32,7 @@ public class LambdaQueryChainInjectWrapper extends QueryChainWrapper<Map<String,
 
     @Override
     public List<Map<String, Object>> list(String database, String collectionName) {
-//        return factory.getInjectExecute(database).list(collectionName,getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList());
-        return null;
+        return factory.getInjectExecute(database).list(collectionName,getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList());
     }
 
     @Override
@@ -43,8 +42,7 @@ public class LambdaQueryChainInjectWrapper extends QueryChainWrapper<Map<String,
 
     @Override
     public Map<String, Object> limitOne(String database, String collectionName) {
-//        return factory.getInjectExecute(database).limitOne(collectionName,getCompareList(),getProjectionList(),getBasicDBObjectList(),getOrderList());
-        return null;
+        return factory.getInjectExecute(database).limitOne(collectionName,getCompareList(),getProjectionList(),getBasicDBObjectList(),getOrderList());
     }
 
     @Override
@@ -54,8 +52,7 @@ public class LambdaQueryChainInjectWrapper extends QueryChainWrapper<Map<String,
 
     @Override
     public PageResult<Map<String, Object>> page(String database, String collectionName, PageParam pageParam) {
-//        return factory.getInjectExecute(database).page(collectionName,getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList(),pageParam.getPageNum(),pageParam.getPageSize());
-        return null;
+        return factory.getInjectExecute(database).page(collectionName,getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList(),pageParam.getPageNum(),pageParam.getPageSize());
     }
 
     @Override
@@ -65,8 +62,7 @@ public class LambdaQueryChainInjectWrapper extends QueryChainWrapper<Map<String,
 
     @Override
     public PageResult<Map<String, Object>> page(String database, String collectionName, Integer pageNum, Integer pageSize) {
-//        return factory.getInjectExecute(database).page(collectionName,getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList(),pageNum,pageSize);
-        return null;
+        return factory.getInjectExecute(database).page(collectionName,getCompareList(),getOrderList(),getProjectionList(),getBasicDBObjectList(),pageNum,pageSize);
     }
 
     @Override
@@ -76,8 +72,7 @@ public class LambdaQueryChainInjectWrapper extends QueryChainWrapper<Map<String,
 
     @Override
     public Map<String, Object> one(String database, String collectionName) {
-//        return factory.getInjectExecute(database).one(collectionName,getCompareList(),getProjectionList(),getBasicDBObjectList());
-        return null;
+        return factory.getInjectExecute(database).one(collectionName,getCompareList(),getProjectionList(),getBasicDBObjectList());
     }
 
     @Override
@@ -87,7 +82,6 @@ public class LambdaQueryChainInjectWrapper extends QueryChainWrapper<Map<String,
 
     @Override
     public long count(String database, String collectionName) {
-//        return factory.getInjectExecute(database).count(collectionName,getCompareList());
-        return 0;
+        return factory.getInjectExecute(database).count(collectionName,getCompareList());
     }
 }

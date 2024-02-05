@@ -45,10 +45,6 @@ public interface BaseMapper{
 
     <T> Boolean update(T entity,QueryChainWrapper<T,?> queryChainWrapper);
 
-    <T> Boolean updateByColumn(T entity, String column);
-
-    Boolean removeByColumn(String column, Object value,Class<?> clazz);
-
     <T> List<T> list(Class<T> clazz);
 
     <T> List<T> list(QueryChainWrapper<T,?> queryChainWrapper, Class<T> clazz);
@@ -61,7 +57,7 @@ public interface BaseMapper{
 
     <T> PageResult<T> page(QueryChainWrapper<T,?> queryChainWrapper, Integer pageNum, Integer pageSize, Class<T> clazz);
 
-    <T> PageResult<T> page(List<CompareCondition> compareConditionList, List<Order> orderList, List<Projection> projectionList, List<BasicDBObject> basicDBObjectList, Integer pageNum, Integer pageSize, Integer recentPageNum, Class<T> clazz);
+    <T> PageResult<T> page(QueryChainWrapper<T,?> queryChainWrapper, Integer pageNum, Integer pageSize, Integer recentPageNum, Class<T> clazz);
 
     <T> T getById(Serializable id,Class<T> clazz);
 

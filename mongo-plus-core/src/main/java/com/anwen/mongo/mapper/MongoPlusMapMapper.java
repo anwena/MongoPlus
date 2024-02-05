@@ -1,4 +1,4 @@
-/*
+
 package com.anwen.mongo.mapper;
 
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
@@ -29,41 +29,36 @@ import java.util.Map;
 
 import static com.anwen.mongo.toolkit.StringPool.EMPTY;
 
-*/
 /**
  * @author JiaChaoYang
- **//*
+ **/
 
 public class MongoPlusMapMapper implements InjectQuery {
     private final ExecutorFactory factory;
 
     private final MongoPlusClient mongoPlusClient;
 
-    public MongoPlusMapMapper(ExecutorFactory factory, MongoPlusClient mongoPlusClient) {
-        this.factory = factory;
+    public MongoPlusMapMapper(MongoPlusClient mongoPlusClient) {
         this.mongoPlusClient = mongoPlusClient;
+        factory = new ExecutorFactory();
     }
 
-    */
-/**
+    /**
      * 获取当前操作对象的连接，以便使用MongoDriver的语法
      * @author JiaChaoYang
      * @date 2023/11/15 13:43
-     *//*
-
+     */
     public MongoCollection<Document> getMongoCollection(String database,String collectionName){
-        return factory.getCollectionManager(database).getCollection(collectionName);
+        return mongoPlusClient.getCollection(database,collectionName);
     }
 
-    */
-/**
+    /**
      * 获取当前操作对象的连接，以便使用MongoDriver的语法
      * @author JiaChaoYang
      * @date 2023/11/15 13:43
-     *//*
-
+     */
     public MongoCollection<Document> getMongoCollection(String collectionName){
-        return factory.getCollectionManager(EMPTY).getCollection(collectionName);
+        return mongoPlusClient.getCollection(EMPTY,collectionName);
     }
 
     public LambdaQueryChainInjectWrapper lambdaQuery(){
@@ -501,4 +496,3 @@ public class MongoPlusMapMapper implements InjectQuery {
         return factory.getInjectExecute(database).count(collectionName);
     }
 }
-*/

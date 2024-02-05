@@ -2,10 +2,11 @@ package com.anwen.mongo.config;
 
 import com.anwen.mongo.cache.global.MongoPlusClientCache;
 import com.anwen.mongo.convert.CollectionNameConvert;
-import com.anwen.mongo.interceptor.BaseInterceptor;
+import com.anwen.mongo.listener.BaseListener;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.mapper.DefaultBaseMapperImpl;
+import com.anwen.mongo.mapper.MongoPlusMapMapper;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBConfigurationProperty;
 import com.anwen.mongo.property.MongoDBConnectProperty;
@@ -51,7 +52,7 @@ public class MongoPlusConfiguration {
     @ConditionalOnMissingBean
     public MongoClient mongo(){
         return MongoClients.create(MongoClientSettings.builder()
-                .applyConnectionString(new ConnectionString(new UrlJoint(mongoDBConnectProperty).jointMongoUrl())).commandListenerList(Collections.singletonList(new BaseInterceptor())).build());
+                .applyConnectionString(new ConnectionString(new UrlJoint(mongoDBConnectProperty).jointMongoUrl())).commandListenerList(Collections.singletonList(new BaseListener())).build());
     }
 
     @Bean
@@ -87,11 +88,11 @@ public class MongoPlusConfiguration {
         return new DefaultBaseMapperImpl(mongoPlusClient);
     }
 
-/*    @Bean("mongoPlusMapMapper")
+    @Bean("mongoPlusMapMapper")
     @ConditionalOnMissingBean
-    public MongoPlusMapMapper mongoPlusMapMapper(ExecutorFactory factory) {
-        return new MongoPlusMapMapper(factory);
-    }*/
+    public MongoPlusMapMapper mongoPlusMapMapper(MongoPlusClient mongoPlusClient) {
+        return new MongoPlusMapMapper(mongoPlusClient);
+    }
 
     @Bean("mongoTransactionalAspect")
     @ConditionalOnMissingBean

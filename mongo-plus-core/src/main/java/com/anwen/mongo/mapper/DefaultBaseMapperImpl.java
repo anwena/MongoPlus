@@ -111,52 +111,9 @@ public class DefaultBaseMapperImpl implements BaseMapper {
     }
 
     @Override
-    public <T> Boolean saveOrUpdateWrapper(T entity,QueryChainWrapper<T, ?> queryChainWrapper){
-        long count = count(queryChainWrapper, entity.getClass());
-        if (count > 0){
-            Pair<BasicDBObject, BasicDBObject> updatePair = getUpdateCondition(queryChainWrapper.getCompareList(), entity);
-            return factory.getExecute().executeUpdate(updatePair.getKey(),updatePair.getValue(),mongoPlusClient.getCollection(ClassTypeUtil.getClass(entity))).getModifiedCount() >= 1;
-        }
-        return save(entity);
-    }
-
-    @Override
-    public <T> Boolean saveOrUpdateBatch(Collection<T> entityList) {
-        List<WriteModel<Document>> writeModelList = new ArrayList<>();
-        entityList.forEach(entity -> {
-            String idByEntity = ClassTypeUtil.getIdByEntity(entity, true);
-            if (StringUtils.isBlank(idByEntity)){
-                writeModelList.add(new InsertOneModel<>(processIdField(entity,false)));
-            } else {
-                Pair<BasicDBObject,BasicDBObject> basicDBObjectPair = getUpdate(entity);
-                writeModelList.add(new UpdateManyModel<>(basicDBObjectPair.getKey(),basicDBObjectPair.getValue()));
-            }
-        });
-        BulkWriteResult bulkWriteResult = factory.getExecute().executeBulkWrite(writeModelList,mongoPlusClient.getCollection(entityList.stream().findFirst().get().getClass()));
-        return (bulkWriteResult.getModifiedCount() + bulkWriteResult.getInsertedCount()) == entityList.size();
-    }
-
-    @Override
     public Integer bulkWrite(List<WriteModel<Document>> writeModelList, Class<?> clazz) {
         BulkWriteResult bulkWriteResult = factory.getExecute().executeBulkWrite(writeModelList,mongoPlusClient.getCollection(clazz));
         return bulkWriteResult.getModifiedCount() + bulkWriteResult.getInsertedCount();
-    }
-
-    @Override
-    public <T> Boolean saveOrUpdateBatchWrapper(Collection<T> entityList,QueryChainWrapper<T, ?> queryChainWrapper){
-        Class<?> clazz = entityList.stream().findFirst().get().getClass();
-        List<WriteModel<Document>> writeModelList = new ArrayList<>();
-        entityList.forEach(entity -> {
-            long count = count(queryChainWrapper, clazz);
-            if (count > 0){
-                Pair<BasicDBObject, BasicDBObject> updatePair = getUpdateCondition(queryChainWrapper.getCompareList(), entity);
-                writeModelList.add(new UpdateManyModel<>(updatePair.getKey(),updatePair.getValue()));
-            } else {
-                writeModelList.add(new InsertOneModel<>(processIdField(entity,false)));
-            }
-        });
-        BulkWriteResult bulkWriteResult = factory.getExecute().executeBulkWrite(writeModelList, mongoPlusClient.getCollection(clazz));
-        return (bulkWriteResult.getModifiedCount() + bulkWriteResult.getInsertedCount()) == entityList.size();
     }
 
     @Override
@@ -165,67 +122,14 @@ public class DefaultBaseMapperImpl implements BaseMapper {
         return factory.getExecute().executeUpdate(updatePair.getKey(),updatePair.getValue(),mongoPlusClient.getCollection(ClassTypeUtil.getClass(entity))).getModifiedCount() > 0;
     }
 
-    @Override
-    public <T> Boolean updateById(T entity) {
-        Pair<BasicDBObject,BasicDBObject> basicDBObjectPair = getUpdate(entity);
-        MongoCollection<Document> collection = mongoPlusClient.getCollection(ClassTypeUtil.getClass(entity));
-        return factory.getExecute().executeUpdate(basicDBObjectPair.getKey(),basicDBObjectPair.getValue(),collection).getModifiedCount() >= 1;
-    }
-
-    @Override
-    public <T> Boolean updateBatchByIds(Collection<T> entityList) {
-        List<WriteModel<Document>> writeModelList = new ArrayList<>();
-        entityList.forEach(entity -> {
-            Pair<BasicDBObject,BasicDBObject> basicDBObjectPair = getUpdate(entity);
-            writeModelList.add(new UpdateManyModel<>(basicDBObjectPair.getKey(),basicDBObjectPair.getValue()));
-        });
-        BulkWriteResult bulkWriteResult = factory.getExecute().executeBulkWrite(writeModelList,mongoPlusClient.getCollection(entityList.stream().findFirst().get().getClass()));
-        return bulkWriteResult.getModifiedCount() == entityList.size();
-    }
-
-    @Override
-    public <T> Boolean updateByColumn(T entity, SFunction<T, Object> column) {
-        return updateByColumn(entity,column.getFieldNameLine());
-    }
-
-    @Override
-    public <T> Boolean updateByColumn(T entity, String column) {
-        Object filterValue = ClassTypeUtil.getClassFieldValue(entity,column);
-        String valueOf = String.valueOf(filterValue);
-        Bson filter = Filters.eq(column, ObjectId.isValid(valueOf) ? new ObjectId(valueOf) : filterValue);
-        Document document = DocumentUtil.checkUpdateField(entity,false);
-        MongoCollection<Document> collection = mongoPlusClient.getCollection(ClassTypeUtil.getClass(entity));
-        return factory.getExecute().executeUpdate(filter,document,collection).getModifiedCount() >= 1;
-    }
-
-    @Override
-    public Boolean removeById(Serializable id, Class<?> clazz) {
-        return buildRemove( id, mongoPlusClient.getCollection(clazz));
-    }
-
     private Boolean buildRemove(Serializable id, MongoCollection<Document> collection) {
         Bson filterId = Filters.eq(SqlOperationConstant._ID, ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id);
         return factory.getExecute().executeRemove(filterId,collection).getDeletedCount() >= 1;
     }
 
-    @Override
-    public <T> Boolean removeByColumn(SFunction<T, Object> column, Object value,Class<T> clazz) {
-        return removeByColumn(column.getFieldNameLine(),value,clazz);
-    }
-
-    @Override
-    public Boolean removeByColumn(String column, Object value,Class<?> clazz) {
-        return executeRemoveByColumn(column,value,mongoPlusClient.getCollection(clazz));
-    }
-
     public Boolean executeRemoveByColumn(String column,Object value,MongoCollection<Document> collection){
         Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(value)) ? new ObjectId(String.valueOf(value)) : value);
         return factory.getExecute().executeRemove(filter,collection).getDeletedCount() >= 1;
-    }
-
-    @Override
-    public Boolean removeBatchByIds(Collection<? extends Serializable> idList,Class<?> clazz) {
-        return executeRemoveBatchByIds(idList,mongoPlusClient.getCollection(clazz));
     }
 
     private Boolean executeRemoveBatchByIds(Collection<? extends Serializable> idList,MongoCollection<Document> collection){
@@ -287,10 +191,10 @@ public class DefaultBaseMapperImpl implements BaseMapper {
     }
 
     @Override
-    public <T> PageResult<T> page(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, Integer pageNum, Integer pageSize, Integer recentPageNum, Class<T> clazz) {
-        BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(compareConditionList, orderList, projectionList, basicDBObjectList);
+    public <T> PageResult<T> page(QueryChainWrapper<T,?> queryChainWrapper, Integer pageNum, Integer pageSize, Integer recentPageNum, Class<T> clazz) {
+        BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
         FindIterable<Document> iterable = factory.getExecute().executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), mongoPlusClient.getCollection(clazz),Document.class);
-        return lambdaOperate.getLambdaQueryResultPage(iterable, recentPageCount(compareConditionList,clazz, pageNum,  pageSize, recentPageNum),new PageParam(pageNum,pageSize),clazz);
+        return lambdaOperate.getLambdaQueryResultPage(iterable, recentPageCount(queryChainWrapper.getCompareList(),clazz, pageNum,  pageSize, recentPageNum),new PageParam(pageNum,pageSize),clazz);
     }
 
     @Override

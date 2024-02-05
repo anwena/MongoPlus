@@ -26,8 +26,7 @@ public class LambdaAggregateChainInjectWrapper extends AggregateChainWrapper<Map
 
     @Override
     public <E> List<E> list(String database, String collectionName, Class<E> clazz) {
-//        return factory.getInjectExecute(database).aggregateList(collectionName,super.getBaseAggregateList(),super.getBasicDBObjectList(),super.getOptionsBasicDBObject(),clazz);
-        return null;
+        return factory.getInjectExecute(database).aggregateList(collectionName,super.getBaseAggregateList(),super.getBasicDBObjectList(),super.getOptionsBasicDBObject(),clazz);
     }
 
     @Override
@@ -37,7 +36,6 @@ public class LambdaAggregateChainInjectWrapper extends AggregateChainWrapper<Map
 
     @Override
     public List<Map<String, Object>> list(String database, String collectionName) {
-//        return factory.getInjectExecute(database).aggregateList(collectionName,super.getBaseAggregateList(),super.getBasicDBObjectList(),super.getOptionsBasicDBObject());
-        return null;
+        return factory.getInjectExecute(database).aggregateList(collectionName,super.getBaseAggregateList(),super.getBasicDBObjectList(),super.getOptionsBasicDBObject());
     }
 }

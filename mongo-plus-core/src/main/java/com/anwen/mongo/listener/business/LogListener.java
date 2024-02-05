@@ -1,11 +1,11 @@
-package com.anwen.mongo.interceptor.business;
+package com.anwen.mongo.listener.business;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.anwen.mongo.cache.global.OrderCache;
 import com.anwen.mongo.cache.global.PropertyCache;
-import com.anwen.mongo.interceptor.Interceptor;
+import com.anwen.mongo.listener.Listener;
 import com.anwen.mongo.model.command.CommandFailed;
 import com.anwen.mongo.model.command.CommandStarted;
 import com.anwen.mongo.model.command.CommandSucceeded;
@@ -17,7 +17,7 @@ import java.util.Objects;
  * @author JiaChaoYang
  * @date 2023/11/22 10:54
 */
-public class LogInterceptor implements Interceptor {
+public class LogListener implements Listener {
 
     private String formattingStatement(String statement){
         return PropertyCache.format ? JSON.toJSONString(JSONObject.parse(statement), SerializerFeature.PrettyFormat, SerializerFeature.WriteMapNullValue,

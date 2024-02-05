@@ -2,9 +2,9 @@ package com.anwen.mongo.config;
 
 import com.anwen.mongo.cache.global.MongoPlusClientCache;
 import com.anwen.mongo.convert.CollectionNameConvert;
-import com.anwen.mongo.execute.ExecutorFactory;
-import com.anwen.mongo.interceptor.BaseInterceptor;
+import com.anwen.mongo.listener.BaseListener;
 import com.anwen.mongo.manager.MongoPlusClient;
+import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBConnectProperty;
@@ -47,7 +47,7 @@ public class MongoPlusConfiguration {
     @Condition(onMissingBean = MongoClient.class)
     public MongoClient mongoClient(){
         return MongoClients.create(MongoClientSettings.builder()
-                .applyConnectionString(new ConnectionString(new UrlJoint(mongoDBConnectProperty).jointMongoUrl())).commandListenerList(Collections.singletonList(new BaseInterceptor())).build());
+                .applyConnectionString(new ConnectionString(new UrlJoint(mongoDBConnectProperty).jointMongoUrl())).commandListenerList(Collections.singletonList(new BaseListener())).build());
     }
 
     @Bean
@@ -68,18 +68,9 @@ public class MongoPlusConfiguration {
     }
 
     @Bean
-    @Condition(onMissingBean = ExecutorFactory.class)
-    public ExecutorFactory executeFactory(CollectionNameConvert collectionNameConvert){
-        return ExecutorFactory.builder()
-                .baseProperty(mongoDBConnectProperty)
-                .collectionNameConvert(collectionNameConvert)
-                .build();
-    }
-
-    @Bean
     @Condition(onMissingBean = MongoPlusMapMapper.class)
-    public MongoPlusMapMapper mongoPlusMapMapper(ExecutorFactory factory) {
-        return new MongoPlusMapMapper(factory);
+    public MongoPlusMapMapper mongoPlusMapMapper(MongoPlusClient mongoPlusClient) {
+        return new MongoPlusMapMapper(mongoPlusClient);
     }
 
     @Bean("mongoTransactionalAspect")
@@ -90,11 +81,11 @@ public class MongoPlusConfiguration {
     }
 
     @Bean
-    public MongoPlusAutoConfiguration mongoPlusAutoConfiguration(@Inject ExecutorFactory factory,
+    public MongoPlusAutoConfiguration mongoPlusAutoConfiguration(@Inject BaseMapper baseMapper,
                                                                  @Inject MongoPlusClient mongoPlusClient,
                                                                  @Inject CollectionNameConvert collectionNameConvert,
                                                                  @Inject("${mongo-plus}") MongoDBLogProperty mongoDBLogProperty){
-        return new MongoPlusAutoConfiguration(factory,mongoPlusClient,collectionNameConvert,mongoDBLogProperty,mongoDBCollectionProperty);
+        return new MongoPlusAutoConfiguration(baseMapper,mongoPlusClient,collectionNameConvert,mongoDBLogProperty,mongoDBCollectionProperty);
     }
 
 }

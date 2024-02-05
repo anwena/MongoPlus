@@ -241,11 +241,6 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
-    public List<T> list() {
-        return baseMapper.list(clazz);
-    }
-
-    @Override
     public List<T> aggregateList(AggregateChainWrapper<T, ?> queryChainWrapper) {
         return baseMapper.aggregateList(queryChainWrapper,clazz);
     }
@@ -258,6 +253,11 @@ public class ServiceImpl<T> implements IService<T>{
     @Override
     public T limitOne(QueryChainWrapper<T, ?> queryChainWrapper) {
         return baseMapper.limitOne(queryChainWrapper,clazz);
+    }
+
+    @Override
+    public List<T> list() {
+        return baseMapper.list(clazz);
     }
 
     @Override
@@ -292,12 +292,12 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public PageResult<T> page(QueryChainWrapper<T,?> queryChainWrapper, Integer pageNum, Integer pageSize, Integer recentPageNum){
-        return baseMapper.page(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(), pageNum,pageSize,recentPageNum,clazz);
+        return baseMapper.page(queryChainWrapper, pageNum,pageSize,recentPageNum,clazz);
     }
 
     @Override
     public PageResult<T> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam, Integer recentPageNum) {
-        return baseMapper.page(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),pageParam.getPageNum(),pageParam.getPageSize(),recentPageNum,clazz);
+        return page(queryChainWrapper,pageParam.getPageNum(),pageParam.getPageSize(),recentPageNum);
     }
 
     @Override
@@ -317,7 +317,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public PageResult<T> page(Integer pageNum, Integer pageSize, Integer recentPageNum) {
-        return baseMapper.page(null,null,null,null,pageNum,pageSize,recentPageNum,clazz);
+        return baseMapper.page(new QueryWrapper<>(),pageNum,pageSize,recentPageNum,clazz);
     }
 
     @Override

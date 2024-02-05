@@ -1,12 +1,21 @@
 package com.anwen.mongo.proxy;
 
 import com.alibaba.fastjson.JSON;
+import com.anwen.mongo.cache.global.InterceptorCache;
+import com.anwen.mongo.enums.ExecuteMethodEnum;
 import com.anwen.mongo.execute.Execute;
+import com.anwen.mongo.model.AggregateBasicDBObject;
+import com.mongodb.BasicDBObject;
+import com.mongodb.client.model.CountOptions;
+import com.mongodb.client.model.WriteModel;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.List;
 
 /**
  * 执行器代理
@@ -27,12 +36,30 @@ public class ExecutorProxy implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        logger.info("目标：{}",JSON.toJSONString(proxy));
-        logger.info("方法：{}",method);
-        logger.info("参数：{}",JSON.toJSONString(args[0]));
-        logger.info("参数2：{}",args[1].getClass());
-        Object invoke = method.invoke(target, args);
-        logger.info("执行结束");
-        return invoke;
+        String name = method.getName();
+        InterceptorCache.interceptors.forEach(interceptor -> {
+            if (name.equals(ExecuteMethodEnum.SAVE.getMethod())){
+                interceptor.executeSave((List<Document>) args[0]);
+            }
+            if (name.equals(ExecuteMethodEnum.REMOVE.getMethod())){
+                interceptor.executeRemove((Bson) args[0]);
+            }
+            if (name.equals(ExecuteMethodEnum.UPDATE.getMethod())){
+                interceptor.executeUpdate((Bson) args[0], (Bson) args[1]);
+            }
+            if (name.equals(ExecuteMethodEnum.QUERY.getMethod())){
+                interceptor.executeQuery((Bson) args[0], (BasicDBObject) args[1], (BasicDBObject) args[2]);
+            }
+            if (name.equals(ExecuteMethodEnum.AGGREGATE.getMethod())){
+                interceptor.executeAggregate((List<AggregateBasicDBObject>) args[0]);
+            }
+            if (name.equals(ExecuteMethodEnum.COUNT.getMethod())){
+                interceptor.executeCount((BasicDBObject) args[0], (CountOptions) args[1]);
+            }
+            if (name.equals(ExecuteMethodEnum.BULK_WRITE.getMethod())){
+                interceptor.executeBulkWrite((List<WriteModel<Document>>) args[0]);
+            }
+        });
+        return method.invoke(target, args);
     }
 }

@@ -2,16 +2,15 @@ package com.anwen.mongo.config;
 
 import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.cache.global.HandlerCache;
-import com.anwen.mongo.cache.global.InterceptorCache;
+import com.anwen.mongo.cache.global.ListenerCache;
 import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.conn.ConnectMongoDB;
 import com.anwen.mongo.convert.CollectionNameConvert;
-import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.handlers.DocumentHandler;
 import com.anwen.mongo.handlers.MetaObjectHandler;
-import com.anwen.mongo.interceptor.Interceptor;
-import com.anwen.mongo.interceptor.business.BlockAttackInnerInterceptor;
-import com.anwen.mongo.interceptor.business.LogInterceptor;
+import com.anwen.mongo.listener.Listener;
+import com.anwen.mongo.listener.business.BlockAttackInnerListener;
+import com.anwen.mongo.listener.business.LogListener;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
@@ -167,18 +166,18 @@ public class MongoPlusAutoConfiguration {
      * @date 2023/11/22 18:39
      */
     private void setInterceptor(AppContext context){
-        List<Interceptor> interceptors = new ArrayList<>();
+        List<Listener> listeners = new ArrayList<>();
         if (mongoDBLogProperty.getLog()){
-            interceptors.add(new LogInterceptor());
+            listeners.add(new LogListener());
         }
         if (mongoDBCollectionProperty.getBlockAttackInner()){
-            interceptors.add(new BlockAttackInnerInterceptor());
+            listeners.add(new BlockAttackInnerListener());
         }
-        List<Interceptor> interceptorCollection = context.getBeansOfType(Interceptor.class);
-        if (CollUtil.isNotEmpty(interceptorCollection)){
-            interceptors.addAll(interceptorCollection);
+        List<Listener> listenerCollection = context.getBeansOfType(Listener.class);
+        if (CollUtil.isNotEmpty(listenerCollection)){
+            listeners.addAll(listenerCollection);
         }
-        InterceptorCache.interceptors = interceptors.stream().sorted(Comparator.comparingInt(Interceptor::getOrder)).collect(Collectors.toList());
+        ListenerCache.listeners = listeners.stream().sorted(Comparator.comparingInt(Listener::getOrder)).collect(Collectors.toList());
     }
 
 }
