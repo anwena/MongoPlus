@@ -13,6 +13,7 @@ import com.anwen.mongo.conditions.update.LambdaUpdateChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateWrapper;
 import com.anwen.mongo.execute.ExecutorFactory;
+import com.anwen.mongo.mapper.BaseMapper;
 
 import java.util.Map;
 
@@ -23,16 +24,16 @@ import java.util.Map;
 */
 public final class ChainWrappers {
 
-    public static <T> LambdaQueryChainWrapper<T> lambdaQueryChain(ExecutorFactory factory, Class<T> clazz,String database){
-        return new LambdaQueryChainWrapper<>(factory, clazz,database);
+    public static <T> LambdaQueryChainWrapper<T> lambdaQueryChain(BaseMapper baseMapper, Class<T> clazz){
+        return new LambdaQueryChainWrapper<>(baseMapper, clazz);
     }
 
-    public static <T> LambdaAggregateChainWrapper<T> lambdaAggregateChain(ExecutorFactory factory,Class<T> clazz,String database){
-        return new LambdaAggregateChainWrapper<>(factory,clazz,database);
+    public static <T> LambdaAggregateChainWrapper<T> lambdaAggregateChain(BaseMapper baseMapper, Class<T> clazz){
+        return new LambdaAggregateChainWrapper<>(baseMapper, clazz);
     }
 
-    public static <T> LambdaUpdateChainWrapper<T> lambdaUpdateChain(ExecutorFactory factory,Class<T> clazz,String database){
-        return new LambdaUpdateChainWrapper<>(factory,clazz,database);
+    public static <T> LambdaUpdateChainWrapper<T> lambdaUpdateChain(BaseMapper baseMapper, Class<T> clazz){
+        return new LambdaUpdateChainWrapper<>(baseMapper, clazz);
     }
 
     public static <T> UpdateChainWrapper<T, UpdateWrapper<T>> lambdaUpdateChain(){

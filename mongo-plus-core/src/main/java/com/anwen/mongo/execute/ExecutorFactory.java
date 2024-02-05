@@ -7,9 +7,10 @@ import com.anwen.mongo.execute.inject.InjectAbstractExecute;
 import com.anwen.mongo.execute.instance.DefaultExecute;
 import com.anwen.mongo.execute.instance.SessionExecute;
 import com.anwen.mongo.manager.MongoPlusClient;
+import com.anwen.mongo.mapper.BaseMapper;
+import com.anwen.mongo.mapper.DefaultBaseMapperImpl;
 import com.anwen.mongo.model.BaseProperty;
 import com.anwen.mongo.proxy.ExecutorProxy;
-import com.anwen.mongo.toolkit.StringPool;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.client.ClientSession;
 import org.slf4j.Logger;
@@ -18,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Proxy;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.anwen.mongo.toolkit.StringPool.EMPTY;
 
@@ -32,60 +34,38 @@ public class ExecutorFactory {
     private final Logger logger = LoggerFactory.getLogger(ExecutorFactory.class);
 
     /**
-     * 属性配置
-     * @author JiaChaoYang
-     * @date 2023/12/28 10:59
-     */
-    private BaseProperty baseProperty;
-
-    /**
-     * 集合名策略
-     * @author JiaChaoYang
-     * @date 2023/12/28 11:44
-    */
-    private CollectionNameConvert collectionNameConvert;
-
-    private MongoPlusClient mongoPlusClient;
-
-    /**
      * 获取执行器
      * @author JiaChaoYang
      * @date 2023/12/28 14:49
     */
-    public AbstractExecute getExecute(String database) {
-        return getExecute(getCollectionManager(database));
-    }
+/*    public BaseMapper getBaseMapper(String database) {
+        return getBaseMapper(getCollectionManager(database));
+    }*/
 
-    public AbstractExecute getExecute(){
-        return getExecute(getCollectionManager(EMPTY));
-    }
-
-    public Execute getExecuteInterface(String database){
-        return getExecute(getCollectionManager(database));
+/*    public Execute getExecuteInterface(String database){
+        return getBaseMapper(getCollectionManager(database));
     }
 
     public Execute getExecuteInterface(){
-        return getExecute(getCollectionManager(EMPTY));
-    }
+        return getBaseMapper(getCollectionManager(EMPTY));
+    }*/
 
-    public AbstractExecute getExecute(CollectionManager collectionManager){
+    public Execute getExecute(){
         ClientSession clientSessionContext = MongoTransactionContext.getClientSessionContext();
-        AbstractExecute abstractExecute;
-        if (clientSessionContext != null) {
-            abstractExecute = new SessionExecute(collectionNameConvert,collectionManager,clientSessionContext);
-        }else {
-            abstractExecute = new DefaultExecute(collectionNameConvert, collectionManager);
-        }
-        Class<? extends AbstractExecute> clazz = abstractExecute.getClass();
-        return (AbstractExecute) Proxy.newProxyInstance(clazz.getClassLoader(),clazz.getInterfaces(),new ExecutorProxy(abstractExecute));
+        Execute execute = Optional.ofNullable(clientSessionContext)
+                .map(clientSession -> (Execute) new SessionExecute(clientSession))
+                .orElseGet(DefaultExecute::new);
+        Class<? extends Execute> clazz = execute.getClass();
+        return (Execute) Proxy.newProxyInstance(clazz.getClassLoader(),clazz.getInterfaces(),new ExecutorProxy(execute));
+
     }
 
-    public InjectAbstractExecute getInjectExecute(String database){
+/*    public InjectAbstractExecute getInjectExecute(String database){
         CollectionManager collectionManager = getCollectionManager(database);
-        return new InjectAbstractExecute(collectionManager,getExecute(collectionManager));
-    }
+        return new InjectAbstractExecute(collectionManager, getBaseMapper(collectionManager));
+    }*/
 
-    public CollectionManager getCollectionManager(String database){
+/*    public CollectionManager getCollectionManager(String database){
         Map<String, CollectionManager> managerMap = mongoPlusClient.getCollectionManager();
         if (StringUtils.isBlank(database)){
             database = managerMap.keySet().stream().findFirst().get();
@@ -97,7 +77,7 @@ public class ExecutorFactory {
             mongoPlusClient.getCollectionManager().put(database,collectionManager);
         }
         return collectionManager;
-    }
+    }*/
 
 //    /**
 //     * 获取自定义执行器
@@ -123,100 +103,8 @@ public class ExecutorFactory {
 //        }
 //    }
 
-    public static ExecuteFactoryBuilder builder() {
-        return new ExecuteFactoryBuilder();
-    }
-
-    public BaseProperty getBaseProperty() {
-        return this.baseProperty;
-    }
-
-    public CollectionNameConvert getCollectionNameConvert() {
-        return this.collectionNameConvert;
-    }
-
-    public void setBaseProperty(BaseProperty baseProperty) {
-        this.baseProperty = baseProperty;
-    }
-
-    public void setCollectionNameConvert(CollectionNameConvert collectionNameConvert) {
-        this.collectionNameConvert = collectionNameConvert;
-    }
-
-    public void setMongoPlusClient(MongoPlusClient mongoPlusClient){
-        this.mongoPlusClient = mongoPlusClient;
-    }
-
-    public MongoPlusClient getMongoPlusClient(){
-        return this.mongoPlusClient;
-    }
-
-    protected boolean canEqual(Object other) {
-        return other instanceof ExecutorFactory;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof ExecutorFactory)) {
-            return false;
-        }
-        ExecutorFactory that = (ExecutorFactory) o;
-        return Objects.equals(logger, that.logger) && Objects.equals(getBaseProperty(), that.getBaseProperty()) && Objects.equals(getCollectionNameConvert(), that.getCollectionNameConvert()) && Objects.equals(getMongoPlusClient(), that.getMongoPlusClient());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(logger, getBaseProperty(), getCollectionNameConvert(), getMongoPlusClient());
-    }
-
-    @Override
-    public String toString() {
-        return "ExecutorFactory{" +
-                "baseProperty=" + baseProperty +
-                ", collectionNameConvert=" + collectionNameConvert +
-                ", mongoPlusClient=" + mongoPlusClient +
-                '}';
-    }
-
-    public ExecutorFactory(BaseProperty baseProperty, CollectionNameConvert collectionNameConvert, MongoPlusClient mongoPlusClient) {
-        this.baseProperty = baseProperty;
-        this.collectionNameConvert = collectionNameConvert;
-        this.mongoPlusClient = mongoPlusClient;
-    }
-
     public ExecutorFactory() {
     }
 
-    public static class ExecuteFactoryBuilder {
-        private BaseProperty baseProperty;
-        private CollectionNameConvert collectionNameConvert;
-
-        private MongoPlusClient mongoPlusClient;
-
-        ExecuteFactoryBuilder() {
-        }
-
-        public ExecuteFactoryBuilder baseProperty(BaseProperty baseProperty) {
-            this.baseProperty = baseProperty;
-            return this;
-        }
-
-        public ExecuteFactoryBuilder collectionNameConvert(CollectionNameConvert collectionNameConvert) {
-            this.collectionNameConvert = collectionNameConvert;
-            return this;
-        }
-
-        public ExecuteFactoryBuilder mongoPlusClient(MongoPlusClient mongoPlusClient){
-            this.mongoPlusClient = mongoPlusClient;
-            return this;
-        }
-
-        public ExecutorFactory build() {
-            return new ExecutorFactory(this.baseProperty, this.collectionNameConvert, mongoPlusClient);
-        }
-    }
 
 }

@@ -1,6 +1,6 @@
 package com.anwen.mongo.conditions.aggregate;
 
-import com.anwen.mongo.execute.ExecutorFactory;
+import com.anwen.mongo.mapper.BaseMapper;
 
 import java.util.List;
 
@@ -9,20 +9,17 @@ import java.util.List;
  **/
 public class LambdaAggregateChainWrapper<T> extends AggregateChainWrapper<T,LambdaAggregateChainWrapper<T>> implements ChainAggregate<T> {
 
-    private final ExecutorFactory factory;
-
-    private final String database;
+    private final BaseMapper baseMapper;
 
     private final Class<T> clazz;
 
-    public LambdaAggregateChainWrapper(ExecutorFactory factory,Class<T> clazz,String database) {
-        this.factory = factory;
+    public LambdaAggregateChainWrapper(BaseMapper baseMapper, Class<T> clazz) {
+        this.baseMapper = baseMapper;
         this.clazz = clazz;
-        this.database = database;
     }
 
     @Override
     public List<T> list() {
-        return factory.getExecute(database).aggregateList(this,clazz);
+        return baseMapper.aggregateList(this,clazz);
     }
 }

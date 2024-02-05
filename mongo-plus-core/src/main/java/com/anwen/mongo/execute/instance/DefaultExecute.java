@@ -4,6 +4,7 @@ import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.execute.AbstractExecute;
+import com.anwen.mongo.execute.Execute;
 import com.anwen.mongo.model.AggregateBasicDBObject;
 import com.mongodb.BasicDBObject;
 import com.mongodb.bulk.BulkWriteResult;
@@ -19,6 +20,7 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 默认执行器实例
@@ -27,25 +29,15 @@ import java.util.List;
  * @project mongo-plus
  * @date 2023-12-28 11:03
  **/
-public class DefaultExecute extends AbstractExecute {
-
-
-    public DefaultExecute(CollectionNameConvert collectionNameConvert, CollectionManager collectionManager) {
-        super(collectionNameConvert, collectionManager);
-    }
+public class DefaultExecute implements Execute {
 
     @Override
-    public InsertOneResult doSave(Document document, MongoCollection<Document> collection) {
-        return collection.insertOne(document);
-    }
-
-    @Override
-    public InsertManyResult doSaveBatch(List<Document> documentList, MongoCollection<Document> collection) {
+    public InsertManyResult executeSave(List<Document> documentList, MongoCollection<Document> collection) {
         return collection.insertMany(documentList);
     }
 
     @Override
-    public BulkWriteResult bulkWrite(List<WriteModel<Document>> writeModelList, MongoCollection<Document> collection) {
+    public BulkWriteResult executeBulkWrite(List<WriteModel<Document>> writeModelList, MongoCollection<Document> collection) {
         return collection.bulkWrite(writeModelList);
     }
 
@@ -55,93 +47,27 @@ public class DefaultExecute extends AbstractExecute {
     }
 
     @Override
-    public FindIterable<Document> doList(MongoCollection<Document> collection) {
-        return collection.find();
+    public <T> FindIterable<T> executeQuery(Bson queryBasic, BasicDBObject projectionList, BasicDBObject sortCond, MongoCollection<Document> collection, Class<T> clazz) {
+        return Optional.ofNullable(queryBasic)
+                .map(qb -> collection.find(qb,clazz))
+                .orElseGet(() -> collection.find(clazz))
+                .projection(projectionList)
+                .sort(sortCond);
     }
 
     @Override
-    public <T> FindIterable<T> doList(MongoCollection<Document> collection, Class<T> clazz) {
-        return collection.find(clazz);
-    }
-
-    @Override
-    public FindIterable<Document> doList(BasicDBObject basicDBObject, BasicDBObject projectionList, BasicDBObject sortCond, MongoCollection<Document> collection) {
-        return collection.find(basicDBObject).projection(projectionList).sort(sortCond);
-    }
-
-    @Override
-    public <T> FindIterable<T> doList(BasicDBObject basicDBObject, BasicDBObject projectionList, BasicDBObject sortCond, MongoCollection<Document> collection, Class<T> clazz) {
-        return collection.find(basicDBObject,clazz).projection(projectionList).sort(sortCond);
-    }
-
-    @Override
-    public AggregateIterable<Document> doAggregateList(List<AggregateBasicDBObject> aggregateConditionList, MongoCollection<Document> collection) {
-        return collection.aggregate(aggregateConditionList);
-    }
-
-    @Override
-    public <T> AggregateIterable<T> doAggregateList(List<AggregateBasicDBObject> aggregateConditionList, MongoCollection<Document> collection, Class<T> clazz) {
+    public <T> AggregateIterable<T> executeAggregate(List<AggregateBasicDBObject> aggregateConditionList, MongoCollection<Document> collection, Class<T> clazz) {
         return collection.aggregate(aggregateConditionList, clazz);
     }
 
     @Override
-    public FindIterable<Document> doGetById(BasicDBObject queryBasic, MongoCollection<Document> collection) {
-        return collection.find(queryBasic);
-    }
-
-    @Override
-    public <T> FindIterable<T> doGetByIds(BasicDBObject queryBasic, MongoCollection<Document> collection, Class<T> clazz) {
-        return collection.find(queryBasic,clazz);
-    }
-
-    @Override
-    public long executeExist(BasicDBObject queryBasic, MongoCollection<Document> collection) {
-        return collection.countDocuments(queryBasic);
+    public long executeCount(BasicDBObject queryBasic, CountOptions countOptions, MongoCollection<Document> collection) {
+        return Optional.ofNullable(countOptions).map(co -> collection.countDocuments(queryBasic,co)).orElseGet(() -> collection.countDocuments(queryBasic));
     }
 
     @Override
     public UpdateResult executeUpdate(Bson queryBasic, Bson updateBasic, MongoCollection<Document> collection) {
         return collection.updateMany(queryBasic,updateBasic);
-    }
-
-    @Override
-    public DeleteResult executeRemove(BasicDBObject deleteBasic, MongoCollection<Document> collection) {
-        return collection.deleteMany(deleteBasic);
-    }
-
-    @Override
-    public long executeCountByCondition(BasicDBObject basicDBObject, MongoCollection<Document> collection) {
-        return collection.countDocuments(basicDBObject);
-    }
-
-    @Override
-    public long executeCountByCondition(BasicDBObject basicDBObject, MongoCollection<Document> collection, CountOptions var2) {
-        return collection.countDocuments(basicDBObject, var2);
-    }
-
-    @Override
-    public long doCount(MongoCollection<Document> collection) {
-        return collection.countDocuments();
-    }
-
-    @Override
-    public FindIterable<Document> doQueryCommand(BasicDBObject basicDBObject, MongoCollection<Document> collection) {
-        return collection.find(basicDBObject);
-    }
-
-    @Override
-    public <T> FindIterable<T> doQueryCommand(BasicDBObject basicDBObject, MongoCollection<Document> collection, Class<T> clazz) {
-        return collection.find(basicDBObject,clazz);
-    }
-
-    @Override
-    public FindIterable<Document> doGetByColumn(Bson filter, MongoCollection<Document> collection) {
-        return collection.find(filter);
-    }
-
-    @Override
-    public <T> FindIterable<T> doGetByColumn(Bson filter, MongoCollection<Document> collection, Class<T> clazz) {
-        return collection.find(filter,clazz);
     }
 
     @Override

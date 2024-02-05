@@ -2,10 +2,10 @@ package com.anwen.mongo.config;
 
 import com.anwen.mongo.cache.global.MongoPlusClientCache;
 import com.anwen.mongo.convert.CollectionNameConvert;
-import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.interceptor.BaseInterceptor;
 import com.anwen.mongo.manager.MongoPlusClient;
-import com.anwen.mongo.mapper.MongoPlusMapMapper;
+import com.anwen.mongo.mapper.BaseMapper;
+import com.anwen.mongo.mapper.DefaultBaseMapperImpl;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBConfigurationProperty;
 import com.anwen.mongo.property.MongoDBConnectProperty;
@@ -16,15 +16,11 @@ import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
-import org.springframework.beans.factory.FactoryBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.mongo.MongoProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.stream.Collectors;
 
 /**
  * @author JiaChaoYang
@@ -40,10 +36,10 @@ public class MongoPlusConfiguration {
 
     private final MongoDBConfigurationProperty mongoDBConfigurationProperty;
 
-    public MongoPlusConfiguration(MongoDBConnectProperty mongoDBConnectProperty, MongoDBCollectionProperty mongoDBCollectionProperty, MongoDBConfigurationProperty mongoDBConfigurationProperty) {
-        this.mongoDBConnectProperty = mongoDBConnectProperty;
-        this.mongoDBCollectionProperty = mongoDBCollectionProperty;
-        this.mongoDBConfigurationProperty = mongoDBConfigurationProperty;
+    public MongoPlusConfiguration(MongoDBConnectProperty mongodbConnectProperty, MongoDBCollectionProperty mongodbCollectionProperty, MongoDBConfigurationProperty mongodbConfigurationProperty) {
+        this.mongoDBConnectProperty = mongodbConnectProperty;
+        this.mongoDBCollectionProperty = mongodbCollectionProperty;
+        this.mongoDBConfigurationProperty = mongodbConfigurationProperty;
     }
 
     /**
@@ -59,11 +55,18 @@ public class MongoPlusConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean(CollectionNameConvert.class)
+    public CollectionNameConvert collectionNameConvert(){
+        return MongoCollectionUtils.build(mongoDBCollectionProperty.getMappingStrategy());
+    }
+
+    @Bean
     @ConditionalOnMissingBean(MongoPlusClient.class)
-    public MongoPlusClient mongoPlusClient(MongoClient mongo){
+    public MongoPlusClient mongoPlusClient(MongoClient mongo,CollectionNameConvert collectionNameConvert){
         MongoPlusClient mongoPlusClient = new MongoPlusClient();
         mongoPlusClient.setMongoClient(mongo);
         mongoPlusClient.setBaseProperty(mongoDBConnectProperty);
+        mongoPlusClient.setCollectionNameConvert(collectionNameConvert);
         MongoPlusClientCache.mongoPlusClient = mongoPlusClient;
         if (mongoDBConfigurationProperty.getBanner()){
             System.out.println("___  ___                       ______ _           \n" +
@@ -79,26 +82,16 @@ public class MongoPlusConfiguration {
     }
 
     @Bean
-    @ConditionalOnMissingBean(CollectionNameConvert.class)
-    public CollectionNameConvert collectionNameConvert(){
-        return MongoCollectionUtils.build(mongoDBCollectionProperty.getMappingStrategy());
+    @ConditionalOnMissingBean(BaseMapper.class)
+    public BaseMapper baseMapper(MongoPlusClient mongoPlusClient){
+        return new DefaultBaseMapperImpl(mongoPlusClient);
     }
 
-    @Bean
-    @ConditionalOnMissingBean
-    public ExecutorFactory factory(CollectionNameConvert collectionNameConvert,MongoPlusClient mongoPlusClient){
-        return ExecutorFactory.builder()
-                .baseProperty(mongoDBConnectProperty)
-                .mongoPlusClient(mongoPlusClient)
-                .collectionNameConvert(collectionNameConvert)
-                .build();
-    }
-
-    @Bean("mongoPlusMapMapper")
+/*    @Bean("mongoPlusMapMapper")
     @ConditionalOnMissingBean
     public MongoPlusMapMapper mongoPlusMapMapper(ExecutorFactory factory) {
         return new MongoPlusMapMapper(factory);
-    }
+    }*/
 
     @Bean("mongoTransactionalAspect")
     @ConditionalOnMissingBean

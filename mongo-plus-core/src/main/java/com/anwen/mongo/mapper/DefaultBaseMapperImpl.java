@@ -1,4 +1,4 @@
-package com.anwen.mongo.execute;
+package com.anwen.mongo.mapper;
 
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.cache.global.HandlerCache;
@@ -9,7 +9,6 @@ import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
-import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.context.MongoTransactionContext;
 import com.anwen.mongo.convert.CollectionNameConvert;
@@ -18,6 +17,8 @@ import com.anwen.mongo.domain.MongoQueryException;
 import com.anwen.mongo.enums.AggregateOptionsEnum;
 import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
+import com.anwen.mongo.execute.ExecutorFactory;
+import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.model.*;
 import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.support.SFunction;
@@ -29,7 +30,6 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.*;
 import com.mongodb.client.result.InsertManyResult;
-import com.mongodb.client.result.InsertOneResult;
 import javafx.util.Pair;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -48,31 +48,38 @@ import java.util.stream.Collectors;
 import static com.anwen.mongo.toolkit.BeanMapUtilByReflect.getIdField;
 
 /**
- * 执行器抽象类
+ * baseMapper默认实现
  *
  * @author JiaChaoYang
  * @project mongo-plus
- * @date 2023-12-28 11:01
+ * @date 2024-02-05 11:47
  **/
-public abstract class AbstractExecute implements Execute {
-
-    private final Logger logger = LoggerFactory.getLogger(AbstractExecute.class);
-
-    private final CollectionManager collectionManager;
+public class DefaultBaseMapperImpl implements BaseMapper {
+    private final Logger logger = LoggerFactory.getLogger(DefaultBaseMapperImpl.class);
 
     private final CollectionNameConvert collectionNameConvert;
 
+    private final MongoPlusClient mongoPlusClient;
+
     private final LambdaOperate lambdaOperate = new LambdaOperate();
 
-    public AbstractExecute(CollectionNameConvert collectionNameConvert, CollectionManager collectionManager) {
-        this.collectionNameConvert = collectionNameConvert;
-        this.collectionManager = collectionManager;
+    private final ExecutorFactory factory = new ExecutorFactory();
+
+    public DefaultBaseMapperImpl(MongoPlusClient mongoPlusClient) {
+        this.collectionNameConvert = mongoPlusClient.getCollectionNameConvert();
+        this.mongoPlusClient = mongoPlusClient;
     }
 
+    @Override
+    public MongoPlusClient getMongoPlusClient() {
+        return mongoPlusClient;
+    }
+
+    @Override
     public <T> boolean save(T entity){
         try {
             Document document = processIdField(entity,false);
-            InsertManyResult insertManyResult = executeSave(Collections.singletonList(document), collectionManager.getCollection(ClassTypeUtil.getClass(entity)));
+            InsertManyResult insertManyResult = factory.getExecute().executeSave(Collections.singletonList(document), mongoPlusClient.getCollection(ClassTypeUtil.getClass(entity)));
             setBackIdValue(document, entity);
             return insertManyResult.wasAcknowledged();
         } catch (Exception e) {
@@ -81,34 +88,39 @@ public abstract class AbstractExecute implements Execute {
         }
     }
 
+    @Override
     public <T> Boolean saveBatch(Collection<T> entityList) {
         try {
             List<Document> documentList = processIdFieldList(entityList);
-            MongoCollection<Document> collection = collectionManager.getCollection(entityList.iterator().next().getClass());
-            return executeSave(documentList,collection).getInsertedIds().size() == entityList.size();
+            MongoCollection<Document> collection = mongoPlusClient.getCollection(entityList.iterator().next().getClass());
+            InsertManyResult insertManyResult = factory.getExecute().executeSave(documentList, collection);
+            return insertManyResult.getInsertedIds().size() == entityList.size();
         } catch (Exception e) {
             logger.error("saveBatch fail , error info : {}", e.getMessage(), e);
             return false;
         }
     }
 
-    public <T> Boolean saveOrUpdate(T entity) {
-        String idByEntity = ClassTypeUtil.getIdByEntity(entity, true);
-        if (StringUtils.isBlank(idByEntity)){
-            return save(entity);
-        }
-        return isExist(idByEntity,entity.getClass()) ? updateById(entity) : save(entity);
+    @Override
+    public Long update(Bson queryBasic, Bson updateBasic, Class<?> clazz) {
+        return factory.getExecute().executeUpdate(
+                queryBasic,
+                updateBasic,
+                mongoPlusClient.getCollection(clazz)
+        ).getModifiedCount();
     }
 
+    @Override
     public <T> Boolean saveOrUpdateWrapper(T entity,QueryChainWrapper<T, ?> queryChainWrapper){
         long count = count(queryChainWrapper, entity.getClass());
         if (count > 0){
             Pair<BasicDBObject, BasicDBObject> updatePair = getUpdateCondition(queryChainWrapper.getCompareList(), entity);
-            return executeUpdate(updatePair.getKey(),updatePair.getValue(),collectionManager.getCollection(ClassTypeUtil.getClass(entity))).getModifiedCount() >= 1;
+            return factory.getExecute().executeUpdate(updatePair.getKey(),updatePair.getValue(),mongoPlusClient.getCollection(ClassTypeUtil.getClass(entity))).getModifiedCount() >= 1;
         }
         return save(entity);
     }
 
+    @Override
     public <T> Boolean saveOrUpdateBatch(Collection<T> entityList) {
         List<WriteModel<Document>> writeModelList = new ArrayList<>();
         entityList.forEach(entity -> {
@@ -120,10 +132,17 @@ public abstract class AbstractExecute implements Execute {
                 writeModelList.add(new UpdateManyModel<>(basicDBObjectPair.getKey(),basicDBObjectPair.getValue()));
             }
         });
-        BulkWriteResult bulkWriteResult = executeBulkWrite(writeModelList,collectionManager.getCollection(entityList.stream().findFirst().get().getClass()));
+        BulkWriteResult bulkWriteResult = factory.getExecute().executeBulkWrite(writeModelList,mongoPlusClient.getCollection(entityList.stream().findFirst().get().getClass()));
         return (bulkWriteResult.getModifiedCount() + bulkWriteResult.getInsertedCount()) == entityList.size();
     }
 
+    @Override
+    public Integer bulkWrite(List<WriteModel<Document>> writeModelList, Class<?> clazz) {
+        BulkWriteResult bulkWriteResult = factory.getExecute().executeBulkWrite(writeModelList,mongoPlusClient.getCollection(clazz));
+        return bulkWriteResult.getModifiedCount() + bulkWriteResult.getInsertedCount();
+    }
+
+    @Override
     public <T> Boolean saveOrUpdateBatchWrapper(Collection<T> entityList,QueryChainWrapper<T, ?> queryChainWrapper){
         Class<?> clazz = entityList.stream().findFirst().get().getClass();
         List<WriteModel<Document>> writeModelList = new ArrayList<>();
@@ -136,75 +155,77 @@ public abstract class AbstractExecute implements Execute {
                 writeModelList.add(new InsertOneModel<>(processIdField(entity,false)));
             }
         });
-        BulkWriteResult bulkWriteResult = executeBulkWrite(writeModelList, collectionManager.getCollection(clazz));
+        BulkWriteResult bulkWriteResult = factory.getExecute().executeBulkWrite(writeModelList, mongoPlusClient.getCollection(clazz));
         return (bulkWriteResult.getModifiedCount() + bulkWriteResult.getInsertedCount()) == entityList.size();
     }
 
+    @Override
     public <T> Boolean update(T entity,QueryChainWrapper<T,?> queryChainWrapper){
         Pair<BasicDBObject, BasicDBObject> updatePair = getUpdateCondition(queryChainWrapper.getCompareList(), entity);
-        return executeUpdate(updatePair.getKey(),updatePair.getValue(),collectionManager.getCollection(entity.getClass())).getModifiedCount() > 0;
+        return factory.getExecute().executeUpdate(updatePair.getKey(),updatePair.getValue(),mongoPlusClient.getCollection(ClassTypeUtil.getClass(entity))).getModifiedCount() > 0;
     }
 
+    @Override
     public <T> Boolean updateById(T entity) {
         Pair<BasicDBObject,BasicDBObject> basicDBObjectPair = getUpdate(entity);
-        MongoCollection<Document> collection = collectionManager.getCollection(ClassTypeUtil.getClass(entity));
-        return executeUpdate(basicDBObjectPair.getKey(),basicDBObjectPair.getValue(),collection).getModifiedCount() >= 1;
+        MongoCollection<Document> collection = mongoPlusClient.getCollection(ClassTypeUtil.getClass(entity));
+        return factory.getExecute().executeUpdate(basicDBObjectPair.getKey(),basicDBObjectPair.getValue(),collection).getModifiedCount() >= 1;
     }
 
+    @Override
     public <T> Boolean updateBatchByIds(Collection<T> entityList) {
         List<WriteModel<Document>> writeModelList = new ArrayList<>();
         entityList.forEach(entity -> {
             Pair<BasicDBObject,BasicDBObject> basicDBObjectPair = getUpdate(entity);
             writeModelList.add(new UpdateManyModel<>(basicDBObjectPair.getKey(),basicDBObjectPair.getValue()));
         });
-        BulkWriteResult bulkWriteResult = executeBulkWrite(writeModelList,collectionManager.getCollection(entityList.stream().findFirst().get().getClass()));
+        BulkWriteResult bulkWriteResult = factory.getExecute().executeBulkWrite(writeModelList,mongoPlusClient.getCollection(entityList.stream().findFirst().get().getClass()));
         return bulkWriteResult.getModifiedCount() == entityList.size();
     }
 
-    public <T> Pair<BasicDBObject,BasicDBObject> getUpdate(T entity){
-        Document document = DocumentUtil.checkUpdateField(entity,false);
-        BasicDBObject filter = ExecuteUtil.getFilter(document);
-        BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
-        return new Pair<>(filter,update);
-    }
-
+    @Override
     public <T> Boolean updateByColumn(T entity, SFunction<T, Object> column) {
         return updateByColumn(entity,column.getFieldNameLine());
     }
 
+    @Override
     public <T> Boolean updateByColumn(T entity, String column) {
         Object filterValue = ClassTypeUtil.getClassFieldValue(entity,column);
         String valueOf = String.valueOf(filterValue);
         Bson filter = Filters.eq(column, ObjectId.isValid(valueOf) ? new ObjectId(valueOf) : filterValue);
         Document document = DocumentUtil.checkUpdateField(entity,false);
-        MongoCollection<Document> collection = collectionManager.getCollection(ClassTypeUtil.getClass(entity));
-        return executeUpdate(filter,document,collection).getModifiedCount() >= 1;
+        MongoCollection<Document> collection = mongoPlusClient.getCollection(ClassTypeUtil.getClass(entity));
+        return factory.getExecute().executeUpdate(filter,document,collection).getModifiedCount() >= 1;
     }
 
+    @Override
     public Boolean removeById(Serializable id, Class<?> clazz) {
-        return buildRemove( id, collectionManager.getCollection(clazz));
+        return buildRemove( id, mongoPlusClient.getCollection(clazz));
     }
 
     private Boolean buildRemove(Serializable id, MongoCollection<Document> collection) {
         Bson filterId = Filters.eq(SqlOperationConstant._ID, ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id);
-        return executeRemove(filterId,collection).getDeletedCount() >= 1;
+        return factory.getExecute().executeRemove(filterId,collection).getDeletedCount() >= 1;
     }
 
+    @Override
     public <T> Boolean removeByColumn(SFunction<T, Object> column, Object value,Class<T> clazz) {
         return removeByColumn(column.getFieldNameLine(),value,clazz);
     }
 
+    @Override
     public Boolean removeByColumn(String column, Object value,Class<?> clazz) {
-        return executeRemoveByColumn(column,value,collectionManager.getCollection(clazz));
+        return executeRemoveByColumn(column,value,mongoPlusClient.getCollection(clazz));
     }
 
     public Boolean executeRemoveByColumn(String column,Object value,MongoCollection<Document> collection){
         Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(value)) ? new ObjectId(String.valueOf(value)) : value);
-        return executeRemove(filter,collection).getDeletedCount() >= 1;
+        return factory.getExecute().executeRemove(filter,collection).getDeletedCount() >= 1;
     }
 
+    @Override
     public Boolean removeBatchByIds(Collection<? extends Serializable> idList,Class<?> clazz) {
-        return executeRemoveBatchByIds(idList,collectionManager.getCollection(clazz));
+        return executeRemoveBatchByIds(idList,mongoPlusClient.getCollection(clazz));
     }
 
     private Boolean executeRemoveBatchByIds(Collection<? extends Serializable> idList,MongoCollection<Document> collection){
@@ -212,18 +233,21 @@ public abstract class AbstractExecute implements Execute {
                 .map(id -> ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id)
                 .collect(Collectors.toList());
         Bson objectIdBson = Filters.in(SqlOperationConstant._ID, convertedIds);
-        return executeRemove(objectIdBson,collection).getDeletedCount() >= 1;
+        return factory.getExecute().executeRemove(objectIdBson,collection).getDeletedCount() >= 1;
     }
 
+    @Override
     public <T> List<T> list(Class<T> clazz) {
-        return DocumentMapperConvert.mapDocumentList(executeQuery(null,null,null,collectionManager.getCollection(clazz),Document.class),clazz);
+        return DocumentMapperConvert.mapDocumentList(factory.getExecute().executeQuery(null,null,null,mongoPlusClient.getCollection(clazz),Document.class),clazz);
     }
 
+    @Override
     public <T> List<T> list(QueryChainWrapper<T,?> queryChainWrapper, Class<T> clazz) {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
-        return lambdaOperate.getLambdaQueryResult(executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(),collectionManager.getCollection(clazz),Document.class),clazz);
+        return lambdaOperate.getLambdaQueryResult(factory.getExecute().executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(),mongoPlusClient.getCollection(clazz),Document.class),clazz);
     }
 
+    @Override
     public <T> List<T> aggregateList(AggregateChainWrapper<T, ?> queryChainWrapper, Class<T> clazz){
         List<BaseAggregate> aggregateList = queryChainWrapper.getBaseAggregateList();
         List<AggregateBasicDBObject> basicDBObjectList = queryChainWrapper.getBasicDBObjectList();
@@ -233,59 +257,68 @@ public abstract class AbstractExecute implements Execute {
             addAll(basicDBObjectList);
         }};
         aggregateConditionList.sort(Comparator.comparingInt(AggregateBasicDBObject::getOrder));
-        AggregateIterable<Document> aggregateIterable = executeAggregate(aggregateConditionList, collectionManager.getCollection(clazz),Document.class);
+        AggregateIterable<Document> aggregateIterable = factory.getExecute().executeAggregate(aggregateConditionList, mongoPlusClient.getCollection(clazz),Document.class);
         aggregateOptions(aggregateIterable,optionsBasicDBObject);
         return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),clazz);
     }
 
+    @Override
     public <T> T one(QueryChainWrapper<T,?> queryChainWrapper,Class<T> clazz) {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),null,queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
-        List<T> result = lambdaOperate.getLambdaQueryResult(executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(),collectionManager.getCollection(clazz),Document.class),clazz);
+        List<T> result = lambdaOperate.getLambdaQueryResult(factory.getExecute().executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(),mongoPlusClient.getCollection(clazz),Document.class),clazz);
         if (result.size() > 1) {
             throw new MongoQueryException("query result greater than one line");
         }
         return !result.isEmpty() ? result.get(0) : null;
     }
 
+    @Override
     public <T> T limitOne(QueryChainWrapper<T, ?> queryChainWrapper,Class<T> clazz) {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
-        List<T> result = lambdaOperate.getLambdaQueryResult(executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(),collectionManager.getCollection(clazz),Document.class),clazz);
+        List<T> result = lambdaOperate.getLambdaQueryResult(factory.getExecute().executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(),mongoPlusClient.getCollection(clazz),Document.class),clazz);
         return !result.isEmpty() ? result.get(0) : null;
     }
 
+    @Override
     public <T> PageResult<T> page(QueryChainWrapper<T,?> queryChainWrapper, Integer pageNum, Integer pageSize,Class<T> clazz) {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
-        FindIterable<Document> iterable = executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), collectionManager.getCollection(clazz),Document.class);
+        FindIterable<Document> iterable = factory.getExecute().executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), mongoPlusClient.getCollection(clazz),Document.class);
         return lambdaOperate.getLambdaQueryResultPage(iterable,count(queryChainWrapper,clazz),new PageParam(pageNum,pageSize),clazz);
     }
 
+    @Override
     public <T> PageResult<T> page(List<CompareCondition> compareConditionList, List<Order> orderList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList, Integer pageNum, Integer pageSize, Integer recentPageNum, Class<T> clazz) {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(compareConditionList, orderList, projectionList, basicDBObjectList);
-        FindIterable<Document> iterable = executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), collectionManager.getCollection(clazz),Document.class);
+        FindIterable<Document> iterable = factory.getExecute().executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), mongoPlusClient.getCollection(clazz),Document.class);
         return lambdaOperate.getLambdaQueryResultPage(iterable, recentPageCount(compareConditionList,clazz, pageNum,  pageSize, recentPageNum),new PageParam(pageNum,pageSize),clazz);
     }
 
+    @Override
     public <T> T getById(Serializable id,Class<T> clazz) {
         BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id));
-        return DocumentMapperConvert.mapDocument(executeQuery(queryBasic,null,null,collectionManager.getCollection(clazz),Document.class).first(),clazz);
+        return DocumentMapperConvert.mapDocument(factory.getExecute().executeQuery(queryBasic,null,null,mongoPlusClient.getCollection(clazz),Document.class).first(),clazz);
     }
 
+    @Override
     public boolean isExist(Serializable id,Class<?> clazz){
         BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id));
-        return executeCount(queryBasic,null, collectionManager.getCollection(clazz)) >= 1;
+        return factory.getExecute().executeCount(queryBasic,null, mongoPlusClient.getCollection(clazz)) >= 1;
     }
 
+    @Override
     public boolean isExist(QueryChainWrapper<?,?> queryChainWrapper,Class<?> clazz){
         BasicDBObject basicDBObject = BuildCondition.buildQueryCondition(queryChainWrapper.getCompareList());
-        return executeCount(basicDBObject,null,collectionManager.getCollection(clazz)) >= 1;
+        return factory.getExecute().executeCount(basicDBObject,null,mongoPlusClient.getCollection(clazz)) >= 1;
     }
 
+    @Override
     public <T> List<T> getByIds(Collection<? extends Serializable> ids,Class<T> clazz) {
         BasicDBObject basicDBObject = checkIdType(ids);
-        FindIterable<Document> iterable = executeQuery(basicDBObject,null,null, collectionManager.getCollection(clazz),Document.class);
+        FindIterable<Document> iterable = factory.getExecute().executeQuery(basicDBObject,null,null, mongoPlusClient.getCollection(clazz),Document.class);
         return DocumentMapperConvert.mapDocumentList(iterable, clazz);
     }
 
+    @Override
     public Boolean update(UpdateChainWrapper<?, ?> updateChainWrapper,Class<?> clazz) {
         List<CompareCondition> compareConditionList = new ArrayList<>();
         compareConditionList.addAll(updateChainWrapper.getCompareList());
@@ -301,15 +334,22 @@ public abstract class AbstractExecute implements Execute {
                 append(SpecialConditionEnum.PUSH.getCondition(), BuildCondition.buildPushUpdateValue(pushConditionList));
             }
         }};
-        return executeUpdate(queryBasic,DocumentUtil.handleBasicDBObject(basicDBObject),collectionManager.getCollection(clazz)).getModifiedCount() >= 1;
+        return factory.getExecute().executeUpdate(queryBasic,DocumentUtil.handleBasicDBObject(basicDBObject),mongoPlusClient.getCollection(clazz)).getModifiedCount() >= 1;
     }
 
+    @Override
     public Boolean remove(UpdateChainWrapper<?, ?> updateChainWrapper, Class<?> clazz) {
-        return executeRemove(BuildCondition.buildQueryCondition(updateChainWrapper.getCompareList()),collectionManager.getCollection(clazz)).getDeletedCount() >= 1;
+        return remove(BuildCondition.buildQueryCondition(updateChainWrapper.getCompareList()),clazz) >= 1;
     }
 
+    @Override
+    public Long remove(Bson filter, Class<?> clazz) {
+        return factory.getExecute().executeRemove(filter,mongoPlusClient.getCollection(clazz)).getDeletedCount();
+    }
+
+    @Override
     public long count(QueryChainWrapper<?, ?> queryChainWrapper,Class<?> clazz){
-        return executeCount(BuildCondition.buildQueryCondition(queryChainWrapper.getCompareList()),null,collectionManager.getCollection(clazz));
+        return factory.getExecute().executeCount(BuildCondition.buildQueryCondition(queryChainWrapper.getCompareList()),null,mongoPlusClient.getCollection(clazz));
     }
 
     /**
@@ -321,6 +361,7 @@ public abstract class AbstractExecute implements Execute {
      * @param recentPageNum 查询最近n页的数据  {参数=null 表示仅查询当前页数据}  {参数取值[5-50] 表示查询最近[5-50]页的数据 建议recentPageNum等于10 参考 百度分页检索}
      * @return long
      */
+    @Override
     public long recentPageCount(List<CompareCondition> compareConditionList,Class<?> clazz, Integer pageNum, Integer pageSize, Integer recentPageNum){
         if (recentPageNum == null || !(recentPageNum <= 50 && recentPageNum >= 5)) {
             // 返回-1 表示不查询总条数
@@ -331,74 +372,94 @@ public abstract class AbstractExecute implements Execute {
         int limitParam = (pageNum < (recentPageNum / 2 + 1 + recentPageNum % 2) ? recentPageNum : (pageNum + (recentPageNum / 2 + recentPageNum % 2 - 1))) * pageSize;
         CountOptions countOptions = new CountOptions();
         countOptions.skip(limitParam).limit(1);
-        long isExists = executeCount(BuildCondition.buildQueryCondition(compareConditionList),countOptions, collectionManager.getCollection(clazz));
+        long isExists = factory.getExecute().executeCount(BuildCondition.buildQueryCondition(compareConditionList),countOptions, mongoPlusClient.getCollection(clazz));
         //如果查询结果为空 则查询总条数，如果不为空则 limitParam为总条数
         if (isExists == 0) {
             // 查询真实总条数
             CountOptions countOptionsReal = new CountOptions();
             countOptionsReal.limit(limitParam);
-            return executeCount(BuildCondition.buildQueryCondition(compareConditionList),countOptions, collectionManager.getCollection(clazz));
+            return factory.getExecute().executeCount(BuildCondition.buildQueryCondition(compareConditionList),countOptions, mongoPlusClient.getCollection(clazz));
         }
         return limitParam;
     }
 
+    @Override
     public long count(Class<?> clazz){
-        return executeCount(null,null,collectionManager.getCollection(clazz));
+        return factory.getExecute().executeCount(null,null,mongoPlusClient.getCollection(clazz));
     }
 
+    @Override
     public <T> List<T> queryCommand(String command,Class<T> clazz){
-        FindIterable<Document> iterable = executeQuery(BasicDBObject.parse(command),null,null, collectionManager.getCollection(clazz),Document.class);
+        FindIterable<Document> iterable = factory.getExecute().executeQuery(BasicDBObject.parse(command),null,null, mongoPlusClient.getCollection(clazz),Document.class);
         return lambdaOperate.getLambdaQueryResult(iterable,clazz);
     }
 
+    @Override
     public <T> List<T> getByColumn(String column,Object value,Class<T> clazz){
         Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(value)) ? new ObjectId(String.valueOf(value)) : value);
-        return DocumentMapperConvert.mapDocumentList(executeQuery(filter,null,null,collectionManager.getCollection(clazz),Document.class),clazz);
+        return DocumentMapperConvert.mapDocumentList(factory.getExecute().executeQuery(filter,null,null,mongoPlusClient.getCollection(clazz),Document.class),clazz);
     }
 
+    @Override
     public String createIndex(Bson bson,Class<?> clazz){
-        return doCreateIndex(bson,collectionManager.getCollection(clazz));
+        return factory.getExecute().doCreateIndex(bson,mongoPlusClient.getCollection(clazz));
     }
 
+    @Override
     public String createIndex(Bson bson, IndexOptions indexOptions, Class<?> clazz){
-        return doCreateIndex(bson,indexOptions,collectionManager.getCollection(clazz));
+        return factory.getExecute().doCreateIndex(bson,indexOptions,mongoPlusClient.getCollection(clazz));
     }
 
+    @Override
     public List<String> createIndexes(List<IndexModel> indexes,Class<?> clazz){
-        return doCreateIndexes(indexes,collectionManager.getCollection(clazz));
+        return factory.getExecute().doCreateIndexes(indexes,mongoPlusClient.getCollection(clazz));
     }
 
-
+    @Override
     public List<String> createIndexes(List<IndexModel> indexes, CreateIndexOptions createIndexOptions,Class<?> clazz){
-        return doCreateIndexes(indexes,createIndexOptions,collectionManager.getCollection(clazz));
+        return factory.getExecute().doCreateIndexes(indexes,createIndexOptions,mongoPlusClient.getCollection(clazz));
     }
 
+    @Override
     public List<Document> listIndexes(Class<?> clazz){
-        return doListIndexes(collectionManager.getCollection(clazz));
+        return factory.getExecute().doListIndexes(mongoPlusClient.getCollection(clazz));
     }
 
+    @Override
     public void dropIndex(String indexName,Class<?> clazz){
-        doDropIndex(indexName,collectionManager.getCollection(clazz));
+        factory.getExecute().doDropIndex(indexName,mongoPlusClient.getCollection(clazz));
     }
 
+    @Override
     public void dropIndex(String indexName,DropIndexOptions dropIndexOptions,Class<?> clazz){
-        doDropIndex(indexName,dropIndexOptions,collectionManager.getCollection(clazz));
+        factory.getExecute().doDropIndex(indexName,dropIndexOptions,mongoPlusClient.getCollection(clazz));
     }
 
+    @Override
     public void dropIndex(Bson keys,Class<?> clazz){
-        doDropIndex(keys,collectionManager.getCollection(clazz));
+        factory.getExecute().doDropIndex(keys,mongoPlusClient.getCollection(clazz));
     }
 
+    @Override
     public void dropIndex(Bson keys,DropIndexOptions dropIndexOptions,Class<?> clazz){
-        doDropIndex(keys,dropIndexOptions,collectionManager.getCollection(clazz));
+        factory.getExecute().doDropIndex(keys,dropIndexOptions,mongoPlusClient.getCollection(clazz));
     }
 
+    @Override
     public void dropIndexes(Class<?> clazz){
-        doDropIndexes(collectionManager.getCollection(clazz));
+        factory.getExecute().doDropIndexes(mongoPlusClient.getCollection(clazz));
     }
 
+    @Override
     public void dropIndexes(DropIndexOptions dropIndexOptions,Class<?> clazz){
-        doDropIndexes(dropIndexOptions,collectionManager.getCollection(clazz));
+        factory.getExecute().doDropIndexes(dropIndexOptions,mongoPlusClient.getCollection(clazz));
+    }
+
+    protected  <T> Pair<BasicDBObject,BasicDBObject> getUpdate(T entity){
+        Document document = DocumentUtil.checkUpdateField(entity,false);
+        BasicDBObject filter = ExecuteUtil.getFilter(document);
+        BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
+        return new Pair<>(filter,update);
     }
 
     protected BasicDBObject checkIdType(Collection<? extends Serializable> ids) {
@@ -416,7 +477,8 @@ public abstract class AbstractExecute implements Execute {
         return new Pair<>(queryBasic,updateField);
     }
 
-    protected <T> Document processIdField(T entity,Boolean skip){
+    @Override
+    public <T> Document processIdField(T entity,Boolean skip){
         Document tableFieldMap = DocumentUtil.checkTableField(entity);
         fillId(entity, tableFieldMap);
         if (HandlerCache.documentHandler != null && !skip){
@@ -430,7 +492,7 @@ public abstract class AbstractExecute implements Execute {
         String collectionName = collectionNameConvert.convert(clazz);
         // 每个Collection单独加锁
         synchronized (collectionName.intern()) {
-            MongoCollection<Document> collection = collectionManager.getCollection("counters");
+            MongoCollection<Document> collection = mongoPlusClient.getCollection(clazz,"counters");
             Document query = new Document(SqlOperationConstant._ID, collectionName);
             Document update = new Document("$inc", new Document(SqlOperationConstant.AUTO_NUM, 1));
             Document document = Optional.ofNullable(MongoTransactionContext.getClientSessionContext())
@@ -459,7 +521,7 @@ public abstract class AbstractExecute implements Execute {
             }
             return;
         }
-        Field idField = getIdField(ClassTypeUtil.getClass(entity));
+        java.lang.reflect.Field idField = getIdField(ClassTypeUtil.getClass(entity));
         // 没有指定id字段
         if (idField == null) {
             return;

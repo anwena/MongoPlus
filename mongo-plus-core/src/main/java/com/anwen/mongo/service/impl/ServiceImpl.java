@@ -1,5 +1,6 @@
 package com.anwen.mongo.service.impl;
 
+import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
@@ -8,19 +9,22 @@ import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conditions.query.QueryWrapper;
 import com.anwen.mongo.conditions.update.LambdaUpdateChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
+import com.anwen.mongo.constant.SqlOperationConstant;
+import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.execute.ExecutorFactory;
+import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 import com.anwen.mongo.service.IService;
 import com.anwen.mongo.support.SFunction;
-import com.anwen.mongo.toolkit.ChainWrappers;
+import com.anwen.mongo.toolkit.*;
+import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.CreateIndexOptions;
-import com.mongodb.client.model.DropIndexOptions;
-import com.mongodb.client.model.IndexModel;
-import com.mongodb.client.model.IndexOptions;
+import com.mongodb.client.model.*;
+import javafx.util.Pair;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
@@ -29,6 +33,7 @@ import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author JiaChaoYang
@@ -37,14 +42,10 @@ import java.util.List;
  **/
 public class ServiceImpl<T> implements IService<T>{
 
-    private ExecutorFactory factory;
+    private BaseMapper baseMapper;
 
-    public void setFactory(ExecutorFactory factory){
-        this.factory = factory;
-    }
-
-    public ExecutorFactory getFactory(){
-        return factory;
+    public void setBaseMapper(BaseMapper baseMapper){
+        this.baseMapper = baseMapper;
     }
 
     private Class<T> clazz;
@@ -85,142 +86,203 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public MongoCollection<Document> getCollection() {
-        return factory.getCollectionManager(database).getCollection(clazz);
+        return baseMapper.getMongoPlusClient().getCollection(database,clazz);
     }
 
     @Override
     public MongoCollection<Document> getCollection(String database) {
-        return factory.getCollectionManager(database).getCollection(clazz);
+        return baseMapper.getMongoPlusClient().getCollection(database,clazz);
     }
 
     @Override
     public Boolean save(T entity) {
-        return factory.getExecute(database).save(entity);
+        return baseMapper.save(entity);
     }
 
     @Override
     public Boolean saveBatch(Collection<T> entityList) {
-        return factory.getExecute(database).saveBatch(entityList);
+        return baseMapper.saveBatch(entityList);
     }
 
     @Override
     public Boolean saveOrUpdate(T entity) {
-        return factory.getExecute(database).saveOrUpdate(entity);
+        String idByEntity = ClassTypeUtil.getIdByEntity(entity, true);
+        if (StringUtils.isBlank(idByEntity)){
+            return save(entity);
+        }
+        return updateById(entity);
     }
 
     @Override
     public Boolean saveOrUpdateWrapper(T entity, QueryChainWrapper<T, ?> queryChainWrapper) {
-        return factory.getExecute(database).saveOrUpdateWrapper(entity,queryChainWrapper);
+        long count = count(queryChainWrapper);
+        if (count > 0){
+            Pair<BasicDBObject, BasicDBObject> updatePair = getUpdateCondition(queryChainWrapper.getCompareList(), entity);
+            return baseMapper.update(updatePair.getKey(),updatePair.getValue(),ClassTypeUtil.getClass(entity)) >= 1;
+        }
+        return save(entity);
+    }
+
+    protected Pair<BasicDBObject,BasicDBObject> getUpdateCondition(List<CompareCondition> compareConditionList, T entity){
+        BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareConditionList);
+        Document document = DocumentUtil.checkUpdateField(entity,false);
+        document.remove(SqlOperationConstant._ID);
+        BasicDBObject updateField = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
+        return new Pair<>(queryBasic,updateField);
     }
 
     @Override
     public Boolean saveOrUpdateBatch(Collection<T> entityList) {
-        return factory.getExecute(database).saveOrUpdateBatch(entityList);
+        List<WriteModel<Document>> writeModelList = new ArrayList<>();
+        entityList.forEach(entity -> {
+            String idByEntity = ClassTypeUtil.getIdByEntity(entity, true);
+            if (StringUtils.isBlank(idByEntity)){
+                writeModelList.add(new InsertOneModel<>(baseMapper.processIdField(entity,false)));
+            } else {
+                Pair<BasicDBObject,BasicDBObject> basicDBObjectPair = getUpdate(entity);
+                writeModelList.add(new UpdateManyModel<>(basicDBObjectPair.getKey(),basicDBObjectPair.getValue()));
+            }
+        });
+        return baseMapper.bulkWrite(writeModelList,entityList.stream().findFirst().get().getClass()) == entityList.size();
     }
 
     @Override
     public Boolean saveOrUpdateBatchWrapper(Collection<T> entityList, QueryChainWrapper<T, ?> queryChainWrapper) {
-        return factory.getExecute(database).saveOrUpdateBatchWrapper(entityList,queryChainWrapper);
+        Class<?> clazz = entityList.stream().findFirst().get().getClass();
+        List<WriteModel<Document>> writeModelList = new ArrayList<>();
+        entityList.forEach(entity -> {
+            long count = baseMapper.count(queryChainWrapper, clazz);
+            if (count > 0){
+                Pair<BasicDBObject, BasicDBObject> updatePair = getUpdateCondition(queryChainWrapper.getCompareList(), entity);
+                writeModelList.add(new UpdateManyModel<>(updatePair.getKey(),updatePair.getValue()));
+            } else {
+                writeModelList.add(new InsertOneModel<>(baseMapper.processIdField(entity,false)));
+            }
+        });
+        return baseMapper.bulkWrite(writeModelList,entityList.stream().findFirst().get().getClass()) == entityList.size();
     }
 
     @Override
     public Boolean updateById(T entity) {
-        return factory.getExecute(database).updateById(entity);
+        Pair<BasicDBObject,BasicDBObject> basicDBObjectPair = getUpdate(entity);
+        return baseMapper.update(basicDBObjectPair.getKey(),basicDBObjectPair.getValue(),ClassTypeUtil.getClass(entity)) >= 1;
+    }
+
+    protected <T> Pair<BasicDBObject,BasicDBObject> getUpdate(T entity) {
+        Document document = DocumentUtil.checkUpdateField(entity,false);
+        BasicDBObject filter = ExecuteUtil.getFilter(document);
+        BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
+        return new Pair<>(filter,update);
     }
 
     @Override
     public Boolean updateBatchByIds(Collection<T> entityList) {
-        return factory.getExecute(database).updateBatchByIds(entityList);
+        List<WriteModel<Document>> writeModelList = new ArrayList<>();
+        entityList.forEach(entity -> {
+            Pair<BasicDBObject,BasicDBObject> basicDBObjectPair = getUpdate(entity);
+            writeModelList.add(new UpdateManyModel<>(basicDBObjectPair.getKey(),basicDBObjectPair.getValue()));
+        });
+        return baseMapper.bulkWrite(writeModelList,entityList.stream().findFirst().get().getClass()) == entityList.size();
     }
 
     @Override
     public Boolean updateByColumn(T entity, SFunction<T, Object> column) {
-        return factory.getExecute(database).updateByColumn(entity,column);
+        return updateByColumn(entity,column.getFieldNameLine());
     }
 
     @Override
     public Boolean updateByColumn(T entity, String column) {
-        return factory.getExecute(database).updateByColumn(entity,column);
+        Object filterValue = ClassTypeUtil.getClassFieldValue(entity,column);
+        String valueOf = String.valueOf(filterValue);
+        Bson filter = Filters.eq(column, ObjectId.isValid(valueOf) ? new ObjectId(valueOf) : filterValue);
+        Document document = DocumentUtil.checkUpdateField(entity,false);
+        return baseMapper.update(filter,document,ClassTypeUtil.getClass(entity)) >= 1;
     }
 
     @Override
     public Boolean remove(UpdateChainWrapper<T, ?> updateChainWrapper) {
-        return factory.getExecute(database).remove(updateChainWrapper,clazz);
+        return baseMapper.remove(updateChainWrapper,clazz);
     }
 
     @Override
     public Boolean update(UpdateChainWrapper<T, ?> updateChainWrapper) {
-        return factory.getExecute(database).update(updateChainWrapper,clazz);
+        return baseMapper.update(updateChainWrapper,clazz);
     }
 
     @Override
     public Boolean update(T entity, QueryChainWrapper<T, ?> queryChainWrapper) {
-        return factory.getExecute(database).update(entity,queryChainWrapper);
+        return baseMapper.update(entity,queryChainWrapper);
     }
 
     @Override
     public Boolean removeById(Serializable id) {
-        return factory.getExecute(database).removeById(id,clazz);
+        Bson filterId = Filters.eq(SqlOperationConstant._ID, ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id);
+        return baseMapper.remove(filterId,clazz) >= 1;
     }
 
     @Override
     public Boolean removeByColumn(SFunction<T, Object> column, Object value) {
-        return factory.getExecute(database).removeByColumn(column,value,clazz);
+        return removeByColumn(column.getFieldNameLine(),value);
     }
 
     @Override
     public Boolean removeByColumn(String column, Object value) {
-        return factory.getExecute(database).removeByColumn(column,value,clazz);
+        Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(value)) ? new ObjectId(String.valueOf(value)) : value);
+        return baseMapper.remove(filter,clazz) >= 1;
     }
 
     @Override
     public Boolean removeBatchByIds(Collection<? extends Serializable> idList) {
-        return factory.getExecute(database).removeBatchByIds(idList,clazz);
+        List<Serializable> convertedIds = idList.stream()
+                .map(id -> ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id)
+                .collect(Collectors.toList());
+        Bson objectIdBson = Filters.in(SqlOperationConstant._ID, convertedIds);
+        return baseMapper.remove(objectIdBson,clazz) >= 1;
     }
 
     @Override
     public List<T> list() {
-        return factory.getExecute(database).list(clazz);
+        return baseMapper.list(clazz);
     }
 
     @Override
     public List<T> aggregateList(AggregateChainWrapper<T, ?> queryChainWrapper) {
-        return factory.getExecute(database).aggregateList(queryChainWrapper,clazz);
+        return baseMapper.aggregateList(queryChainWrapper,clazz);
     }
 
     @Override
     public T one(QueryChainWrapper<T,?> queryChainWrapper) {
-        return factory.getExecute(database).one(queryChainWrapper,clazz);
+        return baseMapper.one(queryChainWrapper,clazz);
     }
 
     @Override
     public T limitOne(QueryChainWrapper<T, ?> queryChainWrapper) {
-        return factory.getExecute(database).limitOne(queryChainWrapper,clazz);
+        return baseMapper.limitOne(queryChainWrapper,clazz);
     }
 
     @Override
     public List<T> list(QueryChainWrapper<T,?> queryChainWrapper) {
-        return factory.getExecute(database).list(queryChainWrapper,clazz);
+        return baseMapper.list(queryChainWrapper,clazz);
     }
 
     @Override
     public List<T> list(AggregateChainWrapper<T,?> queryChainWrapper) {
-        return factory.getExecute(database).aggregateList(queryChainWrapper,clazz);
+        return baseMapper.aggregateList(queryChainWrapper,clazz);
     }
 
     @Override
     public long count() {
-        return factory.getExecute(database).count(clazz);
+        return baseMapper.count(clazz);
     }
 
     @Override
     public long count(QueryChainWrapper<T, ?> queryChainWrapper) {
-        return factory.getExecute(database).count(queryChainWrapper,clazz);
+        return baseMapper.count(queryChainWrapper,clazz);
     }
 
     @Override
     public PageResult<T> page(QueryChainWrapper<T,?> queryChainWrapper, Integer pageNum, Integer pageSize){
-        return factory.getExecute(database).page(queryChainWrapper, pageNum,pageSize,clazz);
+        return baseMapper.page(queryChainWrapper, pageNum,pageSize,clazz);
     }
 
     @Override
@@ -230,12 +292,12 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public PageResult<T> page(QueryChainWrapper<T,?> queryChainWrapper, Integer pageNum, Integer pageSize, Integer recentPageNum){
-        return factory.getExecute(database).page(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(), pageNum,pageSize,recentPageNum,clazz);
+        return baseMapper.page(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(), pageNum,pageSize,recentPageNum,clazz);
     }
 
     @Override
     public PageResult<T> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam, Integer recentPageNum) {
-        return factory.getExecute(database).page(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),pageParam.getPageNum(),pageParam.getPageSize(),recentPageNum,clazz);
+        return baseMapper.page(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),pageParam.getPageNum(),pageParam.getPageSize(),recentPageNum,clazz);
     }
 
     @Override
@@ -255,97 +317,97 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public PageResult<T> page(Integer pageNum, Integer pageSize, Integer recentPageNum) {
-        return factory.getExecute(database).page(null,null,null,null,pageNum,pageSize,recentPageNum,clazz);
+        return baseMapper.page(null,null,null,null,pageNum,pageSize,recentPageNum,clazz);
     }
 
     @Override
     public T getById(Serializable id) {
-        return factory.getExecute(database).getById(id,clazz);
+        return baseMapper.getById(id,clazz);
     }
 
     @Override
     public List<T> getByIds(Collection<? extends Serializable> ids) {
-        return factory.getExecute(database).getByIds(ids,clazz);
+        return baseMapper.getByIds(ids,clazz);
     }
 
     @Override
     public List<T> queryCommand(String command) {
-        return factory.getExecute(database).queryCommand(command,clazz);
+        return baseMapper.queryCommand(command,clazz);
     }
 
     @Override
     public List<T> getByColumn(SFunction<T, Object> field, Object fieldValue) {
-        return factory.getExecute(database).getByColumn(field.getFieldNameLine(), fieldValue,clazz);
+        return baseMapper.getByColumn(field.getFieldNameLine(), fieldValue,clazz);
     }
 
     @Override
     public List<T> getByColumn(String field, Object fieldValue) {
-        return factory.getExecute(database).getByColumn(field,fieldValue,clazz);
+        return baseMapper.getByColumn(field,fieldValue,clazz);
     }
 
     @Override
     public Boolean exist(Serializable id) {
-        return factory.getExecute(database).isExist(id,clazz);
+        return baseMapper.isExist(id,clazz);
     }
 
     @Override
     public Boolean exist(QueryChainWrapper<T, ?> queryChainWrapper) {
-        return factory.getExecute(database).isExist(queryChainWrapper,clazz);
+        return baseMapper.isExist(queryChainWrapper,clazz);
     }
 
     @Override
     public String createIndex(Bson bson) {
-        return factory.getExecute(database).createIndex(bson,clazz);
+        return baseMapper.createIndex(bson,clazz);
     }
 
     @Override
     public String createIndex(Bson bson, IndexOptions indexOptions) {
-        return factory.getExecute(database).createIndex(bson,indexOptions,clazz);
+        return baseMapper.createIndex(bson,indexOptions,clazz);
     }
 
     @Override
     public List<String> createIndexes(List<IndexModel> indexes) {
-        return factory.getExecute(database).createIndexes(indexes,clazz);
+        return baseMapper.createIndexes(indexes,clazz);
     }
 
     @Override
     public List<String> createIndexes(List<IndexModel> indexes, CreateIndexOptions createIndexOptions) {
-        return factory.getExecute(database).createIndexes(indexes,createIndexOptions,clazz);
+        return baseMapper.createIndexes(indexes,createIndexOptions,clazz);
     }
 
     @Override
     public List<Document> listIndexes() {
-        return factory.getExecute(database).listIndexes(clazz);
+        return baseMapper.listIndexes(clazz);
     }
 
     @Override
     public void dropIndex(String indexName) {
-        factory.getExecute(database).dropIndex(indexName,clazz);
+        baseMapper.dropIndex(indexName,clazz);
     }
 
     @Override
     public void dropIndex(String indexName, DropIndexOptions dropIndexOptions) {
-        factory.getExecute(database).dropIndex(indexName,dropIndexOptions,clazz);
+        baseMapper.dropIndex(indexName,dropIndexOptions,clazz);
     }
 
     @Override
     public void dropIndex(Bson keys) {
-        factory.getExecute(database).dropIndex(keys,clazz);
+        baseMapper.dropIndex(keys,clazz);
     }
 
     @Override
     public void dropIndex(Bson keys, DropIndexOptions dropIndexOptions) {
-        factory.getExecute(database).dropIndex(keys,dropIndexOptions,clazz);
+        baseMapper.dropIndex(keys,dropIndexOptions,clazz);
     }
 
     @Override
     public void dropIndexes() {
-        factory.getExecute(database).dropIndexes(clazz);
+        baseMapper.dropIndexes(clazz);
     }
 
     @Override
     public void dropIndexes(DropIndexOptions dropIndexOptions) {
-        factory.getExecute(database).dropIndexes(dropIndexOptions,clazz);
+        baseMapper.dropIndexes(dropIndexOptions,clazz);
     }
 
     public Class<T> getClazz() {
@@ -354,16 +416,16 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public LambdaQueryChainWrapper<T> lambdaQuery() {
-        return ChainWrappers.lambdaQueryChain(factory,clazz,database);
+        return ChainWrappers.lambdaQueryChain(baseMapper,clazz);
     }
 
     @Override
     public LambdaAggregateChainWrapper<T> lambdaAggregate() {
-        return ChainWrappers.lambdaAggregateChain(factory,clazz,database);
+        return ChainWrappers.lambdaAggregateChain(baseMapper,clazz);
     }
 
     @Override
     public LambdaUpdateChainWrapper<T> lambdaUpdate() {
-        return ChainWrappers.lambdaUpdateChain(factory,clazz,database);
+        return ChainWrappers.lambdaUpdateChain(baseMapper,clazz);
     }
 }

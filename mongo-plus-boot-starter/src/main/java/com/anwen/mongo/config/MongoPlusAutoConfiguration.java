@@ -13,6 +13,7 @@ import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.interceptor.business.BlockAttackInnerInterceptor;
 import com.anwen.mongo.interceptor.business.LogInterceptor;
 import com.anwen.mongo.manager.MongoPlusClient;
+import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBLogProperty;
 import com.anwen.mongo.service.IService;
@@ -42,31 +43,31 @@ import java.util.stream.Collectors;
 @EnableConfigurationProperties(MongoDBLogProperty.class)
 public class MongoPlusAutoConfiguration implements InitializingBean {
 
-    private final ExecutorFactory factory;
-
     private final MongoPlusClient mongoPlusClient;
 
     private final ApplicationContext applicationContext;
 
-    private final MongoDBLogProperty mongoDBLogProperty;
+    private final MongoDBLogProperty mongodbLogProperty;
 
-    private final MongoDBCollectionProperty mongoDBCollectionProperty;
+    private final MongoDBCollectionProperty mongodbCollectionProperty;
 
     private final CollectionNameConvert collectionNameConvert;
 
+    private final BaseMapper baseMapper;
+
     Logger logger = LoggerFactory.getLogger(MongoPlusAutoConfiguration.class);
 
-    public MongoPlusAutoConfiguration(MongoDBLogProperty mongoDBLogProperty, MongoDBCollectionProperty mongoDBCollectionProperty, ExecutorFactory factory, MongoPlusClient mongoPlusClient, ApplicationContext applicationContext, CollectionNameConvert collectionNameConvert) {
+    public MongoPlusAutoConfiguration(MongoDBLogProperty mongodbLogProperty, MongoDBCollectionProperty mongodbCollectionProperty, BaseMapper baseMapper, MongoPlusClient mongoPlusClient, ApplicationContext applicationContext, CollectionNameConvert collectionNameConvert) {
         this.mongoPlusClient = mongoPlusClient;
         this.applicationContext = applicationContext;
-        this.mongoDBLogProperty = mongoDBLogProperty;
-        this.mongoDBCollectionProperty = mongoDBCollectionProperty;
-        this.factory = factory;
+        this.mongodbLogProperty = mongodbLogProperty;
+        this.mongodbCollectionProperty = mongodbCollectionProperty;
         this.collectionNameConvert = collectionNameConvert;
         setConversion();
         setMetaObjectHandler();
         setDocumentHandler();
         setInterceptor();
+        this.baseMapper = baseMapper;
     }
 
     @Override
@@ -82,9 +83,8 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         serviceImpl.setClazz(clazz);
         String database = initFactory(clazz);
         //这里需要将MongoPlusClient给工厂
-        factory.setMongoPlusClient(mongoPlusClient);
         serviceImpl.setDatabase(database);
-        serviceImpl.setFactory(factory);
+        serviceImpl.setBaseMapper(baseMapper);
     }
 
     public String initFactory(Class<?> clazz) {
@@ -103,11 +103,11 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
                 String database = mongoPlusClient.getBaseProperty().getDatabase();
                 Arrays.stream(database.split(",")).collect(Collectors.toList()).forEach(db -> {
                     CollectionManager collectionManager = new CollectionManager(mongoPlusClient.getMongoClient(), collectionNameConvert, db);
-                    ConnectMongoDB connectMongoDB = new ConnectMongoDB(mongoPlusClient.getMongoClient(), db, finalCollectionName);
+                    ConnectMongoDB connectMongodb = new ConnectMongoDB(mongoPlusClient.getMongoClient(), db, finalCollectionName);
                     MongoDatabase mongoDatabase = mongoPlusClient.getMongoClient().getDatabase(db);
                     mongoDatabaseList.add(mongoDatabase);
                     if (Objects.equals(db, finalDataBaseName[0])){
-                        MongoCollection<Document> collection = connectMongoDB.open(mongoDatabase);
+                        MongoCollection<Document> collection = connectMongodb.open(mongoDatabase);
                         collectionManager.setCollectionMap(finalCollectionName,collection);
                     }
                     put(db,collectionManager);
@@ -170,10 +170,10 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
     */
     private void setInterceptor(){
         List<Interceptor> interceptors = new ArrayList<>();
-        if (mongoDBLogProperty.getLog()){
+        if (mongodbLogProperty.getLog()){
             interceptors.add(new LogInterceptor());
         }
-        if (mongoDBCollectionProperty.getBlockAttackInner()){
+        if (mongodbCollectionProperty.getBlockAttackInner()){
             interceptors.add(new BlockAttackInnerInterceptor());
         }
         Collection<Interceptor> interceptorCollection = applicationContext.getBeansOfType(Interceptor.class).values();

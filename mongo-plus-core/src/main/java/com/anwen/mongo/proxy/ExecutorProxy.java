@@ -27,9 +27,10 @@ public class ExecutorProxy implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        logger.info("目标：{}",proxy);
+        logger.info("目标：{}",JSON.toJSONString(proxy));
         logger.info("方法：{}",method);
-        logger.info("参数：{}", JSON.toJSONString(args));
+        logger.info("参数：{}",JSON.toJSONString(args[0]));
+        logger.info("参数2：{}",args[1].getClass());
         Object invoke = method.invoke(target, args);
         logger.info("执行结束");
         return invoke;

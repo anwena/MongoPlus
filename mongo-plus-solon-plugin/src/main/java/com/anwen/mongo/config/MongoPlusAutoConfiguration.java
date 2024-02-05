@@ -13,6 +13,7 @@ import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.interceptor.business.BlockAttackInnerInterceptor;
 import com.anwen.mongo.interceptor.business.LogInterceptor;
 import com.anwen.mongo.manager.MongoPlusClient;
+import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBLogProperty;
 import com.anwen.mongo.service.IService;
@@ -41,7 +42,7 @@ import java.util.stream.Collectors;
  **/
 public class MongoPlusAutoConfiguration {
 
-    private final ExecutorFactory factory;
+    private final BaseMapper baseMapper;
 
     private final MongoPlusClient mongoPlusClient;
 
@@ -53,13 +54,13 @@ public class MongoPlusAutoConfiguration {
 
     Logger logger = LoggerFactory.getLogger(MongoPlusAutoConfiguration.class);
 
-    public MongoPlusAutoConfiguration(ExecutorFactory factory, MongoPlusClient mongoPlusClient, @Inject CollectionNameConvert collectionNameConvert, MongoDBLogProperty mongoDBLogProperty, MongoDBCollectionProperty mongoDBCollectionProperty){
+    public MongoPlusAutoConfiguration(BaseMapper baseMapper, MongoPlusClient mongoPlusClient, @Inject CollectionNameConvert collectionNameConvert, MongoDBLogProperty mongoDBLogProperty, MongoDBCollectionProperty mongoDBCollectionProperty){
         mongoDBCollectionProperty = Optional.ofNullable(mongoDBCollectionProperty).orElseGet(MongoDBCollectionProperty::new);
-        this.factory = factory;
         this.collectionNameConvert = collectionNameConvert;
         this.mongoPlusClient = mongoPlusClient;
         this.mongoDBLogProperty = mongoDBLogProperty;
         this.mongoDBCollectionProperty = mongoDBCollectionProperty;
+        this.baseMapper = baseMapper;
         AppContext context = Solon.context();
         context.subBeansOfType(IService.class, bean -> {
             if (bean instanceof ServiceImpl){
@@ -85,9 +86,8 @@ public class MongoPlusAutoConfiguration {
         serviceImpl.setClazz(clazz);
         String database = initFactory(clazz);
         //这里需要将MongoPlusClient给工厂
-        factory.setMongoPlusClient(mongoPlusClient);
         serviceImpl.setDatabase(database);
-        serviceImpl.setFactory(factory);
+        serviceImpl.setBaseMapper(baseMapper);
     }
 
     public String initFactory(Class<?> clazz) {

@@ -79,7 +79,7 @@ public class LambdaUpdateChainInjectWrapper extends AbstractChainWrapper<String,
         return this;
     }
 
-    public boolean update(String collectionName){
+/*    public boolean update(String collectionName){
         return update(EMPTY,collectionName);
     }
 
@@ -96,7 +96,7 @@ public class LambdaUpdateChainInjectWrapper extends AbstractChainWrapper<String,
 
     public boolean remove(String database,String collectionName) {
         return factory.getInjectExecute(database).remove(collectionName,getCompareList());
-    }
+    }*/
 
     public List<CompareCondition> getUpdateCompareList() {
         return updateCompareList;

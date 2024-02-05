@@ -1,3 +1,4 @@
+/*
 package com.anwen.mongo.mapper;
 
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
@@ -9,6 +10,7 @@ import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.execute.ExecutorFactory;
+import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 import com.mongodb.client.MongoCollection;
@@ -27,30 +29,39 @@ import java.util.Map;
 
 import static com.anwen.mongo.toolkit.StringPool.EMPTY;
 
+*/
 /**
  * @author JiaChaoYang
- **/
+ **//*
+
 public class MongoPlusMapMapper implements InjectQuery {
     private final ExecutorFactory factory;
 
-    public MongoPlusMapMapper(ExecutorFactory factory) {
+    private final MongoPlusClient mongoPlusClient;
+
+    public MongoPlusMapMapper(ExecutorFactory factory, MongoPlusClient mongoPlusClient) {
         this.factory = factory;
+        this.mongoPlusClient = mongoPlusClient;
     }
 
-    /**
+    */
+/**
      * 获取当前操作对象的连接，以便使用MongoDriver的语法
      * @author JiaChaoYang
      * @date 2023/11/15 13:43
-     */
+     *//*
+
     public MongoCollection<Document> getMongoCollection(String database,String collectionName){
         return factory.getCollectionManager(database).getCollection(collectionName);
     }
 
-    /**
+    */
+/**
      * 获取当前操作对象的连接，以便使用MongoDriver的语法
      * @author JiaChaoYang
      * @date 2023/11/15 13:43
-     */
+     *//*
+
     public MongoCollection<Document> getMongoCollection(String collectionName){
         return factory.getCollectionManager(EMPTY).getCollection(collectionName);
     }
@@ -490,3 +501,4 @@ public class MongoPlusMapMapper implements InjectQuery {
         return factory.getInjectExecute(database).count(collectionName);
     }
 }
+*/

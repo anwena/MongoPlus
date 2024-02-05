@@ -12,6 +12,7 @@ import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.domain.MongoQueryException;
 import com.anwen.mongo.enums.AggregateOptionsEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
+import com.anwen.mongo.execute.AbstractExecute;
 import com.anwen.mongo.execute.Execute;
 import com.anwen.mongo.model.*;
 import com.anwen.mongo.toolkit.*;
@@ -53,7 +54,7 @@ public class InjectAbstractExecute {
 
     public Boolean save(String collectionName, Map<String, Object> entityMap) {
         try {
-            return execute.doSave(DocumentUtil.handleMap(entityMap,true),collectionManager.getCollection(collectionName)).wasAcknowledged();
+            return execute.executeSave(Collections.singletonList(DocumentUtil.handleMap(entityMap, true)),collectionManager.getCollection(collectionName)).wasAcknowledged();
         } catch (Exception e) {
             logger.error("save fail , error info : {}", e.getMessage(), e);
             return false;
@@ -63,7 +64,7 @@ public class InjectAbstractExecute {
     public Boolean saveBatch(String collectionName, Collection<Map<String, Object>> entityList) {
         try {
             List<Document> documentList = DocumentUtil.handleMapList(entityList,true);
-            return execute.doSaveBatch(documentList, collectionManager.getCollection(collectionName)).getInsertedIds().size() == entityList.size();
+            return execute.executeSave(documentList, collectionManager.getCollection(collectionName)).getInsertedIds().size() == entityList.size();
         } catch (Exception e) {
             logger.error("saveBatch fail , error info : {}", e.getMessage(), e);
             return false;
@@ -155,24 +156,24 @@ public class InjectAbstractExecute {
     }
 
     public List<Map<String, Object>> list(String collectionName) {
-        return Converter.convertDocumentToMap(execute.doList(collectionManager.getCollection(collectionName), Map.class));
+        return Converter.convertDocumentToMap(execute.executeQuery(null,null,null,collectionManager.getCollection(collectionName), Map.class));
     }
 
     public List<Map<String, Object>> list(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList, List<Projection> projectionList, List<BasicDBObject> basicDBObjectList) {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(compareConditionList, orderList, projectionList, basicDBObjectList);
-        FindIterable<Map> mapFindIterable = execute.doList(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), collectionManager.getCollection(collectionName), Map.class);
+        FindIterable<Map> mapFindIterable = execute.executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), collectionManager.getCollection(collectionName), Map.class);
         return Converter.convertDocumentToMap(mapFindIterable);
     }
 
     public PageResult<Map<String, Object>> page(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList, List<Projection> projectionList, List<BasicDBObject> basicDBObjectList, Integer pageNum, Integer pageSize) {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(compareConditionList, orderList, projectionList, basicDBObjectList);
-        FindIterable<Map> mapFindIterable = execute.doList(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), collectionManager.getCollection(collectionName), Map.class);
+        FindIterable<Map> mapFindIterable = execute.executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), collectionManager.getCollection(collectionName), Map.class);
         return lambdaOperate.getLambdaQueryResultPage(mapFindIterable,count(collectionName,compareConditionList),new PageParam(pageNum,pageSize));
     }
 
     public Map<String, Object> one(String collectionName, List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(compareConditionList, null, projectionList, basicDBObjectList);
-        List<Map<String, Object>> result = Converter.convertDocumentToMap(execute.doList(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), collectionManager.getCollection(collectionName), Map.class));
+        List<Map<String, Object>> result = Converter.convertDocumentToMap(execute.executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), collectionManager.getCollection(collectionName), Map.class));
         if (result.size() > 1) {
             throw new MongoQueryException("query result greater than one line");
         }
@@ -181,33 +182,33 @@ public class InjectAbstractExecute {
 
     public Map<String, Object> limitOne(String collectionName, List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,List<Order> orderList) {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(compareConditionList, null, projectionList, basicDBObjectList);
-        List<Map<String, Object>> result = Converter.convertDocumentToMap(execute.doList(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), collectionManager.getCollection(collectionName), Map.class));
+        List<Map<String, Object>> result = Converter.convertDocumentToMap(execute.executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), collectionManager.getCollection(collectionName), Map.class));
         return !result.isEmpty() ? result.get(0) : new HashMap<>();
     }
 
     public boolean isExist(String collectionName, Serializable id){
         BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id));
-        return execute.executeExist(queryBasic,collectionManager.getCollection(collectionName)) >= 1;
+        return execute.executeCount(queryBasic,null,collectionManager.getCollection(collectionName)) >= 1;
     }
 
     public boolean isExist(String collectionName,QueryChainWrapper<?,?> queryChainWrapper){
         BasicDBObject basicDBObject = BuildCondition.buildQueryCondition(queryChainWrapper.getCompareList());
-        return execute.executeExist(basicDBObject,collectionManager.getCollection(collectionName)) >= 1;
+        return execute.executeCount(basicDBObject,null,collectionManager.getCollection(collectionName)) >= 1;
     }
 
     public List<Map<String,Object>> getByColumn(String collectionName,String column,Object value){
         Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(value)) ? new ObjectId(String.valueOf(value)) : value);
-        return Converter.convertDocumentToMap(execute.doGetByColumn(filter,collectionManager.getCollection(collectionName),Map.class));
+        return Converter.convertDocumentToMap(execute.executeQuery(filter,null,null,collectionManager.getCollection(collectionName),Map.class));
     }
 
     public Map<String, Object> getById(String collectionName,Serializable id) {
         BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id));
-        return execute.doGetById(queryBasic,collectionManager.getCollection(collectionName)).first();
+        return execute.executeQuery(queryBasic,null,null,collectionManager.getCollection(collectionName),Map.class).first();
     }
 
     public List<Map<String, Object>> getByIds(String collectionName,Collection<? extends Serializable> ids) {
         BasicDBObject basicDBObject = checkIdType(ids);
-        FindIterable<Map> iterable = execute.doGetByIds(basicDBObject, collectionManager.getCollection(collectionName),Map.class);
+        FindIterable<Map> iterable = execute.executeQuery(basicDBObject,null,null, collectionManager.getCollection(collectionName),Map.class);
         return Converter.convertDocumentToMap(iterable);
     }
 
@@ -220,7 +221,7 @@ public class InjectAbstractExecute {
 
     public List<Map<String,Object>> queryCommand(String collectionName,String sql){
         BasicDBObject basicDBObject = BasicDBObject.parse(sql);
-        return Converter.convertDocumentToMap(execute.doQueryCommand(basicDBObject,collectionManager.getCollection(collectionName),Map.class));
+        return Converter.convertDocumentToMap(execute.executeQuery(basicDBObject,null,null,collectionManager.getCollection(collectionName),Map.class));
     }
 
     public Boolean update(String collectionName,List<CompareCondition> compareConditionList){
@@ -243,7 +244,7 @@ public class InjectAbstractExecute {
     }
 
     public long count(String collectionName,List<CompareCondition> compareConditionList){
-        return execute.executeCountByCondition(BuildCondition.buildQueryCondition(compareConditionList),collectionManager.getCollection(collectionName));
+        return execute.executeCount(BuildCondition.buildQueryCondition(compareConditionList),null,collectionManager.getCollection(collectionName));
     }
 
     public List<Map<String,Object>> aggregateList(String collectionName, List<BaseAggregate> aggregateList, List<AggregateBasicDBObject> basicDBObjectList, BasicDBObject optionsBasicDBObject){
@@ -252,7 +253,7 @@ public class InjectAbstractExecute {
             addAll(basicDBObjectList);
         }};
         aggregateConditionList.sort(Comparator.comparingInt(AggregateBasicDBObject::getOrder));
-        AggregateIterable<Map> aggregateIterable = execute.doAggregateList(aggregateConditionList, collectionManager.getCollection(collectionName), Map.class);
+        AggregateIterable<Map> aggregateIterable = execute.executeAggregate(aggregateConditionList, collectionManager.getCollection(collectionName), Map.class);
         aggregateOptions(aggregateIterable,optionsBasicDBObject);
         return Converter.convertDocumentToMap(aggregateIterable.iterator());
     }
@@ -263,13 +264,13 @@ public class InjectAbstractExecute {
             addAll(basicDBObjectList);
         }};
         aggregateConditionList.sort(Comparator.comparingInt(AggregateBasicDBObject::getOrder));
-        AggregateIterable<Document> aggregateIterable = execute.doAggregateList(aggregateConditionList, collectionManager.getCollection(collectionName));
+        AggregateIterable<Document> aggregateIterable = execute.executeAggregate(aggregateConditionList, collectionManager.getCollection(collectionName),Document.class);
         aggregateOptions(aggregateIterable,optionsBasicDBObject);
         return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),clazz);
     }
 
     public long count(String collectionName){
-        return execute.doCount(collectionManager.getCollection(collectionName));
+        return execute.executeCount(null,null,collectionManager.getCollection(collectionName));
     }
 
     public String createIndex(String collectionName,Bson bson){
@@ -318,42 +319,7 @@ public class InjectAbstractExecute {
     }
 
     protected void aggregateOptions(AggregateIterable<?> aggregateIterable,BasicDBObject optionsBasicDBObject){
-        Set<String> keyedSet = optionsBasicDBObject.keySet();
-        for (String key : keyedSet) {
-            AggregateOptionsEnum aggregateOptionsEnum = AggregateOptionsEnum.getByOptions(key);
-            switch (Objects.requireNonNull(aggregateOptionsEnum)){
-                case ALLOW_DISK_USE:
-                    aggregateIterable.allowDiskUse(optionsBasicDBObject.getBoolean(key));
-                    break;
-                case COLLATION:
-                    aggregateIterable.collation((Collation) optionsBasicDBObject.get(key));
-                    break;
-                case BATCH_SIZE:
-                    aggregateIterable.batchSize(optionsBasicDBObject.getInt(key));
-                    break;
-                case MAX_TIME_MS:
-                    aggregateIterable.maxTime(optionsBasicDBObject.getLong(key), TimeUnit.MILLISECONDS);
-                    break;
-                case MAX_AWAIT_TIME_MS:
-                    aggregateIterable.maxAwaitTime(optionsBasicDBObject.getLong(key),TimeUnit.MILLISECONDS);
-                    break;
-                case BYPASS_DOCUMENT_VALIDATION:
-                    aggregateIterable.bypassDocumentValidation(optionsBasicDBObject.getBoolean(key));
-                    break;
-                case COMMENT:
-                    aggregateIterable.comment(String.valueOf(optionsBasicDBObject.get(key)));
-                    break;
-                case COMMENT_STR:
-                    aggregateIterable.comment(optionsBasicDBObject.getString(key));
-                    break;
-                case HINT:
-                    aggregateIterable.hint((Bson) optionsBasicDBObject.get(key));
-                    break;
-                case LET:
-                    aggregateIterable.let((Bson) optionsBasicDBObject.get(key));
-                    break;
-            }
-        }
+        AbstractExecute.options(aggregateIterable, optionsBasicDBObject);
     }
 
 }

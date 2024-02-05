@@ -17,55 +17,25 @@ import org.bson.conversions.Bson;
 import java.util.List;
 
 /**
- * 抽象的执行器
+ * 执行器接口
  *
  * @author JiaChaoYang
  **/
 public interface Execute {
 
-    InsertOneResult doSave(Document document, MongoCollection<Document> collection);
-
-    InsertManyResult doSaveBatch(List<Document> documentList, MongoCollection<Document> collection);
-
-    BulkWriteResult bulkWrite(List<WriteModel<Document>> writeModelList, MongoCollection<Document> collection);
+    InsertManyResult executeSave(List<Document> documentList, MongoCollection<Document> collection);
 
     DeleteResult executeRemove(Bson filter, MongoCollection<Document> collection);
 
-    FindIterable<Document> doList(MongoCollection<Document> collection);
-
-    <T> FindIterable<T> doList(MongoCollection<Document> collection,Class<T> clazz);
-
-    FindIterable<Document> doList(BasicDBObject basicDBObject, BasicDBObject projectionList, BasicDBObject sortCond, MongoCollection<Document> collection);
-
-    <T> FindIterable<T> doList(BasicDBObject basicDBObject, BasicDBObject projectionList, BasicDBObject sortCond, MongoCollection<Document> collection,Class<T> clazz);
-
-    AggregateIterable<Document> doAggregateList(List<AggregateBasicDBObject> aggregateConditionList,MongoCollection<Document> collection);
-
-    <T> AggregateIterable<T> doAggregateList(List<AggregateBasicDBObject> aggregateConditionList,MongoCollection<Document> collection,Class<T> clazz);
-
-    FindIterable<Document> doGetById(BasicDBObject queryBasic,MongoCollection<Document> collection);
-
-    <T> FindIterable<T> doGetByIds(BasicDBObject queryBasic, MongoCollection<Document> collection, Class<T> clazz);
-
-    long executeExist(BasicDBObject queryBasic, MongoCollection<Document> collection);
-
     UpdateResult executeUpdate(Bson queryBasic,Bson updateBasic,MongoCollection<Document> collection);
 
-    DeleteResult executeRemove(BasicDBObject deleteBasic,MongoCollection<Document> collection);
+    <T> FindIterable<T> executeQuery(Bson queryBasic, BasicDBObject projectionList, BasicDBObject sortCond, MongoCollection<Document> collection, Class<T> clazz);
 
-    long executeCountByCondition(BasicDBObject basicDBObject,MongoCollection<Document> collection);
+    <T> AggregateIterable<T> executeAggregate(List<AggregateBasicDBObject> aggregateConditionList, MongoCollection<Document> collection, Class<T> clazz);
 
-    long executeCountByCondition(BasicDBObject basicDBObject,MongoCollection<Document> collection, CountOptions var2);
+    long executeCount(BasicDBObject queryBasic,CountOptions countOptions,MongoCollection<Document> collection);
 
-    long doCount(MongoCollection<Document> collection);
-
-    FindIterable<Document> doQueryCommand(BasicDBObject basicDBObject,MongoCollection<Document> collection);
-
-    <T> FindIterable<T> doQueryCommand(BasicDBObject basicDBObject,MongoCollection<Document> collection,Class<T> clazz);
-
-    FindIterable<Document> doGetByColumn(Bson filter,MongoCollection<Document> collection);
-
-    <T> FindIterable<T> doGetByColumn(Bson filter,MongoCollection<Document> collection,Class<T> clazz);
+    BulkWriteResult executeBulkWrite(List<WriteModel<Document>> writeModelList, MongoCollection<Document> collection);
 
     String doCreateIndex(Bson bson,MongoCollection<Document> collection);
 
