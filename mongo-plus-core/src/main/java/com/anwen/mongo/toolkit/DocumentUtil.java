@@ -6,6 +6,7 @@ import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.cache.global.HandlerCache;
+import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.handlers.DocumentHandler;
 import com.mongodb.BasicDBObject;
@@ -94,7 +95,7 @@ public class DocumentUtil {
     }
 
     public static BasicDBObject handleBasicDBObject(BasicDBObject basicDBObject){
-        BasicDBObject result = new BasicDBObject();
+        /*BasicDBObject result = new BasicDBObject();
         PropertyFilter propertyFilter = (object, name, value) -> {
             if (value instanceof LocalDate
                     || value instanceof LocalDateTime
@@ -111,7 +112,8 @@ public class DocumentUtil {
         }});
         basicDBObject = BasicDBObject.parse(jsonString);
         basicDBObject.putAll(result.toBsonDocument());
-        return basicDBObject;
+        return basicDBObject;*/
+        return BasicDBObject.parse(basicDBObject.toBsonDocument().toJson());
     }
 
     /**
