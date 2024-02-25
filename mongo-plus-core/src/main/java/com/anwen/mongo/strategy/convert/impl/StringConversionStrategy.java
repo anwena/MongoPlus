@@ -18,12 +18,17 @@ public class StringConversionStrategy implements ConversionStrategy<String> {
 
     @Override
     public String convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
-        String value = null;
         try {
-            value = StringUtils.isNotBlankAndConvert(fieldValue);
+            if (fieldValue == null) {
+                return null;
+            }
+            if (fieldValue instanceof String) {
+                return (String) fieldValue;
+            }
+            return String.valueOf(fieldValue);
         } catch (Exception e) {
             logger.error("Conversion to String failed, exception message: {}",e.getMessage());
         }
-        return value;
+        return null;
     }
 }
