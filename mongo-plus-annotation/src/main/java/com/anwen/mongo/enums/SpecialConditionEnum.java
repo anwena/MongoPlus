@@ -5,6 +5,8 @@ public enum SpecialConditionEnum {
 
     OR("$or"),
 
+    AND("$and"),
+
     NOR("$nor"),
 
     SET("$set"),

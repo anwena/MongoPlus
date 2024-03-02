@@ -57,6 +57,11 @@ public class BuildCondition {
                             compare.setChildCondition(Collections.singletonList(compare));
                         }
                         put(SpecialConditionEnum.OR.getCondition(), buildOrQueryCondition(compare.getChildCondition()));
+                    } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.AND.getKey())) {
+                        if (null == compare.getChildCondition() || compare.getChildCondition().isEmpty()) {
+                            compare.setChildCondition(Collections.singletonList(compare));
+                        }
+                        put(SpecialConditionEnum.AND.getCondition(), buildOrQueryCondition(compare.getChildCondition()));
                     } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.NOR.getKey())) {
                         put(SpecialConditionEnum.NOR.getCondition(), buildQueryCondition(compare.getChildCondition()));
                     } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.ELEMMATCH.getKey())) {

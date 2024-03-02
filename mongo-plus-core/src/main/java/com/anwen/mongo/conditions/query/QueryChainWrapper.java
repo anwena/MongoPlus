@@ -99,4 +99,14 @@ public abstract class QueryChainWrapper<T,Children extends QueryChainWrapper<T,C
         return getBaseOrder(OrderEnum.ORDER_BY_DESC.getFlag(), column);
     }
 
+    @Override
+    public Children limit(long limit) {
+        return null;
+    }
+
+    @Override
+    public Children skip(long skip) {
+        return null;
+    }
+
 }

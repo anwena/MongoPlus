@@ -26,8 +26,6 @@ import java.util.List;
  **/
 public class ExecutorProxy implements InvocationHandler {
 
-    Logger logger = LoggerFactory.getLogger(ExecutorProxy.class);
-
     private final Execute target;
 
     public ExecutorProxy(Execute target) {

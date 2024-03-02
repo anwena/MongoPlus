@@ -40,7 +40,7 @@ public class MongoPlusMapMapper implements InjectQuery {
 
     public MongoPlusMapMapper(MongoPlusClient mongoPlusClient) {
         this.mongoPlusClient = mongoPlusClient;
-        factory = new ExecutorFactory();
+        factory = new ExecutorFactory(mongoPlusClient);
     }
 
     /**
