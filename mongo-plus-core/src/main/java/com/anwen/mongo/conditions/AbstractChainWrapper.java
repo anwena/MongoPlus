@@ -6,10 +6,7 @@ import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.constant.SqlOperationConstant;
-import com.anwen.mongo.enums.CompareEnum;
-import com.anwen.mongo.enums.LogicTypeEnum;
-import com.anwen.mongo.enums.ProjectionEnum;
-import com.anwen.mongo.enums.TypeEnum;
+import com.anwen.mongo.enums.*;
 import com.anwen.mongo.support.SFunction;
 import com.mongodb.BasicDBObject;
 import org.bson.conversions.Bson;
@@ -577,13 +574,13 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
     }
 
     public Children getBaseOrCondition(List<CompareCondition> compareConditionList){
-        this.compareList.add(CompareCondition.builder().type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.OR.getKey()).childCondition(compareConditionList).build());
+        this.compareList.add(CompareCondition.builder().condition(QueryOperatorEnum.OR.getValue()).type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.OR.getKey()).childCondition(compareConditionList).build());
         return typedThis;
     }
 
     public Children getBaseAndCondition(List<CompareCondition> compareConditionList){
         CompareCondition compareCondition = new CompareCondition();
-        compareCondition.setCondition("and");
+        compareCondition.setCondition(QueryOperatorEnum.AND.getValue());
         compareCondition.setType(CompareEnum.QUERY.getKey());
         compareCondition.setLogicType(LogicTypeEnum.AND.getKey());
         compareCondition.setChildCondition(compareConditionList);

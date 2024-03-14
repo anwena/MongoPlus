@@ -22,7 +22,7 @@ import java.util.List;
 
 /**
  * mapper层
- * TODO 名称待定，方法留CRUD
+ * TODO 名称待定，方法留CRUD，不同数据库实现该接口
  * @author JiaChaoYang
  **/
 public interface BaseMapper{
