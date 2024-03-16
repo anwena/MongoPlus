@@ -11,6 +11,7 @@ import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCursor;
 import org.bson.Document;
 
 import java.util.List;
@@ -27,6 +28,12 @@ public class LambdaOperate {
 
     public <T> List<T> getLambdaQueryResult(FindIterable<Document> iterable, Class<T> clazz) {
         return DocumentMapperConvert.mapDocumentList(iterable, clazz);
+    }
+
+    public <T> T getLambdaQueryResultOne(FindIterable<Document> iterable, Class<T> clazz) {
+        try (MongoCursor<Document> cursor = iterable.iterator()) {
+            return DocumentMapperConvert.mapDocument(cursor.next(), clazz);
+        }
     }
 
     public List<Map<String, Object>> getLambdaQueryResult(FindIterable<Map> iterable,Integer size) {

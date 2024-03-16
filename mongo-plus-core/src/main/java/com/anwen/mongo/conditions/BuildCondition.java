@@ -1,5 +1,6 @@
 package com.anwen.mongo.conditions;
 
+import com.anwen.mongo.bson.MongoPlusBasicDBObject;
 import com.anwen.mongo.conditions.accumulator.Accumulator;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.AddFields;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
@@ -91,7 +92,7 @@ public class BuildCondition {
     public static List<BasicDBObject> buildOrQueryCondition(List<CompareCondition> compareConditionList) {
         return new ArrayList<BasicDBObject>(){{
             compareConditionList.forEach(compare -> add(new MongoPlusBasicDBObject(){{
-                if (Objects.equals(compare.getCondition(), QueryOperatorEnum.LIKE.getValue()) && StringUtils.isNotBlank(String.valueOf(compare.getValue()))) {
+                if (compare.getCondition().contains(QueryOperatorEnum.LIKE.getValue()) && StringUtils.isNotBlank(String.valueOf(compare.getValue()))) {
                     put(compare.getColumn(), new BasicDBObject(SpecialConditionEnum.REGEX.getCondition(), compare.getValue()));
                 } else if (Objects.equals(compare.getCondition(), QueryOperatorEnum.OR.getValue())) {
                     if (null == compare.getChildCondition() || compare.getChildCondition().isEmpty()) {

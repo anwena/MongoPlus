@@ -33,6 +33,7 @@ public class LambdaQueryChainWrapper<T> extends QueryChainWrapper<T,LambdaQueryC
     }
 
     @Override
+    @Deprecated
     public T limitOne() {
         return baseMapper.limitOne(this,clazz);
     }

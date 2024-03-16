@@ -50,9 +50,12 @@ public interface BaseMapper{
 
     <T> T one(QueryChainWrapper<T,?> queryChainWrapper,Class<T> clazz);
 
+    @Deprecated
     <T> T limitOne(QueryChainWrapper<T, ?> queryChainWrapper,Class<T> clazz);
 
     <T> PageResult<T> page(QueryChainWrapper<T,?> queryChainWrapper, Integer pageNum, Integer pageSize, Class<T> clazz);
+
+    <T> List<T> pageList(QueryChainWrapper<T,?> queryChainWrapper, Integer pageNum, Integer pageSize, Class<T> clazz);
 
     <T> PageResult<T> page(QueryChainWrapper<T,?> queryChainWrapper, Integer pageNum, Integer pageSize, Integer recentPageNum, Class<T> clazz);
 

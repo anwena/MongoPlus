@@ -2,12 +2,14 @@ package com.anwen.mongo.config;
 
 import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.cache.global.HandlerCache;
+import com.anwen.mongo.cache.global.InterceptorCache;
 import com.anwen.mongo.cache.global.ListenerCache;
 import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.conn.ConnectMongoDB;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.handlers.DocumentHandler;
 import com.anwen.mongo.handlers.MetaObjectHandler;
+import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.listener.Listener;
 import com.anwen.mongo.listener.business.BlockAttackInnerListener;
 import com.anwen.mongo.listener.business.LogListener;
@@ -65,6 +67,7 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         setConversion();
         setMetaObjectHandler();
         setDocumentHandler();
+        setListener();
         setInterceptor();
         this.baseMapper = baseMapper;
     }
@@ -163,11 +166,11 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
     }
 
     /**
-     * 从Bean中拿到拦截器
+     * 从Bean中拿到监听器
      * @author JiaChaoYang
      * @date 2023/11/22 18:39
     */
-    private void setInterceptor(){
+    private void setListener(){
         List<Listener> listeners = new ArrayList<>();
         if (mongodbLogProperty.getLog()){
             listeners.add(new LogListener());
@@ -180,6 +183,16 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
             listeners.addAll(listenerCollection);
         }
         ListenerCache.listeners = listeners.stream().sorted(Comparator.comparingInt(Listener::getOrder)).collect(Collectors.toList());
+    }
+
+    /**
+     * 从Bean中拿到拦截器
+     * @author JiaChaoYang
+     * @date 2024/3/17 0:30
+    */
+    private void setInterceptor(){
+        Collection<Interceptor> interceptorCollection = applicationContext.getBeansOfType(Interceptor.class).values();
+        InterceptorCache.interceptors = new ArrayList<>(interceptorCollection);
     }
 
 }

@@ -1,6 +1,8 @@
 package com.anwen.mongo.interceptor;
 
 import com.anwen.mongo.model.AggregateBasicDBObject;
+import com.anwen.mongo.model.MutablePair;
+import com.anwen.mongo.model.QueryParam;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.model.CountOptions;
 import com.mongodb.client.model.WriteModel;
@@ -10,24 +12,45 @@ import org.bson.conversions.Bson;
 import java.util.List;
 
 /**
- * 拦截器
+ * 拦截器，代理{@link com.anwen.mongo.execute.Execute}接口，增删改查会经过
  *
  * @author JiaChaoYang
  **/
 public interface Interceptor {
 
-    void executeSave(List<Document> documentList);
+    /**
+     * 添加拦截方法
+     * @param documentList 经过添加方法的值
+     * @return java.util.List<org.bson.Document>
+     * @author JiaChaoYang
+     * @date 2024/3/17 0:37
+    */
+    default List<Document> executeSave(List<Document> documentList){
+        return documentList;
+    };
 
-    void executeRemove(Bson filter);
+    default Bson executeRemove(Bson filter){
+        return filter;
+    }
 
-    void executeUpdate(Bson queryBasic, Bson updateBasic);
+    default MutablePair<Bson,Bson> executeUpdate(Bson queryBasic, Bson updateBasic){
+        return new MutablePair<>(queryBasic, updateBasic);
+    }
 
-    void executeQuery(Bson queryBasic, BasicDBObject projectionList, BasicDBObject sortCond);
+    default QueryParam executeQuery(Bson queryBasic, BasicDBObject projectionList, BasicDBObject sortCond){
+        return new QueryParam(queryBasic, projectionList, sortCond);
+    }
 
-    void executeAggregate(List<AggregateBasicDBObject> aggregateConditionList);
+    default List<AggregateBasicDBObject> executeAggregate(List<AggregateBasicDBObject> aggregateConditionList){
+        return aggregateConditionList;
+    }
 
-    void executeCount(BasicDBObject queryBasic, CountOptions countOptions);
+    default MutablePair<BasicDBObject,CountOptions> executeCount(BasicDBObject queryBasic, CountOptions countOptions){
+        return new MutablePair<>(queryBasic, countOptions);
+    }
 
-    void executeBulkWrite(List<WriteModel<Document>> writeModelList);
+    default List<WriteModel<Document>> executeBulkWrite(List<WriteModel<Document>> writeModelList){
+        return writeModelList;
+    }
 
 }

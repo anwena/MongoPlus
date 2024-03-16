@@ -187,6 +187,7 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @date 2023/7/20 23:20
      */
+    @Deprecated
     T limitOne(QueryChainWrapper<T,?> queryChainWrapper);
 
     List<T> list(QueryChainWrapper<T ,?> queryChainWrapper);
@@ -244,6 +245,37 @@ public interface IService<T> {
     PageResult<T> page(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize, Integer recentPageNum);
 
     PageResult<T> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam, Integer recentPageNum);
+
+    /**
+     * 返回List的page，无需进行count查询，速度会比较快
+     * @author JiaChaoYang
+     * @date 2024/3/16 23:56
+    */
+    List<T> pageList(PageParam pageParam);
+
+    /**
+     * 返回List的page，无需进行count查询，速度会比较快
+     *
+     * @author JiaChaoYang
+     * @date 2024/3/16 23:56
+     */
+    List<T> pageList(Integer pageNum,Integer pageSize);
+
+    /**
+     * 返回List的page，无需进行count查询，速度会比较快
+     *
+     * @author JiaChaoYang
+     * @date 2024/3/16 23:56
+     */
+    List<T> pageList(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize);
+
+    /**
+     * 返回List的page，无需进行count查询，速度会比较快
+     *
+     * @author JiaChaoYang
+     * @date 2024/3/16 23:56
+     */
+    List<T> pageList(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam);
 
     /**
      * 根据id查询单个

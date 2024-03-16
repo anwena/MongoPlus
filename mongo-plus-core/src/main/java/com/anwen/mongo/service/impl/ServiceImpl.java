@@ -250,6 +250,7 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    @Deprecated
     public T limitOne(QueryChainWrapper<T, ?> queryChainWrapper) {
         return baseMapper.limitOne(queryChainWrapper,clazz);
     }
@@ -297,6 +298,26 @@ public class ServiceImpl<T> implements IService<T>{
     @Override
     public PageResult<T> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam, Integer recentPageNum) {
         return page(queryChainWrapper,pageParam.getPageNum(),pageParam.getPageSize(),recentPageNum);
+    }
+
+    @Override
+    public List<T> pageList(PageParam pageParam) {
+        return pageList(pageParam.getPageNum(),pageParam.getPageSize());
+    }
+
+    @Override
+    public List<T> pageList(Integer pageNum, Integer pageSize) {
+        return baseMapper.pageList(new QueryWrapper<>(),pageNum,pageSize,clazz);
+    }
+
+    @Override
+    public List<T> pageList(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize) {
+        return baseMapper.pageList(queryChainWrapper,pageNum,pageSize,clazz);
+    }
+
+    @Override
+    public List<T> pageList(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam) {
+        return baseMapper.pageList(queryChainWrapper,pageParam.getPageNum(),pageParam.getPageSize(),clazz);
     }
 
     @Override

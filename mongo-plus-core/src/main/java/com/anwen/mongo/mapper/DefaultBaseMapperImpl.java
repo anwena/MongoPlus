@@ -11,10 +11,10 @@ import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.context.MongoTransactionContext;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.convert.DocumentMapperConvert;
-import com.anwen.mongo.domain.MongoQueryException;
 import com.anwen.mongo.enums.AggregateOptionsEnum;
 import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
+import com.anwen.mongo.execute.Execute;
 import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.model.*;
@@ -165,32 +165,48 @@ public class DefaultBaseMapperImpl implements BaseMapper {
     @Override
     public <T> T one(QueryChainWrapper<T,?> queryChainWrapper,Class<T> clazz) {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),null,queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
-        List<T> result = lambdaOperate.getLambdaQueryResult(factory.getExecute().executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(),mongoPlusClient.getCollection(clazz),Document.class),clazz);
-        if (result.size() > 1) {
-            throw new MongoQueryException("query result greater than one line");
-        }
-        return !result.isEmpty() ? result.get(0) : null;
+        return lambdaOperate.getLambdaQueryResultOne(factory.getExecute().executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(),mongoPlusClient.getCollection(clazz),Document.class).limit(1),clazz);
     }
 
     @Override
     public <T> T limitOne(QueryChainWrapper<T, ?> queryChainWrapper,Class<T> clazz) {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
-        List<T> result = lambdaOperate.getLambdaQueryResult(factory.getExecute().executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(),mongoPlusClient.getCollection(clazz),Document.class),clazz);
-        return !result.isEmpty() ? result.get(0) : null;
+        return lambdaOperate.getLambdaQueryResultOne(factory.getExecute().executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(),mongoPlusClient.getCollection(clazz),Document.class).limit(1),clazz);
     }
 
     @Override
     public <T> PageResult<T> page(QueryChainWrapper<T,?> queryChainWrapper, Integer pageNum, Integer pageSize,Class<T> clazz) {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
+        MongoCollection<Document> collection = mongoPlusClient.getCollection(clazz);
+        long count;
+        if (CollUtil.isEmpty(queryChainWrapper.getCompareList())){
+            count = factory.getExecute().estimatedDocumentCount(collection);
+        }else {
+            count = count(queryChainWrapper,clazz);
+        }
+        FindIterable<Document> iterable = factory.getExecute().executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), collection,Document.class);
+        return lambdaOperate.getLambdaQueryResultPage(iterable,count,new PageParam(pageNum,pageSize),clazz);
+    }
+
+    @Override
+    public <T> List<T> pageList(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize, Class<T> clazz) {
+        BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
         FindIterable<Document> iterable = factory.getExecute().executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), mongoPlusClient.getCollection(clazz),Document.class);
-        return lambdaOperate.getLambdaQueryResultPage(iterable,count(queryChainWrapper,clazz),new PageParam(pageNum,pageSize),clazz);
+        return DocumentMapperConvert.mapDocumentList(iterable.skip((pageNum - 1) * pageSize).limit(pageSize), clazz);
     }
 
     @Override
     public <T> PageResult<T> page(QueryChainWrapper<T,?> queryChainWrapper, Integer pageNum, Integer pageSize, Integer recentPageNum, Class<T> clazz) {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
-        FindIterable<Document> iterable = factory.getExecute().executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), mongoPlusClient.getCollection(clazz),Document.class);
-        return lambdaOperate.getLambdaQueryResultPage(iterable, recentPageCount(queryChainWrapper.getCompareList(),clazz, pageNum,  pageSize, recentPageNum),new PageParam(pageNum,pageSize),clazz);
+        MongoCollection<Document> collection = mongoPlusClient.getCollection(clazz);
+        long count;
+        if (CollUtil.isEmpty(queryChainWrapper.getCompareList())){
+            count = factory.getExecute().estimatedDocumentCount(collection);
+        }else {
+            count = recentPageCount(queryChainWrapper.getCompareList(),clazz, pageNum,  pageSize, recentPageNum);
+        }
+        FindIterable<Document> iterable = factory.getExecute().executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), collection,Document.class);
+        return lambdaOperate.getLambdaQueryResultPage(iterable, count,new PageParam(pageNum,pageSize),clazz);
     }
 
     @Override
@@ -249,7 +265,11 @@ public class DefaultBaseMapperImpl implements BaseMapper {
 
     @Override
     public long count(QueryChainWrapper<?, ?> queryChainWrapper,Class<?> clazz){
-        return factory.getExecute().executeCount(BuildCondition.buildQueryCondition(queryChainWrapper.getCompareList()),null,mongoPlusClient.getCollection(clazz));
+        Execute execute = factory.getExecute();
+        MongoCollection<Document> collection = mongoPlusClient.getCollection(clazz);
+        return Optional.ofNullable(queryChainWrapper.getCompareList())
+                .map(compare -> execute.executeCount(BuildCondition.buildQueryCondition(compare),null,collection))
+                .orElseGet(() -> execute.estimatedDocumentCount(collection));
     }
 
     /**
@@ -285,7 +305,7 @@ public class DefaultBaseMapperImpl implements BaseMapper {
 
     @Override
     public long count(Class<?> clazz){
-        return factory.getExecute().executeCount(null,null,mongoPlusClient.getCollection(clazz));
+        return factory.getExecute().estimatedDocumentCount(mongoPlusClient.getCollection(clazz));
     }
 
     @Override

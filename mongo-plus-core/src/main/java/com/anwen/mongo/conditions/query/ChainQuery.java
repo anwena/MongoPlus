@@ -35,6 +35,7 @@ public interface ChainQuery<T> {
      * @author JiaChaoYang
      * @date 2023/7/20 23:12
     */
+    @Deprecated
     T limitOne();
 
     /**

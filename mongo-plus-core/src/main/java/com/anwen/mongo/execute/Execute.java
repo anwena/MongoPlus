@@ -34,6 +34,8 @@ public interface Execute {
 
     long executeCount(BasicDBObject queryBasic,CountOptions countOptions,MongoCollection<Document> collection);
 
+    long estimatedDocumentCount(MongoCollection<Document> collection);
+
     BulkWriteResult executeBulkWrite(List<WriteModel<Document>> writeModelList, MongoCollection<Document> collection);
 
     String doCreateIndex(Bson bson,MongoCollection<Document> collection);

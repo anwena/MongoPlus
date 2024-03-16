@@ -62,6 +62,11 @@ public class DefaultExecute implements Execute {
     }
 
     @Override
+    public long estimatedDocumentCount(MongoCollection<Document> collection) {
+        return collection.estimatedDocumentCount();
+    }
+
+    @Override
     public UpdateResult executeUpdate(Bson queryBasic, Bson updateBasic, MongoCollection<Document> collection) {
         return collection.updateMany(queryBasic,updateBasic);
     }

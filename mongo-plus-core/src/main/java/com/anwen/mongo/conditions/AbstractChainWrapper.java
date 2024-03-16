@@ -212,6 +212,46 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
     }
 
     @Override
+    public Children likeLeft(boolean condition, SFunction<T, Object> column, Object value) {
+        return condition ? likeLeft(column,value) : typedThis;
+    }
+
+    @Override
+    public Children likeLeft(SFunction<T, Object> column, Object value) {
+        return like(column,"^"+value);
+    }
+
+    @Override
+    public Children likeLeft(boolean condition, String column, Object value) {
+        return condition ? likeLeft(column,value) : typedThis;
+    }
+
+    @Override
+    public Children likeLeft(String column, Object value) {
+        return like(column,"^"+value);
+    }
+
+    @Override
+    public Children likeRight(boolean condition, SFunction<T, Object> column, Object value) {
+        return condition ? likeRight(column,value) : typedThis;
+    }
+
+    @Override
+    public Children likeRight(SFunction<T, Object> column, Object value) {
+        return like(column,value+"$");
+    }
+
+    @Override
+    public Children likeRight(boolean condition, String column, Object value) {
+        return condition ? likeRight(column,value) : typedThis;
+    }
+
+    @Override
+    public Children likeRight(String column, Object value) {
+        return like(column,value+"$");
+    }
+
+    @Override
     public Children in(boolean condition, SFunction<T, Object> column, Collection<?> valueList) {
         return condition ? in(column,valueList) : typedThis;
     }

@@ -69,6 +69,11 @@ public class SessionExecute implements Execute {
     }
 
     @Override
+    public long estimatedDocumentCount(MongoCollection<Document> collection) {
+        return collection.countDocuments();
+    }
+
+    @Override
     public UpdateResult executeUpdate(Bson queryBasic, Bson updateBasic, MongoCollection<Document> collection) {
         return collection.updateMany(clientSession,queryBasic,updateBasic);
     }
