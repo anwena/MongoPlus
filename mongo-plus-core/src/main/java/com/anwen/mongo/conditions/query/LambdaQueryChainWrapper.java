@@ -1,6 +1,5 @@
 package com.anwen.mongo.conditions.query;
 
-import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;

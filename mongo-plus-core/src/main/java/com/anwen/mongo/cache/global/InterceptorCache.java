@@ -1,7 +1,6 @@
 package com.anwen.mongo.cache.global;
 
 import com.anwen.mongo.interceptor.Interceptor;
-import com.anwen.mongo.listener.Listener;
 
 import java.util.ArrayList;
 import java.util.List;

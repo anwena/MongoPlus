@@ -15,7 +15,6 @@ import com.anwen.mongo.toolkit.CollUtil;
 import com.anwen.mongo.toolkit.ObjectIdUtil;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.BasicDBObject;
-import org.bson.types.ObjectId;
 
 import java.util.*;
 import java.util.stream.Collectors;

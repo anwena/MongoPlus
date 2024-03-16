@@ -1,16 +1,13 @@
 package com.anwen.mongo.mapper;
 
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
-import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
-import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.execute.Execute;
 import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.model.PageResult;
-import com.mongodb.BasicDBObject;
 import com.mongodb.client.model.*;
 import org.bson.Document;
 import org.bson.conversions.Bson;

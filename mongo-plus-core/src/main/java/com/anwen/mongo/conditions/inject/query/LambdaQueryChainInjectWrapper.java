@@ -2,7 +2,6 @@ package com.anwen.mongo.conditions.inject.query;
 
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.execute.ExecutorFactory;
-import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 

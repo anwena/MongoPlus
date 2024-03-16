@@ -10,7 +10,6 @@ import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.convert.Converter;
 import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.domain.MongoQueryException;
-import com.anwen.mongo.enums.AggregateOptionsEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.execute.AbstractExecute;
 import com.anwen.mongo.execute.Execute;
@@ -29,7 +28,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 

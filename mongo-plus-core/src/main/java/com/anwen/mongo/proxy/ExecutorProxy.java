@@ -1,6 +1,5 @@
 package com.anwen.mongo.proxy;
 
-import com.alibaba.fastjson.JSON;
 import com.anwen.mongo.cache.global.InterceptorCache;
 import com.anwen.mongo.enums.ExecuteMethodEnum;
 import com.anwen.mongo.execute.Execute;
@@ -10,8 +9,6 @@ import com.mongodb.client.model.CountOptions;
 import com.mongodb.client.model.WriteModel;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;

@@ -29,8 +29,6 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.*;
 import com.mongodb.client.result.InsertManyResult;
-import com.mongodb.client.result.InsertOneResult;
-import javafx.util.Pair;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
@@ -103,8 +101,8 @@ public abstract class AbstractExecute implements Execute {
     public <T> Boolean saveOrUpdateWrapper(T entity,QueryChainWrapper<T, ?> queryChainWrapper){
         long count = count(queryChainWrapper, entity.getClass());
         if (count > 0){
-            Pair<BasicDBObject, BasicDBObject> updatePair = getUpdateCondition(queryChainWrapper.getCompareList(), entity);
-            return executeUpdate(updatePair.getKey(),updatePair.getValue(),collectionManager.getCollection(ClassTypeUtil.getClass(entity))).getModifiedCount() >= 1;
+            MutablePair<BasicDBObject, BasicDBObject> updatePair = getUpdateCondition(queryChainWrapper.getCompareList(), entity);
+            return executeUpdate(updatePair.getLeft(),updatePair.getRight(),collectionManager.getCollection(ClassTypeUtil.getClass(entity))).getModifiedCount() >= 1;
         }
         return save(entity);
     }
@@ -116,8 +114,8 @@ public abstract class AbstractExecute implements Execute {
             if (StringUtils.isBlank(idByEntity)){
                 writeModelList.add(new InsertOneModel<>(processIdField(entity,false)));
             } else {
-                Pair<BasicDBObject,BasicDBObject> basicDBObjectPair = getUpdate(entity);
-                writeModelList.add(new UpdateManyModel<>(basicDBObjectPair.getKey(),basicDBObjectPair.getValue()));
+                MutablePair<BasicDBObject,BasicDBObject> basicDBObjectPair = getUpdate(entity);
+                writeModelList.add(new UpdateManyModel<>(basicDBObjectPair.getLeft(),basicDBObjectPair.getRight()));
             }
         });
         BulkWriteResult bulkWriteResult = executeBulkWrite(writeModelList,collectionManager.getCollection(entityList.stream().findFirst().get().getClass()));
@@ -130,8 +128,8 @@ public abstract class AbstractExecute implements Execute {
         entityList.forEach(entity -> {
             long count = count(queryChainWrapper, clazz);
             if (count > 0){
-                Pair<BasicDBObject, BasicDBObject> updatePair = getUpdateCondition(queryChainWrapper.getCompareList(), entity);
-                writeModelList.add(new UpdateManyModel<>(updatePair.getKey(),updatePair.getValue()));
+                MutablePair<BasicDBObject, BasicDBObject> updatePair = getUpdateCondition(queryChainWrapper.getCompareList(), entity);
+                writeModelList.add(new UpdateManyModel<>(updatePair.getLeft(),updatePair.getRight()));
             } else {
                 writeModelList.add(new InsertOneModel<>(processIdField(entity,false)));
             }
@@ -141,31 +139,31 @@ public abstract class AbstractExecute implements Execute {
     }
 
     public <T> Boolean update(T entity,QueryChainWrapper<T,?> queryChainWrapper){
-        Pair<BasicDBObject, BasicDBObject> updatePair = getUpdateCondition(queryChainWrapper.getCompareList(), entity);
-        return executeUpdate(updatePair.getKey(),updatePair.getValue(),collectionManager.getCollection(entity.getClass())).getModifiedCount() > 0;
+        MutablePair<BasicDBObject, BasicDBObject> updatePair = getUpdateCondition(queryChainWrapper.getCompareList(), entity);
+        return executeUpdate(updatePair.getLeft(),updatePair.getRight(),collectionManager.getCollection(entity.getClass())).getModifiedCount() > 0;
     }
 
     public <T> Boolean updateById(T entity) {
-        Pair<BasicDBObject,BasicDBObject> basicDBObjectPair = getUpdate(entity);
+        MutablePair<BasicDBObject,BasicDBObject> basicDBObjectPair = getUpdate(entity);
         MongoCollection<Document> collection = collectionManager.getCollection(ClassTypeUtil.getClass(entity));
-        return executeUpdate(basicDBObjectPair.getKey(),basicDBObjectPair.getValue(),collection).getModifiedCount() >= 1;
+        return executeUpdate(basicDBObjectPair.getLeft(),basicDBObjectPair.getRight(),collection).getModifiedCount() >= 1;
     }
 
     public <T> Boolean updateBatchByIds(Collection<T> entityList) {
         List<WriteModel<Document>> writeModelList = new ArrayList<>();
         entityList.forEach(entity -> {
-            Pair<BasicDBObject,BasicDBObject> basicDBObjectPair = getUpdate(entity);
-            writeModelList.add(new UpdateManyModel<>(basicDBObjectPair.getKey(),basicDBObjectPair.getValue()));
+            MutablePair<BasicDBObject,BasicDBObject> basicDBObjectPair = getUpdate(entity);
+            writeModelList.add(new UpdateManyModel<>(basicDBObjectPair.getLeft(),basicDBObjectPair.getRight()));
         });
         BulkWriteResult bulkWriteResult = executeBulkWrite(writeModelList,collectionManager.getCollection(entityList.stream().findFirst().get().getClass()));
         return bulkWriteResult.getModifiedCount() == entityList.size();
     }
 
-    public <T> Pair<BasicDBObject,BasicDBObject> getUpdate(T entity){
+    public <T> MutablePair<BasicDBObject,BasicDBObject> getUpdate(T entity){
         Document document = DocumentUtil.checkUpdateField(entity,false);
         BasicDBObject filter = ExecuteUtil.getFilter(document);
         BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
-        return new Pair<>(filter,update);
+        return new MutablePair<>(filter,update);
     }
 
     public <T> Boolean updateByColumn(T entity, SFunction<T, Object> column) {
@@ -408,12 +406,12 @@ public abstract class AbstractExecute implements Execute {
         return new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.IN.getCondition(), convertedIds));
     }
 
-    protected <T> Pair<BasicDBObject,BasicDBObject> getUpdateCondition(List<CompareCondition> compareConditionList, T entity){
+    protected <T> MutablePair<BasicDBObject,BasicDBObject> getUpdateCondition(List<CompareCondition> compareConditionList, T entity){
         BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareConditionList);
         Document document = DocumentUtil.checkUpdateField(entity,false);
         document.remove(SqlOperationConstant._ID);
         BasicDBObject updateField = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
-        return new Pair<>(queryBasic,updateField);
+        return new MutablePair<>(queryBasic,updateField);
     }
 
     protected <T> Document processIdField(T entity,Boolean skip){

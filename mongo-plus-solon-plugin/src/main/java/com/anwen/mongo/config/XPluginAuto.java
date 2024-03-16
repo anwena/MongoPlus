@@ -1,7 +1,6 @@
 package com.anwen.mongo.config;
 
 import com.anwen.mongo.annotation.transactional.MongoTransactional;
-import com.anwen.mongo.cache.global.MongoPlusClientCache;
 import com.anwen.mongo.property.MongoDBFieldProperty;
 import com.anwen.mongo.transactional.MongoTransactionalAspect;
 import com.mongodb.client.MongoClient;

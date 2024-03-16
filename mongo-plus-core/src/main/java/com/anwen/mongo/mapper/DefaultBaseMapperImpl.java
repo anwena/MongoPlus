@@ -4,9 +4,7 @@ import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
-import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
-import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.constant.SqlOperationConstant;
@@ -21,7 +19,6 @@ import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.model.*;
 import com.anwen.mongo.strategy.convert.ConversionService;
-import com.anwen.mongo.support.SFunction;
 import com.anwen.mongo.toolkit.*;
 import com.mongodb.BasicDBObject;
 import com.mongodb.bulk.BulkWriteResult;
@@ -30,7 +27,6 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.*;
 import com.mongodb.client.result.InsertManyResult;
-import javafx.util.Pair;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
@@ -118,8 +114,8 @@ public class DefaultBaseMapperImpl implements BaseMapper {
 
     @Override
     public <T> Boolean update(T entity,QueryChainWrapper<T,?> queryChainWrapper){
-        Pair<BasicDBObject, BasicDBObject> updatePair = getUpdateCondition(queryChainWrapper.getCompareList(), entity);
-        return factory.getExecute().executeUpdate(updatePair.getKey(),updatePair.getValue(),mongoPlusClient.getCollection(ClassTypeUtil.getClass(entity))).getModifiedCount() > 0;
+        MutablePair<BasicDBObject, BasicDBObject> updatePair = getUpdateCondition(queryChainWrapper.getCompareList(), entity);
+        return factory.getExecute().executeUpdate(updatePair.getLeft(),updatePair.getRight(),mongoPlusClient.getCollection(ClassTypeUtil.getClass(entity))).getModifiedCount() > 0;
     }
 
     private Boolean buildRemove(Serializable id, MongoCollection<Document> collection) {
@@ -359,11 +355,11 @@ public class DefaultBaseMapperImpl implements BaseMapper {
         factory.getExecute().doDropIndexes(dropIndexOptions,mongoPlusClient.getCollection(clazz));
     }
 
-    protected  <T> Pair<BasicDBObject,BasicDBObject> getUpdate(T entity){
+    protected <T> MutablePair<BasicDBObject,BasicDBObject> getUpdate(T entity){
         Document document = DocumentUtil.checkUpdateField(entity,false);
         BasicDBObject filter = ExecuteUtil.getFilter(document);
         BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
-        return new Pair<>(filter,update);
+        return new MutablePair<>(filter,update);
     }
 
     protected BasicDBObject checkIdType(Collection<? extends Serializable> ids) {
@@ -373,12 +369,12 @@ public class DefaultBaseMapperImpl implements BaseMapper {
         return new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.IN.getCondition(), convertedIds));
     }
 
-    protected <T> Pair<BasicDBObject,BasicDBObject> getUpdateCondition(List<CompareCondition> compareConditionList, T entity){
+    protected <T> MutablePair<BasicDBObject,BasicDBObject> getUpdateCondition(List<CompareCondition> compareConditionList, T entity){
         BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareConditionList);
         Document document = DocumentUtil.checkUpdateField(entity,false);
         document.remove(SqlOperationConstant._ID);
         BasicDBObject updateField = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
-        return new Pair<>(queryBasic,updateField);
+        return new MutablePair<>(queryBasic,updateField);
     }
 
     @Override

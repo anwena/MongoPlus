@@ -12,7 +12,6 @@ import com.anwen.mongo.conditions.query.QueryWrapper;
 import com.anwen.mongo.conditions.update.LambdaUpdateChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateWrapper;
-import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.mapper.BaseMapper;
 
 import java.util.Map;
