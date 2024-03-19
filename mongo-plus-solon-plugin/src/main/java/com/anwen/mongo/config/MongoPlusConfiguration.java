@@ -5,6 +5,7 @@ import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.listener.BaseListener;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.BaseMapper;
+import com.anwen.mongo.mapper.DefaultBaseMapperImpl;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBConfigurationProperty;
@@ -39,7 +40,7 @@ public class MongoPlusConfiguration {
     @Inject(value = "${mongo-plus.configuration.collection}",required = false)
     private MongoDBCollectionProperty mongoDBCollectionProperty;
 
-    @Inject(value = "${mongo-plus.configuration}")
+    @Inject(value = "${mongo-plus.configuration}",required = false)
     private MongoDBConfigurationProperty mongoDBConfigurationProperty;
 
     /**
@@ -64,6 +65,7 @@ public class MongoPlusConfiguration {
     @Bean
     @Condition(onMissingBean = MongoPlusClient.class)
     public MongoPlusClient mongoPlusClient(MongoClient mongo,CollectionNameConvert collectionNameConvert){
+        mongoDBConfigurationProperty = Optional.ofNullable(mongoDBConfigurationProperty).orElseGet(MongoDBConfigurationProperty::new);
         MongoPlusClient mongoPlusClient = new MongoPlusClient();
         mongoPlusClient.setMongoClient(mongo);
         mongoPlusClient.setBaseProperty(mongoDBConnectProperty);
@@ -101,6 +103,12 @@ public class MongoPlusConfiguration {
                                                                  @Inject CollectionNameConvert collectionNameConvert,
                                                                  @Inject("${mongo-plus}") MongoDBLogProperty mongoDBLogProperty){
         return new MongoPlusAutoConfiguration(baseMapper,mongoPlusClient,collectionNameConvert,mongoDBLogProperty,mongoDBCollectionProperty);
+    }
+
+    @Bean
+    @Condition(onMissingBean = BaseMapper.class)
+    public BaseMapper baseMapper(MongoPlusClient mongoPlusClient){
+        return new DefaultBaseMapperImpl(mongoPlusClient);
     }
 
 }
