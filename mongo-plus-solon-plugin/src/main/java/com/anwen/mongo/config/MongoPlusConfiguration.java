@@ -7,6 +7,7 @@ import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
+import com.anwen.mongo.property.MongoDBConfigurationProperty;
 import com.anwen.mongo.property.MongoDBConnectProperty;
 import com.anwen.mongo.property.MongoDBLogProperty;
 import com.anwen.mongo.toolkit.MongoCollectionUtils;
@@ -38,6 +39,9 @@ public class MongoPlusConfiguration {
     @Inject(value = "${mongo-plus.configuration.collection}",required = false)
     private MongoDBCollectionProperty mongoDBCollectionProperty;
 
+    @Inject(value = "${mongo-plus.configuration}")
+    private MongoDBConfigurationProperty mongoDBConfigurationProperty;
+
     /**
      * 将MongoClient注册为Bean
      * @author JiaChaoYang
@@ -45,19 +49,9 @@ public class MongoPlusConfiguration {
      */
     @Bean
     @Condition(onMissingBean = MongoClient.class)
-    public MongoClient mongoClient(){
+    public MongoClient mongo(){
         return MongoClients.create(MongoClientSettings.builder()
                 .applyConnectionString(new ConnectionString(new UrlJoint(mongoDBConnectProperty).jointMongoUrl())).commandListenerList(Collections.singletonList(new BaseListener())).build());
-    }
-
-    @Bean
-    @Condition(onMissingBean = MongoPlusClient.class)
-    public MongoPlusClient mongoPlusClient(MongoClient mongoClient){
-        MongoPlusClient mongoPlusClient = new MongoPlusClient();
-        mongoPlusClient.setMongoClient(mongoClient);
-        mongoPlusClient.setBaseProperty(mongoDBConnectProperty);
-        MongoPlusClientCache.mongoPlusClient = mongoPlusClient;
-        return mongoPlusClient;
     }
 
     @Bean
@@ -65,6 +59,27 @@ public class MongoPlusConfiguration {
     public CollectionNameConvert collectionNameConvert(){
         mongoDBCollectionProperty = Optional.ofNullable(mongoDBCollectionProperty).orElseGet(MongoDBCollectionProperty::new);
         return MongoCollectionUtils.build(mongoDBCollectionProperty.getMappingStrategy());
+    }
+
+    @Bean
+    @Condition(onMissingBean = MongoPlusClient.class)
+    public MongoPlusClient mongoPlusClient(MongoClient mongo,CollectionNameConvert collectionNameConvert){
+        MongoPlusClient mongoPlusClient = new MongoPlusClient();
+        mongoPlusClient.setMongoClient(mongo);
+        mongoPlusClient.setBaseProperty(mongoDBConnectProperty);
+        mongoPlusClient.setCollectionNameConvert(collectionNameConvert);
+        MongoPlusClientCache.mongoPlusClient = mongoPlusClient;
+        if (mongoDBConfigurationProperty.getBanner()){
+            System.out.println("___  ___                       ______ _           \n" +
+                    "|  \\/  |                       | ___ \\ |          \n" +
+                    "| .  . | ___  _ __   __ _  ___ | |_/ / |_   _ ___ \n" +
+                    "| |\\/| |/ _ \\| '_ \\ / _` |/ _ \\|  __/| | | | / __|\n" +
+                    "| |  | | (_) | | | | (_| | (_) | |   | | |_| \\__ \\\n" +
+                    "\\_|  |_/\\___/|_| |_|\\__, |\\___/\\_|   |_|\\__,_|___/\n" +
+                    "                     __/ |                        \n" +
+                    "                    |___/                         ");
+        }
+        return mongoPlusClient;
     }
 
     @Bean

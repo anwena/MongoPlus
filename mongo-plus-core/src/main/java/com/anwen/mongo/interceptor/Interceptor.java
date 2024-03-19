@@ -29,26 +29,56 @@ public interface Interceptor {
         return documentList;
     };
 
+    /**
+     * 删除拦截方法
+     * @author JiaChaoYang
+     * @date 2024/3/19 19:18
+    */
     default Bson executeRemove(Bson filter){
         return filter;
     }
 
+    /**
+     * 修改拦截方法
+     * @author JiaChaoYang
+     * @date 2024/3/19 19:18
+    */
     default MutablePair<Bson,Bson> executeUpdate(Bson queryBasic, Bson updateBasic){
         return new MutablePair<>(queryBasic, updateBasic);
     }
 
+    /**
+     * 查询拦截方法
+     * @author JiaChaoYang
+     * @date 2024/3/19 19:18
+    */
     default QueryParam executeQuery(Bson queryBasic, BasicDBObject projectionList, BasicDBObject sortCond){
         return new QueryParam(queryBasic, projectionList, sortCond);
     }
 
+    /**
+     * 管道拦截方法
+     * @author JiaChaoYang
+     * @date 2024/3/19 19:18
+    */
     default List<AggregateBasicDBObject> executeAggregate(List<AggregateBasicDBObject> aggregateConditionList){
         return aggregateConditionList;
     }
 
+    /**
+     * 统计拦截方法
+     * @author JiaChaoYang
+     * @date 2024/3/19 19:18
+    */
     default MutablePair<BasicDBObject,CountOptions> executeCount(BasicDBObject queryBasic, CountOptions countOptions){
         return new MutablePair<>(queryBasic, countOptions);
     }
 
+    /**
+     * 批量操作拦截方法
+     * @author JiaChaoYang
+     * @date 2024/3/19 19:19
+    */
     default List<WriteModel<Document>> executeBulkWrite(List<WriteModel<Document>> writeModelList){
         return writeModelList;
     }

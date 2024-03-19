@@ -66,7 +66,7 @@ public class Converter {
 
     private static Object convertValue(Object value) {
         if (value instanceof Date) {
-            return InstantUtil.convertTimestampToLocalDateTime(((Date) value).toInstant());
+            return InstantUtil.convertTimestampToLocalDateTime8(((Date) value).toInstant());
         }
         return value;
     }

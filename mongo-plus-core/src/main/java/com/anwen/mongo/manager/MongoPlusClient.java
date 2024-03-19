@@ -10,8 +10,10 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 连接管理器
@@ -64,9 +66,12 @@ public class MongoPlusClient {
     }
 
     public CollectionManager getCollectionManager(Class<?> clazz){
-        String database = "";
+        String database = baseProperty.getDatabase();
+        if (database.contains(",")){
+            database = Arrays.stream(database.split(",")).collect(Collectors.toList()).get(0);
+        }
         CollectionName collectionName = clazz.getAnnotation(CollectionName.class);
-        if (collectionName != null){
+        if (collectionName != null && StringUtils.isNotBlank(collectionName.database())){
             database = collectionName.database();
         }
         return getCollectionManager(database);
