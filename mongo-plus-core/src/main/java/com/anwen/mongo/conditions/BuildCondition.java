@@ -57,7 +57,7 @@ public class BuildCondition {
                             compare.setChildCondition(Collections.singletonList(compare));
                         }
                         put(SpecialConditionEnum.OR.getCondition(), buildOrQueryCondition(compare.getChildCondition()));
-                    } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.AND.getKey())) {
+                    } else if (Objects.equals(compare.getCondition(), QueryOperatorEnum.AND.getValue())) {
                         if (null == compare.getChildCondition() || compare.getChildCondition().isEmpty()) {
                             compare.setChildCondition(Collections.singletonList(compare));
                         }
