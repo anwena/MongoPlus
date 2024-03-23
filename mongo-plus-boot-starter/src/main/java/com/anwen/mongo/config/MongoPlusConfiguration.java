@@ -1,6 +1,7 @@
 package com.anwen.mongo.config;
 
 import com.anwen.mongo.cache.global.MongoPlusClientCache;
+import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.listener.BaseListener;
 import com.anwen.mongo.manager.MongoPlusClient;
@@ -17,11 +18,15 @@ import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoDatabase;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.stream.Collectors;
 
 /**
  * @author JiaChaoYang
@@ -64,10 +69,7 @@ public class MongoPlusConfiguration {
     @Bean
     @ConditionalOnMissingBean(MongoPlusClient.class)
     public MongoPlusClient mongoPlusClient(MongoClient mongo,CollectionNameConvert collectionNameConvert){
-        MongoPlusClient mongoPlusClient = new MongoPlusClient();
-        mongoPlusClient.setMongoClient(mongo);
-        mongoPlusClient.setBaseProperty(mongoDBConnectProperty);
-        mongoPlusClient.setCollectionNameConvert(collectionNameConvert);
+        MongoPlusClient mongoPlusClient = Configuration.builder().initMongoPlusClient(mongo,collectionNameConvert,mongoDBConnectProperty);
         MongoPlusClientCache.mongoPlusClient = mongoPlusClient;
         if (mongoDBConfigurationProperty.getBanner()){
             System.out.println("___  ___                       ______ _           \n" +

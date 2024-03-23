@@ -5,3 +5,4 @@ com.anwen.mongo.property.MongoSpringProperty
 com.anwen.mongo.property.MongoDBFieldProperty
 com.anwen.mongo.transactional.MongoTransactionManagerAutoConfiguration
 com.anwen.mongo.config.MongoPropertyConfiguration
+com.anwen.mongo.manager.MongoPlusClientInstance

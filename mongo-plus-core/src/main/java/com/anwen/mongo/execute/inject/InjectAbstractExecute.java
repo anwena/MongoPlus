@@ -45,6 +45,14 @@ public class InjectAbstractExecute {
 
     private final Execute execute;
 
+    public CollectionManager getCollectionManager() {
+        return collectionManager;
+    }
+
+    public Execute getExecute() {
+        return execute;
+    }
+
     public InjectAbstractExecute(CollectionManager collectionManager, Execute execute) {
         this.collectionManager = collectionManager;
         this.execute = execute;
@@ -52,8 +60,7 @@ public class InjectAbstractExecute {
 
     public Boolean save(String collectionName, Map<String, Object> entityMap) {
         try {
-//            return execute.executeSave(Collections.singletonList(DocumentUtil.handleMap(entityMap, true)),collectionManager.getCollection(collectionName)).wasAcknowledged();
-            return true;
+            return execute.executeSave(Collections.singletonList(DocumentUtil.handleMap(entityMap, true)),collectionManager.getCollection(collectionName)).wasAcknowledged();
         } catch (Exception e) {
             logger.error("save fail , error info : {}", e.getMessage(), e);
             return false;
@@ -63,8 +70,7 @@ public class InjectAbstractExecute {
     public Boolean saveBatch(String collectionName, Collection<Map<String, Object>> entityList) {
         try {
             List<Document> documentList = DocumentUtil.handleMapList(entityList,true);
-//            return execute.executeSave(documentList, collectionManager.getCollection(collectionName)).getInsertedIds().size() == entityList.size();
-            return true;
+            return execute.executeSave(documentList, collectionManager.getCollection(collectionName)).getInsertedIds().size() == entityList.size();
         } catch (Exception e) {
             logger.error("saveBatch fail , error info : {}", e.getMessage(), e);
             return false;

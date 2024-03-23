@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -43,6 +44,7 @@ public class ConversionService {
         conversionStrategies.put(BigInteger.class,new BigIntegerConversionStrategy());
         conversionStrategies.put(Map.class,new MapConversionStrategy());
         conversionStrategies.put(Collection.class,new CollectionConversionStrategy());
+        conversionStrategies.put(List.class,conversionStrategies.get(Collection.class));
     }
 
     /**

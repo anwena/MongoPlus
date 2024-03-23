@@ -1,4 +1,3 @@
-
 package com.anwen.mongo.mapper;
 
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
@@ -37,6 +36,14 @@ public class MongoPlusMapMapper implements InjectQuery {
     private final ExecutorFactory factory;
 
     private final MongoPlusClient mongoPlusClient;
+
+    public ExecutorFactory getFactory() {
+        return factory;
+    }
+
+    public MongoPlusClient getMongoPlusClient() {
+        return mongoPlusClient;
+    }
 
     public MongoPlusMapMapper(MongoPlusClient mongoPlusClient) {
         this.mongoPlusClient = mongoPlusClient;

@@ -18,6 +18,7 @@ import com.anwen.mongo.listener.business.LogListener;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.mapper.DefaultBaseMapperImpl;
+import com.anwen.mongo.mapper.MongoPlusMapMapper;
 import com.anwen.mongo.model.BaseProperty;
 import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.strategy.convert.ConversionStrategy;
@@ -240,8 +241,28 @@ public class Configuration {
         if (StringUtils.isBlank(baseProperty.getDatabase())){
             throw new InitMongoPlusException("Connection database not configured");
         }
-        MongoClient mongoClient = MongoClients.create(MongoClientSettings.builder()
-                .applyConnectionString(new ConnectionString(this.url)).commandListenerList(Collections.singletonList(new BaseListener())).build());
+        return initMongoPlusClient();
+    }
+
+    public MongoPlusClient initMongoPlusClient(){
+        return initMongoPlusClient(MongoClients.create(MongoClientSettings.builder()
+                .applyConnectionString(new ConnectionString(this.url)).commandListenerList(Collections.singletonList(new BaseListener())).build()),collectionNameConvert,baseProperty);
+    }
+
+    public MongoPlusClient initMongoPlusClient(CollectionNameConvert collectionNameConvert){
+        return initMongoPlusClient(MongoClients.create(MongoClientSettings.builder()
+                .applyConnectionString(new ConnectionString(this.url)).commandListenerList(Collections.singletonList(new BaseListener())).build()),collectionNameConvert,baseProperty);
+    }
+
+    public MongoPlusClient initMongoPlusClient(CollectionNameConvert collectionNameConvert,BaseProperty baseProperty){
+        return initMongoPlusClient(MongoClients.create(MongoClientSettings.builder()
+                .applyConnectionString(new ConnectionString(this.url)).commandListenerList(Collections.singletonList(new BaseListener())).build()),collectionNameConvert,baseProperty);
+    }
+
+    public MongoPlusClient initMongoPlusClient(MongoClient mongoClient,CollectionNameConvert collectionNameConvert,BaseProperty baseProperty){
+        if (StringUtils.isBlank(baseProperty.getDatabase())){
+            throw new InitMongoPlusException("Connection database not configured");
+        }
         MongoPlusClient mongoPlusClient = new MongoPlusClient();
         mongoPlusClient.setMongoClient(mongoClient);
         mongoPlusClient.setBaseProperty(baseProperty);
@@ -268,6 +289,10 @@ public class Configuration {
     */
     public BaseMapper getBaseMapper(){
         return new DefaultBaseMapperImpl(getMongoPlusClient());
+    }
+
+    public MongoPlusMapMapper getMongoPlusMapMapper(){
+        return new MongoPlusMapMapper(getMongoPlusClient());
     }
 
 }
