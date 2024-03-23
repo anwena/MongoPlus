@@ -105,20 +105,18 @@ public class MongoPlusAutoConfiguration {
             String finalCollectionName = collectionName;
             final String[] finalDataBaseName = {dataBaseName[0]};
             List<MongoDatabase> mongoDatabaseList = new ArrayList<>();
-            mongoPlusClient.setCollectionManager(new LinkedHashMap<String, CollectionManager>(){{
-                String database = mongoPlusClient.getBaseProperty().getDatabase();
-                Arrays.stream(database.split(",")).collect(Collectors.toList()).forEach(db -> {
-                    CollectionManager collectionManager = new CollectionManager(mongoPlusClient.getMongoClient(), collectionNameConvert, db);
-                    ConnectMongoDB connectMongoDB = new ConnectMongoDB(mongoPlusClient.getMongoClient(), db, finalCollectionName);
-                    MongoDatabase mongoDatabase = mongoPlusClient.getMongoClient().getDatabase(db);
-                    mongoDatabaseList.add(mongoDatabase);
-                    if (Objects.equals(db, finalDataBaseName[0])){
-                        MongoCollection<Document> collection = connectMongoDB.open(mongoDatabase);
-                        collectionManager.setCollectionMap(finalCollectionName,collection);
-                    }
-                    put(db,collectionManager);
-                });
-            }});
+            String database = mongoPlusClient.getBaseProperty().getDatabase();
+            Arrays.stream(database.split(",")).collect(Collectors.toList()).forEach(db -> {
+                CollectionManager collectionManager = new CollectionManager(mongoPlusClient.getMongoClient(), collectionNameConvert, db);
+                ConnectMongoDB connectMongodb = new ConnectMongoDB(mongoPlusClient.getMongoClient(), db, finalCollectionName);
+                MongoDatabase mongoDatabase = mongoPlusClient.getMongoClient().getDatabase(db);
+                mongoDatabaseList.add(mongoDatabase);
+                if (Objects.equals(db, finalDataBaseName[0])){
+                    MongoCollection<Document> collection = connectMongodb.open(mongoDatabase);
+                    collectionManager.setCollectionMap(finalCollectionName,collection);
+                }
+                mongoPlusClient.getCollectionManager().put(db,collectionManager);
+            });
             mongoPlusClient.setMongoDatabase(mongoDatabaseList);
         } catch (MongoException e) {
             logger.error("Failed to connect to MongoDB: {}", e.getMessage(), e);

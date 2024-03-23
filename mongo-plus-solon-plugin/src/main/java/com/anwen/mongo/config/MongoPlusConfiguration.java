@@ -66,10 +66,7 @@ public class MongoPlusConfiguration {
     @Condition(onMissingBean = MongoPlusClient.class)
     public MongoPlusClient mongoPlusClient(MongoClient mongo,CollectionNameConvert collectionNameConvert){
         mongoDBConfigurationProperty = Optional.ofNullable(mongoDBConfigurationProperty).orElseGet(MongoDBConfigurationProperty::new);
-        MongoPlusClient mongoPlusClient = new MongoPlusClient();
-        mongoPlusClient.setMongoClient(mongo);
-        mongoPlusClient.setBaseProperty(mongoDBConnectProperty);
-        mongoPlusClient.setCollectionNameConvert(collectionNameConvert);
+        MongoPlusClient mongoPlusClient = com.anwen.mongo.config.Configuration.builder().initMongoPlusClient(mongo, collectionNameConvert, mongoDBConnectProperty);
         MongoPlusClientCache.mongoPlusClient = mongoPlusClient;
         if (mongoDBConfigurationProperty.getBanner()){
             System.out.println("___  ___                       ______ _           \n" +
