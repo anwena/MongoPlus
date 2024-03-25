@@ -838,7 +838,7 @@ public interface Compare<T,Children> extends Serializable {
      * @author JiaChaoYang
      * @date 2023/7/19 23:29
     */
-    Children elemMatch(boolean condition,SFunction<?,Object> column , QueryChainWrapper<?,?> queryChainWrapper);
+    Children elemMatch(boolean condition,SFunction<T,Object> column , QueryChainWrapper<?,?> queryChainWrapper);
 
     /**
      * 匹配数组中的值
@@ -848,7 +848,7 @@ public interface Compare<T,Children> extends Serializable {
      * @author JiaChaoYang
      * @date 2023/7/19 23:31
     */
-    Children elemMatch(SFunction<?,Object> column , QueryChainWrapper<?,?> queryChainWrapper);
+    Children elemMatch(SFunction<T,Object> column , QueryChainWrapper<?,?> queryChainWrapper);
 
     /**
      * 匹配数组中的值
