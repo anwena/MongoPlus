@@ -9,7 +9,6 @@ import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.convert.Converter;
 import com.anwen.mongo.convert.DocumentMapperConvert;
-import com.anwen.mongo.domain.MongoQueryException;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.execute.AbstractExecute;
 import com.anwen.mongo.execute.Execute;
@@ -179,17 +178,12 @@ public class InjectAbstractExecute {
 
     public Map<String, Object> one(String collectionName, List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(compareConditionList, null, projectionList, basicDBObjectList);
-        List<Map<String, Object>> result = Converter.convertDocumentToMap(execute.executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), collectionManager.getCollection(collectionName), Map.class));
-        if (result.size() > 1) {
-            throw new MongoQueryException("query result greater than one line");
-        }
-        return !result.isEmpty() ? result.get(0) : null;
+        return Converter.convertDocumentToMapOne(execute.executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(), collectionManager.getCollection(collectionName),Map.class).limit(1));
     }
 
-    public Map<String, Object> limitOne(String collectionName, List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList,List<Order> orderList) {
+    public Map<String, Object> limitOne(String collectionName, List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(compareConditionList, null, projectionList, basicDBObjectList);
-        List<Map<String, Object>> result = Converter.convertDocumentToMap(execute.executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), collectionManager.getCollection(collectionName), Map.class));
-        return !result.isEmpty() ? result.get(0) : new HashMap<>();
+        return Converter.convertDocumentToMapOne(execute.executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(), collectionManager.getCollection(collectionName),Map.class).limit(1));
     }
 
     public boolean isExist(String collectionName, Serializable id){

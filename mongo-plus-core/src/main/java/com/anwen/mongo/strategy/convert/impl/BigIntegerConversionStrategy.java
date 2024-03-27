@@ -23,7 +23,7 @@ public class BigIntegerConversionStrategy implements ConversionStrategy<BigInteg
         try {
             value = new BigInteger(StringUtils.isNotBlankAndConvert(fieldValue));
         }catch (Exception e){
-            logger.error("Convert fieldValue To BigDecimal Fail,Exception Message: {}",e.getMessage(),e);
+            logger.warn("Convert fieldValue To BigDecimal Fail,Exception Message: {}",e.getMessage(),e);
         }
         return value;
     }

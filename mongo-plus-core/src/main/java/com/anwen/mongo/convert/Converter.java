@@ -8,10 +8,7 @@ import com.mongodb.client.MongoCursor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Converter {
@@ -34,6 +31,16 @@ public class Converter {
             }
         }
         return resultList;
+    }
+
+    public static Map<String,Object> convertDocumentToMapOne(FindIterable<Map> iterable){
+        try (MongoCursor<Map> cursor = iterable.iterator()) {
+            if (cursor.hasNext()) {
+                return convertKeysToCamelCase(cursor.next());
+            } else {
+                return new HashMap<>();
+            }
+        }
     }
 
     public static List<Map<String, Object>> convertDocumentToMap(MongoCursor<Map> cursor) {

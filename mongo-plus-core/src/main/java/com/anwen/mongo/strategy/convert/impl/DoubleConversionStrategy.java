@@ -22,7 +22,7 @@ public class DoubleConversionStrategy implements ConversionStrategy<Double> {
         try {
             value = Double.parseDouble(StringUtils.isNotBlankAndConvert(fieldValue));
         } catch (NumberFormatException e) {
-            logger.error("Conversion to Double failed, exception message: {}",e.getMessage());
+            logger.warn("Conversion to Double failed, exception message: {}",e.getMessage());
         }
         return value;
     }

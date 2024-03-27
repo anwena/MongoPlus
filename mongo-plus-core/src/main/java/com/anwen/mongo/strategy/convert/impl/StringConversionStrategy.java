@@ -26,7 +26,7 @@ public class StringConversionStrategy implements ConversionStrategy<String> {
             }
             return String.valueOf(fieldValue);
         } catch (Exception e) {
-            logger.error("Conversion to String failed, exception message: {}",e.getMessage());
+            logger.warn("Conversion to String failed, exception message: {}",e.getMessage());
         }
         return null;
     }

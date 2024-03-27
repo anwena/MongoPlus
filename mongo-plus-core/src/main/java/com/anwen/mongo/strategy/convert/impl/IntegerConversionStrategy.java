@@ -22,7 +22,7 @@ public class IntegerConversionStrategy implements ConversionStrategy<Integer> {
         try {
             value = Integer.parseInt(StringUtils.isNotBlankAndConvert(fieldValue));
         } catch (Exception e) {
-            logger.error("Conversion to number failed, exception message: {}",e.getMessage());
+            logger.warn("Conversion to number failed, exception message: {}",e.getMessage());
         }
         return value;
     }

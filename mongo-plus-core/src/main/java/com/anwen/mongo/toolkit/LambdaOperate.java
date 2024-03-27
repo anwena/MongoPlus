@@ -13,7 +13,10 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import org.bson.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 
@@ -26,13 +29,18 @@ import java.util.Map;
  **/
 public class LambdaOperate {
 
+    Logger logger = LoggerFactory.getLogger(LambdaOperate.class);
+
     public <T> List<T> getLambdaQueryResult(FindIterable<Document> iterable, Class<T> clazz) {
         return DocumentMapperConvert.mapDocumentList(iterable, clazz);
     }
 
     public <T> T getLambdaQueryResultOne(FindIterable<Document> iterable, Class<T> clazz) {
         try (MongoCursor<Document> cursor = iterable.iterator()) {
-            return DocumentMapperConvert.mapDocument(cursor.next(), clazz);
+            if (cursor.hasNext()) {
+                return DocumentMapperConvert.mapDocument(cursor.next(), clazz);
+            }
+            return null;
         }
     }
 

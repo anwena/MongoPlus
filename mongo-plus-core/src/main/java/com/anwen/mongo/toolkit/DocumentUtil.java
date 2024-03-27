@@ -33,9 +33,7 @@ public class DocumentUtil {
 
     public static List<Document> handleMapList(Collection<Map<String,Object>> mapList,Boolean isSave){
         return new ArrayList<Document>(){{
-            mapList.forEach(map -> {
-                add(handleMap(map,isSave));
-            });
+            mapList.forEach(map -> add(handleMap(map,isSave)));
         }};
     }
 

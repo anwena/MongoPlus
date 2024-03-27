@@ -50,6 +50,7 @@ public interface ChainInject extends CommInjectQuery {
      * @author JiaChaoYang
      * @date 2023/7/20 23:20
      */
+    @Deprecated
     Map<String,Object> limitOne(String database,String collectionName);
 
 }

@@ -121,13 +121,15 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
+    @Deprecated
     public Map<String, Object> limitOne(String collectionName, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
         return limitOne(EMPTY,collectionName,queryChainWrapper);
     }
 
     @Override
+    @Deprecated
     public Map<String, Object> limitOne(String database, String collectionName, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
-        return factory.getInjectExecute(database).limitOne(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),queryChainWrapper.getOrderList());
+        return factory.getInjectExecute(database).limitOne(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
     }
 
     @Override

@@ -22,7 +22,7 @@ public class FloatConversionStrategy implements ConversionStrategy<Float> {
         try {
             value = Float.parseFloat(StringUtils.isNotBlankAndConvert(fieldValue));
         } catch (Exception e) {
-            logger.error("Conversion to Float failed, exception message: {}",e.getMessage());
+            logger.warn("Conversion to Float failed, exception message: {}",e.getMessage());
         }
         return value;
     }

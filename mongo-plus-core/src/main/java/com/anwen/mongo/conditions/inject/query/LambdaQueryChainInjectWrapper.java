@@ -41,7 +41,7 @@ public class LambdaQueryChainInjectWrapper extends QueryChainWrapper<Map<String,
 
     @Override
     public Map<String, Object> limitOne(String database, String collectionName) {
-        return factory.getInjectExecute(database).limitOne(collectionName,getCompareList(),getProjectionList(),getBasicDBObjectList(),getOrderList());
+        return factory.getInjectExecute(database).limitOne(collectionName,getCompareList(),getProjectionList(),getBasicDBObjectList());
     }
 
     @Override

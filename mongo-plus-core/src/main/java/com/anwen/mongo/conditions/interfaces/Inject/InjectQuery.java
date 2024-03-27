@@ -301,6 +301,7 @@ public interface InjectQuery extends CommInjectQuery {
      * @author JiaChaoYang
      * @date 2023/7/20 23:20
      */
+    @Deprecated
     Map<String,Object> limitOne(String collectionName, QueryChainWrapper<Map<String,Object>,?> queryChainWrapper);
 
     /**
@@ -311,6 +312,7 @@ public interface InjectQuery extends CommInjectQuery {
      * @author JiaChaoYang
      * @date 2023/7/20 23:20
      */
+    @Deprecated
     Map<String,Object> limitOne(String database,String collectionName, QueryChainWrapper<Map<String,Object>,?> queryChainWrapper);
 
     /**

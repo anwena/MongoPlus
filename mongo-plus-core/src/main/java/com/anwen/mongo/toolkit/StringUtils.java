@@ -105,7 +105,7 @@ public final class StringUtils {
             }
             return str;
         } catch (Exception e) {
-            logger.error("Conversion to String failed, reason for failure: {}",e.getMessage());
+            logger.warn("Conversion to String failed, reason for failure: {}",e.getMessage());
             throw new MongoException("Conversion to String failed");
         }
     }
