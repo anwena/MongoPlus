@@ -473,12 +473,12 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
     }
 
     @Override
-    public Children elemMatch(boolean condition, SFunction<?, Object> column, QueryChainWrapper<?, ?> queryChainWrapper) {
+    public Children elemMatch(boolean condition, SFunction<T,Object> column, QueryChainWrapper<?, ?> queryChainWrapper) {
         return condition ? elemMatch(column,queryChainWrapper) : typedThis;
     }
 
     @Override
-    public Children elemMatch(SFunction<?, Object> column, QueryChainWrapper<?,?> queryChainWrapper) {
+    public Children elemMatch(SFunction<T,Object> column, QueryChainWrapper<?,?> queryChainWrapper) {
         return getChildBaseCondition(column,queryChainWrapper.getCompareList(),LogicTypeEnum.ELEMMATCH.getKey());
     }
 
@@ -629,12 +629,23 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
     }
 
     public Children getBaseCondition(SFunction<T, Object> column, Object value){
-        compareList.add(CompareCondition.builder().condition(Thread.currentThread().getStackTrace()[2].getMethodName()).column(column.getFieldNameLine()).value(value).type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.AND.getKey()).build());
+        compareList.add(CompareCondition.builder()
+                .condition(Thread.currentThread().getStackTrace()[2].getMethodName())
+                .column(column.getFieldNameLine())
+                .value(value)
+                .type(CompareEnum.QUERY.getKey())
+                .logicType(LogicTypeEnum.AND.getKey())
+                .build());
         return typedThis;
     }
 
     public Children getChildBaseCondition(SFunction<?,Object> column,List<CompareCondition> value,Integer logic){
-        this.compareList.add(CompareCondition.builder().column(column.getFieldNameLine()).type(CompareEnum.QUERY.getKey()).logicType(logic).childCondition(value).build());
+        this.compareList.add(CompareCondition.builder()
+                .column(column.getFieldNameLine())
+                .type(CompareEnum.QUERY.getKey())
+                .logicType(logic)
+                .childCondition(value)
+                .build());
         return typedThis;
     }
 
