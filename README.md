@@ -58,7 +58,8 @@ MyBatisPlus就是可以不用像MyBatis一样写过多的sql语句，Mongo-Plus�
 文档地址： https://www.mongoplus.cn/
 
 ### 联系我们
-遇到任何问题或者加入群聊，请联系我<br/>
+在使用MongoPlus的过程中，有任何问题和想法或者加入群聊请联系我</br>
+目前裸辞，北京求内推😟</br>
 v：JiaChaoYang_<br/>
 <img src="wx.png" alt="微信">
 
