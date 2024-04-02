@@ -27,8 +27,4 @@ public class BigDecimalConversionStrategy implements ConversionStrategy<BigDecim
         }
         return value;
     }
-
-    public static void main(String[] args) {
-
-    }
 }
