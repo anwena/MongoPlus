@@ -6,9 +6,10 @@ import com.mongodb.client.ClientSession;
 
 /**
  * Mongo事务
- *
+ * 声明式事务请使用{@link com.anwen.mongo.manager.MongoTransactionalManager}
  * @author JiaChaoYang
  **/
+@Deprecated
 public class MongoTransactionalOperate {
 
     /**

@@ -5,9 +5,11 @@ import com.anwen.mongo.cache.global.InterceptorCache;
 import com.anwen.mongo.cache.global.ListenerCache;
 import com.anwen.mongo.cache.global.MongoPlusClientCache;
 import com.anwen.mongo.conn.CollectionManager;
+import com.anwen.mongo.constant.DataSourceConstant;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.domain.InitMongoPlusException;
 import com.anwen.mongo.enums.CollectionNameConvertEnum;
+import com.anwen.mongo.factory.MongoClientFactory;
 import com.anwen.mongo.handlers.DocumentHandler;
 import com.anwen.mongo.handlers.MetaObjectHandler;
 import com.anwen.mongo.interceptor.Interceptor;
@@ -35,6 +37,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -263,23 +266,34 @@ public class Configuration {
         if (StringUtils.isBlank(baseProperty.getDatabase())){
             throw new InitMongoPlusException("Connection database not configured");
         }
+        MongoClientFactory.getInstance(mongoClient);
         MongoPlusClient mongoPlusClient = new MongoPlusClient();
-        mongoPlusClient.setMongoClient(mongoClient);
         mongoPlusClient.setBaseProperty(baseProperty);
         mongoPlusClient.setCollectionNameConvert(collectionNameConvert);
         List<MongoDatabase> mongoDatabaseList = new ArrayList<>();
-        mongoPlusClient.setCollectionManager(new LinkedHashMap<String, CollectionManager>(){{
-            String database = mongoPlusClient.getBaseProperty().getDatabase();
-            Arrays.stream(database.split(",")).collect(Collectors.toList()).forEach(db -> {
-                CollectionManager collectionManager = new CollectionManager(mongoPlusClient.getMongoClient(), collectionNameConvert, db);
-                MongoDatabase mongoDatabase = mongoPlusClient.getMongoClient().getDatabase(db);
-                mongoDatabaseList.add(mongoDatabase);
-                put(db,collectionManager);
-            });
+        mongoPlusClient.setCollectionManagerMap(new ConcurrentHashMap<String,Map<String,CollectionManager>>(){{
+            put(DataSourceConstant.DEFAULT_DATASOURCE,new LinkedHashMap<String, CollectionManager>(){{
+                String database = mongoPlusClient.getBaseProperty().getDatabase();
+                Arrays.stream(database.split(",")).collect(Collectors.toList()).forEach(db -> {
+                    CollectionManager collectionManager = new CollectionManager(mongoPlusClient.getMongoClient(), collectionNameConvert, db);
+                    MongoDatabase mongoDatabase = mongoPlusClient.getMongoClient().getDatabase(db);
+                    mongoDatabaseList.add(mongoDatabase);
+                    put(db,collectionManager);
+                });
+            }});
         }});
         mongoPlusClient.setMongoDatabase(mongoDatabaseList);
         MongoPlusClientCache.mongoPlusClient = mongoPlusClient;
         return mongoPlusClient;
+    }
+
+    /**
+     * 设置数据源
+     * @author JiaChaoYang
+     * @date 2024/4/5 1:48
+    */
+    public void setOtherDataSource(Map<String,MongoClient> mongoClientMap){
+        MongoClientFactory.getInstance(mongoClientMap);
     }
 
     /**

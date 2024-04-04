@@ -1,13 +1,17 @@
 package com.anwen.mongo.context;
 
+import com.anwen.mongo.cache.global.DataSourceNameCache;
 import com.mongodb.client.ClientSession;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MongoTransactionStatus {
 
     /**
      * 持有的session
      */
-    private final ClientSession clientSession;
+    private final Map<String,ClientSession> clientSessionMap = new ConcurrentHashMap<>();
 
     /**
      * 引用嵌套计数器，表示当前事务方法的第几层
@@ -15,12 +19,12 @@ public class MongoTransactionStatus {
     private long referenceCount;
 
     public MongoTransactionStatus(ClientSession clientSession) {
-        this.clientSession = clientSession;
+        this.clientSessionMap.put(DataSourceNameCache.getDataSource(),clientSession);
         this.referenceCount = 0;
     }
 
     public ClientSession getClientSession() {
-        return this.clientSession;
+        return this.clientSessionMap.get(DataSourceNameCache.getDataSource());
     }
 
     public void incrementReference() {

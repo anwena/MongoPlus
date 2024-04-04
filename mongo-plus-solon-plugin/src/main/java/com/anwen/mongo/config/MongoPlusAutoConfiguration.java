@@ -115,7 +115,7 @@ public class MongoPlusAutoConfiguration {
                     MongoCollection<Document> collection = connectMongodb.open(mongoDatabase);
                     collectionManager.setCollectionMap(finalCollectionName,collection);
                 }
-                mongoPlusClient.getCollectionManager().put(db,collectionManager);
+                mongoPlusClient.getCollectionManagerMap().put(db,collectionManager);
             });
             mongoPlusClient.setMongoDatabase(mongoDatabaseList);
         } catch (MongoException e) {

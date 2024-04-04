@@ -16,8 +16,10 @@ import java.util.Objects;
 
 /**
  * 自定义事务管理器
+ * 不再维护使用Spring的注解控制事务，请使用MongoPlus提供的事务注解，继续使用可能导致多数据源无法回滚。单数据源依然不受影响
  * @author JiaChaoYang
  **/
+@Deprecated
 public class MongoPlusTransactionalManager extends AbstractPlatformTransactionManager {
 
     Logger logger = LoggerFactory.getLogger(MongoPlusTransactionalManager.class);

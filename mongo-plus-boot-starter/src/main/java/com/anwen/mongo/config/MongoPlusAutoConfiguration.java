@@ -6,6 +6,7 @@ import com.anwen.mongo.cache.global.InterceptorCache;
 import com.anwen.mongo.cache.global.ListenerCache;
 import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.conn.ConnectMongoDB;
+import com.anwen.mongo.constant.DataSourceConstant;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.handlers.DocumentHandler;
 import com.anwen.mongo.handlers.MetaObjectHandler;
@@ -111,7 +112,9 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
                     MongoCollection<Document> collection = connectMongodb.open(mongoDatabase);
                     collectionManager.setCollectionMap(finalCollectionName,collection);
                 }
-                mongoPlusClient.getCollectionManager().put(db,collectionManager);
+                mongoPlusClient.getCollectionManagerMap().put(DataSourceConstant.DEFAULT_DATASOURCE,new HashMap<String,CollectionManager>(){{
+                    put(db,collectionManager);
+                }});
             });
             mongoPlusClient.setMongoDatabase(mongoDatabaseList);
         } catch (MongoException e) {
