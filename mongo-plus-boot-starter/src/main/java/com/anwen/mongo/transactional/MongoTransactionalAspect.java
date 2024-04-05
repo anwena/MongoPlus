@@ -4,12 +4,14 @@ import com.anwen.mongo.manager.MongoTransactionalManager;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.springframework.core.annotation.Order;
 
 /**
  * AOP操作，实现声明式事务
  * @author JiaChaoYang
  **/
 @Aspect
+@Order(1)
 public class MongoTransactionalAspect {
 
     @Around("@annotation(com.anwen.mongo.annotation.transactional.MongoTransactional)")

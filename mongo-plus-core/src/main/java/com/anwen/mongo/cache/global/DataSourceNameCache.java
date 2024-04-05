@@ -16,7 +16,7 @@ public class DataSourceNameCache {
      * @author JiaChaoYang
      * @date 2024/4/5 0:06
     */
-    private static final ThreadLocal<String> dataSource = new ThreadLocal<>();
+    private static final ThreadLocal<String> dataSource = new InheritableThreadLocal<>();
 
     public static void setDataSource(String ds){
         dataSource.set(ds);
