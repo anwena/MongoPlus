@@ -27,8 +27,6 @@ public class MongoPlusClient {
 
     private BaseProperty baseProperty;
 
-//    private MongoClient mongoClient;
-
     private List<MongoDatabase> mongoDatabase;
 
     /**
@@ -81,7 +79,6 @@ public class MongoPlusClient {
     }
 
     public CollectionManager getCollectionManager(String database){
-//        Map<String,Map<String,CollectionManager>> managerMap = getCollectionManagerMap();
         if (StringUtils.isBlank(database)){
             database = getCollectionManagerMap().keySet().stream().findFirst().get();
         }
@@ -95,20 +92,6 @@ public class MongoPlusClient {
             }});
         }
         return getCollectionManagerMap().get(DataSourceNameCache.getDataSource()).get(database);
-        /*//TODO 这里需要优化
-        CollectionManager collectionManager;
-        Map<String, CollectionManager> map = managerMap.get(DataSourceNameCache.getDataSource());
-        if (null == map){
-            setCollectionManagerMap(database);
-            map = getCollectionManagerMap().get(DataSourceNameCache.getDataSource());
-        }
-        if (null == map.get(database)){
-            collectionManager = new CollectionManager(getMongoClient(), collectionNameConvert, database);
-            managerMap.get(DataSourceNameCache.getDataSource()).put(database,collectionManager);
-        } else {
-            collectionManager = map.get(database);
-        }
-        return collectionManager;*/
     }
 
     public void setCollectionManagerMap(String database) {
@@ -134,10 +117,6 @@ public class MongoPlusClient {
     public MongoClient getMongoClient() {
         return MongoClientFactory.getInstance().getMongoClient();
     }
-/*
-    public void setMongoClient(MongoClient mongoClient) {
-        this.mongoClient = mongoClient;
-    }*/
 
     public List<MongoDatabase> getMongoDatabase() {
         return mongoDatabase;
@@ -151,7 +130,6 @@ public class MongoPlusClient {
     public String toString() {
         return "ConnectionManager{" +
                 "baseProperty=" + baseProperty +
-//                ", mongoClient=" + mongoClient +
                 ", mongoDatabase=" + mongoDatabase +
                 ", collectionManager=" + collectionManagerMap +
                 '}';
