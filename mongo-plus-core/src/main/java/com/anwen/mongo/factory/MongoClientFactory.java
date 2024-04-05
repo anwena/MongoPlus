@@ -77,7 +77,6 @@ public class MongoClientFactory implements AutoCloseable {
         if (logger.isDebugEnabled()){
             logger.debug("Destroy data source connection client");
         }
-        System.out.println("Destroy data source connection client");
         mongoClientMap.forEach((ds,mongoClient) -> mongoClient.close());
     }
 }
