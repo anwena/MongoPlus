@@ -8,9 +8,14 @@ import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.handlers.DocumentHandler;
+import com.anwen.mongo.model.MutablePair;
 import com.mongodb.BasicDBObject;
 import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.bson.json.JsonParseException;
 import org.bson.types.Binary;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.time.LocalDate;
@@ -71,45 +76,47 @@ public class DocumentUtil {
     }
 
     public static Document handleDocument(Document document){
-        Document result = new Document();
-        PropertyFilter propertyFilter = (object, name, value) -> {
-            if (value instanceof LocalDate
-                    || value instanceof LocalDateTime
-                    || value instanceof LocalTime
-                    || value instanceof Date
-                    || value instanceof Binary) {
-                result.put(name,value);
-                return false;
-            }
-            return true;
-        };
-        String jsonString = JSON.toJSONString(document, new SerializeConfig() {{
-            addFilter(Document.class,propertyFilter);
-        }});
-        document = Document.parse(jsonString);
-        document.putAll(result);
+        MutablePair<String, Map<String, Object>> mutablePair = getBsonJson(document,Document.class);
+        document = Document.parse(mutablePair.left);
+        document.putAll(mutablePair.right);
         return document;
     }
 
     public static BasicDBObject handleBasicDBObject(BasicDBObject basicDBObject){
-        BasicDBObject result = new BasicDBObject();
+        MutablePair<String, Map<String, Object>> mutablePair = getBsonJson(basicDBObject,BasicDBObject.class);
+        basicDBObject = BasicDBObject.parse(mutablePair.left);
+        basicDBObject.putAll(mutablePair.right);
+        return basicDBObject;
+    }
+
+    public static MutablePair<String,Map<String, Object>> getBsonJson(Bson bson,Class<?> clazz){
+        Map<String, Object> ignoreMap = new LinkedHashMap<>();
         PropertyFilter propertyFilter = (object, name, value) -> {
             if (value instanceof LocalDate
                     || value instanceof LocalDateTime
                     || value instanceof LocalTime
                     || value instanceof Date
                     || value instanceof Binary) {
-                result.put(name,value);
+                ignoreMap.put(name,value);
                 return false;
+            }
+            if (value instanceof Map<?, ?>) {
+                Map<?, ?> map = (Map<?, ?>) value;
+                map.entrySet().stream()
+                        .findFirst()
+                        .ifPresent(entry -> {
+                            Object key = entry.getKey();
+                            if (!(key instanceof String)) {
+                                throw new JsonParseException("The Key type of a Map can only be String");
+                            }
+                        });
             }
             return true;
         };
-        String jsonString = JSON.toJSONString(basicDBObject, new SerializeConfig() {{
-            addFilter(BasicDBObject.class, propertyFilter);
+        String json = JSON.toJSONString(bson, new SerializeConfig() {{
+            addFilter(clazz, propertyFilter);
         }});
-        basicDBObject = BasicDBObject.parse(jsonString);
-        basicDBObject.putAll(result.toBsonDocument());
-        return basicDBObject;
+        return new MutablePair<>(json,ignoreMap);
     }
 
     /**
