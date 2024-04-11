@@ -105,8 +105,7 @@ public class DocumentUtil {
                 map.entrySet().stream()
                         .findFirst()
                         .ifPresent(entry -> {
-                            Object key = entry.getKey();
-                            if (!(key instanceof String)) {
+                            if (!(entry.getKey() instanceof String)) {
                                 throw new JsonParseException("The Key type of a Map can only be String");
                             }
                         });
