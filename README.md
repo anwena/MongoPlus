@@ -8,11 +8,11 @@
 <a target="_blank" href="https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html">
 	<img src="https://img.shields.io/badge/JDK-17-green.svg" alt="jdk-17" />
 </a>
-<a href='https://gitee.com/anwena/mongo-plus/stargazers'>
-  <img src='https://gitee.com/anwena/mongo-plus/badge/star.svg?theme=dark' alt='star'/>
+<a href='https://gitee.com/aizuda/mongo-plus/stargazers'>
+  <img src='https://gitee.com/aizuda/mongo-plus/badge/star.svg?theme=gvp' alt='star'/>
 </a>
-<a href='https://gitee.com/anwena/mongo-plus/members'>
-  <img src='https://gitee.com/anwena/mongo-plus/badge/fork.svg?theme=dark' alt='fork'/>
+<a href='https://gitee.com/aizuda/mongo-plus/members'>
+  <img src='https://gitee.com/aizuda/mongo-plus/badge/fork.svg?theme=gvp' alt='fork'/>
 </a>
 </p>
 <p style="text-align: center;">
@@ -63,8 +63,8 @@ MyBatisPlus就是可以不用像MyBatis一样写过多的sql语句，Mongo-Plus�
 
 ### 联系我们
 #### 在使用MongoPlus的过程中，有任何问题和想法或者加入群聊请联系我
-#### 目前裸辞，北京求内推😟
 #### v：JiaChaoYang_
+#### 备注：MongoPlus
 <img src="wx.png" alt="微信">
 
 ###  参与贡献
