@@ -110,6 +110,14 @@ public final class StringUtils {
         }
     }
 
+    public static boolean hasLength(String str) {
+        return (str != null && !str.isEmpty());
+    }
+
+    public static boolean hasText(String str) {
+        return (str != null && !isBlank(str));
+    }
+
     /**
      * @param str 字符串
      * @return 是否为空

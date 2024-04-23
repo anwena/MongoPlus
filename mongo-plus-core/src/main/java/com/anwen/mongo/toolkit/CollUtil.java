@@ -1,6 +1,7 @@
 package com.anwen.mongo.toolkit;
 
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * @author JiaChaoYang
@@ -16,6 +17,10 @@ public class CollUtil {
 
     public static boolean isEmpty(Collection<?> collection){
         return !isNotEmpty(collection);
+    }
+
+    public static boolean isEmpty(Map<?, ?> map) {
+        return (map == null || map.isEmpty());
     }
 
 }
