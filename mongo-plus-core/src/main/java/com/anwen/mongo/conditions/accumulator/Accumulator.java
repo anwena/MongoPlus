@@ -142,7 +142,7 @@ public class Accumulator {
     public static class AccumulatorBuilder {
         private String resultMappingField;
         private String condition;
-        private String field;
+        private Object field;
 
         AccumulatorBuilder() {
         }
@@ -157,7 +157,7 @@ public class Accumulator {
             return this;
         }
 
-        public AccumulatorBuilder field(String field) {
+        public AccumulatorBuilder field(Object field) {
             this.field = field;
             return this;
         }
