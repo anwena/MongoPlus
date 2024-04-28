@@ -193,6 +193,9 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
     */
     private void setInterceptor(){
         Collection<Interceptor> interceptorCollection = applicationContext.getBeansOfType(Interceptor.class).values();
+        if (CollUtil.isNotEmpty(interceptorCollection)) {
+            interceptorCollection = interceptorCollection.stream().sorted(Comparator.comparing(Interceptor::order)).collect(Collectors.toList());
+        }
         InterceptorCache.interceptors = new ArrayList<>(interceptorCollection);
     }
 

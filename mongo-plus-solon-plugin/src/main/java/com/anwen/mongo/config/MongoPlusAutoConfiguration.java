@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -184,11 +185,15 @@ public class MongoPlusAutoConfiguration {
 
     /**
      * 从Bean中拿到拦截器
+     *
      * @author JiaChaoYang
      * @date 2024/3/17 0:30
      */
-    private void setInterceptor(AppContext context){
+    private void setInterceptor(AppContext context) {
         Collection<Interceptor> interceptorCollection = context.getBeansOfType(Interceptor.class);
+        if (CollUtil.isNotEmpty(interceptorCollection)) {
+            interceptorCollection = interceptorCollection.stream().sorted(Comparator.comparing(Interceptor::order)).collect(Collectors.toList());
+        }
         InterceptorCache.interceptors = new ArrayList<>(interceptorCollection);
     }
 
