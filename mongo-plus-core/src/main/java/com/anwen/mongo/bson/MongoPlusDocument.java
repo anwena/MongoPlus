@@ -15,6 +15,10 @@ public class MongoPlusDocument extends Document {
     public MongoPlusDocument() {
     }
 
+    public <T,R> MongoPlusDocument(SFunction<T,R> key,Object value){
+        super(key.getFieldNameLine(),value);
+    }
+
     public MongoPlusDocument(String key, Object value) {
         super(key, value);
     }
@@ -37,6 +41,14 @@ public class MongoPlusDocument extends Document {
 
     public <T,R,D> D get(SFunction<T,R> key,Class<D> clazz){
         return super.get(key.getFieldNameLine(),clazz);
+    }
+
+    public <T,R> Object remove(SFunction<T,R> key){
+        return super.remove(key.getFieldNameLine());
+    }
+
+    public <T,R> Object remove(SFunction<T,R> key,Object value){
+        return super.remove(key.getFieldNameLine(),value);
     }
 
 }

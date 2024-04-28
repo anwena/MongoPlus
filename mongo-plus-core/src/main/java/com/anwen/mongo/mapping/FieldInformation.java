@@ -1,5 +1,8 @@
 package com.anwen.mongo.mapping;
 
+import com.anwen.mongo.annotation.ID;
+import com.anwen.mongo.annotation.collection.CollectionField;
+
 import java.lang.reflect.Field;
 
 /**
@@ -24,5 +27,13 @@ public interface FieldInformation {
     boolean isCollection();
 
     boolean isSimpleType();
+
+    boolean isSkipCheckField();
+
+    boolean isId();
+
+    ID getId();
+
+    CollectionField getCollectionField();
 
 }

@@ -62,6 +62,16 @@ public class SimpleClassInformation<T> implements ClassInformation {
         return clazz;
     }
 
+    @Override
+    public Boolean isMap() {
+        return Map.class.isAssignableFrom(clazz);
+    }
+
+    @Override
+    public Boolean isCollection() {
+        return Collection.class.isAssignableFrom(clazz);
+    }
+
     public T getInstance() {
         return instance;
     }

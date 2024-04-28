@@ -7,24 +7,9 @@ package com.anwen.mongo.domain;
  **/
 public class InitMongoPlusException extends MongoPlusException {
 
-    private String message;
-
-    @Override
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
     public InitMongoPlusException(String message){
-        super();
+        super(message);
         this.message = message;
-    }
-
-    public InitMongoPlusException(){
-        super();
     }
 
 }

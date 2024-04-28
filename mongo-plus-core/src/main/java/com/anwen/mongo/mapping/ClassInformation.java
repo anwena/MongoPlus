@@ -16,4 +16,8 @@ public interface ClassInformation {
 
     Class<?> getClazz();
 
+    Boolean isMap();
+
+    Boolean isCollection();
+
 }

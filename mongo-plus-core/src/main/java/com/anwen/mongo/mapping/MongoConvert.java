@@ -7,17 +7,17 @@ import java.util.List;
 import java.util.Map;
 
 /**
- *
+ * 将对象映射为Document和将Document映射为对象
  * @author JiaChaoYang
  * @date 2024/4/16 下午9:10
 */ 
 public interface MongoConvert {
 
-    <T> Document write(T entity);
+    <T> void write(Object sourceObj, Bson bson);
 
-    Document write(Map<String,Object> map);
+    void write(Map<String,Object> map,Bson bson);
 
-    <T> List<T> read(Document document, Class<?> clazz);
+    void read(Document document, Class<?> clazz,List<?> resultList);
 
     Map<String,Object> read(Document document);
 }

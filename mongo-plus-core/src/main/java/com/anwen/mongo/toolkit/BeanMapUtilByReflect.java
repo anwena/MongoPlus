@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.enums.FieldFill;
+import com.anwen.mongo.mapping.ClassInformation;
+import com.anwen.mongo.mapping.FieldInformation;
 import org.bson.Document;
 
 import java.lang.reflect.Field;
@@ -40,6 +42,24 @@ public class BeanMapUtilByReflect {
                 if (collectionField.fill() == FieldFill.INSERT_UPDATE){
                     insertFill.put(getFieldName(field),null);
                     updateFill.put(getFieldName(field),null);
+                }
+            }
+        });
+    }
+
+    public static void getFillInsertAndUpdateField(ClassInformation classInformation, Map<String,Object> insertFill, Map<String,Object> updateFill){
+        classInformation.getFields().forEach(field -> {
+            CollectionField collectionField = field.getCollectionField();
+            if (collectionField != null && collectionField.fill() != FieldFill.DEFAULT){
+                if (collectionField.fill() == FieldFill.INSERT){
+                    insertFill.put(field.getName(),null);
+                }
+                if (collectionField.fill() == FieldFill.UPDATE){
+                    updateFill.put(field.getName(),null);
+                }
+                if (collectionField.fill() == FieldFill.INSERT_UPDATE){
+                    insertFill.put(field.getName(),null);
+                    updateFill.put(field.getName(),null);
                 }
             }
         });

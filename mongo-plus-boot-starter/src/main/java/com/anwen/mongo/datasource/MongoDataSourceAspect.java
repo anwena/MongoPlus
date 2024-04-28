@@ -29,8 +29,12 @@ public class MongoDataSourceAspect {
             throw new MongoException("Data source not found");
         }
         DataSourceNameCache.setDataSource(mongoDs.value());
-        Object proceed = joinPoint.proceed();
-        DataSourceNameCache.clear();
+        Object proceed;
+        try {
+            proceed = joinPoint.proceed();
+        }finally {
+            DataSourceNameCache.clear();
+        }
         return proceed;
     }
 

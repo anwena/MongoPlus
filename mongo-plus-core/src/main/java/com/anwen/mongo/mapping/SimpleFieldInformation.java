@@ -1,5 +1,6 @@
 package com.anwen.mongo.mapping;
 
+import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.toolkit.StringUtils;
 
@@ -28,6 +29,14 @@ public class SimpleFieldInformation<T> implements FieldInformation {
 
     private final Field field;
 
+    private final Boolean isSkipCheckField;
+
+    private Boolean isId = false;
+
+    private ID id;
+
+    private CollectionField collectionField;
+
     @Override
     public Field getField() {
         return field;
@@ -53,11 +62,18 @@ public class SimpleFieldInformation<T> implements FieldInformation {
         CollectionField collectionField = field.getAnnotation(CollectionField.class);
         if (collectionField != null && StringUtils.isNotBlank(collectionField.value())) {
             this.name = collectionField.value();
+            this.collectionField = collectionField;
         }
         this.isMap = Map.class.isAssignableFrom(type);
         this.isCollection = type.isArray() //
                 || Iterable.class.equals(type) //
                 || Collection.class.isAssignableFrom(type);
+        this.isSkipCheckField = collectionField != null && !collectionField.exist();
+        ID IDAnnotation = field.getAnnotation(ID.class);
+        if (IDAnnotation != null){
+            this.isId = true;
+            this.id = IDAnnotation;
+        }
     }
 
     @Override
@@ -109,6 +125,25 @@ public class SimpleFieldInformation<T> implements FieldInformation {
         return new SimpleTypeHolder().isSimpleType(type);
     }
 
+    @Override
+    public boolean isSkipCheckField() {
+        return isSkipCheckField;
+    }
+
+    @Override
+    public boolean isId() {
+        return isId;
+    }
+
+    @Override
+    public ID getId() {
+        return id;
+    }
+
+    @Override
+    public CollectionField getCollectionField() {
+        return this.collectionField;
+    }
 
 
 }

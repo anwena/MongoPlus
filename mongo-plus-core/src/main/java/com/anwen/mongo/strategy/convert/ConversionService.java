@@ -11,11 +11,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 
 /**
  * 策略应用
@@ -25,7 +21,7 @@ public class ConversionService {
 
     static Logger logger = LoggerFactory.getLogger(ConversionStrategy.class);
 
-    private static final Map<Class<?>, ConversionStrategy<?>> conversionStrategies = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, ConversionStrategy<?>> conversionStrategies = new HashMap<>();
 
     static {
         conversionStrategies.put(Integer.class, new IntegerConversionStrategy());
