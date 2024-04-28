@@ -68,6 +68,19 @@ public interface LogicDeleteHandler {
 
     }
 
+
+    /**
+     * 给 wrapper 对象添加逻辑未删除对象
+     *
+     * @param clazz 目标文档
+     * @param <T>   文档类型
+     * @return 添加逻辑未删除的条件集合
+     */
+    @SuppressWarnings("unchecked")
+    static <T> List<CompareCondition> doWrapperLogicDel(Class clazz) {
+        return doWrapperLogicDel(null, clazz);
+    }
+
     /**
      * 给 wrapper 对象添加逻辑未删除对象
      *

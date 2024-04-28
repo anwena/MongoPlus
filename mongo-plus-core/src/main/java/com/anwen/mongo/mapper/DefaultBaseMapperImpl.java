@@ -182,7 +182,7 @@ public class DefaultBaseMapperImpl implements BaseMapper {
 
     @Override
     public <T> List<T> list(Class<T> clazz) {
-        List<CompareCondition> compareList = LogicDeleteHandler.doWrapperLogicDel(null, clazz);
+        List<CompareCondition> compareList = LogicDeleteHandler.doWrapperLogicDel(clazz);
         if (CollUtil.isNotEmpty(compareList)) {
             BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareList);
             return DocumentMapperConvert.mapDocumentList(factory.getExecute().executeQuery(queryBasic, null, null, mongoPlusClient.getCollection(clazz), Document.class), clazz);
@@ -200,6 +200,10 @@ public class DefaultBaseMapperImpl implements BaseMapper {
 
     @Override
     public <T> List<T> aggregateList(AggregateChainWrapper<T, ?> queryChainWrapper, Class<T> clazz) {
+        if (!LogicDeleteHandler.close()) {
+            BasicDBObject logicDelete = BuildCondition.buildQueryCondition(LogicDeleteHandler.doWrapperLogicDel(clazz));
+            queryChainWrapper.custom(logicDelete);
+        }
         List<BaseAggregate> aggregateList = queryChainWrapper.getBaseAggregateList();
         List<AggregateBasicDBObject> basicDBObjectList = queryChainWrapper.getBasicDBObjectList();
         BasicDBObject optionsBasicDBObject = queryChainWrapper.getOptionsBasicDBObject();
@@ -233,7 +237,7 @@ public class DefaultBaseMapperImpl implements BaseMapper {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(compareList, queryChainWrapper.getOrderList(), queryChainWrapper.getProjectionList(), queryChainWrapper.getBasicDBObjectList());
         MongoCollection<Document> collection = mongoPlusClient.getCollection(clazz);
         long count;
-        if (CollUtil.isEmpty(queryChainWrapper.getCompareList())) {
+        if (CollUtil.isEmpty(compareList)) {
             count = factory.getExecute().estimatedDocumentCount(collection);
         } else {
             count = count(queryChainWrapper, clazz);
@@ -360,7 +364,7 @@ public class DefaultBaseMapperImpl implements BaseMapper {
             return -1L;
         }
         List<CompareCondition> compareList = new ArrayList<>(compareConditionList);
-        List<CompareCondition> compareConditions = LogicDeleteHandler.doWrapperLogicDel(null, clazz);
+        List<CompareCondition> compareConditions = LogicDeleteHandler.doWrapperLogicDel(clazz);
         if (CollUtil.isNotEmpty(compareConditions)) {
             compareList.addAll(compareConditions);
         }
