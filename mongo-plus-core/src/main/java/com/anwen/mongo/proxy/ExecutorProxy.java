@@ -3,7 +3,7 @@ package com.anwen.mongo.proxy;
 import com.anwen.mongo.cache.global.ExecutorProxyCache;
 import com.anwen.mongo.cache.global.InterceptorCache;
 import com.anwen.mongo.execute.Execute;
-import com.anwen.mongo.proxy.executor.MethodExecutor;
+import com.anwen.mongo.strategy.executor.MethodExecutorStrategy;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -27,7 +27,7 @@ public class ExecutorProxy implements InvocationHandler {
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         String name = method.getName();
-        MethodExecutor executor = ExecutorProxyCache.EXECUTOR_MAP.get(name);
+        MethodExecutorStrategy executor = ExecutorProxyCache.EXECUTOR_MAP.get(name);
         if (Objects.nonNull(executor)) {
             InterceptorCache.interceptors.forEach(interceptor -> executor.invoke(interceptor, args));
         }

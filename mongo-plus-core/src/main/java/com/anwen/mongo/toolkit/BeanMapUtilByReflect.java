@@ -5,7 +5,6 @@ import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.enums.FieldFill;
 import com.anwen.mongo.mapping.ClassInformation;
-import com.anwen.mongo.mapping.FieldInformation;
 import org.bson.Document;
 
 import java.lang.reflect.Field;

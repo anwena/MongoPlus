@@ -1,4 +1,4 @@
-package com.anwen.mongo.proxy.executor;
+package com.anwen.mongo.strategy.executor;
 
 import com.anwen.mongo.enums.ExecuteMethodEnum;
 import com.anwen.mongo.interceptor.Interceptor;
@@ -9,7 +9,7 @@ import com.anwen.mongo.interceptor.Interceptor;
  * @author loser
  * @date 2024/4/28
  */
-public interface MethodExecutor {
+public interface MethodExecutorStrategy {
 
     /**
      * 方法类型

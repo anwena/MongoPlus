@@ -1,14 +1,8 @@
 package com.anwen.mongo.cache.global;
 
 import com.anwen.mongo.enums.ExecuteMethodEnum;
-import com.anwen.mongo.proxy.executor.MethodExecutor;
-import com.anwen.mongo.proxy.executor.impl.AggregateExecutor;
-import com.anwen.mongo.proxy.executor.impl.BulkWriteExecutor;
-import com.anwen.mongo.proxy.executor.impl.CountExecutor;
-import com.anwen.mongo.proxy.executor.impl.QueryExecutor;
-import com.anwen.mongo.proxy.executor.impl.RemoveExecutor;
-import com.anwen.mongo.proxy.executor.impl.SaveExecutor;
-import com.anwen.mongo.proxy.executor.impl.UpdateExecutor;
+import com.anwen.mongo.strategy.executor.MethodExecutorStrategy;
+import com.anwen.mongo.strategy.executor.impl.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,16 +15,16 @@ import java.util.Map;
  */
 public class ExecutorProxyCache {
 
-    public static final Map<String, MethodExecutor> EXECUTOR_MAP = new HashMap<>(ExecuteMethodEnum.values().length);
+    public static final Map<String, MethodExecutorStrategy> EXECUTOR_MAP = new HashMap<>(ExecuteMethodEnum.values().length);
 
     static {
-        EXECUTOR_MAP.put(ExecuteMethodEnum.SAVE.getMethod(), new SaveExecutor());
-        EXECUTOR_MAP.put(ExecuteMethodEnum.REMOVE.getMethod(), new RemoveExecutor());
-        EXECUTOR_MAP.put(ExecuteMethodEnum.UPDATE.getMethod(), new UpdateExecutor());
-        EXECUTOR_MAP.put(ExecuteMethodEnum.QUERY.getMethod(), new QueryExecutor());
-        EXECUTOR_MAP.put(ExecuteMethodEnum.AGGREGATE.getMethod(), new AggregateExecutor());
-        EXECUTOR_MAP.put(ExecuteMethodEnum.COUNT.getMethod(), new CountExecutor());
-        EXECUTOR_MAP.put(ExecuteMethodEnum.BULK_WRITE.getMethod(), new BulkWriteExecutor());
+        EXECUTOR_MAP.put(ExecuteMethodEnum.SAVE.getMethod(), new SaveExecutorStrategy());
+        EXECUTOR_MAP.put(ExecuteMethodEnum.REMOVE.getMethod(), new RemoveExecutorStrategy());
+        EXECUTOR_MAP.put(ExecuteMethodEnum.UPDATE.getMethod(), new UpdateExecutorStrategy());
+        EXECUTOR_MAP.put(ExecuteMethodEnum.QUERY.getMethod(), new QueryExecutorStrategy());
+        EXECUTOR_MAP.put(ExecuteMethodEnum.AGGREGATE.getMethod(), new AggregateExecutorStrategy());
+        EXECUTOR_MAP.put(ExecuteMethodEnum.COUNT.getMethod(), new CountExecutorStrategy());
+        EXECUTOR_MAP.put(ExecuteMethodEnum.BULK_WRITE.getMethod(), new BulkWriteExecutorStrategy());
     }
 
 }

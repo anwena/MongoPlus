@@ -14,10 +14,7 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.json.JsonParseException;
 import org.bson.types.Binary;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.LocalDateTime;

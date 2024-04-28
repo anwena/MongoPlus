@@ -1,14 +1,14 @@
-package com.anwen.mongo.proxy.executor.impl;
+package com.anwen.mongo.strategy.executor.impl;
 
 import com.anwen.mongo.enums.ExecuteMethodEnum;
 import com.anwen.mongo.interceptor.Interceptor;
-import com.anwen.mongo.proxy.executor.MethodExecutor;
+import com.anwen.mongo.strategy.executor.MethodExecutorStrategy;
 import com.mongodb.client.model.WriteModel;
 import org.bson.Document;
 
 import java.util.List;
 
-public class BulkWriteExecutor implements MethodExecutor {
+public class BulkWriteExecutorStrategy implements MethodExecutorStrategy {
 
     @Override
     public ExecuteMethodEnum method() {

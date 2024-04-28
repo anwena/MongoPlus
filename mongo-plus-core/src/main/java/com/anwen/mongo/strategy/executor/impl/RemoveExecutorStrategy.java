@@ -1,11 +1,11 @@
-package com.anwen.mongo.proxy.executor.impl;
+package com.anwen.mongo.strategy.executor.impl;
 
 import com.anwen.mongo.enums.ExecuteMethodEnum;
 import com.anwen.mongo.interceptor.Interceptor;
-import com.anwen.mongo.proxy.executor.MethodExecutor;
+import com.anwen.mongo.strategy.executor.MethodExecutorStrategy;
 import org.bson.conversions.Bson;
 
-public class RemoveExecutor implements MethodExecutor {
+public class RemoveExecutorStrategy implements MethodExecutorStrategy {
 
     @Override
     public ExecuteMethodEnum method() {
