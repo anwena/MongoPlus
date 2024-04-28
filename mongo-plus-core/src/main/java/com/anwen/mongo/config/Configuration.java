@@ -229,6 +229,7 @@ public class Configuration {
                 throw new RuntimeException(e);
             }
         }
+        InterceptorCache.interceptors = InterceptorCache.interceptors.stream().sorted(Comparator.comparing(Interceptor::order)).collect(Collectors.toList());
         return this;
     }
 
