@@ -23,4 +23,19 @@ public class ClassLogicDeleteCache {
      */
     public static final Map<Class<?>, LogicDeleteResult> logicDeleteResultHashMap = new HashMap<>();
 
+    private static final ThreadLocal<Class<?>> logicCollection = new InheritableThreadLocal<>();
+
+    public static void setLogicCollection(Class<?> clazz) {
+        logicCollection.set(clazz);
+    }
+
+    public static Class<?> getLogicCollection() {
+        return logicCollection.get();
+    }
+
+    public static void clear() {
+        logicCollection.remove();
+    }
+
+
 }

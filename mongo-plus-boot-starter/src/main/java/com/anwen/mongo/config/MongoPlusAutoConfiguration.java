@@ -1,6 +1,6 @@
 package com.anwen.mongo.config;
 
-import com.anwen.mongo.annotation.TableLogic;
+import com.anwen.mongo.annotation.collection.CollectionLogic;
 import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.cache.global.ClassLogicDeleteCache;
 import com.anwen.mongo.cache.global.HandlerCache;
@@ -17,6 +17,7 @@ import com.anwen.mongo.listener.Listener;
 import com.anwen.mongo.listener.business.BlockAttackInnerListener;
 import com.anwen.mongo.listener.business.LogListener;
 import com.anwen.mongo.logic.AnnotationHandler;
+import com.anwen.mongo.logic.CollectionLogiceInterceptor;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.model.ClassAnnotationFiled;
@@ -110,6 +111,7 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
             return;
         }
         ClassLogicDeleteCache.open = mongoLogicDelProperty.getOpen();
+        InterceptorCache.interceptors.add(new CollectionLogiceInterceptor());
 
     }
 
@@ -120,10 +122,10 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         }
 
         Map<Class<?>, LogicDeleteResult> logicDeleteResultHashMap = ClassLogicDeleteCache.logicDeleteResultHashMap;
-        ClassAnnotationFiled<TableLogic> targetInfo = AnnotationHandler.getAnnotationOnFiled(clazz, TableLogic.class);
+        ClassAnnotationFiled<CollectionLogic> targetInfo = AnnotationHandler.getAnnotationOnFiled(clazz, CollectionLogic.class);
         // 优先使用每个对象自定义规则
         if (Objects.nonNull(targetInfo)) {
-            TableLogic annotation = targetInfo.getTargetAnnotation();
+            CollectionLogic annotation = targetInfo.getTargetAnnotation();
             if (annotation.close()) {
                 return;
             }

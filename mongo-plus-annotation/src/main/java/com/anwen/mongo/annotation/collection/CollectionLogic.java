@@ -1,4 +1,4 @@
-package com.anwen.mongo.annotation;
+package com.anwen.mongo.annotation.collection;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.ANNOTATION_TYPE})
-public @interface TableLogic {
+public @interface CollectionLogic {
 
     /**
      * 开启全局配置 并忽略该文档（任意补充在某一个字段上，建议跟@ID 相同）
