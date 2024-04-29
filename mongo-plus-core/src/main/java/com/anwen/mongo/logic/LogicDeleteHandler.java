@@ -3,8 +3,8 @@ package com.anwen.mongo.logic;
 import com.anwen.mongo.cache.global.ClassLogicDeleteCache;
 import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
-import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
+import com.anwen.mongo.conditions.query.QueryWrapper;
 import com.anwen.mongo.model.LogicDeleteResult;
 import com.anwen.mongo.toolkit.ChainWrappers;
 import com.mongodb.BasicDBObject;
@@ -43,6 +43,7 @@ public interface LogicDeleteHandler {
      * @param <T>   文档类型
      * @return 添加逻辑未删除的条件对象
      */
+    @SuppressWarnings("all")
     static <T> Bson doBsonLogicDel(Bson query, Class<T> clazz) {
 
         if (close()) {
@@ -53,7 +54,7 @@ public interface LogicDeleteHandler {
             return query;
         }
         if (Objects.isNull(query)) {
-            LambdaQueryChainWrapper<T> wrapper = ChainWrappers.lambdaQueryChain(null, clazz);
+            QueryChainWrapper wrapper = new QueryWrapper();
             wrapper.eq(result.getColumn(), result.getLogicNotDeleteValue());
             return BuildCondition.buildQueryCondition(wrapper.getCompareList());
         }
@@ -76,8 +77,8 @@ public interface LogicDeleteHandler {
      * @param <T>   文档类型
      * @return 添加逻辑未删除的条件集合
      */
-    @SuppressWarnings("unchecked")
-    static <T> List<CompareCondition> doWrapperLogicDel(Class clazz) {
+    @SuppressWarnings("all")
+    static List<CompareCondition> doWrapperLogicDel(Class clazz) {
         return doWrapperLogicDel(null, clazz);
     }
 

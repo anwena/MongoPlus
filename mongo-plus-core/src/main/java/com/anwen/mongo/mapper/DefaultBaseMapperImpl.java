@@ -215,7 +215,6 @@ public class DefaultBaseMapperImpl implements BaseMapper {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(), queryChainWrapper.getOrderList(), queryChainWrapper.getProjectionList(), queryChainWrapper.getBasicDBObjectList());
         MongoCollection<Document> collection = mongoPlusClient.getCollection(clazz);
         long count;
-        // todo loser
         if (CollUtil.isEmpty(queryChainWrapper.getCompareList())) {
             count = factory.getExecute().estimatedDocumentCount(collection);
         } else {
@@ -239,7 +238,6 @@ public class DefaultBaseMapperImpl implements BaseMapper {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(), queryChainWrapper.getOrderList(), queryChainWrapper.getProjectionList(), queryChainWrapper.getBasicDBObjectList());
         MongoCollection<Document> collection = mongoPlusClient.getCollection(clazz);
         long count;
-        // todo loser
         if (CollUtil.isEmpty(queryChainWrapper.getCompareList())) {
             count = factory.getExecute().estimatedDocumentCount(collection);
         } else {

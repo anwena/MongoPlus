@@ -1,8 +1,10 @@
 package com.anwen.mongo.config;
 
+import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.annotation.collection.CollectionLogic;
 import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.cache.global.ClassLogicDeleteCache;
+import com.anwen.mongo.cache.global.ExecutorReplacerCache;
 import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.cache.global.InterceptorCache;
 import com.anwen.mongo.cache.global.ListenerCache;
@@ -18,6 +20,7 @@ import com.anwen.mongo.listener.business.BlockAttackInnerListener;
 import com.anwen.mongo.listener.business.LogListener;
 import com.anwen.mongo.logic.AnnotationHandler;
 import com.anwen.mongo.logic.CollectionLogiceInterceptor;
+import com.anwen.mongo.logic.LogicRemoveReplacer;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.model.ClassAnnotationFiled;
@@ -25,6 +28,7 @@ import com.anwen.mongo.model.LogicDeleteResult;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBLogProperty;
 import com.anwen.mongo.property.MongoLogicDelProperty;
+import com.anwen.mongo.replacer.Replacer;
 import com.anwen.mongo.service.IService;
 import com.anwen.mongo.service.impl.ServiceImpl;
 import com.anwen.mongo.strategy.convert.ConversionService;
@@ -41,6 +45,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -89,6 +94,7 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         setDocumentHandler();
         setListener();
         setInterceptor();
+        setReplacer();
         setLogicDelete();
         this.baseMapper = baseMapper;
     }
@@ -112,11 +118,13 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         }
         ClassLogicDeleteCache.open = mongoLogicDelProperty.getOpen();
         InterceptorCache.interceptors.add(new CollectionLogiceInterceptor());
+        ExecutorReplacerCache.replacers.add(new LogicRemoveReplacer());
 
     }
 
     private void setLogicFiled(Class<?> clazz) {
 
+        // todo loser
         if (Objects.isNull(mongoLogicDelProperty) || !mongoLogicDelProperty.getOpen()) {
             return;
         }
@@ -130,7 +138,10 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
                 return;
             }
             LogicDeleteResult result = new LogicDeleteResult();
-            result.setColumn(targetInfo.getField().getName());
+            Field field = targetInfo.getField();
+            CollectionField collectionField = field.getAnnotation(CollectionField.class);
+            String column = Objects.nonNull(collectionField) && StringUtils.isNotEmpty(collectionField.value()) ? collectionField.value() : field.getName();
+            result.setColumn(column);
             result.setLogicDeleteValue(StringUtils.isNotBlank(annotation.delval()) ? annotation.delval() : mongoLogicDelProperty.getLogicDeleteValue());
             result.setLogicNotDeleteValue(StringUtils.isNotBlank(annotation.value()) ? annotation.value() : mongoLogicDelProperty.getLogicNotDeleteValue());
             logicDeleteResultHashMap.put(clazz, result);
@@ -270,6 +281,19 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
             interceptorCollection = interceptorCollection.stream().sorted(Comparator.comparing(Interceptor::order)).collect(Collectors.toList());
         }
         InterceptorCache.interceptors = new ArrayList<>(interceptorCollection);
+    }
+
+    /**
+     * 从bean 容器中获取替换器
+     *
+     * @author loser
+     */
+    private void setReplacer() {
+        Collection<Replacer> replacers = applicationContext.getBeansOfType(Replacer.class).values();
+        if (CollUtil.isNotEmpty(replacers)) {
+            replacers = replacers.stream().sorted(Comparator.comparing(Replacer::order)).collect(Collectors.toList());
+        }
+        ExecutorReplacerCache.replacers = new ArrayList<>(replacers);
     }
 
 }
