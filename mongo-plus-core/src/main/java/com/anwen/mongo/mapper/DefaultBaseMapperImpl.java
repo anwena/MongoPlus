@@ -303,6 +303,7 @@ public class DefaultBaseMapperImpl implements BaseMapper {
         List<CompareCondition> compareConditionList = new ArrayList<>();
         compareConditionList.addAll(updateChainWrapper.getCompareList());
         compareConditionList.addAll(updateChainWrapper.getUpdateCompareList());
+        BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareConditionList);
         List<CompareCondition> pushConditionList = compareConditionList.stream().filter(compareCondition -> Objects.equals(compareCondition.getCondition(), SpecialConditionEnum.PUSH.getSubCondition())).collect(Collectors.toList());
         List<CompareCondition> setConditionList = compareConditionList.stream().filter(compareCondition -> Objects.equals(compareCondition.getCondition(), SpecialConditionEnum.SET.getSubCondition())).collect(Collectors.toList());
         BasicDBObject basicDBObject = new BasicDBObject() {{
@@ -313,7 +314,7 @@ public class DefaultBaseMapperImpl implements BaseMapper {
                 append(SpecialConditionEnum.PUSH.getCondition(), BuildCondition.buildPushUpdateValue(pushConditionList));
             }
         }};
-        BasicDBObject query = (BasicDBObject) LogicDeleteHandler.doBsonLogicDel(basicDBObject, clazz);
+        BasicDBObject query = (BasicDBObject) LogicDeleteHandler.doBsonLogicDel(queryBasic, clazz);
         return factory.getExecute().executeUpdate(query, DocumentUtil.handleBasicDBObject(basicDBObject), mongoPlusClient.getCollection(clazz)).getModifiedCount() >= 1;
     }
 
