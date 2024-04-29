@@ -202,7 +202,7 @@ public class DefaultBaseMapperImpl implements BaseMapper {
     public <T> List<T> aggregateList(AggregateChainWrapper<T, ?> queryChainWrapper, Class<T> clazz) {
         if (!LogicDeleteHandler.close()) {
             BasicDBObject logicDelete = BuildCondition.buildQueryCondition(LogicDeleteHandler.doWrapperLogicDel(clazz));
-            queryChainWrapper.custom(logicDelete);
+            queryChainWrapper.match(logicDelete);
         }
         List<BaseAggregate> aggregateList = queryChainWrapper.getBaseAggregateList();
         List<AggregateBasicDBObject> basicDBObjectList = queryChainWrapper.getBasicDBObjectList();
