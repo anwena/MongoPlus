@@ -24,6 +24,21 @@ import java.util.stream.Collectors;
 public class CollectionLogiceInterceptor implements Interceptor {
 
     @Override
+    public Bson executeRemove(Bson filter) {
+
+        try {
+            Class<?> clazz = ClassLogicDeleteCache.getLogicCollection();
+            if (LogicDeleteHandler.close() || Objects.isNull(clazz)) {
+                return Interceptor.super.executeRemove(filter);
+            }
+            return LogicDeleteHandler.doBsonLogicDel(filter, clazz);
+        } finally {
+            ClassLogicDeleteCache.clear();
+        }
+
+    }
+
+    @Override
     public MutablePair<Bson, Bson> executeUpdate(Bson queryBasic, Bson updateBasic) {
 
         try {
