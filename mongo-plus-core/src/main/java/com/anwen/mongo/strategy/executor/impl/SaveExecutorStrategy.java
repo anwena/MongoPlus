@@ -8,6 +8,12 @@ import org.bson.Document;
 
 import java.util.List;
 
+/**
+ * SAVE 策略执行器
+ *
+ * @author loser
+ * @date 2024/4/30
+ */
 public class SaveExecutorStrategy implements MethodExecutorStrategy {
 
     @Override

@@ -1,7 +1,5 @@
 package com.anwen.mongo.logic.interceptor;
 
-import com.anwen.mongo.cache.global.ClassLogicDeleteCache;
-import com.anwen.mongo.config.Configuration;
 import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.logic.LogicDeleteHandler;
 import com.anwen.mongo.model.LogicDeleteResult;
@@ -25,9 +23,6 @@ public class LogicAutoFillInterceptor implements Interceptor {
         Class<?> clazz = LogicDeleteHandler.getBeanClass(collection);
         if (Objects.isNull(clazz)) {
             return documentList;
-        }
-        if (!ClassLogicDeleteCache.logicDeleteResultHashMap.containsKey(clazz)) {
-            Configuration.builder().setLogicFiled(ClassLogicDeleteCache.logicProperty, clazz);
         }
         LogicDeleteResult result = LogicDeleteHandler.mapper().get(clazz);
         if (Objects.nonNull(result)) {

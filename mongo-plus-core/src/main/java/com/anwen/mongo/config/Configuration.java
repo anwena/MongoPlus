@@ -2,7 +2,7 @@ package com.anwen.mongo.config;
 
 import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.annotation.collection.CollectionLogic;
-import com.anwen.mongo.cache.global.ClassLogicDeleteCache;
+import com.anwen.mongo.cache.global.CollectionLogicDeleteCache;
 import com.anwen.mongo.cache.global.ExecutorReplacerCache;
 import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.cache.global.InterceptorCache;
@@ -389,8 +389,8 @@ public class Configuration {
             throw new InitMongoLogicException("Config logic logicProperty not null");
         }
         this.logicProperty = logicProperty;
-        ClassLogicDeleteCache.open = logicProperty.getOpen();
-        ClassLogicDeleteCache.logicProperty = logicProperty;
+        CollectionLogicDeleteCache.open = logicProperty.getOpen();
+        CollectionLogicDeleteCache.logicProperty = logicProperty;
         if (logicProperty.getOpen()) {
             InterceptorCache.interceptors.add(new CollectionLogiceInterceptor());
             if (logicProperty.getAutoFill()) {
@@ -427,7 +427,7 @@ public class Configuration {
         if (Objects.isNull(collectionClasses) || Objects.isNull(logicProperty) || !logicProperty.getOpen()) {
             return this;
         }
-        Map<Class<?>, LogicDeleteResult> logicDeleteResultHashMap = ClassLogicDeleteCache.logicDeleteResultHashMap;
+        Map<Class<?>, LogicDeleteResult> logicDeleteResultHashMap = CollectionLogicDeleteCache.logicDeleteResultHashMap;
 
         for (Class<?> clazz : collectionClasses) {
             if (logicDeleteResultHashMap.containsKey(clazz)) {

@@ -1,6 +1,6 @@
 package com.anwen.mongo.logic.replacer;
 
-import com.anwen.mongo.cache.global.ClassLogicDeleteCache;
+import com.anwen.mongo.cache.global.CollectionLogicDeleteCache;
 import com.anwen.mongo.enums.ExecuteMethodEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.logic.LogicDeleteHandler;
@@ -57,7 +57,7 @@ public class LogicRemoveReplacer implements Replacer {
 
     @Override
     public BoolFunction supplier() {
-        return (proxy, target, method, args) -> ClassLogicDeleteCache.open && method.getName().equals(ExecuteMethodEnum.REMOVE.getMethod());
+        return (proxy, target, method, args) -> CollectionLogicDeleteCache.open && method.getName().equals(ExecuteMethodEnum.REMOVE.getMethod());
     }
 
 }

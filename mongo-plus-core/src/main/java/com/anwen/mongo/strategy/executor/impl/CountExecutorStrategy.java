@@ -9,6 +9,12 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.CountOptions;
 import org.bson.Document;
 
+/**
+ * COUNT 策略执行器
+ *
+ * @author loser
+ * @date 2024/4/30
+ */
 public class CountExecutorStrategy implements MethodExecutorStrategy {
 
     @Override

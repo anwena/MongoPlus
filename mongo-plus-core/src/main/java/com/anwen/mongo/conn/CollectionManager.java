@@ -1,6 +1,6 @@
 package com.anwen.mongo.conn;
 
-import com.anwen.mongo.cache.global.ClassLogicDeleteCache;
+import com.anwen.mongo.cache.global.CollectionLogicDeleteCache;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.factory.MongoClientFactory;
 import com.anwen.mongo.toolkit.ClassTypeUtil;
@@ -59,7 +59,7 @@ public class CollectionManager {
     public MongoCollection<Document> getCollection(Class<?> clazz) {
         String collectionName = this.collectionNameConvert.convert(clazz);
         MongoCollection<Document> collection = getCollection(collectionName);
-        ClassLogicDeleteCache.fullNameMap.put(collection.getNamespace().getFullName(), clazz);
+        CollectionLogicDeleteCache.mapperClassByCollection(collection.getNamespace().getFullName(), clazz);
         return collection;
     }
 

@@ -9,6 +9,12 @@ import org.bson.Document;
 
 import java.util.List;
 
+/**
+ * BULK_WRITE 策略执行器
+ *
+ * @author loser
+ * @date 2024/4/30
+ */
 public class BulkWriteExecutorStrategy implements MethodExecutorStrategy {
 
     @Override

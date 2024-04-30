@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author loser
  * @date 2024/4/29
  */
-public class ClassLogicDeleteCache {
+public class CollectionLogicDeleteCache {
 
     /**
      * 是否开启逻辑删除功能
@@ -30,6 +30,20 @@ public class ClassLogicDeleteCache {
      */
     public static final Map<Class<?>, LogicDeleteResult> logicDeleteResultHashMap = new HashMap<>();
 
+    /**
+     * 存储 mongo 连接对象关联的 实体 {"mongo连接fullName":"mongo集合实体class"}
+     */
     public static final Map<String, Class<?>> fullNameMap = new ConcurrentHashMap<>();
 
+    /**
+     * mongo 连接对象关联的 实体(处理直接通过 BaseMapper 操作的 class)
+     *
+     * @param fullName mongo 连接 fullName
+     * @param clazz    实体
+     */
+    public static void mapperClassByCollection(String fullName, Class<?> clazz) {
+        if (!fullNameMap.containsKey(fullName)) {
+            fullNameMap.put(fullName, clazz);
+        }
+    }
 }

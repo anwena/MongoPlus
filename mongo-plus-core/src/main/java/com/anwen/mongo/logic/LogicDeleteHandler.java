@@ -1,6 +1,6 @@
 package com.anwen.mongo.logic;
 
-import com.anwen.mongo.cache.global.ClassLogicDeleteCache;
+import com.anwen.mongo.cache.global.CollectionLogicDeleteCache;
 import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
@@ -31,11 +31,14 @@ public interface LogicDeleteHandler {
      * 是否关闭逻辑删除功能
      */
     static boolean close() {
-        return !ClassLogicDeleteCache.open;
+        return !CollectionLogicDeleteCache.open;
     }
 
+    /**
+     * 获取 mongo 实体对象和逻辑删除字段的映射关系
+     */
     static Map<Class<?>, LogicDeleteResult> mapper() {
-        return ClassLogicDeleteCache.logicDeleteResultHashMap;
+        return CollectionLogicDeleteCache.logicDeleteResultHashMap;
     }
 
     /**
@@ -102,7 +105,7 @@ public interface LogicDeleteHandler {
             }
             return queryChainWrapper.getCompareList();
         }
-        LogicDeleteResult result = ClassLogicDeleteCache.logicDeleteResultHashMap.get(clazz);
+        LogicDeleteResult result = CollectionLogicDeleteCache.logicDeleteResultHashMap.get(clazz);
         if (Objects.isNull(result)) {
             if (Objects.isNull(queryChainWrapper)) {
                 return null;
@@ -117,14 +120,21 @@ public interface LogicDeleteHandler {
 
     }
 
+    /**
+     * 获取连接对象 关联的 mongo 实体
+     *
+     * @param collection 连接对象
+     * @return 关联实体
+     */
     static Class<?> getBeanClass(MongoCollection<Document> collection) {
+
         if (Objects.isNull(collection)) {
             return null;
         }
-        Class<?> clazz = ClassLogicDeleteCache.fullNameMap.get(collection.getNamespace().getFullName());
+        Class<?> clazz = CollectionLogicDeleteCache.fullNameMap.get(collection.getNamespace().getFullName());
         if (Objects.nonNull(clazz)) {
-            if (!ClassLogicDeleteCache.logicDeleteResultHashMap.containsKey(clazz)) {
-                Configuration.builder().setLogicFiled(ClassLogicDeleteCache.logicProperty, clazz);
+            if (!CollectionLogicDeleteCache.logicDeleteResultHashMap.containsKey(clazz)) {
+                Configuration.builder().setLogicFiled(CollectionLogicDeleteCache.logicProperty, clazz);
             }
         }
         return clazz;

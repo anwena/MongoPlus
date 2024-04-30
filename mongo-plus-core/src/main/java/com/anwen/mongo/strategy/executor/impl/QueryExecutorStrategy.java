@@ -9,6 +9,12 @@ import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
+/**
+ * QUERY 策略执行器
+ *
+ * @author loser
+ * @date 2024/4/30
+ */
 public class QueryExecutorStrategy implements MethodExecutorStrategy {
 
     @Override
