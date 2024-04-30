@@ -51,7 +51,6 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -270,7 +269,7 @@ public class Configuration {
                 throw new RuntimeException(e);
             }
         }
-        InterceptorCache.interceptors = InterceptorCache.interceptors.stream().sorted(Comparator.comparing(Interceptor::order)).collect(Collectors.toList());
+        InterceptorCache.sorted();
         return this;
     }
 
@@ -291,7 +290,7 @@ public class Configuration {
                 throw new RuntimeException(e);
             }
         }
-        ExecutorReplacerCache.replacers = ExecutorReplacerCache.replacers.stream().sorted(Comparator.comparing(Replacer::order)).collect(Collectors.toList());
+        ExecutorReplacerCache.sorted();
         return this;
     }
 

@@ -198,7 +198,7 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
      * @date 2023/11/22 18:39
      */
     private void setListener() {
-        List<Listener> listeners = new ArrayList<>();
+        List<Listener> listeners = ListenerCache.listeners;
         if (mongodbLogProperty.getLog()) {
             listeners.add(new LogListener());
         }
@@ -209,7 +209,7 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         if (CollUtil.isNotEmpty(listenerCollection)) {
             listeners.addAll(listenerCollection);
         }
-        ListenerCache.listeners = listeners.stream().sorted(Comparator.comparingInt(Listener::getOrder)).collect(Collectors.toList());
+        ListenerCache.sorted();
     }
 
     /**
