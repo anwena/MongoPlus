@@ -1,10 +1,11 @@
-package com.anwen.mongo.logic;
+package com.anwen.mongo.logic.interceptor;
 
-import com.anwen.mongo.cache.global.ClassLogicDeleteCache;
 import com.anwen.mongo.interceptor.Interceptor;
+import com.anwen.mongo.logic.LogicDeleteHandler;
 import com.anwen.mongo.model.MutablePair;
 import com.anwen.mongo.model.QueryParam;
 import com.mongodb.BasicDBObject;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.CountOptions;
 import com.mongodb.client.model.UpdateManyModel;
 import com.mongodb.client.model.WriteModel;
@@ -24,22 +25,22 @@ import java.util.stream.Collectors;
 public class CollectionLogiceInterceptor implements Interceptor {
 
     @Override
-    public Bson executeRemove(Bson filter) {
+    public Bson executeRemove(Bson filter, MongoCollection<Document> collection) {
 
-        Class<?> clazz = ClassLogicDeleteCache.getLogicCollection();
+        Class<?> clazz = LogicDeleteHandler.getBeanClass(collection);
         if (LogicDeleteHandler.close() || Objects.isNull(clazz)) {
-            return Interceptor.super.executeRemove(filter);
+            return filter;
         }
         return LogicDeleteHandler.doBsonLogicDel(filter, clazz);
 
     }
 
     @Override
-    public MutablePair<Bson, Bson> executeUpdate(Bson queryBasic, Bson updateBasic) {
+    public MutablePair<Bson, Bson> executeUpdate(Bson queryBasic, Bson updateBasic, MongoCollection<Document> collection) {
 
-        Class<?> clazz = ClassLogicDeleteCache.getLogicCollection();
+        Class<?> clazz = LogicDeleteHandler.getBeanClass(collection);
         if (LogicDeleteHandler.close() || Objects.isNull(clazz)) {
-            return Interceptor.super.executeUpdate(queryBasic, updateBasic);
+            return new MutablePair<>(queryBasic, updateBasic);
         }
         Bson query = LogicDeleteHandler.doBsonLogicDel(queryBasic, clazz);
         return new MutablePair<>(query, updateBasic);
@@ -47,23 +48,23 @@ public class CollectionLogiceInterceptor implements Interceptor {
     }
 
     @Override
-    public QueryParam executeQuery(Bson queryBasic, BasicDBObject projectionList, BasicDBObject sortCond) {
+    public QueryParam executeQuery(Bson queryBasic, BasicDBObject projectionList, BasicDBObject sortCond, MongoCollection<Document> collection) {
 
-        Class<?> clazz = ClassLogicDeleteCache.getLogicCollection();
+        Class<?> clazz = LogicDeleteHandler.getBeanClass(collection);
         if (LogicDeleteHandler.close() || Objects.isNull(clazz)) {
-            return Interceptor.super.executeQuery(queryBasic, projectionList, sortCond);
+            return new QueryParam(queryBasic, projectionList, sortCond);
         }
-        BasicDBObject query = (BasicDBObject) LogicDeleteHandler.doBsonLogicDel(queryBasic, clazz);
+        Bson query = LogicDeleteHandler.doBsonLogicDel(queryBasic, clazz);
         return new QueryParam(query, projectionList, sortCond);
 
     }
 
     @Override
-    public MutablePair<BasicDBObject, CountOptions> executeCount(BasicDBObject queryBasic, CountOptions countOptions) {
+    public MutablePair<BasicDBObject, CountOptions> executeCount(BasicDBObject queryBasic, CountOptions countOptions, MongoCollection<Document> collection) {
 
-        Class<?> clazz = ClassLogicDeleteCache.getLogicCollection();
+        Class<?> clazz = LogicDeleteHandler.getBeanClass(collection);
         if (LogicDeleteHandler.close() || Objects.isNull(clazz)) {
-            return Interceptor.super.executeCount(queryBasic, countOptions);
+            return new MutablePair<>(queryBasic, countOptions);
         }
         BasicDBObject query = (BasicDBObject) LogicDeleteHandler.doBsonLogicDel(queryBasic, clazz);
         return new MutablePair<>(query, countOptions);
@@ -72,11 +73,11 @@ public class CollectionLogiceInterceptor implements Interceptor {
 
     @Override
     @SuppressWarnings("all")
-    public List<WriteModel<Document>> executeBulkWrite(List<WriteModel<Document>> writeModelList) {
+    public List<WriteModel<Document>> executeBulkWrite(List<WriteModel<Document>> writeModelList, MongoCollection<Document> collection) {
 
-        Class<?> clazz = ClassLogicDeleteCache.getLogicCollection();
+        Class<?> clazz = LogicDeleteHandler.getBeanClass(collection);
         if (LogicDeleteHandler.close() || Objects.isNull(clazz)) {
-            return Interceptor.super.executeBulkWrite(writeModelList);
+            return writeModelList;
         }
         return writeModelList.stream().map(item -> {
             if (item instanceof UpdateManyModel) {

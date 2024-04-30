@@ -11,6 +11,7 @@ import com.anwen.mongo.cache.global.MongoPlusClientCache;
 import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.constant.DataSourceConstant;
 import com.anwen.mongo.convert.CollectionNameConvert;
+import com.anwen.mongo.domain.InitMongoLogicException;
 import com.anwen.mongo.domain.InitMongoPlusException;
 import com.anwen.mongo.enums.CollectionNameConvertEnum;
 import com.anwen.mongo.factory.MongoClientFactory;
@@ -22,8 +23,9 @@ import com.anwen.mongo.listener.Listener;
 import com.anwen.mongo.listener.business.BlockAttackInnerListener;
 import com.anwen.mongo.listener.business.LogListener;
 import com.anwen.mongo.logic.AnnotationHandler;
-import com.anwen.mongo.logic.CollectionLogiceInterceptor;
-import com.anwen.mongo.logic.LogicRemoveReplacer;
+import com.anwen.mongo.logic.interceptor.CollectionLogiceInterceptor;
+import com.anwen.mongo.logic.interceptor.LogicAutoFillInterceptor;
+import com.anwen.mongo.logic.replacer.LogicRemoveReplacer;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.mapper.DefaultBaseMapperImpl;
@@ -383,10 +385,17 @@ public class Configuration {
      */
     public Configuration logic(LogicProperty logicProperty) {
 
+        if (Objects.isNull(logicProperty)) {
+            throw new InitMongoLogicException("Config logic logicProperty not null");
+        }
         this.logicProperty = logicProperty;
         ClassLogicDeleteCache.open = logicProperty.getOpen();
+        ClassLogicDeleteCache.logicProperty = logicProperty;
         if (logicProperty.getOpen()) {
             InterceptorCache.interceptors.add(new CollectionLogiceInterceptor());
+            if (logicProperty.getAutoFill()) {
+                InterceptorCache.interceptors.add(new LogicAutoFillInterceptor());
+            }
             InterceptorCache.sorted();
             ExecutorReplacerCache.replacers.add(new LogicRemoveReplacer());
             ExecutorReplacerCache.sorted();
@@ -403,8 +412,19 @@ public class Configuration {
      * @author loser
      */
     public Configuration setLogicFiled(Class<?>... collectionClasses) {
+        return setLogicFiled(logicProperty, collectionClasses);
+    }
 
-        if (Objects.isNull(logicProperty) || !logicProperty.getOpen()) {
+    /**
+     * 注册逻辑删除 class
+     *
+     * @param collectionClasses 需要注册的 class 集合
+     * @return 全局配置对象
+     * @author loser
+     */
+    public Configuration setLogicFiled(LogicProperty logicProperty, Class<?>... collectionClasses) {
+
+        if (Objects.isNull(collectionClasses) || Objects.isNull(logicProperty) || !logicProperty.getOpen()) {
             return this;
         }
         Map<Class<?>, LogicDeleteResult> logicDeleteResultHashMap = ClassLogicDeleteCache.logicDeleteResultHashMap;
@@ -440,7 +460,9 @@ public class Configuration {
                 result.setLogicDeleteValue(logicProperty.getLogicDeleteValue());
                 result.setLogicNotDeleteValue(logicProperty.getLogicNotDeleteValue());
                 logicDeleteResultHashMap.put(clazz, result);
+                continue;
             }
+            logicDeleteResultHashMap.put(clazz, null);
 
         }
         return this;

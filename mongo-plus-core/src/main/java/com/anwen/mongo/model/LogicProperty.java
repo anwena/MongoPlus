@@ -14,6 +14,11 @@ public class LogicProperty {
     private Boolean open = false;
 
     /**
+     * 是否开启基于拦截器的逻辑删除字段填充（建议方案：使用数据库默认字段 > 其次是手动设置 > 框架自带拦截器 > 自定义拦截器）
+     */
+    private Boolean autoFill = false;
+
+    /**
      * 逻辑删除全局属性名
      */
     private String logicDeleteField;
@@ -27,6 +32,14 @@ public class LogicProperty {
      * 逻辑未删除全局值（默认 0、表示未删除）
      */
     private String logicNotDeleteValue = "0";
+
+    public void setAutoFill(Boolean autoFill) {
+        this.autoFill = autoFill;
+    }
+
+    public Boolean getAutoFill() {
+        return autoFill;
+    }
 
     public Boolean getOpen() {
         return open;

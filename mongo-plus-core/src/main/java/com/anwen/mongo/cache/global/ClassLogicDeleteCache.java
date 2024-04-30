@@ -1,9 +1,11 @@
 package com.anwen.mongo.cache.global;
 
 import com.anwen.mongo.model.LogicDeleteResult;
+import com.anwen.mongo.model.LogicProperty;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 全局逻辑删除基础信息缓存
@@ -19,23 +21,15 @@ public class ClassLogicDeleteCache {
     public static Boolean open = false;
 
     /**
+     * 逻辑删除配置
+     */
+    public static LogicProperty logicProperty = new LogicProperty();
+
+    /**
      * 目标文档对应的逻辑删除字段
      */
     public static final Map<Class<?>, LogicDeleteResult> logicDeleteResultHashMap = new HashMap<>();
 
-    private static final ThreadLocal<Class<?>> logicCollection = new InheritableThreadLocal<>();
-
-    public static void setLogicCollection(Class<?> clazz) {
-        logicCollection.set(clazz);
-    }
-
-    public static Class<?> getLogicCollection() {
-        return logicCollection.get();
-    }
-
-    public static void clear() {
-        logicCollection.remove();
-    }
-
+    public static final Map<String, Class<?>> fullNameMap = new ConcurrentHashMap<>();
 
 }

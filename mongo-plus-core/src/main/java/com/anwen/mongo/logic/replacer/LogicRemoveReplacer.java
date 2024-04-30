@@ -1,8 +1,9 @@
-package com.anwen.mongo.logic;
+package com.anwen.mongo.logic.replacer;
 
 import com.anwen.mongo.cache.global.ClassLogicDeleteCache;
 import com.anwen.mongo.enums.ExecuteMethodEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
+import com.anwen.mongo.logic.LogicDeleteHandler;
 import com.anwen.mongo.model.LogicDeleteResult;
 import com.anwen.mongo.replacer.Replacer;
 import com.anwen.mongo.support.BoolFunction;
@@ -27,7 +28,7 @@ public class LogicRemoveReplacer implements Replacer {
     @Override
     public Object invoke(Object proxy, Object target, Method method, Object[] args) throws Throwable {
 
-        Class<?> clazz = ClassLogicDeleteCache.getLogicCollection();
+        Class<?> clazz = LogicDeleteHandler.getBeanClass((MongoCollection<Document>) args[1]);
         if (Objects.isNull(clazz)) {
             return method.invoke(target, args);
         }

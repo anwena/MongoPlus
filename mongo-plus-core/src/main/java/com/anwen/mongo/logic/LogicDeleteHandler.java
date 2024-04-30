@@ -5,11 +5,14 @@ import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conditions.query.QueryWrapper;
+import com.anwen.mongo.config.Configuration;
 import com.anwen.mongo.model.LogicDeleteResult;
 import com.anwen.mongo.toolkit.ChainWrappers;
 import com.mongodb.BasicDBObject;
+import com.mongodb.client.MongoCollection;
 import org.bson.BsonDocument;
 import org.bson.BsonString;
+import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.util.List;
@@ -111,6 +114,20 @@ public interface LogicDeleteHandler {
         }
         queryChainWrapper.eq(result.getColumn(), result.getLogicNotDeleteValue());
         return queryChainWrapper.getCompareList();
+
+    }
+
+    static Class<?> getBeanClass(MongoCollection<Document> collection) {
+        if (Objects.isNull(collection)) {
+            return null;
+        }
+        Class<?> clazz = ClassLogicDeleteCache.fullNameMap.get(collection.getNamespace().getFullName());
+        if (Objects.nonNull(clazz)) {
+            if (!ClassLogicDeleteCache.logicDeleteResultHashMap.containsKey(clazz)) {
+                Configuration.builder().setLogicFiled(ClassLogicDeleteCache.logicProperty, clazz);
+            }
+        }
+        return clazz;
 
     }
 
