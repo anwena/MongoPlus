@@ -1,5 +1,8 @@
 package com.anwen.mongo.config;
 
+import com.anwen.mongo.annotation.collection.CollectionField;
+import com.anwen.mongo.annotation.collection.CollectionLogic;
+import com.anwen.mongo.cache.global.ClassLogicDeleteCache;
 import com.anwen.mongo.cache.global.ExecutorReplacerCache;
 import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.cache.global.InterceptorCache;
@@ -18,11 +21,17 @@ import com.anwen.mongo.listener.BaseListener;
 import com.anwen.mongo.listener.Listener;
 import com.anwen.mongo.listener.business.BlockAttackInnerListener;
 import com.anwen.mongo.listener.business.LogListener;
+import com.anwen.mongo.logic.AnnotationHandler;
+import com.anwen.mongo.logic.CollectionLogiceInterceptor;
+import com.anwen.mongo.logic.LogicRemoveReplacer;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.mapper.DefaultBaseMapperImpl;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
 import com.anwen.mongo.model.BaseProperty;
+import com.anwen.mongo.model.ClassAnnotationFiled;
+import com.anwen.mongo.model.LogicDeleteResult;
+import com.anwen.mongo.model.LogicProperty;
 import com.anwen.mongo.replacer.Replacer;
 import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.strategy.convert.ConversionStrategy;
@@ -35,6 +44,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -45,6 +55,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -70,6 +81,13 @@ public class Configuration {
      * @date 2024/3/19 18:25
      */
     private BaseProperty baseProperty = new BaseProperty();
+
+    /**
+     * 逻辑删除配置
+     *
+     * @author loser
+     */
+    private LogicProperty logicProperty = new LogicProperty();
 
     /**
      * 集合名称获取策略
@@ -355,6 +373,79 @@ public class Configuration {
 
     public MongoPlusMapMapper getMongoPlusMapMapper() {
         return new MongoPlusMapMapper(getMongoPlusClient());
+    }
+
+    /**
+     * 配置逻辑删除
+     *
+     * @param logicProperty 逻辑删除配置
+     * @return 全局配置对象
+     * @author loser
+     */
+    public Configuration logic(LogicProperty logicProperty) {
+
+        this.logicProperty = logicProperty;
+        ClassLogicDeleteCache.open = logicProperty.getOpen();
+        if (logicProperty.getOpen()) {
+            InterceptorCache.interceptors.add(new CollectionLogiceInterceptor());
+            InterceptorCache.sorted();
+            ExecutorReplacerCache.replacers.add(new LogicRemoveReplacer());
+            ExecutorReplacerCache.sorted();
+        }
+        return this;
+
+    }
+
+    /**
+     * 注册逻辑删除 class
+     *
+     * @param collectionClasses 需要注册的 class 集合
+     * @return 全局配置对象
+     * @author loser
+     */
+    public Configuration setLogicFiled(Class<?>... collectionClasses) {
+
+        if (Objects.isNull(logicProperty) || !logicProperty.getOpen()) {
+            return this;
+        }
+        Map<Class<?>, LogicDeleteResult> logicDeleteResultHashMap = ClassLogicDeleteCache.logicDeleteResultHashMap;
+
+        for (Class<?> clazz : collectionClasses) {
+            if (logicDeleteResultHashMap.containsKey(clazz)) {
+                continue;
+            }
+            ClassAnnotationFiled<CollectionLogic> targetInfo = AnnotationHandler.getAnnotationOnFiled(clazz, CollectionLogic.class);
+            // 优先使用每个对象自定义规则
+            if (Objects.nonNull(targetInfo)) {
+                CollectionLogic annotation = targetInfo.getTargetAnnotation();
+                if (annotation.close()) {
+                    continue;
+                }
+                LogicDeleteResult result = new LogicDeleteResult();
+                Field field = targetInfo.getField();
+                CollectionField collectionField = field.getAnnotation(CollectionField.class);
+                String column = Objects.nonNull(collectionField) && StringUtils.isNotEmpty(collectionField.value()) ? collectionField.value() : field.getName();
+                result.setColumn(column);
+                result.setLogicDeleteValue(StringUtils.isNotBlank(annotation.delval()) ? annotation.delval() : logicProperty.getLogicDeleteValue());
+                result.setLogicNotDeleteValue(StringUtils.isNotBlank(annotation.value()) ? annotation.value() : logicProperty.getLogicNotDeleteValue());
+                logicDeleteResultHashMap.put(clazz, result);
+                continue;
+            }
+
+            // 其次使用全局配置规则
+            if (StringUtils.isNotEmpty(logicProperty.getLogicDeleteField())
+                    && StringUtils.isNotEmpty(logicProperty.getLogicDeleteValue())
+                    && StringUtils.isNotEmpty(logicProperty.getLogicNotDeleteValue())) {
+                LogicDeleteResult result = new LogicDeleteResult();
+                result.setColumn(logicProperty.getLogicDeleteField());
+                result.setLogicDeleteValue(logicProperty.getLogicDeleteValue());
+                result.setLogicNotDeleteValue(logicProperty.getLogicNotDeleteValue());
+                logicDeleteResultHashMap.put(clazz, result);
+            }
+
+        }
+        return this;
+
     }
 
 }

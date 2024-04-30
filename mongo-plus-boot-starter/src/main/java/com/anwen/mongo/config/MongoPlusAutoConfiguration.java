@@ -1,9 +1,6 @@
 package com.anwen.mongo.config;
 
-import com.anwen.mongo.annotation.collection.CollectionField;
-import com.anwen.mongo.annotation.collection.CollectionLogic;
 import com.anwen.mongo.annotation.collection.CollectionName;
-import com.anwen.mongo.cache.global.ClassLogicDeleteCache;
 import com.anwen.mongo.cache.global.ExecutorReplacerCache;
 import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.cache.global.InterceptorCache;
@@ -18,13 +15,8 @@ import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.listener.Listener;
 import com.anwen.mongo.listener.business.BlockAttackInnerListener;
 import com.anwen.mongo.listener.business.LogListener;
-import com.anwen.mongo.logic.AnnotationHandler;
-import com.anwen.mongo.logic.CollectionLogiceInterceptor;
-import com.anwen.mongo.logic.LogicRemoveReplacer;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.BaseMapper;
-import com.anwen.mongo.model.ClassAnnotationFiled;
-import com.anwen.mongo.model.LogicDeleteResult;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBLogProperty;
 import com.anwen.mongo.property.MongoLogicDelProperty;
@@ -34,7 +26,6 @@ import com.anwen.mongo.service.impl.ServiceImpl;
 import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.strategy.convert.ConversionStrategy;
 import com.anwen.mongo.toolkit.CollUtil;
-import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -45,7 +36,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -54,7 +44,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -95,70 +84,24 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         setListener();
         setInterceptor();
         setReplacer();
-        setLogicDelete();
         this.baseMapper = baseMapper;
     }
 
     @Override
     public void afterPropertiesSet() {
-        applicationContext.getBeansOfType(IService.class)
-                .values()
-                .stream()
-                .filter(s -> s instanceof ServiceImpl)
-                .forEach(s -> {
-                    setExecute((ServiceImpl<?>) s, s.getGenericityClass());
-                    setLogicFiled(s.getGenericityClass());
-                });
+        Collection<IService> values = applicationContext.getBeansOfType(IService.class).values();
+        values.forEach(s -> setExecute((ServiceImpl<?>) s, s.getGenericityClass()));
+        setLogicFiled(values.stream().map(IService::getGenericityClass).toArray(Class[]::new));
     }
 
-    private void setLogicDelete() {
-
-        if (Objects.isNull(mongoLogicDelProperty)) {
-            return;
-        }
-        ClassLogicDeleteCache.open = mongoLogicDelProperty.getOpen();
-        InterceptorCache.interceptors.add(new CollectionLogiceInterceptor());
-        ExecutorReplacerCache.replacers.add(new LogicRemoveReplacer());
-
-    }
-
-    private void setLogicFiled(Class<?> clazz) {
-
-        // todo loser
-        if (Objects.isNull(mongoLogicDelProperty) || !mongoLogicDelProperty.getOpen()) {
-            return;
-        }
-
-        Map<Class<?>, LogicDeleteResult> logicDeleteResultHashMap = ClassLogicDeleteCache.logicDeleteResultHashMap;
-        ClassAnnotationFiled<CollectionLogic> targetInfo = AnnotationHandler.getAnnotationOnFiled(clazz, CollectionLogic.class);
-        // 优先使用每个对象自定义规则
-        if (Objects.nonNull(targetInfo)) {
-            CollectionLogic annotation = targetInfo.getTargetAnnotation();
-            if (annotation.close()) {
-                return;
-            }
-            LogicDeleteResult result = new LogicDeleteResult();
-            Field field = targetInfo.getField();
-            CollectionField collectionField = field.getAnnotation(CollectionField.class);
-            String column = Objects.nonNull(collectionField) && StringUtils.isNotEmpty(collectionField.value()) ? collectionField.value() : field.getName();
-            result.setColumn(column);
-            result.setLogicDeleteValue(StringUtils.isNotBlank(annotation.delval()) ? annotation.delval() : mongoLogicDelProperty.getLogicDeleteValue());
-            result.setLogicNotDeleteValue(StringUtils.isNotBlank(annotation.value()) ? annotation.value() : mongoLogicDelProperty.getLogicNotDeleteValue());
-            logicDeleteResultHashMap.put(clazz, result);
-            return;
-        }
-
-        // 其次使用全局配置规则
-        if (StringUtils.isNotEmpty(mongoLogicDelProperty.getLogicDeleteField())
-                && StringUtils.isNotEmpty(mongoLogicDelProperty.getLogicDeleteValue())
-                && StringUtils.isNotEmpty(mongoLogicDelProperty.getLogicNotDeleteValue())) {
-            LogicDeleteResult result = new LogicDeleteResult();
-            result.setColumn(mongoLogicDelProperty.getLogicDeleteField());
-            result.setLogicDeleteValue(mongoLogicDelProperty.getLogicDeleteValue());
-            result.setLogicNotDeleteValue(mongoLogicDelProperty.getLogicNotDeleteValue());
-            logicDeleteResultHashMap.put(clazz, result);
-        }
-
+    /**
+     * 配置逻辑删除
+     *
+     * @param collectionClasses 需要进行逻辑删除的 collection class 集合
+     * @author loser
+     */
+    private void setLogicFiled(Class<?>... collectionClasses) {
+        Configuration.builder().logic(this.mongoLogicDelProperty).setLogicFiled(collectionClasses);
     }
 
     private void setExecute(ServiceImpl<?> serviceImpl, Class<?> clazz) {
