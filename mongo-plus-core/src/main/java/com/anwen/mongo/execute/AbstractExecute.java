@@ -18,6 +18,8 @@ import com.anwen.mongo.domain.MongoQueryException;
 import com.anwen.mongo.enums.AggregateOptionsEnum;
 import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.model.*;
 import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.support.SFunction;
@@ -32,8 +34,6 @@ import com.mongodb.client.result.InsertManyResult;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -54,7 +54,7 @@ import static com.anwen.mongo.toolkit.BeanMapUtilByReflect.getIdField;
  **/
 public abstract class AbstractExecute implements Execute {
 
-    private final Logger logger = LoggerFactory.getLogger(AbstractExecute.class);
+    private final Log log = LogFactory.getLog(AbstractExecute.class);
 
     private final CollectionManager collectionManager;
 
@@ -74,7 +74,7 @@ public abstract class AbstractExecute implements Execute {
             setBackIdValue(document, entity);
             return insertManyResult.wasAcknowledged();
         } catch (Exception e) {
-            logger.error("save fail , error info : {}", e.getMessage(), e);
+            log.error("save fail , error info : {}", e.getMessage(), e);
             return false;
         }
     }
@@ -85,7 +85,7 @@ public abstract class AbstractExecute implements Execute {
             MongoCollection<Document> collection = collectionManager.getCollection(entityList.iterator().next().getClass());
             return executeSave(documentList,collection).getInsertedIds().size() == entityList.size();
         } catch (Exception e) {
-            logger.error("saveBatch fail , error info : {}", e.getMessage(), e);
+            log.error("saveBatch fail , error info : {}", e.getMessage(), e);
             return false;
         }
     }
@@ -481,7 +481,7 @@ public abstract class AbstractExecute implements Execute {
             }
         } catch (IllegalAccessException | InstantiationException | InvocationTargetException |
                  NoSuchMethodException e) {
-            logger.error("Failed to convert to entity class's' _id 'field type when filling in'_id',error message: {}",e.getMessage(),e);
+            log.error("Failed to convert to entity class's' _id 'field type when filling in'_id',error message: {}",e.getMessage(),e);
             throw new RuntimeException(e);
         }
     }
@@ -502,7 +502,7 @@ public abstract class AbstractExecute implements Execute {
             //使用策略转换器回写id
             ConversionService.setValue(idField,entity,idValue);
         } catch (Exception e) {
-            logger.error("set back id field value error, error message: {}", e.getMessage());
+            log.error("set back id field value error, error message: {}", e.getMessage());
         }
     }
 

@@ -2,13 +2,13 @@ package com.anwen.mongo.manager;
 
 import com.anwen.mongo.context.MongoTransactionContext;
 import com.anwen.mongo.context.MongoTransactionStatus;
+import com.anwen.mongo.domain.InitMongoPlusException;
 import com.anwen.mongo.factory.MongoClientFactory;
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
 import com.mongodb.ClientSessionOptions;
-import com.mongodb.MongoException;
 import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Mongo事务管理
@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
  **/
 public class MongoTransactionalManager {
 
-    private static final Logger logger = LoggerFactory.getLogger(MongoTransactionalManager.class);
+    private static final Log log = LogFactory.getLog(MongoTransactionalManager.class);
 
     /**
      * 事务开启
@@ -27,7 +27,7 @@ public class MongoTransactionalManager {
     public static void startTransaction() {
         MongoClientFactory mongoClientFactory = MongoClientFactory.getInstance();
         if (mongoClientFactory == null){
-            throw new MongoException("Please initialize MongoClientFactory first");
+            throw new InitMongoPlusException("Please initialize MongoClientFactory first");
         }
         startTransaction(mongoClientFactory.getMongoClient());
     }
@@ -43,8 +43,8 @@ public class MongoTransactionalManager {
         }
         // 每个被切到的方法都引用加一
         MongoTransactionContext.getMongoTransactionStatus().incrementReference();
-        if (logger.isDebugEnabled()) {
-            logger.debug("Mongo transaction created, Thread:{}, session hashcode:{}", Thread.currentThread().getName(), session.hashCode());
+        if (log.isDebugEnabled()) {
+            log.debug("Mongo transaction created, Thread:{}, session hashcode:{}", Thread.currentThread().getName(), session.hashCode());
         }
     }
 
@@ -56,7 +56,7 @@ public class MongoTransactionalManager {
     public static void commitTransaction() {
         MongoTransactionStatus status = MongoTransactionContext.getMongoTransactionStatus();
         if (status == null) {
-            logger.warn("no session to commit.");
+            log.warn("no session to commit.");
             return;
         }
         status.decrementReference();
@@ -66,8 +66,8 @@ public class MongoTransactionalManager {
                 clientSession.commitTransaction();
             }
         }
-        if (logger.isDebugEnabled()) {
-            logger.debug("Mongo transaction committed, Thread:{}, session hashcode:{}", Thread.currentThread().getName(), status.getClientSession().hashCode());
+        if (log.isDebugEnabled()) {
+            log.debug("Mongo transaction committed, Thread:{}, session hashcode:{}", Thread.currentThread().getName(), status.getClientSession().hashCode());
         }
     }
 
@@ -79,7 +79,7 @@ public class MongoTransactionalManager {
     public static void rollbackTransaction() {
         MongoTransactionStatus status = MongoTransactionContext.getMongoTransactionStatus();
         if (status == null) {
-            logger.warn("no session to rollback.");
+            log.warn("no session to rollback.");
             return;
         }
         // 清空计数器
@@ -88,15 +88,15 @@ public class MongoTransactionalManager {
         if (clientSession.hasActiveTransaction()){
             clientSession.abortTransaction();
         }
-        if (logger.isDebugEnabled()) {
-            logger.debug("Mongo transaction rolled back, Thread:{}, session hashcode:{}", Thread.currentThread().getName(), status.getClientSession().hashCode());
+        if (log.isDebugEnabled()) {
+            log.debug("Mongo transaction rolled back, Thread:{}, session hashcode:{}", Thread.currentThread().getName(), status.getClientSession().hashCode());
         }
     }
 
     public static void closeSession() {
         MongoTransactionStatus status = MongoTransactionContext.getMongoTransactionStatus();
         if (status == null) {
-            logger.warn("no session to rollback.");
+            log.warn("no session to rollback.");
             return;
         }
         if (status.readyClose()) {
@@ -110,8 +110,8 @@ public class MongoTransactionalManager {
                 MongoTransactionContext.clear();
             }
         }
-        if (logger.isDebugEnabled()) {
-            logger.debug("Mongo transaction closed, Thread:{}, session hashcode:{}", Thread.currentThread().getName(), status.getClientSession().hashCode());
+        if (log.isDebugEnabled()) {
+            log.debug("Mongo transaction closed, Thread:{}, session hashcode:{}", Thread.currentThread().getName(), status.getClientSession().hashCode());
         }
     }
 

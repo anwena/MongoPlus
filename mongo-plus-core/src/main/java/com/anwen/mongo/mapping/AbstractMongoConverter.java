@@ -4,31 +4,31 @@ import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.bson.MongoPlusDocument;
 import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.cache.global.PropertyCache;
-import com.anwen.mongo.config.Configuration;
-import com.anwen.mongo.constant.DataSourceConstant;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.context.MongoTransactionContext;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.incrementer.id.IdWorker;
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.manager.MongoPlusClient;
-import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.model.AutoFillMetaObject;
 import com.anwen.mongo.strategy.convert.ConversionService;
-import com.anwen.mongo.toolkit.*;
-import com.mongodb.client.FindIterable;
+import com.anwen.mongo.toolkit.BeanMapUtilByReflect;
+import com.anwen.mongo.toolkit.BsonUtil;
+import com.anwen.mongo.toolkit.CollUtil;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * 抽象的映射处理器
@@ -43,7 +43,7 @@ public abstract class AbstractMongoConverter implements MongoConverter {
         this.mongoPlusClient = mongoPlusClient;
     }
 
-    private final Logger logger = LoggerFactory.getLogger(AbstractMongoConverter.class);
+    private final Log log = LogFactory.getLog(AbstractMongoConverter.class);
 
     //定义添加自动填充字段
     private final AutoFillMetaObject insertFillAutoFillMetaObject = new AutoFillMetaObject(new MongoPlusDocument());
@@ -78,7 +78,7 @@ public abstract class AbstractMongoConverter implements MongoConverter {
                     document.put(idFieldInformation.getName(),value);
                 }
             } catch (IllegalAccessException e) {
-                logger.error("Failed to convert to entity class's' _id 'field type when filling in'_id',error message: {}",e.getMessage(),e);
+                log.error("Failed to convert to entity class's' _id 'field type when filling in'_id',error message: {}",e.getMessage(),e);
                 throw new RuntimeException(e);
             }
         }

@@ -5,15 +5,11 @@ import com.anwen.mongo.toolkit.InstantUtil;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class Converter {
-
-    private static final Logger logger = LoggerFactory.getLogger(Converter.class);
 
     /**
      * 将FindIterable<Document>转换为List<Map<String, Object>>。

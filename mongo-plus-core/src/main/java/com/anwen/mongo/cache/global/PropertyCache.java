@@ -42,4 +42,11 @@ public class PropertyCache {
      */
     public static String autoIdCollectionName = "counters";
 
+    /**
+     * 小黑子模式
+     * @author JiaChaoYang
+     * @date 2024/5/2 上午2:24
+     */
+    public static Boolean ikun = false;
+
 }

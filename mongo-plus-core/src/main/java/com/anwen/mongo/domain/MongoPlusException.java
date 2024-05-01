@@ -14,8 +14,17 @@ public class MongoPlusException extends RuntimeException {
         this.message = message;
     }
 
+    public MongoPlusException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public MongoPlusException(Throwable cause) {
+        super(cause);
+    }
+
     @Override
     public String getMessage() {
         return message;
     }
+
 }

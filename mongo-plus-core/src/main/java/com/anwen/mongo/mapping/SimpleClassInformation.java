@@ -1,8 +1,8 @@
 package com.anwen.mongo.mapping;
 
 import com.anwen.mongo.cache.global.ClassInformationCache;
+import com.anwen.mongo.domain.MongoPlusFieldException;
 import com.anwen.mongo.toolkit.CollUtil;
-import com.mongodb.MongoException;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -117,7 +117,7 @@ public class SimpleClassInformation<T> implements ClassInformation {
     public FieldInformation getAnnotationField(Class<? extends Annotation> annotationClass,String nullMessage){
         List<FieldInformation> fieldList = getAnnotationFields(annotationClass);
         if (CollUtil.isEmpty(fieldList)){
-            throw new MongoException(nullMessage);
+            throw new MongoPlusFieldException(nullMessage);
         }
         return fieldList.get(0);
     }

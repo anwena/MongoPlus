@@ -1,8 +1,6 @@
 package com.anwen.mongo.strategy.convert;
 
 import com.anwen.mongo.strategy.convert.impl.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -18,8 +16,6 @@ import java.util.*;
  * @author JiaChaoYang
  **/
 public class ConversionService {
-
-    static Logger logger = LoggerFactory.getLogger(ConversionStrategy.class);
 
     private static final Map<Class<?>, ConversionStrategy<?>> conversionStrategies = new HashMap<>();
 

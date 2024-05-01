@@ -1,10 +1,6 @@
 package com.anwen.mongo.mapping;
 
 import org.bson.Document;
-import org.bson.conversions.Bson;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * 将对象映射为Document和将Document映射为对象

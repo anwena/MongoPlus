@@ -1,11 +1,11 @@
 package com.anwen.mongo.transactional;
 
 import com.anwen.mongo.context.MongoTransactionSpring;
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
 import com.mongodb.ClientSessionOptions;
 import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.support.AbstractPlatformTransactionManager;
@@ -22,7 +22,7 @@ import java.util.Objects;
 @Deprecated
 public class MongoPlusTransactionalManager extends AbstractPlatformTransactionManager {
 
-    Logger logger = LoggerFactory.getLogger(MongoPlusTransactionalManager.class);
+    Log log = LogFactory.getLog(MongoPlusTransactionalManager.class);
 
     private final MongoClient mongo;
 
@@ -42,8 +42,8 @@ public class MongoPlusTransactionalManager extends AbstractPlatformTransactionMa
         clientSession.startTransaction();
         MongoTransactionSpring.setResources(TransactionSynchronizationManager.getResourceMap());
         MongoTransactionSpring.setCurrentTransactionName(definition.getName());
-        if (logger.isDebugEnabled()){
-            logger.debug("begin transaction -> name: {} , sessionId: {}",definition.getName(), clientSession.getServerSession().getIdentifier());
+        if (log.isDebugEnabled()){
+            log.debug("begin transaction -> name: {} , sessionId: {}",definition.getName(), clientSession.getServerSession().getIdentifier());
         }
     }
 
@@ -55,8 +55,8 @@ public class MongoPlusTransactionalManager extends AbstractPlatformTransactionMa
             clientSession.close();
         }
         MongoTransactionSpring.clear();
-        if (logger.isDebugEnabled()){
-            logger.debug("commit transaction -> sessionId: {}",clientSession.getServerSession().getIdentifier());
+        if (log.isDebugEnabled()){
+            log.debug("commit transaction -> sessionId: {}",clientSession.getServerSession().getIdentifier());
         }
     }
 
@@ -68,8 +68,8 @@ public class MongoPlusTransactionalManager extends AbstractPlatformTransactionMa
             clientSession.close();
         }
         MongoTransactionSpring.clear();
-        if (logger.isDebugEnabled()){
-            logger.debug("rollback transaction");
+        if (log.isDebugEnabled()){
+            log.debug("rollback transaction");
         }
     }
 }

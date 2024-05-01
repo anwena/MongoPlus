@@ -7,8 +7,6 @@ import com.anwen.mongo.execute.instance.SessionExecute;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.proxy.ExecutorProxy;
 import com.mongodb.client.ClientSession;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Proxy;
 import java.util.Optional;
@@ -20,8 +18,6 @@ import java.util.Optional;
  * @date 2023-12-28 10:55
  **/
 public class ExecutorFactory {
-
-    private final Logger logger = LoggerFactory.getLogger(ExecutorFactory.class);
 
     private MongoPlusClient mongoPlusClient;
 

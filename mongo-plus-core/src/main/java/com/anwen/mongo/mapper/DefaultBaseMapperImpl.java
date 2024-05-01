@@ -16,6 +16,8 @@ import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.execute.Execute;
 import com.anwen.mongo.execute.ExecutorFactory;
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.model.*;
 import com.anwen.mongo.strategy.convert.ConversionService;
@@ -30,8 +32,6 @@ import com.mongodb.client.result.InsertManyResult;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -51,7 +51,7 @@ import static com.anwen.mongo.toolkit.BeanMapUtilByReflect.getIdField;
  * @date 2024-02-05 11:47
  **/
 public class DefaultBaseMapperImpl implements BaseMapper {
-    private final Logger logger = LoggerFactory.getLogger(DefaultBaseMapperImpl.class);
+    private final Log log = LogFactory.getLog(DefaultBaseMapperImpl.class);
 
     private final CollectionNameConvert collectionNameConvert;
 
@@ -79,7 +79,7 @@ public class DefaultBaseMapperImpl implements BaseMapper {
             setBackIdValue(document, entity);
             return insertManyResult.wasAcknowledged();
         } catch (Exception e) {
-            logger.error("save fail , error info : {}", e.getMessage(), e);
+            log.error("save fail , error info : {}", e.getMessage(), e);
             return false;
         }
     }
@@ -92,7 +92,7 @@ public class DefaultBaseMapperImpl implements BaseMapper {
             InsertManyResult insertManyResult = factory.getExecute().executeSave(documentList, collection);
             return insertManyResult.getInsertedIds().size() == entityList.size();
         } catch (Exception e) {
-            logger.error("saveBatch fail , error info : {}", e.getMessage(), e);
+            log.error("saveBatch fail , error info : {}", e.getMessage(), e);
             return false;
         }
     }
@@ -465,7 +465,7 @@ public class DefaultBaseMapperImpl implements BaseMapper {
             }
         } catch (IllegalAccessException | InstantiationException | InvocationTargetException |
                  NoSuchMethodException e) {
-            logger.error("Failed to convert to entity class's' _id 'field type when filling in'_id',error message: {}",e.getMessage(),e);
+            log.error("Failed to convert to entity class's' _id 'field type when filling in'_id',error message: {}",e.getMessage(),e);
             throw new RuntimeException(e);
         }
     }
@@ -486,7 +486,7 @@ public class DefaultBaseMapperImpl implements BaseMapper {
             //使用策略转换器回写id
             ConversionService.setValue(idField,entity,idValue);
         } catch (Exception e) {
-            logger.error("set back id field value error, error message: {}", e.getMessage());
+            log.error("set back id field value error, error message: {}", e.getMessage());
         }
     }
 

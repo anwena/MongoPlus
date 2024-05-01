@@ -7,12 +7,15 @@ import com.anwen.mongo.cache.global.ListenerCache;
 import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.conn.ConnectMongoDB;
 import com.anwen.mongo.convert.CollectionNameConvert;
+import com.anwen.mongo.domain.MongoPlusConvertException;
 import com.anwen.mongo.handlers.DocumentHandler;
 import com.anwen.mongo.handlers.MetaObjectHandler;
 import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.listener.Listener;
 import com.anwen.mongo.listener.business.BlockAttackInnerListener;
 import com.anwen.mongo.listener.business.LogListener;
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
@@ -29,8 +32,6 @@ import org.bson.Document;
 import org.noear.solon.Solon;
 import org.noear.solon.annotation.Inject;
 import org.noear.solon.core.AppContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -53,7 +54,7 @@ public class MongoPlusAutoConfiguration {
 
     private final MongoDBCollectionProperty mongoDBCollectionProperty;
 
-    Logger logger = LoggerFactory.getLogger(MongoPlusAutoConfiguration.class);
+    Log log = LogFactory.getLog(MongoPlusAutoConfiguration.class);
 
     public MongoPlusAutoConfiguration(BaseMapper baseMapper, MongoPlusClient mongoPlusClient, @Inject CollectionNameConvert collectionNameConvert, MongoDBLogProperty mongoDBLogProperty, MongoDBCollectionProperty mongoDBCollectionProperty){
         mongoDBCollectionProperty = Optional.ofNullable(mongoDBCollectionProperty).orElseGet(MongoDBCollectionProperty::new);
@@ -119,7 +120,7 @@ public class MongoPlusAutoConfiguration {
             });
             mongoPlusClient.setMongoDatabase(mongoDatabaseList);
         } catch (MongoException e) {
-            logger.error("Failed to connect to MongoDB: {}", e.getMessage(), e);
+            log.error("Failed to connect to MongoDB: {}", e.getMessage(), e);
         }
         return dataBaseName[0];
     }
@@ -143,8 +144,8 @@ public class MongoPlusAutoConfiguration {
                     }
                 }
             }catch (Exception e){
-                logger.error("Unknown converter type");
-                throw new MongoException("Unknown converter type");
+                log.error("Unknown converter type");
+                throw new MongoPlusConvertException("Unknown converter type");
             }
         });
     }

@@ -15,11 +15,11 @@
  */
 package com.anwen.mongo.incrementer.id;
 
+import com.anwen.mongo.domain.MongoPlusWriteException;
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.toolkit.StringPool;
 import com.anwen.mongo.toolkit.StringUtils;
-import com.mongodb.MongoException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
@@ -36,7 +36,7 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class Sequence {
 
-    private static final Logger logger = LoggerFactory.getLogger(Sequence.class);
+    private static final Log log = LogFactory.getLog(Sequence.class);
 
     /**
      * 时间起始标记点，作为基准，一般取系统的最近时间（一旦确定不能变动）
@@ -83,10 +83,10 @@ public class Sequence {
      */
     public Sequence(long workerId, long datacenterId) {
         if (!(workerId > maxWorkerId || workerId < 0)){
-            throw new MongoException(String.format("worker Id can't be greater than %d or less than 0", maxWorkerId));
+            throw new MongoPlusWriteException(String.format("worker Id can't be greater than %d or less than 0", maxWorkerId));
         }
         if (!(datacenterId > maxDatacenterId || datacenterId < 0)) {
-            throw new MongoException(String.format("datacenter Id can't be greater than %d or less than 0", maxDatacenterId));
+            throw new MongoPlusWriteException(String.format("datacenter Id can't be greater than %d or less than 0", maxDatacenterId));
         }
         this.workerId = workerId;
         this.datacenterId = datacenterId;
@@ -131,7 +131,7 @@ public class Sequence {
                 }
             }
         } catch (Exception e) {
-            logger.warn(" getDatacenterId: " + e.getMessage());
+            log.warn(" getDatacenterId: " + e.getMessage());
         }
         return id;
     }

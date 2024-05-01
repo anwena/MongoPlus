@@ -9,21 +9,21 @@ import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.convert.Converter;
 import com.anwen.mongo.convert.DocumentMapperConvert;
+import com.anwen.mongo.domain.MongoPlusFieldException;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.execute.AbstractExecute;
 import com.anwen.mongo.execute.Execute;
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.model.*;
 import com.anwen.mongo.toolkit.*;
 import com.mongodb.BasicDBObject;
-import com.mongodb.MongoException;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.*;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.*;
@@ -40,7 +40,7 @@ public class InjectAbstractExecute {
 
     private final LambdaOperate lambdaOperate = new LambdaOperate();
 
-    private final Logger logger = LoggerFactory.getLogger(InjectAbstractExecute.class);
+    private final Log log = LogFactory.getLog(InjectAbstractExecute.class);
 
     private final Execute execute;
 
@@ -61,7 +61,7 @@ public class InjectAbstractExecute {
         try {
             return execute.executeSave(Collections.singletonList(DocumentUtil.handleMap(entityMap, true)),collectionManager.getCollection(collectionName)).wasAcknowledged();
         } catch (Exception e) {
-            logger.error("save fail , error info : {}", e.getMessage(), e);
+            log.error("save fail , error info : {}", e.getMessage(), e);
             return false;
         }
     }
@@ -71,7 +71,7 @@ public class InjectAbstractExecute {
             List<Document> documentList = DocumentUtil.handleMapList(entityList,true);
             return execute.executeSave(documentList, collectionManager.getCollection(collectionName)).getInsertedIds().size() == entityList.size();
         } catch (Exception e) {
-            logger.error("saveBatch fail , error info : {}", e.getMessage(), e);
+            log.error("saveBatch fail , error info : {}", e.getMessage(), e);
             return false;
         }
     }
@@ -134,7 +134,7 @@ public class InjectAbstractExecute {
 
     public Boolean updateByColumn(String collectionName, Map<String,Object> entityMap, String column) {
         if (!entityMap.containsKey(column)){
-            throw new MongoException(column+" undefined");
+            throw new MongoPlusFieldException(column+" undefined");
         }
         Object columnValue = entityMap.get(column);
         Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(columnValue)) ? new ObjectId(String.valueOf(columnValue)) : columnValue);

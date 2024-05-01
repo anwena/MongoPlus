@@ -25,6 +25,21 @@ public class MongoDBConfigurationProperty {
      */
     private String autoIdCollectionName = "counters";
 
+    /**
+     * 是否开启小黑子模式
+     * @author JiaChaoYang
+     * @date 2024/5/2 上午2:23
+     */
+    private Boolean ikun = false;
+
+    public Boolean getIkun() {
+        return ikun;
+    }
+
+    public void setIkun(Boolean ikun) {
+        this.ikun = ikun;
+    }
+
     public String getAutoIdCollectionName() {
         return autoIdCollectionName;
     }

@@ -2,7 +2,6 @@ package com.anwen.mongo.mapping;
 
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
-import com.anwen.mongo.model.BaseModelID;
 import com.anwen.mongo.toolkit.StringUtils;
 
 import java.lang.reflect.Field;

@@ -8,12 +8,15 @@ import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.conn.ConnectMongoDB;
 import com.anwen.mongo.constant.DataSourceConstant;
 import com.anwen.mongo.convert.CollectionNameConvert;
+import com.anwen.mongo.domain.MongoPlusConvertException;
 import com.anwen.mongo.handlers.DocumentHandler;
 import com.anwen.mongo.handlers.MetaObjectHandler;
 import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.listener.Listener;
 import com.anwen.mongo.listener.business.BlockAttackInnerListener;
 import com.anwen.mongo.listener.business.LogListener;
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
@@ -27,8 +30,6 @@ import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
@@ -57,7 +58,7 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
 
     private final BaseMapper baseMapper;
 
-    Logger logger = LoggerFactory.getLogger(MongoPlusAutoConfiguration.class);
+    Log log = LogFactory.getLog(MongoPlusAutoConfiguration.class);
 
     public MongoPlusAutoConfiguration(MongoDBLogProperty mongodbLogProperty, MongoDBCollectionProperty mongodbCollectionProperty, BaseMapper baseMapper, MongoPlusClient mongoPlusClient, ApplicationContext applicationContext, CollectionNameConvert collectionNameConvert) {
         this.mongoPlusClient = mongoPlusClient;
@@ -118,7 +119,7 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
             });
             mongoPlusClient.setMongoDatabase(mongoDatabaseList);
         } catch (MongoException e) {
-            logger.error("Failed to connect to MongoDB: {}", e.getMessage(), e);
+            log.error("Failed to connect to MongoDB: {}", e.getMessage(), e);
         }
         return dataBaseName[0];
     }
@@ -142,8 +143,8 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
                     }
                 }
             }catch (Exception e){
-                logger.error("Unknown converter type",e);
-                throw new MongoException("Unknown converter type");
+                log.error("Unknown converter type",e);
+                throw new MongoPlusConvertException("Unknown converter type");
             }
         });
     }

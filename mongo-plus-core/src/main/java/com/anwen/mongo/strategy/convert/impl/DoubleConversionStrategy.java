@@ -1,9 +1,9 @@
 package com.anwen.mongo.strategy.convert.impl;
 
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.strategy.convert.ConversionStrategy;
 import com.anwen.mongo.toolkit.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 
@@ -14,7 +14,7 @@ import java.lang.reflect.Field;
  **/
 public class DoubleConversionStrategy implements ConversionStrategy<Double> {
 
-    Logger logger = LoggerFactory.getLogger(DoubleConversionStrategy.class);
+    Log log = LogFactory.getLog(DoubleConversionStrategy.class);
 
     @Override
     public Double convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
@@ -22,7 +22,7 @@ public class DoubleConversionStrategy implements ConversionStrategy<Double> {
         try {
             value = Double.parseDouble(StringUtils.isNotBlankAndConvert(fieldValue));
         } catch (NumberFormatException e) {
-            logger.warn("Conversion to Double failed, exception message: {}",e.getMessage());
+            log.warn("Conversion to Double failed, exception message: {}",e.getMessage());
         }
         return value;
     }

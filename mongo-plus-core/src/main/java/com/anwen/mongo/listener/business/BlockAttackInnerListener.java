@@ -2,12 +2,12 @@ package com.anwen.mongo.listener.business;
 
 import com.anwen.mongo.cache.global.OrderCache;
 import com.anwen.mongo.listener.Listener;
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.model.command.CommandFailed;
 import com.anwen.mongo.model.command.CommandStarted;
 import com.anwen.mongo.model.command.CommandSucceeded;
 import org.bson.BsonValue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * 防止全表更新和删除的拦截器
@@ -16,14 +16,14 @@ import org.slf4j.LoggerFactory;
  **/
 public class BlockAttackInnerListener implements Listener {
 
-    Logger logger = LoggerFactory.getLogger(BlockAttackInnerListener.class);
+    Log log = LogFactory.getLog(BlockAttackInnerListener.class);
 
     @Override
     public void commandStarted(CommandStarted commandStarted) {
         if ("update".equals(commandStarted.getCommandName()) || "delete".equals(commandStarted.getCommandName())) {
             BsonValue filter = commandStarted.getCommandDocument().get(commandStarted.getCommandName() + "s").asArray().get(0).asDocument().get("q");
             if (filter == null || filter.asDocument().isEmpty()) {
-                logger.error("Prohibition of collection {} operation",commandStarted.getCommandName());
+                log.error("Prohibition of collection {} operation",commandStarted.getCommandName());
                 throw new IllegalArgumentException("Prohibition of collection " + commandStarted.getCommandName() +" operation");
             }
         }

@@ -1,8 +1,8 @@
 package com.anwen.mongo.strategy.convert.impl;
 
+import com.anwen.mongo.domain.MongoPlusConvertException;
 import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.strategy.convert.ConversionStrategy;
-import com.mongodb.MongoException;
 import org.bson.Document;
 
 import java.lang.reflect.Field;
@@ -24,7 +24,7 @@ public class MapConversionStrategy implements ConversionStrategy<Map<?,?>> {
     @SuppressWarnings("unchecked")
     public Map<?,?> convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
         if (!fieldValue.getClass().equals(Document.class)){
-            throw new MongoException("FieldValue Type Not Is Document");
+            throw new MongoPlusConvertException("FieldValue Type Not Is Document");
         }
         Type[] typeArguments = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();
         Class<?> valueClazz = (Class<?>) typeArguments[1];
