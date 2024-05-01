@@ -51,4 +51,7 @@ public class MongoPlusDocument extends Document {
         return super.remove(key.getFieldNameLine(),value);
     }
 
+    public <T,R> boolean containsKey(SFunction<T,R> key){
+        return super.containsKey(key.getFieldNameLine());
+    }
 }

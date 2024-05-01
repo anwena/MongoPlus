@@ -28,6 +28,10 @@ public class CollUtil {
         return (map == null || map.isEmpty());
     }
 
+    public static boolean isNotEmpty(Map<?, ?> map){
+        return !isEmpty(map);
+    }
+
     public static boolean isArray(Object obj) {
         return (obj != null && obj.getClass().isArray());
     }

@@ -11,13 +11,13 @@ import java.util.Map;
  * @author JiaChaoYang
  * @date 2024/4/16 下午9:10
 */ 
-public interface MongoConvert {
+public interface MongoConverter extends MongoWriter {
 
-    <T> void write(Object sourceObj, Bson bson);
+    /**
+     * 添加的映射器
+     * @author JiaChaoYang
+     * @date 2024/5/1 下午11:52
+     */
+    void writeBySave(Object sourceObj, Document document);
 
-    void write(Map<String,Object> map,Bson bson);
-
-    void read(Document document, Class<?> clazz,List<?> resultList);
-
-    Map<String,Object> read(Document document);
 }

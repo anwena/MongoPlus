@@ -30,6 +30,8 @@ public interface FieldInformation {
 
     boolean isSkipCheckField();
 
+    boolean isSkipCheckFieldAndId();
+
     boolean isId();
 
     ID getId();

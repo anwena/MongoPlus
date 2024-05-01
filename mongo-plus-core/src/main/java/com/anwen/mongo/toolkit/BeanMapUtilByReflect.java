@@ -3,8 +3,10 @@ package com.anwen.mongo.toolkit;
 import com.alibaba.fastjson.JSON;
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
+import com.anwen.mongo.bson.MongoPlusDocument;
 import com.anwen.mongo.enums.FieldFill;
 import com.anwen.mongo.mapping.ClassInformation;
+import com.anwen.mongo.model.AutoFillMetaObject;
 import org.bson.Document;
 
 import java.lang.reflect.Field;
@@ -46,19 +48,21 @@ public class BeanMapUtilByReflect {
         });
     }
 
-    public static void getFillInsertAndUpdateField(ClassInformation classInformation, Map<String,Object> insertFill, Map<String,Object> updateFill){
+    public static void getFillInsertAndUpdateField(ClassInformation classInformation, AutoFillMetaObject insertFillAutoFillMetaObject, AutoFillMetaObject updateFillAutoFillMetaObject){
         classInformation.getFields().forEach(field -> {
             CollectionField collectionField = field.getCollectionField();
             if (collectionField != null && collectionField.fill() != FieldFill.DEFAULT){
+                MongoPlusDocument insertFillAutoField = insertFillAutoFillMetaObject.getAllFillField();
+                MongoPlusDocument updateFillAutoField = updateFillAutoFillMetaObject.getAllFillField();
                 if (collectionField.fill() == FieldFill.INSERT){
-                    insertFill.put(field.getName(),null);
+                    insertFillAutoField.put(field.getName(),field.getValue());
                 }
                 if (collectionField.fill() == FieldFill.UPDATE){
-                    updateFill.put(field.getName(),null);
+                    updateFillAutoField.put(field.getName(),field.getValue());
                 }
                 if (collectionField.fill() == FieldFill.INSERT_UPDATE){
-                    insertFill.put(field.getName(),null);
-                    updateFill.put(field.getName(),null);
+                    insertFillAutoField.put(field.getName(),field.getValue());
+                    updateFillAutoField.put(field.getName(),field.getValue());
                 }
             }
         });

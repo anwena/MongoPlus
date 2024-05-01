@@ -16,6 +16,22 @@ public class MongoDBFieldProperty {
      */
     private Boolean mapUnderscoreToCamelCase = false;
 
+    /**
+     * 是否忽略null属性
+     * @author JiaChaoYang
+     * @date 2024/5/1 下午1:30
+     */
+    private Boolean ignoringNull = true;
+
+    public Boolean getIgnoringNull() {
+        return ignoringNull;
+    }
+
+    public void setIgnoringNull(Boolean ignoringNull) {
+        PropertyCache.ignoringNull = ignoringNull;
+        this.ignoringNull = ignoringNull;
+    }
+
     public Boolean getMapUnderscoreToCamelCase() {
         return mapUnderscoreToCamelCase;
     }

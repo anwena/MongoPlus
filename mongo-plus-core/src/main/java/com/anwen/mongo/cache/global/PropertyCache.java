@@ -15,6 +15,13 @@ public class PropertyCache {
     public static Boolean mapUnderscoreToCamelCase = false;
 
     /**
+     * 是否忽略空值
+     * @author JiaChaoYang
+     * @date 2023/10/25 15:42
+    */
+    public static Boolean ignoringNull = true;
+
+    /**
      * 是否开启spring事务
      * @author JiaChaoYang
      * @date 2023/10/25 15:43
@@ -27,5 +34,12 @@ public class PropertyCache {
      * @date 2023/11/22 11:03
     */
     public static Boolean format = false;
+
+    /**
+     * 存放自增id的集合
+     * @author JiaChaoYang
+     * @date 2024/5/1 下午10:40
+     */
+    public static String autoIdCollectionName = "counters";
 
 }
