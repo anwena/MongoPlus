@@ -165,7 +165,7 @@ public class UrlJoint {
         if (!mongodbUrl.contains("?")){
             mongodbUrl = mongodbUrl.replaceFirst("&", "?");
         }
-        log.debug("get connected：{}",mongodbUrl);
+        log.info(String.format("get connected：%s",mongodbUrl));
         return mongodbUrl;
     }
 

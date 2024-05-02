@@ -1,5 +1,6 @@
 package com.anwen.mongo.mapping;
 
+import com.mongodb.client.MongoIterable;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -16,9 +17,5 @@ public interface MongoWriter {
     void write(Object sourceObj, Bson bson);
 
     void write(Map<?,?> map, Bson bson);
-
-    void read(Document document, Class<?> clazz, List<?> resultList);
-
-    Map<String,Object> read(Document document);
 
 }

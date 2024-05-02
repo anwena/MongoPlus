@@ -37,6 +37,7 @@ public class MongoDBConfigurationProperty {
     }
 
     public void setIkun(Boolean ikun) {
+        PropertyCache.ikun = ikun;
         this.ikun = ikun;
     }
 

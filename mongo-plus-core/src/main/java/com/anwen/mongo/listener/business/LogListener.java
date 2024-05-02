@@ -6,6 +6,8 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.anwen.mongo.cache.global.OrderCache;
 import com.anwen.mongo.cache.global.PropertyCache;
 import com.anwen.mongo.listener.Listener;
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.model.command.CommandFailed;
 import com.anwen.mongo.model.command.CommandStarted;
 import com.anwen.mongo.model.command.CommandSucceeded;
@@ -19,6 +21,8 @@ import java.util.Objects;
 */
 public class LogListener implements Listener {
 
+    private static final Log log = LogFactory.getLog(LogListener.class);
+
     private String formattingStatement(String statement){
         return PropertyCache.format ? JSON.toJSONString(JSONObject.parse(statement), SerializerFeature.PrettyFormat, SerializerFeature.WriteMapNullValue,
                 SerializerFeature.WriteDateUseDateFormat) : statement;
@@ -26,19 +30,22 @@ public class LogListener implements Listener {
 
     @Override
     public void commandStarted(CommandStarted commandStarted) {
-        System.out.println(commandStarted.getCommandName()+" Statement Execution ==> ");
-        System.out.println(formattingStatement(commandStarted.getCommand()));
+        log.info(commandStarted.getCommandName()+" Statement Execution ==> ");
+        log.info(formattingStatement(commandStarted.getCommand()));
     }
 
     @Override
     public void commandSucceeded(CommandSucceeded commandSucceeded) {
-        System.out.println(commandSucceeded.getCommandName()+" results of execution ==> ");
+        Integer resultCount = null;
         if (Objects.equals(commandSucceeded.getCommandName(), "find") || Objects.equals(commandSucceeded.getCommandName(), "aggregate")){
-            System.out.println(commandSucceeded.getResponse().getDocument("cursor").get("firstBatch").asArray().getValues().size());
+            resultCount = commandSucceeded.getResponse().getDocument("cursor").get("firstBatch").asArray().getValues().size();
         } else if (Objects.equals(commandSucceeded.getCommandName(), "update")) {
-            System.out.println(commandSucceeded.getResponse().get("nModified").asInt32().getValue());
+            resultCount = commandSucceeded.getResponse().get("nModified").asInt32().getValue();
         } else if (Objects.equals(commandSucceeded.getCommandName(), "insert") || Objects.equals(commandSucceeded.getCommandName(), "delete")) {
-            System.out.println(commandSucceeded.getResponse().get("n").asInt32().getValue());
+            resultCount = commandSucceeded.getResponse().get("n").asInt32().getValue();
+        }
+        if (resultCount != null) {
+            log.info(commandSucceeded.getCommandName() + " results of execution ==> " + resultCount);
         }
     }
 
@@ -46,7 +53,7 @@ public class LogListener implements Listener {
     public void commandFailed(CommandFailed commandFailed) {
         String commandName = commandFailed.getCommandName();
         Throwable throwable = commandFailed.getThrowable();
-        System.out.println("error ==> : " + commandName + ", " + throwable.getMessage());
+        log.error("error ==> : " + commandName + ", " + throwable.getMessage());
     }
 
     @Override

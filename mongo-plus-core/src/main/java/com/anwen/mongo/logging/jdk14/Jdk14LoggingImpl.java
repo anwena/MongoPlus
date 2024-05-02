@@ -42,6 +42,11 @@ public class Jdk14LoggingImpl implements Log {
   }
 
   @Override
+  public void info(String s) {
+    log.log(Level.INFO, s);
+  }
+
+  @Override
   public void error(String s, Throwable e) {
     log.log(Level.SEVERE, s, e);
   }

@@ -37,6 +37,11 @@ public class StdOutImpl implements Log {
   }
 
   @Override
+  public void info(String s) {
+    System.out.println(s);
+  }
+
+  @Override
   public void error(String s, Throwable e) {
     System.err.println(s);
     e.printStackTrace(System.err);

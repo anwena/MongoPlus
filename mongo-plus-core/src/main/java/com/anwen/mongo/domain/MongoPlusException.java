@@ -1,5 +1,8 @@
 package com.anwen.mongo.domain;
 
+import com.anwen.mongo.cache.global.PropertyCache;
+import com.anwen.mongo.toolkit.IkunRandomUtil;
+
 /**
  * MongoPlus异常
  *
@@ -10,12 +13,12 @@ public class MongoPlusException extends RuntimeException {
     String message;
 
     public MongoPlusException(String message) {
-        super(message);
-        this.message = message;
+        super(PropertyCache.ikun ? IkunRandomUtil.getRandomThreadLog()+message : message);
+        this.message = PropertyCache.ikun ? IkunRandomUtil.getRandomThreadLog()+message : message;
     }
 
     public MongoPlusException(String message, Throwable cause) {
-        super(message, cause);
+        super(PropertyCache.ikun ? IkunRandomUtil.getRandomThreadLog()+message : message, cause);
     }
 
     public MongoPlusException(Throwable cause) {

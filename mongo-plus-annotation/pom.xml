@@ -39,6 +39,13 @@
         </developer>
     </developers>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-sync</artifactId>
+        </dependency>
+    </dependencies>
+
     <scm>
         <connection>https://gitee.com/anwena/mongo-plus.git</connection>
         <developerConnection>scm:git:ssh://git@gitee.com:anwena/mongo-plus.git</developerConnection>

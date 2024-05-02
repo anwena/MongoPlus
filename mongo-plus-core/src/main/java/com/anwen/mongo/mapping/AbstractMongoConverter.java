@@ -30,6 +30,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.anwen.mongo.toolkit.BeanMapUtilByReflect.getFillInsertAndUpdateField;
+
 /**
  * 抽象的映射处理器
  * @author JiaChaoYang
@@ -47,7 +49,7 @@ public abstract class AbstractMongoConverter implements MongoConverter {
 
     //定义添加自动填充字段
     private final AutoFillMetaObject insertFillAutoFillMetaObject = new AutoFillMetaObject(new MongoPlusDocument());
-    private final AutoFillMetaObject updateFillAutoFillMetaObject = new AutoFillMetaObject(new MongoPlusDocument());;
+    private final AutoFillMetaObject updateFillAutoFillMetaObject = new AutoFillMetaObject(new MongoPlusDocument());
 
     @Override
     public void writeBySave(Object sourceObj, Document document) {
@@ -82,7 +84,7 @@ public abstract class AbstractMongoConverter implements MongoConverter {
                 throw new RuntimeException(e);
             }
         }
-        //如果存在元对象处理器，且插入或更新字段为空，则获取自动填充字段
+        //如果存在元对象处理器，且插入或更新字段不为空，则获取自动填充字段
         if (HandlerCache.metaObjectHandler != null && !insertFillAutoFillMetaObject.isEmpty()){
             HandlerCache.metaObjectHandler.insertFill(insertFillAutoFillMetaObject);
         }
@@ -93,6 +95,34 @@ public abstract class AbstractMongoConverter implements MongoConverter {
         //经过一下Document处理器
         if (HandlerCache.documentHandler != null){
             HandlerCache.documentHandler.insertInvoke(Collections.singletonList(document));
+        }
+    }
+
+    @Override
+    public void writeByUpdate(Object sourceObj, Document document) {
+        //封装class信息
+        ClassInformation classInformation = SimpleClassInformation.of(sourceObj);
+        //如果存在元对象处理器，且插入或更新字段为空，则获取自动填充字段
+        if (HandlerCache.metaObjectHandler != null && updateFillAutoFillMetaObject.isEmpty()){
+            //获取所有自动填充数据
+            BeanMapUtilByReflect.getFillInsertAndUpdateField(classInformation,insertFillAutoFillMetaObject,updateFillAutoFillMetaObject);
+        }
+        //拿到类中的@ID字段
+        FieldInformation idFieldInformation = classInformation.getAnnotationField(ID.class, "@ID field not found");
+        if (idFieldInformation.getValue() != null) {
+            document.put(SqlOperationConstant._ID, idFieldInformation.getValue());
+        }
+        //如果存在元对象处理器，且插入或更新字段不为空，则获取自动填充字段
+        if (HandlerCache.metaObjectHandler != null && !updateFillAutoFillMetaObject.isEmpty()){
+            HandlerCache.metaObjectHandler.updateFill(updateFillAutoFillMetaObject);
+        }
+        //添加自动填充字段
+        document.putAll(updateFillAutoFillMetaObject.getAllFillField());
+        //映射到Document
+        write(sourceObj,document);
+        //经过一下Document处理器
+        if (HandlerCache.documentHandler != null){
+            HandlerCache.documentHandler.updateInvoke(Collections.singletonList(document));
         }
     }
 

@@ -121,14 +121,4 @@ public class MappingMongoConverter extends AbstractMongoConverter {
         writeMapInternal(map,bson);
     }
 
-    @Override
-    public void read(Document document, Class<?> clazz, List<?> resultList) {
-
-    }
-
-    @Override
-    public Map<String, Object> read(Document document) {
-        return Collections.emptyMap();
-    }
-
 }

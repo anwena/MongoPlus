@@ -15,6 +15,7 @@
  */
 package com.anwen.mongo.logging;
 
+import com.anwen.mongo.cache.global.PropertyCache;
 import com.anwen.mongo.logging.commons.JakartaCommonsLoggingImpl;
 import com.anwen.mongo.logging.jdk14.Jdk14LoggingImpl;
 import com.anwen.mongo.logging.log4j.Log4jImpl;
@@ -22,6 +23,7 @@ import com.anwen.mongo.logging.log4j2.Log4j2Impl;
 import com.anwen.mongo.logging.nologging.NoLoggingImpl;
 import com.anwen.mongo.logging.slf4j.Slf4jImpl;
 import com.anwen.mongo.logging.stdout.StdOutImpl;
+import com.anwen.mongo.proxy.LogProxy;
 
 import java.lang.reflect.Constructor;
 import java.util.concurrent.locks.ReentrantLock;
@@ -59,7 +61,11 @@ public final class LogFactory {
 
   public static Log getLog(String logger) {
     try {
-      return logConstructor.newInstance(logger);
+      Log log = logConstructor.newInstance(logger);
+      if (PropertyCache.ikun){
+        return new LogProxy(log);
+      }
+      return log;
     } catch (Throwable t) {
       throw new LogException("Error creating logger for logger " + logger + ".  Cause: " + t, t);
     }

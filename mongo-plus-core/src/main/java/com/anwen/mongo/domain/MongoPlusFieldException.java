@@ -7,8 +7,11 @@ package com.anwen.mongo.domain;
  */
 public class MongoPlusFieldException extends MongoPlusException {
 
-
     public MongoPlusFieldException(String message) {
         super(message);
+    }
+
+    public MongoPlusFieldException(String message,Throwable cause) {
+        super(message,cause);
     }
 }

@@ -40,6 +40,11 @@ class Slf4jLoggerImpl implements Log {
   }
 
   @Override
+  public void info(String s) {
+    log.info(s);
+  }
+
+  @Override
   public void error(String s, Throwable e) {
     log.error(s, e);
   }

@@ -2,9 +2,11 @@ package com.anwen.mongo.mapping;
 
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
+import com.anwen.mongo.domain.MongoPlusFieldException;
 import com.anwen.mongo.toolkit.StringUtils;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
@@ -28,6 +30,10 @@ public class SimpleFieldInformation<T> implements FieldInformation {
     private ID id;
 
     private CollectionField collectionField;
+
+    private Method get;
+
+    private Method set;
 
     @Override
     public Field getField() {
@@ -135,6 +141,34 @@ public class SimpleFieldInformation<T> implements FieldInformation {
             this.id = field.getAnnotation(ID.class);
         }
         return this.id;
+    }
+
+    @Override
+    public Method getMethod() {
+        try {
+            if (get == null) {
+                get = instance.getClass().getMethod(capitalize("get", field.getName()), type);
+            }
+        } catch (NoSuchMethodException e) {
+            throw new MongoPlusFieldException("The get method to obtain the " + field.getName() +" field failed",e);
+        }
+        return get;
+    }
+
+    @Override
+    public Method setMethod() {
+        try {
+            if (set == null) {
+                set = instance.getClass().getMethod(capitalize("set", field.getName()), type);
+            }
+        } catch (NoSuchMethodException e) {
+            throw new MongoPlusFieldException("The set method to obtain the " + field.getName() +" field failed",e);
+        }
+        return set;
+    }
+
+    private String capitalize(String method,String str) {
+        return method+(str.substring(0, 1).toUpperCase() + str.substring(1));
     }
 
     @Override

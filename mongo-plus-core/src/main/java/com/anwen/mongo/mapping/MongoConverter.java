@@ -16,4 +16,6 @@ public interface MongoConverter extends MongoWriter {
      */
     void writeBySave(Object sourceObj, Document document);
 
+    void writeByUpdate(Object sourceObj, Document document);
+
 }
