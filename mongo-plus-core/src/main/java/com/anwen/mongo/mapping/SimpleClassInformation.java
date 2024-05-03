@@ -6,6 +6,7 @@ import com.anwen.mongo.toolkit.CollUtil;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -98,6 +99,9 @@ public class SimpleClassInformation<T> implements ClassInformation {
         if (CollUtil.isEmpty(fieldList)){
             Arrays.stream(clazz.getDeclaredFields()).forEach(field -> {
                 field.setAccessible(true);
+                if (Modifier.isStatic(field.getModifiers())){
+                    return;
+                }
                 fieldList.add(new SimpleFieldInformation<>(instance,field));
             });
             getSupperFields(clazz.getSuperclass());
