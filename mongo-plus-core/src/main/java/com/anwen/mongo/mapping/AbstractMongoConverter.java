@@ -1,12 +1,14 @@
 package com.anwen.mongo.mapping;
 
 import com.anwen.mongo.annotation.ID;
+import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.bson.MongoPlusDocument;
 import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.cache.global.PropertyCache;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.context.MongoTransactionContext;
 import com.anwen.mongo.convert.CollectionNameConvert;
+import com.anwen.mongo.enums.FieldFill;
 import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.incrementer.id.IdWorker;
 import com.anwen.mongo.logging.Log;
@@ -14,7 +16,6 @@ import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.model.AutoFillMetaObject;
 import com.anwen.mongo.strategy.convert.ConversionService;
-import com.anwen.mongo.toolkit.BeanMapUtilByReflect;
 import com.anwen.mongo.toolkit.BsonUtil;
 import com.anwen.mongo.toolkit.CollUtil;
 import com.mongodb.client.MongoCollection;
@@ -29,8 +30,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
-import static com.anwen.mongo.toolkit.BeanMapUtilByReflect.getFillInsertAndUpdateField;
 
 /**
  * 抽象的映射处理器
@@ -58,7 +57,7 @@ public abstract class AbstractMongoConverter implements MongoConverter {
         //如果存在元对象处理器，且插入或更新字段为空，则获取自动填充字段
         if (HandlerCache.metaObjectHandler != null && insertFillAutoFillMetaObject.isEmpty()){
             //获取所有自动填充数据
-            BeanMapUtilByReflect.getFillInsertAndUpdateField(classInformation,insertFillAutoFillMetaObject,updateFillAutoFillMetaObject);
+            getFillInsertAndUpdateField(classInformation,insertFillAutoFillMetaObject,updateFillAutoFillMetaObject);
         }
         //拿到类中的@ID字段
         FieldInformation idFieldInformation = classInformation.getAnnotationField(ID.class, "@ID field not found");
@@ -88,10 +87,10 @@ public abstract class AbstractMongoConverter implements MongoConverter {
         if (HandlerCache.metaObjectHandler != null && !insertFillAutoFillMetaObject.isEmpty()){
             HandlerCache.metaObjectHandler.insertFill(insertFillAutoFillMetaObject);
         }
-        //添加自动填充字段
-        document.putAll(insertFillAutoFillMetaObject.getAllFillField());
         //映射到Document
         write(sourceObj,document);
+        //添加自动填充字段
+        document.putAll(insertFillAutoFillMetaObject.getAllFillField());
         //经过一下Document处理器
         if (HandlerCache.documentHandler != null){
             HandlerCache.documentHandler.insertInvoke(Collections.singletonList(document));
@@ -105,7 +104,7 @@ public abstract class AbstractMongoConverter implements MongoConverter {
         //如果存在元对象处理器，且插入或更新字段为空，则获取自动填充字段
         if (HandlerCache.metaObjectHandler != null && updateFillAutoFillMetaObject.isEmpty()){
             //获取所有自动填充数据
-            BeanMapUtilByReflect.getFillInsertAndUpdateField(classInformation,insertFillAutoFillMetaObject,updateFillAutoFillMetaObject);
+            getFillInsertAndUpdateField(classInformation,insertFillAutoFillMetaObject,updateFillAutoFillMetaObject);
         }
         //拿到类中的@ID字段
         FieldInformation idFieldInformation = classInformation.getAnnotationField(ID.class, "@ID field not found");
@@ -223,6 +222,26 @@ public abstract class AbstractMongoConverter implements MongoConverter {
         }
 
         return Enum.class.isAssignableFrom(value.getClass()) ? ((Enum<?>) value).name() : value;
+    }
+
+    public void getFillInsertAndUpdateField(ClassInformation classInformation, AutoFillMetaObject insertFillAutoFillMetaObject, AutoFillMetaObject updateFillAutoFillMetaObject){
+        classInformation.getFields().forEach(field -> {
+            CollectionField collectionField = field.getCollectionField();
+            if (collectionField != null && collectionField.fill() != FieldFill.DEFAULT){
+                MongoPlusDocument insertFillAutoField = insertFillAutoFillMetaObject.getAllFillField();
+                MongoPlusDocument updateFillAutoField = updateFillAutoFillMetaObject.getAllFillField();
+                if (collectionField.fill() == FieldFill.INSERT){
+                    insertFillAutoField.put(field.getName(),field.getValue());
+                }
+                if (collectionField.fill() == FieldFill.UPDATE){
+                    updateFillAutoField.put(field.getName(),field.getValue());
+                }
+                if (collectionField.fill() == FieldFill.INSERT_UPDATE){
+                    insertFillAutoField.put(field.getName(),field.getValue());
+                    updateFillAutoField.put(field.getName(),field.getValue());
+                }
+            }
+        });
     }
 
 }

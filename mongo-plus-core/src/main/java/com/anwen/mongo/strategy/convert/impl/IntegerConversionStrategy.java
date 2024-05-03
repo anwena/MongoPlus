@@ -20,7 +20,11 @@ public class IntegerConversionStrategy implements ConversionStrategy<Integer> {
     public Integer convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
         Integer value = null;
         try {
-            value = Integer.parseInt(StringUtils.isNotBlankAndConvert(fieldValue));
+            if (fieldValue instanceof Integer){
+                value = (Integer) fieldValue;
+            }else {
+                value = Integer.parseInt(StringUtils.isNotBlankAndConvert(fieldValue));
+            }
         } catch (Exception e) {
             log.warn("Conversion to number failed, exception message: {}",e.getMessage());
         }

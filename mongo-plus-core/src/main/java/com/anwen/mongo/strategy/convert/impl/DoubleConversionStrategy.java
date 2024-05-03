@@ -20,7 +20,11 @@ public class DoubleConversionStrategy implements ConversionStrategy<Double> {
     public Double convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
         Double value = null;
         try {
-            value = Double.parseDouble(StringUtils.isNotBlankAndConvert(fieldValue));
+            if (fieldValue instanceof Double){
+                value = (Double) fieldValue;
+            }else {
+                value = Double.parseDouble(StringUtils.isNotBlankAndConvert(fieldValue));
+            }
         } catch (NumberFormatException e) {
             log.warn("Conversion to Double failed, exception message: {}",e.getMessage());
         }

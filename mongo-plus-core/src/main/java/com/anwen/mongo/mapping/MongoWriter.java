@@ -1,10 +1,7 @@
 package com.anwen.mongo.mapping;
 
-import com.mongodb.client.MongoIterable;
-import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import java.util.List;
 import java.util.Map;
 
 /**

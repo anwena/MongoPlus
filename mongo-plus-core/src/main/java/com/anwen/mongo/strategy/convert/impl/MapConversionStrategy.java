@@ -6,9 +6,6 @@ import com.anwen.mongo.strategy.convert.ConversionStrategy;
 import org.bson.Document;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,35 +23,15 @@ public class MapConversionStrategy implements ConversionStrategy<Map<?,?>> {
         if (!fieldValue.getClass().equals(Document.class)){
             throw new MongoPlusConvertException("FieldValue Type Not Is Document");
         }
-        Type[] typeArguments = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();
-        Class<?> valueClazz = (Class<?>) typeArguments[1];
-        if (valueClazz.equals(Object.class)){
-            return (Document) fieldValue;
-        }else {
-            Document document = (Document) fieldValue;
-            Map map;
-            if (field.getType().equals(Map.class)){
-                map = new HashMap();
-            }else {
-                try {
-                    map = (Map) field.getType().getDeclaredConstructor().newInstance();
-                } catch (InstantiationException | InvocationTargetException | NoSuchMethodException e) {
-                    throw new RuntimeException(e);
-                }
+        Document document = (Document) fieldValue;
+        Map map = new HashMap();
+        document.forEach((k,v) -> {
+            try {
+                map.put(k,ConversionService.convertValue(field, obj, v, v.getClass()));
+            } catch (IllegalAccessException e) {
+                throw new MongoPlusConvertException("Exception occurred in converting internal elements");
             }
-            for (String key : document.keySet()) {
-                Object value = document.get(key);
-                if (value.getClass().equals(Document.class)){
-                    map.putAll(convertDocumentToMap(field,obj,value));
-                }else {
-                    map.put(key,ConversionService.convertValue(field, obj, value, valueClazz));
-                }
-            }
-            return map;
-        }
-    }
-
-    private Map<?,?> convertDocumentToMap(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
-        return convertValue(field, obj, fieldValue);
+        });
+        return map;
     }
 }

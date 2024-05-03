@@ -1,10 +1,6 @@
 package com.anwen.mongo.listener.business;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.anwen.mongo.cache.global.OrderCache;
-import com.anwen.mongo.cache.global.PropertyCache;
 import com.anwen.mongo.listener.Listener;
 import com.anwen.mongo.logging.Log;
 import com.anwen.mongo.logging.LogFactory;
@@ -23,15 +19,10 @@ public class LogListener implements Listener {
 
     private static final Log log = LogFactory.getLog(LogListener.class);
 
-    private String formattingStatement(String statement){
-        return PropertyCache.format ? JSON.toJSONString(JSONObject.parse(statement), SerializerFeature.PrettyFormat, SerializerFeature.WriteMapNullValue,
-                SerializerFeature.WriteDateUseDateFormat) : statement;
-    }
-
     @Override
     public void commandStarted(CommandStarted commandStarted) {
         log.info(commandStarted.getCommandName()+" Statement Execution ==> ");
-        log.info(formattingStatement(commandStarted.getCommand()));
+        log.info(commandStarted.getCommand());
     }
 
     @Override

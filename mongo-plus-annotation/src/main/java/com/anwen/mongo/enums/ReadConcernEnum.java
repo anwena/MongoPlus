@@ -1,7 +1,5 @@
 package com.anwen.mongo.enums;
 
-import com.mongodb.TransactionOptions;
-
 /**
  * 一致性读策略枚举
  * @author JiaChaoYang

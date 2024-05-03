@@ -116,15 +116,15 @@ public class ServiceImpl<T> implements IService<T>{
     public Boolean saveOrUpdateWrapper(T entity, QueryChainWrapper<T, ?> queryChainWrapper) {
         long count = count(queryChainWrapper);
         if (count > 0){
-            MutablePair<BasicDBObject,BasicDBObject> updatePair = getUpdateCondition(queryChainWrapper.getCompareList(), entity);
-            return baseMapper.update(updatePair.getLeft(),updatePair.getRight(),ClassTypeUtil.getClass(entity)) >= 1;
+            return baseMapper.update(entity,queryChainWrapper);
         }
         return save(entity);
     }
 
     protected MutablePair<BasicDBObject,BasicDBObject> getUpdateCondition(List<CompareCondition> compareConditionList, T entity){
         BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareConditionList);
-        Document document = DocumentUtil.checkUpdateField(entity,false);
+//        Document document = DocumentUtil.checkUpdateField(entity,false);
+        Document document = baseMapper.getMongoConverter().writeByUpdate(entity);
         document.remove(SqlOperationConstant._ID);
         BasicDBObject updateField = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
         return new MutablePair<>(queryBasic,updateField);
@@ -168,7 +168,8 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     protected <T> MutablePair<BasicDBObject,BasicDBObject> getUpdate(T entity) {
-        Document document = DocumentUtil.checkUpdateField(entity,false);
+//        Document document = DocumentUtil.checkUpdateField(entity,false);
+        Document document = baseMapper.getMongoConverter().writeByUpdate(entity);
         BasicDBObject filter = ExecuteUtil.getFilter(document);
         BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
         return new MutablePair<>(filter,update);
@@ -194,7 +195,8 @@ public class ServiceImpl<T> implements IService<T>{
         Object filterValue = ClassTypeUtil.getClassFieldValue(entity,column);
         String valueOf = String.valueOf(filterValue);
         Bson filter = Filters.eq(column, ObjectId.isValid(valueOf) ? new ObjectId(valueOf) : filterValue);
-        Document document = DocumentUtil.checkUpdateField(entity,false);
+//        Document document = DocumentUtil.checkUpdateField(entity,false);
+        Document document = baseMapper.getMongoConverter().writeByUpdate(entity);
         return baseMapper.update(filter,document,ClassTypeUtil.getClass(entity)) >= 1;
     }
 

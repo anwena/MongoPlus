@@ -1,5 +1,6 @@
 package com.anwen.mongo.mapping;
 
+import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.cache.global.PropertyCache;
 import com.anwen.mongo.domain.MongoPlusWriteException;
 import com.anwen.mongo.manager.MongoPlusClient;
@@ -28,6 +29,8 @@ public class MappingMongoConverter extends AbstractMongoConverter {
                 .filter(fieldInformation -> !fieldInformation.isSkipCheckField() && !fieldInformation.isId())
                 .forEach(fieldInformation -> writeProperties(bson, fieldInformation.getName(), fieldInformation.getValue()));
     }
+
+
 
     /**
      * 写入内部对象
@@ -119,6 +122,10 @@ public class MappingMongoConverter extends AbstractMongoConverter {
     @Override
     public void write(Map<?, ?> map, Bson bson) {
         writeMapInternal(map,bson);
+        //经过一下Document处理器
+        if (HandlerCache.documentHandler != null && bson instanceof Document){
+            HandlerCache.documentHandler.insertInvoke(Collections.singletonList((Document) bson));
+        }
     }
 
 }

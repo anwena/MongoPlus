@@ -20,7 +20,11 @@ public class LongConversionStrategy implements ConversionStrategy<Long> {
     public Long convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
         Long value = null;
         try {
-            value = Long.parseLong(StringUtils.isNotBlankAndConvert(fieldValue));
+            if (fieldValue instanceof Long){
+                value = (Long) fieldValue;
+            } else {
+                value = Long.parseLong(StringUtils.isNotBlankAndConvert(fieldValue));
+            }
         } catch (Exception e) {
             log.warn("Conversion to Long failed, exception message: {}",e.getMessage());
         }

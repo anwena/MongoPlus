@@ -9,6 +9,8 @@ import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.mapper.DefaultBaseMapperImpl;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
+import com.anwen.mongo.mapping.MappingMongoConverter;
+import com.anwen.mongo.mapping.MongoConverter;
 import com.anwen.mongo.model.BaseProperty;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBConfigurationProperty;
@@ -125,20 +127,22 @@ public class MongoPlusConfiguration {
         return mongoPlusClient;
     }
 
-    public static void main(String[] args) {
-        System.out.println("");
+    @Bean
+    @ConditionalOnMissingBean(MongoConverter.class)
+    public MongoConverter mongoConverter(MongoPlusClient mongoPlusClient){
+        return new MappingMongoConverter(mongoPlusClient);
     }
 
     @Bean
     @ConditionalOnMissingBean(BaseMapper.class)
-    public BaseMapper baseMapper(MongoPlusClient mongoPlusClient){
-        return new DefaultBaseMapperImpl(mongoPlusClient);
+    public BaseMapper baseMapper(MongoPlusClient mongoPlusClient,MongoConverter mongoConverter){
+        return new DefaultBaseMapperImpl(mongoPlusClient,mongoConverter);
     }
 
     @Bean("mongoPlusMapMapper")
     @ConditionalOnMissingBean
-    public MongoPlusMapMapper mongoPlusMapMapper(MongoPlusClient mongoPlusClient) {
-        return new MongoPlusMapMapper(mongoPlusClient);
+    public MongoPlusMapMapper mongoPlusMapMapper(MongoPlusClient mongoPlusClient,MongoConverter mongoConverter) {
+        return new MongoPlusMapMapper(mongoPlusClient,mongoConverter);
     }
 
     @Bean("mongoTransactionalAspect")

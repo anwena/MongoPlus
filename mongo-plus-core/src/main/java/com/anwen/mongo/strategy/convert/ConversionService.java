@@ -37,6 +37,7 @@ public class ConversionService {
         conversionStrategies.put(Map.class,new MapConversionStrategy());
         conversionStrategies.put(Collection.class,new CollectionConversionStrategy());
         conversionStrategies.put(List.class,conversionStrategies.get(Collection.class));
+        conversionStrategies.put(Enum.class,new EnumConversionStrategy<>());
     }
 
     /**
@@ -93,14 +94,16 @@ public class ConversionService {
         if (clazz != null && clazz.length > 0) {
             fieldType = clazz[0];
         }
-        if (isMapType(fieldType)) {
+        if (Map.class.isAssignableFrom(fieldType)) {
             fieldType = Map.class;
         }
+        if (Collection.class.isAssignableFrom(fieldType)){
+            fieldType = Collection.class;
+        }
+        if (fieldType.isEnum()){
+            fieldType = Enum.class;
+        }
         return fieldType;
-    }
-
-    private static boolean isMapType(Class<?> fieldType) {
-        return Map.class.isAssignableFrom(fieldType);
     }
 
     private static ConversionStrategy<?> getConversionStrategy(Class<?> fieldType) {
