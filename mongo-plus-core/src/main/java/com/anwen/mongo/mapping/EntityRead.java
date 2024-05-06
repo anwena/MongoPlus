@@ -1,10 +1,5 @@
 package com.anwen.mongo.mapping;
 
-import com.mongodb.client.MongoIterable;
-import org.bson.Document;
-
-import java.util.List;
-
 /**
  * Mongo对象映射为Bean
  * @author anwen
@@ -12,12 +7,6 @@ import java.util.List;
  */
 public interface EntityRead {
 
-    <T> T read(Document document, Class<T> target);
-
-    default <T,R> void read(MongoIterable<R> mongoIterable, Class<T> target, List<T> resultList){
-//        resultList.add(read(mongoIterable,target));
-    }
-
-//    void read(MongoIterable<Map> mongoIterable);
+    <T> T read(FieldInformation fieldInformation,Object sourceObj, Class<T> clazz);
 
 }

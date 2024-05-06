@@ -32,7 +32,6 @@ import static com.anwen.mongo.toolkit.StringPool.EMPTY;
 /**
  * @author JiaChaoYang
  **/
-
 public class MongoPlusMapMapper implements InjectQuery {
     private final ExecutorFactory factory;
 

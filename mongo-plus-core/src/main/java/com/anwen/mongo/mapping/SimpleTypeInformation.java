@@ -2,11 +2,13 @@ package com.anwen.mongo.mapping;
 
 import com.anwen.mongo.cache.global.ClassInformationCache;
 import com.anwen.mongo.domain.MongoPlusFieldException;
+import com.anwen.mongo.toolkit.ArrayUtils;
 import com.anwen.mongo.toolkit.CollUtil;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -15,7 +17,7 @@ import java.util.stream.Collectors;
  * @author JiaChaoYang
  * @date 2024/4/16 下午9:04
 */
-public class SimpleClassInformation<T> implements ClassInformation {
+public class SimpleTypeInformation<T> implements TypeInformation {
 
     /**
      * 实例
@@ -31,12 +33,16 @@ public class SimpleClassInformation<T> implements ClassInformation {
     */
     private final Class<?> clazz;
 
+    private Type[] types;
+
     /**
      * 实例的所有Field
      * @author JiaChaoYang
      * @date 2024/4/16 下午9:58
     */
     private final List<FieldInformation> fieldList = new ArrayList<>();
+
+    private final SimpleTypeHolder simpleTypeHolder = new SimpleTypeHolder();
 
     /**
      * 实例的某个注解的Field
@@ -45,9 +51,15 @@ public class SimpleClassInformation<T> implements ClassInformation {
     */
     private final Map<Class<? extends Annotation>, List<FieldInformation>> annotationFieldMap = new HashMap<>();
 
-    private SimpleClassInformation(T instance) {
+    protected SimpleTypeInformation(T instance) {
         this.instance = instance;
         this.clazz = getInstanceClass();
+    }
+
+    protected SimpleTypeInformation(T instance,Type[] types) {
+        this.instance = instance;
+        this.clazz = getInstanceClass();
+        this.types = types;
     }
 
     private Class<?> getInstanceClass(){
@@ -73,25 +85,31 @@ public class SimpleClassInformation<T> implements ClassInformation {
         return Collection.class.isAssignableFrom(clazz);
     }
 
+    @Override
+    public Boolean isSimpleType() {
+        return simpleTypeHolder.isSimpleType(clazz);
+    }
+
+    @Override
+    public Type[] getType() {
+        if (ArrayUtils.isEmpty(types)){
+            types = clazz.getTypeParameters();
+        }
+        return types;
+    }
+
+    @Override
     public T getInstance() {
         return instance;
     }
 
-    public static <T> ClassInformation of(T instance){
+    public static <T> TypeInformation of(T instance){
         Class<?> clazz = instance.getClass();
         return Optional.ofNullable(ClassInformationCache.classInformationMap.get(clazz)).orElseGet(() -> {
-            SimpleClassInformation<T> simpleClassInformation = new SimpleClassInformation<>(instance);
+            SimpleTypeInformation<T> simpleClassInformation = new SimpleTypeInformation<>(instance);
             ClassInformationCache.classInformationMap.put(clazz, simpleClassInformation);
             return simpleClassInformation;
         });
-    }
-
-    public static <T> ClassInformation of(Class<T> clazz){
-        try {
-            return of(clazz.getDeclaredConstructor().newInstance());
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Override

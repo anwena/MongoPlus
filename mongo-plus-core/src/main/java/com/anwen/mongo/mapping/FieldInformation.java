@@ -5,6 +5,7 @@ import com.anwen.mongo.annotation.collection.CollectionField;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 
 /**
  * @author JiaChaoYang
@@ -15,11 +16,19 @@ public interface FieldInformation {
 
     String getName();
 
+    String getCamelCaseName();
+
+    String getIdOrCamelCaseName();
+
     boolean isMap();
 
     Field getField();
 
-    Class<?> getType();
+    Class<?> getTypeClass();
+
+    Type[] getType();
+
+    TypeInformation getTypeInformation();
 
     Class<?> mapValueType();
 
@@ -40,6 +49,8 @@ public interface FieldInformation {
     Method getMethod();
 
     Method setMethod();
+
+    void setValue(Object value);
 
     CollectionField getCollectionField();
 

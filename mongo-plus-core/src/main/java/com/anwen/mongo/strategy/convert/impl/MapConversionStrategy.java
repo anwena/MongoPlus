@@ -6,6 +6,9 @@ import com.anwen.mongo.strategy.convert.ConversionStrategy;
 import org.bson.Document;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,10 +27,18 @@ public class MapConversionStrategy implements ConversionStrategy<Map<?,?>> {
             throw new MongoPlusConvertException("FieldValue Type Not Is Document");
         }
         Document document = (Document) fieldValue;
-        Map map = new HashMap();
+        Class<?> fieldType = field.getType();
+        Map map;
+        try {
+            map = fieldType.equals(Map.class) ? new HashMap() : (Map) field.getType().getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | InvocationTargetException | NoSuchMethodException e) {
+            throw new MongoPlusConvertException("Failed to create a Map instance",e);
+        }
+        Type[] typeArguments = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();
+        Class<?> valueClazz = (Class<?>) typeArguments[1];
         document.forEach((k,v) -> {
             try {
-                map.put(k,ConversionService.convertValue(field, obj, v, v.getClass()));
+                map.put(k,ConversionService.convertValue(field, obj, v, valueClazz));
             } catch (IllegalAccessException e) {
                 throw new MongoPlusConvertException("Exception occurred in converting internal elements");
             }

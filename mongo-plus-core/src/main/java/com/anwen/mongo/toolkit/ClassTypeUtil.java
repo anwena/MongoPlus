@@ -261,7 +261,14 @@ public class ClassTypeUtil {
      * @date 2023/11/10 14:54
     */
     public static Class<?> getListGenericType(Field field) {
-        Type genericType = field.getGenericType();
+        return getListGenericType(field.getGenericType());
+    }
+
+    public static Class<?> getListGenericType(Class<?> clazz){
+        return getListGenericType(clazz.getGenericSuperclass());
+    }
+
+    public static Class<?> getListGenericType(Type genericType) {
         if (genericType instanceof ParameterizedType) {
             ParameterizedType parameterizedType = (ParameterizedType) genericType;
             Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();

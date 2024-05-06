@@ -12,6 +12,7 @@ import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.mapper.BaseMapper;
+import com.anwen.mongo.model.BaseModelID;
 import com.anwen.mongo.model.MutablePair;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
@@ -121,24 +122,15 @@ public class ServiceImpl<T> implements IService<T>{
         return save(entity);
     }
 
-    protected MutablePair<BasicDBObject,BasicDBObject> getUpdateCondition(List<CompareCondition> compareConditionList, T entity){
-        BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareConditionList);
-//        Document document = DocumentUtil.checkUpdateField(entity,false);
-        Document document = baseMapper.getMongoConverter().writeByUpdate(entity);
-        document.remove(SqlOperationConstant._ID);
-        BasicDBObject updateField = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
-        return new MutablePair<>(queryBasic,updateField);
-    }
-
     @Override
     public Boolean saveOrUpdateBatch(Collection<T> entityList) {
         List<WriteModel<Document>> writeModelList = new ArrayList<>();
         entityList.forEach(entity -> {
             String idByEntity = ClassTypeUtil.getIdByEntity(entity, true);
             if (StringUtils.isBlank(idByEntity)){
-                writeModelList.add(new InsertOneModel<>(baseMapper.processIdField(entity,false)));
+                writeModelList.add(new InsertOneModel<>(baseMapper.getMongoConverter().writeBySave(entity)));
             } else {
-                MutablePair<BasicDBObject,BasicDBObject> basicDBObjectPair = getUpdate(entity);
+                MutablePair<BasicDBObject,BasicDBObject> basicDBObjectPair = ConditionUtil.getUpdate(entity,baseMapper.getMongoConverter());
                 writeModelList.add(new UpdateManyModel<>(basicDBObjectPair.getLeft(),basicDBObjectPair.getRight()));
             }
         });
@@ -152,10 +144,10 @@ public class ServiceImpl<T> implements IService<T>{
         entityList.forEach(entity -> {
             long count = baseMapper.count(queryChainWrapper, clazz);
             if (count > 0){
-                MutablePair<BasicDBObject,BasicDBObject> updatePair = getUpdateCondition(queryChainWrapper.getCompareList(), entity);
+                MutablePair<BasicDBObject,BasicDBObject> updatePair = ConditionUtil.getUpdateCondition(queryChainWrapper.getCompareList(), entity,baseMapper.getMongoConverter());
                 writeModelList.add(new UpdateManyModel<>(updatePair.getLeft(),updatePair.getRight()));
             } else {
-                writeModelList.add(new InsertOneModel<>(baseMapper.processIdField(entity,false)));
+                writeModelList.add(new InsertOneModel<>(baseMapper.getMongoConverter().writeBySave(entity)));
             }
         });
         return baseMapper.bulkWrite(writeModelList,entityList.stream().findFirst().get().getClass()) == entityList.size();
@@ -163,23 +155,15 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public Boolean updateById(T entity) {
-        MutablePair<BasicDBObject,BasicDBObject> basicDBObjectPair = getUpdate(entity);
+        MutablePair<BasicDBObject,BasicDBObject> basicDBObjectPair = ConditionUtil.getUpdate(entity,baseMapper.getMongoConverter());
         return baseMapper.update(basicDBObjectPair.getLeft(),basicDBObjectPair.getRight(),ClassTypeUtil.getClass(entity)) >= 1;
-    }
-
-    protected <T> MutablePair<BasicDBObject,BasicDBObject> getUpdate(T entity) {
-//        Document document = DocumentUtil.checkUpdateField(entity,false);
-        Document document = baseMapper.getMongoConverter().writeByUpdate(entity);
-        BasicDBObject filter = ExecuteUtil.getFilter(document);
-        BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
-        return new MutablePair<>(filter,update);
     }
 
     @Override
     public Boolean updateBatchByIds(Collection<T> entityList) {
         List<WriteModel<Document>> writeModelList = new ArrayList<>();
         entityList.forEach(entity -> {
-            MutablePair<BasicDBObject,BasicDBObject> basicDBObjectPair = getUpdate(entity);
+            MutablePair<BasicDBObject,BasicDBObject> basicDBObjectPair = ConditionUtil.getUpdate(entity,baseMapper.getMongoConverter());
             writeModelList.add(new UpdateManyModel<>(basicDBObjectPair.getLeft(),basicDBObjectPair.getRight()));
         });
         return baseMapper.bulkWrite(writeModelList,entityList.stream().findFirst().get().getClass()) == entityList.size();
@@ -195,7 +179,6 @@ public class ServiceImpl<T> implements IService<T>{
         Object filterValue = ClassTypeUtil.getClassFieldValue(entity,column);
         String valueOf = String.valueOf(filterValue);
         Bson filter = Filters.eq(column, ObjectId.isValid(valueOf) ? new ObjectId(valueOf) : filterValue);
-//        Document document = DocumentUtil.checkUpdateField(entity,false);
         Document document = baseMapper.getMongoConverter().writeByUpdate(entity);
         return baseMapper.update(filter,document,ClassTypeUtil.getClass(entity)) >= 1;
     }
