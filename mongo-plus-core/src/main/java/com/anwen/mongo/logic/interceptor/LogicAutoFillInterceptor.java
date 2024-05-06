@@ -27,7 +27,9 @@ public class LogicAutoFillInterceptor implements Interceptor {
         LogicDeleteResult result = LogicDeleteHandler.mapper().get(clazz);
         if (Objects.nonNull(result)) {
             for (Document document : documentList) {
-                document.put(result.getColumn(), result.getLogicNotDeleteValue());
+                if (!document.containsKey(result.getColumn())) {
+                    document.put(result.getColumn(), result.getLogicNotDeleteValue());
+                }
             }
         }
         return documentList;
