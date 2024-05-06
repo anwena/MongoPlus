@@ -2,9 +2,9 @@ package com.anwen.mongo.factory;
 
 import com.anwen.mongo.cache.global.DataSourceNameCache;
 import com.anwen.mongo.constant.DataSourceConstant;
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
 import com.mongodb.client.MongoClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  **/
 public class MongoClientFactory implements AutoCloseable {
 
-    private final Logger logger = LoggerFactory.getLogger(MongoClientFactory.class);
+    private final Log log = LogFactory.getLog(MongoClientFactory.class);
 
     private final Map<String , MongoClient> mongoClientMap = new ConcurrentHashMap<>();
 
@@ -74,8 +74,8 @@ public class MongoClientFactory implements AutoCloseable {
 
     @Override
     public void close() throws Exception {
-        if (logger.isDebugEnabled()){
-            logger.debug("Destroy data source connection client");
+        if (log.isDebugEnabled()){
+            log.debug("Destroy data source connection client");
         }
         mongoClientMap.forEach((ds,mongoClient) -> mongoClient.close());
     }

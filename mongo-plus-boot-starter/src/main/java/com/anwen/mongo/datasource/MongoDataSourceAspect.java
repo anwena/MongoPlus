@@ -2,8 +2,8 @@ package com.anwen.mongo.datasource;
 
 import com.anwen.mongo.annotation.datasource.MongoDs;
 import com.anwen.mongo.cache.global.DataSourceNameCache;
+import com.anwen.mongo.domain.MongoPlusException;
 import com.anwen.mongo.toolkit.StringUtils;
-import com.mongodb.MongoException;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -26,7 +26,7 @@ public class MongoDataSourceAspect {
         MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
         MongoDs mongoDs = AnnotationUtils.findAnnotation(methodSignature.getMethod(), MongoDs.class);
         if (mongoDs == null || StringUtils.isBlank(mongoDs.value())){
-            throw new MongoException("Data source not found");
+            throw new MongoPlusException("Data source not found");
         }
         DataSourceNameCache.setDataSource(mongoDs.value());
         Object proceed;

@@ -1,9 +1,9 @@
 package com.anwen.mongo.strategy.convert.impl;
 
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.strategy.convert.ConversionStrategy;
 import com.anwen.mongo.toolkit.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.math.BigInteger;
@@ -15,7 +15,7 @@ import java.math.BigInteger;
  **/
 public class BigIntegerConversionStrategy implements ConversionStrategy<BigInteger> {
 
-    private final Logger logger = LoggerFactory.getLogger(BigIntegerConversionStrategy.class);
+    private final Log log = LogFactory.getLog(BigIntegerConversionStrategy.class);
 
     @Override
     public BigInteger convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
@@ -23,7 +23,7 @@ public class BigIntegerConversionStrategy implements ConversionStrategy<BigInteg
         try {
             value = new BigInteger(StringUtils.isNotBlankAndConvert(fieldValue));
         }catch (Exception e){
-            logger.warn("Convert fieldValue To BigDecimal Fail,Exception Message: {}",e.getMessage(),e);
+            log.warn("Convert fieldValue To BigDecimal Fail,Exception Message: {}",e.getMessage(),e);
         }
         return value;
     }

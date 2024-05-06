@@ -1,8 +1,8 @@
 package com.anwen.mongo.toolkit;
 
-import com.mongodb.MongoException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.anwen.mongo.domain.MongoPlusConvertException;
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
 
 import java.time.*;
 
@@ -13,7 +13,7 @@ import java.time.*;
  **/
 public class InstantUtil {
 
-    private static final Logger logger = LoggerFactory.getLogger(InstantUtil.class);
+    private static final Log log = LogFactory.getLog(InstantUtil.class);
 
     /**
      * 时间戳转LocalDateTime
@@ -30,8 +30,8 @@ public class InstantUtil {
         try {
             instant = Instant.ofEpochMilli(timestamp);
         }catch (Exception e){
-            logger.error("Convert To Instant Fail,message: {}",e.getMessage(),e);
-            throw new MongoException("Convert To Instant Fail");
+            log.error("Convert To Instant Fail,message: {}",e.getMessage(),e);
+            throw new MongoPlusConvertException("Convert To Instant Fail");
         }
         return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
     }

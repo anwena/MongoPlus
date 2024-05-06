@@ -2,9 +2,11 @@ package com.anwen.mongo.mapping;
 
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
+import com.anwen.mongo.domain.MongoPlusFieldException;
 import com.anwen.mongo.toolkit.StringUtils;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
@@ -15,27 +17,23 @@ import java.util.Map;
  **/
 public class SimpleFieldInformation<T> implements FieldInformation {
 
-    private final Object value;
+    private Object value;
 
     private String name;
-
-    private final Boolean isMap;
 
     private Class<?> mapValueType;
 
     private Class<?> collectionValueType = Object.class;
 
-    private final Boolean isCollection;
-
     private final Field field;
-
-    private final Boolean isSkipCheckField;
-
-    private Boolean isId = false;
 
     private ID id;
 
     private CollectionField collectionField;
+
+    private Method get;
+
+    private Method set;
 
     @Override
     public Field getField() {
@@ -49,51 +47,46 @@ public class SimpleFieldInformation<T> implements FieldInformation {
 
     private final Class<?> type;
 
+    private final T instance;
+
     public SimpleFieldInformation(T instance, Field field) {
+        this.instance = instance;
         field.setAccessible(true);
         this.field = field;
         this.type = field.getType();
-        try {
-            this.value = field.get(instance);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-        this.name = field.getName();
-        CollectionField collectionField = field.getAnnotation(CollectionField.class);
-        if (collectionField != null && StringUtils.isNotBlank(collectionField.value())) {
-            this.name = collectionField.value();
-            this.collectionField = collectionField;
-        }
-        this.isMap = Map.class.isAssignableFrom(type);
-        this.isCollection = type.isArray() //
-                || Iterable.class.equals(type) //
-                || Collection.class.isAssignableFrom(type);
-        this.isSkipCheckField = collectionField != null && !collectionField.exist();
-        ID IDAnnotation = field.getAnnotation(ID.class);
-        if (IDAnnotation != null){
-            this.isId = true;
-            this.id = IDAnnotation;
-        }
     }
 
     @Override
     public Object getValue() {
+        if (this.value == null){
+            try {
+                this.value = field.get(instance);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
         return this.value;
     }
 
     @Override
     public String getName() {
+        if (this.name == null){
+            this.name = field.getName();
+            if (getCollectionField() != null && StringUtils.isNotBlank(getCollectionField().value())){
+                this.name = getCollectionField().value();
+            }
+        }
         return this.name;
     }
 
     @Override
     public boolean isMap(){
-        return this.isMap;
+        return Map.class.isAssignableFrom(type);
     }
 
     @Override
     public Class<?> mapValueType(){
-        if (this.isMap && this.mapValueType == null) {
+        if (isMap() && this.mapValueType == null) {
             Type[] typeArguments = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();
             this.mapValueType = (Class<?>) typeArguments[1];
         }
@@ -102,7 +95,7 @@ public class SimpleFieldInformation<T> implements FieldInformation {
 
     @Override
     public Class<?> collectionValueType() {
-        if (this.isCollection && this.collectionValueType == null){
+        if (isCollection() && this.collectionValueType == null){
             Type genericType = field.getGenericType();
             if (genericType instanceof ParameterizedType) {
                 ParameterizedType parameterizedType = (ParameterizedType) genericType;
@@ -117,7 +110,9 @@ public class SimpleFieldInformation<T> implements FieldInformation {
 
     @Override
     public boolean isCollection(){
-        return this.isCollection;
+        return type.isArray() //
+                || Iterable.class.equals(type) //
+                || Collection.class.isAssignableFrom(type);
     }
 
     @Override
@@ -127,21 +122,63 @@ public class SimpleFieldInformation<T> implements FieldInformation {
 
     @Override
     public boolean isSkipCheckField() {
-        return isSkipCheckField;
+        return getCollectionField() != null && !getCollectionField().exist();
+    }
+
+    @Override
+    public boolean isSkipCheckFieldAndId() {
+        return isSkipCheckField() || isId();
     }
 
     @Override
     public boolean isId() {
-        return isId;
+        return getId() != null;
     }
 
     @Override
     public ID getId() {
-        return id;
+        if (this.id == null){
+            this.id = field.getAnnotation(ID.class);
+        }
+        return this.id;
+    }
+
+    @Override
+    public Method getMethod() {
+        try {
+            if (get == null) {
+                get = instance.getClass().getMethod(capitalize("get", field.getName()), type);
+            }
+        } catch (NoSuchMethodException e) {
+            throw new MongoPlusFieldException("The get method to obtain the " + field.getName() +" field failed",e);
+        }
+        return get;
+    }
+
+    @Override
+    public Method setMethod() {
+        try {
+            if (set == null) {
+                set = instance.getClass().getMethod(capitalize("set", field.getName()), type);
+            }
+        } catch (NoSuchMethodException e) {
+            throw new MongoPlusFieldException("The set method to obtain the " + field.getName() +" field failed",e);
+        }
+        return set;
+    }
+
+    private String capitalize(String method,String str) {
+        return method+(str.substring(0, 1).toUpperCase() + str.substring(1));
     }
 
     @Override
     public CollectionField getCollectionField() {
+        if (this.collectionField == null){
+            CollectionField collectionField = field.getAnnotation(CollectionField.class);
+            if (collectionField != null) {
+                this.collectionField = collectionField;
+            }
+        }
         return this.collectionField;
     }
 

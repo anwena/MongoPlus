@@ -1,8 +1,6 @@
 package com.anwen.mongo.strategy.convert;
 
 import com.anwen.mongo.strategy.convert.impl.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -18,8 +16,6 @@ import java.util.*;
  * @author JiaChaoYang
  **/
 public class ConversionService {
-
-    static Logger logger = LoggerFactory.getLogger(ConversionStrategy.class);
 
     private static final Map<Class<?>, ConversionStrategy<?>> conversionStrategies = new HashMap<>();
 
@@ -41,6 +37,7 @@ public class ConversionService {
         conversionStrategies.put(Map.class,new MapConversionStrategy());
         conversionStrategies.put(Collection.class,new CollectionConversionStrategy());
         conversionStrategies.put(List.class,conversionStrategies.get(Collection.class));
+        conversionStrategies.put(Enum.class,new EnumConversionStrategy<>());
     }
 
     /**
@@ -97,14 +94,16 @@ public class ConversionService {
         if (clazz != null && clazz.length > 0) {
             fieldType = clazz[0];
         }
-        if (isMapType(fieldType)) {
+        if (Map.class.isAssignableFrom(fieldType)) {
             fieldType = Map.class;
         }
+        if (Collection.class.isAssignableFrom(fieldType)){
+            fieldType = Collection.class;
+        }
+        if (fieldType.isEnum()){
+            fieldType = Enum.class;
+        }
         return fieldType;
-    }
-
-    private static boolean isMapType(Class<?> fieldType) {
-        return Map.class.isAssignableFrom(fieldType);
     }
 
     private static ConversionStrategy<?> getConversionStrategy(Class<?> fieldType) {

@@ -79,10 +79,10 @@ public class MongoPlusClient {
     }
 
     public CollectionManager getCollectionManager(String database){
-        if (StringUtils.isBlank(database)){
-            database = getCollectionManagerMap().keySet().stream().findFirst().get();
-        }
         Map<String, CollectionManager> managerMap = getCollectionManagerMap().get(DataSourceNameCache.getDataSource());
+        if (StringUtils.isBlank(database)){
+            database = managerMap.keySet().stream().findFirst().get();
+        }
         if (null == managerMap || null == managerMap.get(database)){
             CollectionManager collectionManager = new CollectionManager(getMongoClient(), collectionNameConvert, database);
             getMongoDatabase().add(getMongoClient().getDatabase(database));

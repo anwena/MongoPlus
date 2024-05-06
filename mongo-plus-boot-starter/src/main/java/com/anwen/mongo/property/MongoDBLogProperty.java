@@ -14,9 +14,9 @@ public class MongoDBLogProperty {
 
     /**
      * 是否开启日志
-     * @author: JiaChaoYang
-     * @date: 2023/6/7 23:08
-     **/
+     * @author JiaChaoYang
+     * @date 2024/5/1 下午1:26
+     */
     private Boolean log = false;
 
     /**

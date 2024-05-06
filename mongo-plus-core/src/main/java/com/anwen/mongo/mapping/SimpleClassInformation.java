@@ -1,11 +1,12 @@
 package com.anwen.mongo.mapping;
 
 import com.anwen.mongo.cache.global.ClassInformationCache;
+import com.anwen.mongo.domain.MongoPlusFieldException;
 import com.anwen.mongo.toolkit.CollUtil;
-import com.mongodb.MongoException;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -98,6 +99,9 @@ public class SimpleClassInformation<T> implements ClassInformation {
         if (CollUtil.isEmpty(fieldList)){
             Arrays.stream(clazz.getDeclaredFields()).forEach(field -> {
                 field.setAccessible(true);
+                if (Modifier.isStatic(field.getModifiers())){
+                    return;
+                }
                 fieldList.add(new SimpleFieldInformation<>(instance,field));
             });
             getSupperFields(clazz.getSuperclass());
@@ -117,7 +121,7 @@ public class SimpleClassInformation<T> implements ClassInformation {
     public FieldInformation getAnnotationField(Class<? extends Annotation> annotationClass,String nullMessage){
         List<FieldInformation> fieldList = getAnnotationFields(annotationClass);
         if (CollUtil.isEmpty(fieldList)){
-            throw new MongoException(nullMessage);
+            throw new MongoPlusFieldException(nullMessage);
         }
         return fieldList.get(0);
     }

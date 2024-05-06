@@ -1,9 +1,9 @@
 package com.anwen.mongo.toolkit;
 
 import com.anwen.mongo.constant.SqlOperationConstant;
-import com.mongodb.MongoException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.anwen.mongo.domain.MongoPlusConvertException;
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -15,7 +15,7 @@ import static java.util.stream.Collectors.joining;
 
 public final class StringUtils {
 
-    static Logger logger = LoggerFactory.getLogger(StringUtils.class);
+    static Log log = LogFactory.getLog(StringUtils.class);
 
     /**
      * 字符串 is
@@ -101,12 +101,12 @@ public final class StringUtils {
         try {
             String str = String.valueOf(value);
             if (isBlank(str)){
-                throw new MongoException("value is empty");
+                throw new MongoPlusConvertException("value is empty");
             }
             return str;
         } catch (Exception e) {
-            logger.warn("Conversion to String failed, reason for failure: {}",e.getMessage());
-            throw new MongoException("Conversion to String failed");
+            log.warn("Conversion to String failed, reason for failure: {}",e.getMessage());
+            throw new MongoPlusConvertException("Conversion to String failed");
         }
     }
 

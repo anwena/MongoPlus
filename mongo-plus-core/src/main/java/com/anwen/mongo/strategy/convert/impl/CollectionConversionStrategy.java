@@ -1,13 +1,15 @@
 package com.anwen.mongo.strategy.convert.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.anwen.mongo.annotation.collection.CollectionField;
+import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.strategy.convert.ConversionStrategy;
 import com.anwen.mongo.toolkit.ClassTypeUtil;
+import org.bson.Document;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author JiaChaoYang
@@ -28,6 +30,14 @@ public class CollectionConversionStrategy implements ConversionStrategy<Collecti
                 }};
             }
         }
-        return JSON.parseArray(JSON.toJSONString(fieldValue), ClassTypeUtil.getListGenericType(field));
+        List<Object> arrayList = new ArrayList<>();
+        if (fieldValue instanceof Collection) {
+            ((ArrayList) fieldValue).forEach(value -> {
+                arrayList.add(DocumentMapperConvert.mapDocument((Document) value,ClassTypeUtil.getListGenericType(field),false));
+            });
+        } else {
+            arrayList.add(DocumentMapperConvert.mapDocument((Document) fieldValue,ClassTypeUtil.getListGenericType(field),false));
+        }
+        return arrayList/*JSON.parseArray(JSON.toJSONString(fieldValue), ClassTypeUtil.getListGenericType(field))*/;
     }
 }

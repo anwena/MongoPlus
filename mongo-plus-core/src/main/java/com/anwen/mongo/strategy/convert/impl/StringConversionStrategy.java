@@ -1,8 +1,8 @@
 package com.anwen.mongo.strategy.convert.impl;
 
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.strategy.convert.ConversionStrategy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 
@@ -13,7 +13,7 @@ import java.lang.reflect.Field;
  **/
 public class StringConversionStrategy implements ConversionStrategy<String> {
 
-    Logger logger = LoggerFactory.getLogger(StringConversionStrategy.class);
+    Log log = LogFactory.getLog(StringConversionStrategy.class);
 
     @Override
     public String convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
@@ -26,7 +26,7 @@ public class StringConversionStrategy implements ConversionStrategy<String> {
             }
             return String.valueOf(fieldValue);
         } catch (Exception e) {
-            logger.warn("Conversion to String failed, exception message: {}",e.getMessage());
+            log.warn("Conversion to String failed, exception message: {}",e.getMessage());
         }
         return null;
     }

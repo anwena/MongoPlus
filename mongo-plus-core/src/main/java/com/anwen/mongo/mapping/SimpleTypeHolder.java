@@ -55,7 +55,7 @@ public class SimpleTypeHolder {
      *
      * @see #SimpleTypeHolder(Set, boolean)
      */
-    protected SimpleTypeHolder() {
+    public SimpleTypeHolder() {
         this(Collections.emptySet(), true);
     }
 

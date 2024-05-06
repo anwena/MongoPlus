@@ -1,9 +1,9 @@
 package com.anwen.mongo.toolkit;
 
 import com.anwen.mongo.domain.InitMongoCollectionException;
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.model.BaseProperty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -18,7 +18,7 @@ import java.net.URLEncoder;
  */
 public class UrlJoint {
 
-    private static final Logger logger = LoggerFactory.getLogger(UrlJoint.class);
+    private static final Log log = LogFactory.getLog(UrlJoint.class);
 
     private final BaseProperty baseProperty;
 
@@ -37,7 +37,7 @@ public class UrlJoint {
                 baseProperty.setUsername(URLEncoder.encode(baseProperty.getUsername(), "UTF-8"));
                 baseProperty.setPassword(URLEncoder.encode(baseProperty.getPassword(),"UTF-8"));
             } catch (UnsupportedEncodingException e) {
-                logger.error(e.getMessage());
+                log.error(e.getMessage());
                 throw new RuntimeException(e);
             }
             uri.append(baseProperty.getUsername()).append(":").append(baseProperty.getPassword()).append("@");
@@ -165,7 +165,7 @@ public class UrlJoint {
         if (!mongodbUrl.contains("?")){
             mongodbUrl = mongodbUrl.replaceFirst("&", "?");
         }
-        logger.info("get connected：{}",mongodbUrl);
+        log.info(String.format("get connected：%s",mongodbUrl));
         return mongodbUrl;
     }
 

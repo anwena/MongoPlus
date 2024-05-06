@@ -7,6 +7,7 @@ import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.execute.Execute;
 import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.manager.MongoPlusClient;
+import com.anwen.mongo.mapping.MongoConverter;
 import com.anwen.mongo.model.PageResult;
 import com.mongodb.client.model.*;
 import org.bson.Document;
@@ -25,6 +26,8 @@ import java.util.List;
 public interface BaseMapper{
 
     MongoPlusClient getMongoPlusClient();
+
+    MongoConverter getMongoConverter();
 
     default Execute getExecute(){
         return new ExecutorFactory().getExecute();

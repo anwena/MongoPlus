@@ -286,6 +286,13 @@ public interface IService<T> {
     */
     T getById(Serializable id);
 
+    /**
+     * 根据多个id查询
+     * @param ids id集合
+     * @return {@link List<T>}
+     * @author anwen
+     * @date 2024/5/2 上午12:43
+     */
     List<T> getByIds(Collection<? extends Serializable> ids);
 
     /**

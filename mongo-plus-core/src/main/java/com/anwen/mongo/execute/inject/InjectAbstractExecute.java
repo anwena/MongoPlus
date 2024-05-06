@@ -9,21 +9,21 @@ import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.convert.Converter;
 import com.anwen.mongo.convert.DocumentMapperConvert;
+import com.anwen.mongo.domain.MongoPlusFieldException;
 import com.anwen.mongo.enums.SpecialConditionEnum;
-import com.anwen.mongo.execute.AbstractExecute;
 import com.anwen.mongo.execute.Execute;
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
+import com.anwen.mongo.mapping.MongoConverter;
 import com.anwen.mongo.model.*;
 import com.anwen.mongo.toolkit.*;
 import com.mongodb.BasicDBObject;
-import com.mongodb.MongoException;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.*;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.*;
@@ -40,9 +40,11 @@ public class InjectAbstractExecute {
 
     private final LambdaOperate lambdaOperate = new LambdaOperate();
 
-    private final Logger logger = LoggerFactory.getLogger(InjectAbstractExecute.class);
+    private final Log log = LogFactory.getLog(InjectAbstractExecute.class);
 
     private final Execute execute;
+
+    private MongoConverter mongoConverter;
 
     public CollectionManager getCollectionManager() {
         return collectionManager;
@@ -52,26 +54,27 @@ public class InjectAbstractExecute {
         return execute;
     }
 
-    public InjectAbstractExecute(CollectionManager collectionManager, Execute execute) {
+    public InjectAbstractExecute(CollectionManager collectionManager, Execute execute, MongoConverter mongoConverter) {
         this.collectionManager = collectionManager;
         this.execute = execute;
+        this.mongoConverter = mongoConverter;
     }
 
     public Boolean save(String collectionName, Map<String, Object> entityMap) {
         try {
-            return execute.executeSave(Collections.singletonList(DocumentUtil.handleMap(entityMap, true)),collectionManager.getCollection(collectionName)).wasAcknowledged();
+            return execute.executeSave(Collections.singletonList(mongoConverter.write(entityMap)),collectionManager.getCollection(collectionName)).wasAcknowledged();
         } catch (Exception e) {
-            logger.error("save fail , error info : {}", e.getMessage(), e);
+            log.error("save fail , error info : {}", e.getMessage(), e);
             return false;
         }
     }
 
     public Boolean saveBatch(String collectionName, Collection<Map<String, Object>> entityList) {
         try {
-            List<Document> documentList = DocumentUtil.handleMapList(entityList,true);
-            return execute.executeSave(documentList, collectionManager.getCollection(collectionName)).getInsertedIds().size() == entityList.size();
+//            List<Document> documentList = DocumentUtil.handleMapList(entityList,true);
+            return execute.executeSave(mongoConverter.writeByUpdateBatch(entityList), collectionManager.getCollection(collectionName)).getInsertedIds().size() == entityList.size();
         } catch (Exception e) {
-            logger.error("saveBatch fail , error info : {}", e.getMessage(), e);
+            log.error("saveBatch fail , error info : {}", e.getMessage(), e);
             return false;
         }
     }
@@ -88,7 +91,7 @@ public class InjectAbstractExecute {
         long count = count(collectionName,compareConditionList);
         if (count > 0){
             BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareConditionList);
-            Document document = DocumentUtil.handleMap(entityMap, false);
+            Document document = mongoConverter.write(entityMap);
             document.remove(SqlOperationConstant._ID);
             BasicDBObject updateField = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
             return execute.executeUpdate(queryBasic,updateField,collectionManager.getCollection(collectionName)).getModifiedCount() >= 1;
@@ -120,7 +123,7 @@ public class InjectAbstractExecute {
 
     public Boolean updateById(String collectionName, Map<String, Object> entityMap) {
         BasicDBObject filter = ExecuteUtil.getFilter(entityMap);
-        BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), DocumentUtil.handleMap(entityMap,false));
+        BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), mongoConverter.write(entityMap));
         return execute.executeUpdate(filter,update, collectionManager.getCollection(collectionName)).getModifiedCount() >= 1;
     }
 
@@ -134,11 +137,11 @@ public class InjectAbstractExecute {
 
     public Boolean updateByColumn(String collectionName, Map<String,Object> entityMap, String column) {
         if (!entityMap.containsKey(column)){
-            throw new MongoException(column+" undefined");
+            throw new MongoPlusFieldException(column+" undefined");
         }
         Object columnValue = entityMap.get(column);
         Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(columnValue)) ? new ObjectId(String.valueOf(columnValue)) : columnValue);
-        Document document = DocumentUtil.handleMap(entityMap,false);
+        Document document = mongoConverter.write(entityMap);
         return execute.executeUpdate(filter,document, collectionManager.getCollection(collectionName)).getModifiedCount() >= 1;
     }
 
@@ -236,7 +239,9 @@ public class InjectAbstractExecute {
                 append(SpecialConditionEnum.PUSH.getCondition(), BuildCondition.buildPushUpdateValue(pushConditionList));
             }
         }};
-        return execute.executeUpdate(queryBasic,DocumentUtil.handleBasicDBObject(basicDBObject),collectionManager.getCollection(collectionName)).getModifiedCount() >= 1;
+        BasicDBObject targetBasicDBObject = new BasicDBObject();
+        mongoConverter.write(basicDBObject,targetBasicDBObject);
+        return execute.executeUpdate(queryBasic,targetBasicDBObject,collectionManager.getCollection(collectionName)).getModifiedCount() >= 1;
     }
 
     public Boolean remove(String collectionName,List<CompareCondition> compareConditionList){
@@ -319,7 +324,7 @@ public class InjectAbstractExecute {
     }
 
     protected void aggregateOptions(AggregateIterable<?> aggregateIterable,BasicDBObject optionsBasicDBObject){
-        AbstractExecute.options(aggregateIterable, optionsBasicDBObject);
+        AggregateUtil.options(aggregateIterable, optionsBasicDBObject);
     }
 
 }

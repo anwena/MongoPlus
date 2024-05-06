@@ -1,9 +1,9 @@
 package com.anwen.mongo.strategy.convert.impl;
 
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.strategy.convert.ConversionStrategy;
 import com.anwen.mongo.toolkit.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 
@@ -14,15 +14,19 @@ import java.lang.reflect.Field;
  **/
 public class LongConversionStrategy implements ConversionStrategy<Long> {
 
-    Logger logger = LoggerFactory.getLogger(LongConversionStrategy.class);
+    Log log = LogFactory.getLog(LongConversionStrategy.class);
 
     @Override
     public Long convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
         Long value = null;
         try {
-            value = Long.parseLong(StringUtils.isNotBlankAndConvert(fieldValue));
+            if (fieldValue instanceof Long){
+                value = (Long) fieldValue;
+            } else {
+                value = Long.parseLong(StringUtils.isNotBlankAndConvert(fieldValue));
+            }
         } catch (Exception e) {
-            logger.warn("Conversion to Long failed, exception message: {}",e.getMessage());
+            log.warn("Conversion to Long failed, exception message: {}",e.getMessage());
         }
         return value;
     }

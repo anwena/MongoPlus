@@ -10,6 +10,7 @@ import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.manager.MongoPlusClient;
+import com.anwen.mongo.mapping.MongoConverter;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 import com.mongodb.client.MongoCollection;
@@ -45,9 +46,9 @@ public class MongoPlusMapMapper implements InjectQuery {
         return mongoPlusClient;
     }
 
-    public MongoPlusMapMapper(MongoPlusClient mongoPlusClient) {
+    public MongoPlusMapMapper(MongoPlusClient mongoPlusClient, MongoConverter mongoConverter) {
         this.mongoPlusClient = mongoPlusClient;
-        factory = new ExecutorFactory(mongoPlusClient);
+        factory = new ExecutorFactory(mongoPlusClient,mongoConverter);
     }
 
     /**

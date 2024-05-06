@@ -4,6 +4,7 @@ import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 /**
  * @author JiaChaoYang
@@ -30,9 +31,15 @@ public interface FieldInformation {
 
     boolean isSkipCheckField();
 
+    boolean isSkipCheckFieldAndId();
+
     boolean isId();
 
     ID getId();
+
+    Method getMethod();
+
+    Method setMethod();
 
     CollectionField getCollectionField();
 

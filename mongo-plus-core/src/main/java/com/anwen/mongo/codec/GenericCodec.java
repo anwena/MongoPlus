@@ -1,6 +1,8 @@
 package com.anwen.mongo.codec;
 
 import com.anwen.mongo.cache.codec.BsonWriterCache;
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.anwen.mongo.toolkit.CustomClassUtil;
 import com.anwen.mongo.toolkit.codec.RegisterCodecUtil;
@@ -11,8 +13,6 @@ import org.bson.codecs.Codec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
 import org.bson.codecs.configuration.CodecConfigurationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class GenericCodec<T> implements Codec<T> {
 
-    private final Logger logger = LoggerFactory.getLogger(GenericCodec.class);
+    private final Log log = LogFactory.getLog(GenericCodec.class);
 
     private final Class<T> clazz;
 
@@ -51,8 +51,8 @@ public class GenericCodec<T> implements Codec<T> {
         try {
             return RegisterCodecUtil.getCodec(clazz);
         }catch (CodecConfigurationException e){
-            if (logger.isDebugEnabled()){
-                logger.debug(e.getMessage());
+            if (log.isDebugEnabled()){
+                log.debug(e.getMessage());
             }
             return new GenericCodec<>(clazz);
         }
