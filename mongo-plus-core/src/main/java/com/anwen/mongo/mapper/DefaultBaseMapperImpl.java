@@ -44,8 +44,6 @@ import java.util.stream.Collectors;
 public class DefaultBaseMapperImpl implements BaseMapper {
     private final Log log = LogFactory.getLog(DefaultBaseMapperImpl.class);
 
-    private final CollectionNameConvert collectionNameConvert;
-
     private final MongoPlusClient mongoPlusClient;
 
     private final LambdaOperate lambdaOperate = new LambdaOperate();
@@ -55,7 +53,6 @@ public class DefaultBaseMapperImpl implements BaseMapper {
     private final MongoConverter mongoConverter;
 
     public DefaultBaseMapperImpl(MongoPlusClient mongoPlusClient,MongoConverter mongoConverter) {
-        this.collectionNameConvert = mongoPlusClient.getCollectionNameConvert();
         this.mongoPlusClient = mongoPlusClient;
         this.mongoConverter = mongoConverter;
     }
@@ -115,26 +112,8 @@ public class DefaultBaseMapperImpl implements BaseMapper {
 
     @Override
     public <T> Boolean update(T entity,QueryChainWrapper<T,?> queryChainWrapper){
-        MutablePair<BasicDBObject, BasicDBObject> updatePair = getUpdateCondition(queryChainWrapper.getCompareList(), entity);
+        MutablePair<BasicDBObject, BasicDBObject> updatePair = ConditionUtil.getUpdateCondition(queryChainWrapper.getCompareList(), entity,mongoConverter);
         return factory.getExecute().executeUpdate(updatePair.getLeft(),updatePair.getRight(),mongoPlusClient.getCollection(ClassTypeUtil.getClass(entity))).getModifiedCount() > 0;
-    }
-
-    private Boolean buildRemove(Serializable id, MongoCollection<Document> collection) {
-        Bson filterId = Filters.eq(SqlOperationConstant._ID, ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id);
-        return factory.getExecute().executeRemove(filterId,collection).getDeletedCount() >= 1;
-    }
-
-    public Boolean executeRemoveByColumn(String column,Object value,MongoCollection<Document> collection){
-        Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(value)) ? new ObjectId(String.valueOf(value)) : value);
-        return factory.getExecute().executeRemove(filter,collection).getDeletedCount() >= 1;
-    }
-
-    private Boolean executeRemoveBatchByIds(Collection<? extends Serializable> idList,MongoCollection<Document> collection){
-        List<Serializable> convertedIds = idList.stream()
-                .map(id -> ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id)
-                .collect(Collectors.toList());
-        Bson objectIdBson = Filters.in(SqlOperationConstant._ID, convertedIds);
-        return factory.getExecute().executeRemove(objectIdBson,collection).getDeletedCount() >= 1;
     }
 
     @Override
@@ -383,27 +362,6 @@ public class DefaultBaseMapperImpl implements BaseMapper {
                 .map(id -> ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id)
                 .collect(Collectors.toList());
         return new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.IN.getCondition(), convertedIds));
-    }
-
-    protected <T> MutablePair<BasicDBObject,BasicDBObject> getUpdateCondition(List<CompareCondition> compareConditionList, T entity){
-        BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareConditionList);
-        Document document = mongoConverter.writeByUpdate(entity);
-//        Document document = DocumentUtil.checkUpdateField(entity,false);
-        document.remove(SqlOperationConstant._ID);
-        BasicDBObject updateField = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
-        return new MutablePair<>(queryBasic,updateField);
-    }
-
-    @Override
-    public <T> Document processIdField(T entity,Boolean skip){
-        /*Document tableFieldMap = DocumentUtil.checkTableField(entity);
-        fillId(entity, tableFieldMap);
-        if (HandlerCache.documentHandler != null && !skip){
-            //经过一下Document处理器
-            tableFieldMap = HandlerCache.documentHandler.insertInvoke(Collections.singletonList(tableFieldMap)).get(0);
-        }
-        return tableFieldMap;*/
-        return mongoConverter.writeBySave(entity);
     }
 
 }

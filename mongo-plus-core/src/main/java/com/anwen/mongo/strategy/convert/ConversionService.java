@@ -36,7 +36,6 @@ public class ConversionService {
         conversionStrategies.put(BigInteger.class,new BigIntegerConversionStrategy());
         conversionStrategies.put(Map.class,new MapConversionStrategy());
         conversionStrategies.put(Collection.class,new CollectionConversionStrategy());
-        conversionStrategies.put(List.class,conversionStrategies.get(Collection.class));
         conversionStrategies.put(Enum.class,new EnumConversionStrategy<>());
     }
 

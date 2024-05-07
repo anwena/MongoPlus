@@ -26,10 +26,7 @@ import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * 抽象的映射处理器
@@ -53,14 +50,14 @@ public abstract class AbstractMongoConverter implements MongoConverter {
     @Override
     public void writeBySave(Object sourceObj, Document document) {
         //封装class信息
-        ClassInformation classInformation = SimpleClassInformation.of(sourceObj);
+        TypeInformation typeInformation = TypeInformation.of(sourceObj);
         //如果存在元对象处理器，且插入或更新字段为空，则获取自动填充字段
         if (HandlerCache.metaObjectHandler != null && insertFillAutoFillMetaObject.isEmpty()){
             //获取所有自动填充数据
-            getFillInsertAndUpdateField(classInformation,insertFillAutoFillMetaObject,updateFillAutoFillMetaObject);
+            getFillInsertAndUpdateField(typeInformation,insertFillAutoFillMetaObject,updateFillAutoFillMetaObject);
         }
         //拿到类中的@ID字段
-        FieldInformation idFieldInformation = classInformation.getAnnotationField(ID.class, "@ID field not found");
+        FieldInformation idFieldInformation = typeInformation.getAnnotationField(ID.class, "@ID field not found");
         //如果没有设置
         Object idValue = idFieldInformation.getValue();
         if (idValue != null){
@@ -68,7 +65,7 @@ public abstract class AbstractMongoConverter implements MongoConverter {
                 document.put(SqlOperationConstant._ID, new ObjectId(String.valueOf(idValue)));
             }
         } else {
-            idValue = generateId(idFieldInformation.getId().type(),classInformation);
+            idValue = generateId(idFieldInformation.getId().type(), typeInformation);
         }
         if (idValue != null){
             try {
@@ -100,14 +97,14 @@ public abstract class AbstractMongoConverter implements MongoConverter {
     @Override
     public void writeByUpdate(Object sourceObj, Document document) {
         //封装class信息
-        ClassInformation classInformation = SimpleClassInformation.of(sourceObj);
+        TypeInformation typeInformation = TypeInformation.of(sourceObj);
         //如果存在元对象处理器，且插入或更新字段为空，则获取自动填充字段
         if (HandlerCache.metaObjectHandler != null && updateFillAutoFillMetaObject.isEmpty()){
             //获取所有自动填充数据
-            getFillInsertAndUpdateField(classInformation,insertFillAutoFillMetaObject,updateFillAutoFillMetaObject);
+            getFillInsertAndUpdateField(typeInformation,insertFillAutoFillMetaObject,updateFillAutoFillMetaObject);
         }
         //拿到类中的@ID字段
-        FieldInformation idFieldInformation = classInformation.getAnnotationField(ID.class, "@ID field not found");
+        FieldInformation idFieldInformation = typeInformation.getAnnotationField(ID.class, "@ID field not found");
         if (idFieldInformation.getValue() != null) {
             document.put(SqlOperationConstant._ID, idFieldInformation.getValue());
         }
@@ -132,28 +129,48 @@ public abstract class AbstractMongoConverter implements MongoConverter {
         }
         //如果为空，则创建一个
         bson = bson != null ? bson : new Document();
-        write(sourceObj,bson,SimpleClassInformation.of(sourceObj));
+        write(sourceObj,bson, TypeInformation.of(sourceObj));
+    }
+
+    @Override
+    public <T> T entityRead(Document document, Class<T> clazz) {
+        //拿到class封装类
+        TypeInformation typeInformation = TypeInformation.of(clazz);
+        //循环所有字段
+        typeInformation.getFields().forEach(fieldInformation -> {
+            String fieldName = fieldInformation.getIdOrCamelCaseName();
+            if (fieldInformation.isSkipCheckField()){
+                return;
+            }
+            Object obj = document.get(fieldName);
+            if (obj == null){
+                return;
+            }
+            obj = fieldInformation.isId() ? String.valueOf(obj) : obj;
+            fieldInformation.setValue(read(fieldInformation,obj,fieldInformation.getTypeClass()));
+        });
+        return typeInformation.getInstance();
     }
 
     /**
      * 抽象的映射方法
      * @param sourceObj        映射源对象
      * @param bson             映射对象
-     * @param classInformation 类信息
+     * @param typeInformation 类信息
      * @author anwen
      * @date 2024/5/1 下午6:40
      */
-    public abstract void write(Object sourceObj, Bson bson, ClassInformation classInformation);
+    public abstract void write(Object sourceObj, Bson bson, TypeInformation typeInformation);
 
     /**
      * 生成id，写在这里，方便自己自定义
      * @param idTypeEnum id枚举类型
-     * @param classInformation 类信息
+     * @param typeInformation 类信息
      * @return {@link Serializable}
      * @author anwen
      * @date 2024/5/1 下午9:26
      */
-    public Serializable generateId(IdTypeEnum idTypeEnum,ClassInformation classInformation){
+    public Serializable generateId(IdTypeEnum idTypeEnum, TypeInformation typeInformation){
         if (idTypeEnum.getKey() == IdTypeEnum.ASSIGN_UUID.getKey()){
             return IdWorker.get32UUID();
         }
@@ -164,24 +181,24 @@ public abstract class AbstractMongoConverter implements MongoConverter {
             return IdWorker.getId();
         }
         if (idTypeEnum.getKey() == IdTypeEnum.AUTO.getKey()){
-            return generateAutoId(classInformation);
+            return generateAutoId(typeInformation);
         }
         return null;
     }
 
     /**
      * 生成自增id，写在这里，方便自定义
-     * @param classInformation 类信息
+     * @param typeInformation 类信息
      * @return {@link Integer}
      * @author anwen
      * @date 2024/5/1 下午9:26
      */
-    public Integer generateAutoId(ClassInformation classInformation){
+    public Integer generateAutoId(TypeInformation typeInformation){
         CollectionNameConvert collectionNameConvert = mongoPlusClient.getCollectionNameConvert();
-        String collectionName = collectionNameConvert.convert(classInformation.getClazz());
+        String collectionName = collectionNameConvert.convert(typeInformation.getClazz());
         // 每个Collection单独加锁
         synchronized (collectionName.intern()) {
-            MongoCollection<Document> collection = mongoPlusClient.getCollection(classInformation.getClazz(), PropertyCache.autoIdCollectionName);
+            MongoCollection<Document> collection = mongoPlusClient.getCollection(typeInformation.getClazz(), PropertyCache.autoIdCollectionName);
             Document query = new Document(SqlOperationConstant._ID, collectionName);
             Document update = new Document("$inc", new Document(SqlOperationConstant.AUTO_NUM, 1));
             Document document = Optional.ofNullable(MongoTransactionContext.getClientSessionContext())
@@ -224,8 +241,8 @@ public abstract class AbstractMongoConverter implements MongoConverter {
         return Enum.class.isAssignableFrom(value.getClass()) ? ((Enum<?>) value).name() : value;
     }
 
-    public void getFillInsertAndUpdateField(ClassInformation classInformation, AutoFillMetaObject insertFillAutoFillMetaObject, AutoFillMetaObject updateFillAutoFillMetaObject){
-        classInformation.getFields().forEach(field -> {
+    public void getFillInsertAndUpdateField(TypeInformation typeInformation, AutoFillMetaObject insertFillAutoFillMetaObject, AutoFillMetaObject updateFillAutoFillMetaObject){
+        typeInformation.getFields().forEach(field -> {
             CollectionField collectionField = field.getCollectionField();
             if (collectionField != null && collectionField.fill() != FieldFill.DEFAULT){
                 MongoPlusDocument insertFillAutoField = insertFillAutoFillMetaObject.getAllFillField();

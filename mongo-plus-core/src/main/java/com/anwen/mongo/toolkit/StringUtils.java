@@ -770,26 +770,4 @@ public final class StringUtils {
         }
         return true;
     }
-
-    /**
-     * SQL 注入字符串去除空白内容：
-     * <ul>
-     *     <li>\n 回车</li>
-     *     <li>\t 水平制表符</li>
-     *     <li>\s 空格</li>
-     *     <li>\r 换行</li>
-     * </ul>
-     *
-     * @param str 字符串
-     */
-    public static String sqlInjectionReplaceBlank(String str) {
-        if (SqlInjectionUtils.check(str)) {
-            /*
-              存在 SQL 注入，去除空白内容
-             */
-            Matcher matcher = REPLACE_BLANK.matcher(str);
-            return matcher.replaceAll("");
-        }
-        return str;
-    }
 }

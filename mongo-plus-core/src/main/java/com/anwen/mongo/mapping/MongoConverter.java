@@ -12,7 +12,7 @@ import java.util.Map;
  * @author JiaChaoYang
  * @date 2024/4/16 下午9:10
 */ 
-public interface MongoConverter extends MongoWriter {
+public interface MongoConverter extends MongoWriter,EntityRead {
 
     /**
      * 添加的映射器
@@ -66,5 +66,7 @@ public interface MongoConverter extends MongoWriter {
         });
         return documentList;
     }
+
+    <T> T entityRead(Document document, Class<T> clazz);
 
 }

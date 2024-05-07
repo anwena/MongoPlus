@@ -44,7 +44,7 @@ public class InjectAbstractExecute {
 
     private final Execute execute;
 
-    private MongoConverter mongoConverter;
+    private final MongoConverter mongoConverter;
 
     public CollectionManager getCollectionManager() {
         return collectionManager;

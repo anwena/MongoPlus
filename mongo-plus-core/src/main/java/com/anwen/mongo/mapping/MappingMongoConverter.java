@@ -1,13 +1,24 @@
 package com.anwen.mongo.mapping;
 
+import com.alibaba.fastjson.JSON;
+import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.cache.global.PropertyCache;
+import com.anwen.mongo.domain.MongoPlusConvertException;
 import com.anwen.mongo.domain.MongoPlusWriteException;
 import com.anwen.mongo.manager.MongoPlusClient;
+import com.anwen.mongo.strategy.conversion.ConversionStrategy;
+import com.anwen.mongo.strategy.conversion.impl.IntegerConversionStrategy;
 import com.anwen.mongo.toolkit.BsonUtil;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.*;
 
 /**
@@ -17,15 +28,20 @@ import java.util.*;
  **/
 public class MappingMongoConverter extends AbstractMongoConverter {
 
+    private static final Logger log = LoggerFactory.getLogger(MappingMongoConverter.class);
     private final SimpleTypeHolder simpleTypeHolder = new SimpleTypeHolder();
+
+    private final Map<Class<?>, ConversionStrategy<?>> conversionStrategies = new HashMap<Class<?>, ConversionStrategy<?>>(){{
+        put(Integer.class,new IntegerConversionStrategy());
+    }};
 
     public MappingMongoConverter(MongoPlusClient mongoPlusClient) {
         super(mongoPlusClient);
     }
 
     @Override
-    public void write(Object sourceObj, Bson bson, ClassInformation classInformation){
-        classInformation.getFields().stream()
+    public void write(Object sourceObj, Bson bson, TypeInformation typeInformation){
+        typeInformation.getFields().stream()
                 .filter(fieldInformation -> !fieldInformation.isSkipCheckField() && !fieldInformation.isId())
                 .forEach(fieldInformation -> writeProperties(bson, fieldInformation.getName(), fieldInformation.getValue()));
     }
@@ -41,7 +57,7 @@ public class MappingMongoConverter extends AbstractMongoConverter {
      * @date 2024/5/1 下午11:44
      */
     public Bson writeInternal(Object sourceObj, Bson bson){
-        SimpleClassInformation.of(sourceObj).getFields().stream()
+        TypeInformation.of(sourceObj).getFields().stream()
                 .filter(fieldInformation -> !fieldInformation.isSkipCheckField())
                 .forEach(fieldInformation -> writeProperties(bson, fieldInformation.getName(), fieldInformation.getValue()));
         return bson;
@@ -126,6 +142,159 @@ public class MappingMongoConverter extends AbstractMongoConverter {
         if (HandlerCache.documentHandler != null && bson instanceof Document){
             HandlerCache.documentHandler.insertInvoke(Collections.singletonList((Document) bson));
         }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T read(FieldInformation fieldInformation, Object sourceObj, Class<T> clazz) {
+        ConversionStrategy<?> conversionStrategy = getConversionStrategy(clazz);
+        try {
+            if (Collection.class.isAssignableFrom(clazz) && null == conversionStrategy){
+                Type type = getGenericTypeClass((ParameterizedType) fieldInformation.getField().getGenericType(), 0);
+//                return (T) convertCollection(type,fieldInformation.getTypeClass(),sourceObj);
+            }
+            return (T) conversionStrategy.convertValue(sourceObj, fieldInformation.getTypeClass() , this);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T convertValue(Object obj,Class<?> clazz){
+        ConversionStrategy<?> conversionStrategy = getConversionStrategy(clazz);
+        try {
+            return (T) conversionStrategy.convertValue(obj,clazz,this);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static String getActualType(Object o,int index) {
+        Type clazz = o.getClass().getGenericSuperclass();
+        ParameterizedType pt = (ParameterizedType)clazz;
+        return pt.getActualTypeArguments()[index].toString();
+    }
+
+    /**
+     * 集合单独处理
+     * @author anwen
+     * @date 2024/5/6 下午1:14
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public Collection<?> convertCollection(Type type, Object fieldValue, Collection collection) {
+        // 如果fieldValue不是Collection类型，则将其转换为单元素的ArrayList
+        if (!(fieldValue instanceof Collection<?>)) {
+            Object finalFieldValue = fieldValue;
+            fieldValue = new ArrayList<Object>() {{
+                add(finalFieldValue);
+            }};
+        }
+
+        // 获取集合的泛型类型
+        Type collectionType = getGenericTypeClass((ParameterizedType) type, 0);
+        Class<?> collectionClass = getRawClass(collectionType);
+
+        // 处理集合元素
+        List valueList = (ArrayList) fieldValue;
+        if (simpleTypeHolder.isSimpleType(collectionClass)) {
+            // 如果泛型类型是简单类型，则直接添加到集合中
+            valueList.forEach(value -> {
+                collection.add(convertValue(value, value.getClass()));
+                System.out.printf("class：%s，值：%s%n", collectionClass, valueList);
+            });
+        } else if (Collection.class.isAssignableFrom(collectionClass)) {
+            // 如果泛型类型是集合类型，则递归处理
+            try {
+                Collection<?> collectionInstance = createCollectionInstance(collectionClass);
+                collection.addAll(convertCollection(collectionType, fieldValue, collectionInstance));
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+                     NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return collection;
+    }
+
+    /**
+     * 获取泛型的原始类
+     */
+    private Class<?> getRawClass(Type type) {
+        if (type instanceof Class) {
+            return (Class<?>) type;
+        } else if (type instanceof ParameterizedType) {
+            return (Class<?>) ((ParameterizedType) type).getRawType();
+        } else {
+            throw new RuntimeException("Unknown type: " + type);
+        }
+    }
+
+    /**
+     * 创建指定类型的集合实例
+     */
+    private Collection<?> createCollectionInstance(Class<?> collectionClass) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        return collectionClass.isAssignableFrom(ArrayList.class) ? new ArrayList<>() : (Collection<?>) collectionClass.getDeclaredConstructor().newInstance();
+    }
+
+
+    @SuppressWarnings("rawtypes")
+    public <V> Map<String,V> convertMap(ParameterizedType parameterizedType,Class<?> fieldType,Object fieldValue){
+        Document document = (Document) fieldValue;
+        Map map;
+        try {
+            map = fieldType.equals(Map.class) ? new HashMap() : (Map) fieldType.getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
+            throw new MongoPlusConvertException("Failed to create a Map instance",e);
+        }
+
+        document.forEach((k,v)->{
+
+        });
+        return null;
+    }
+
+    public static void main(String[] args) {
+        /*TypeInformation typeInformation = TypeInformation.of(Test.class);
+        FieldInformation fieldInformation = typeInformation.getAnnotationField(ID.class,"");
+        Type type = getGenericTypeClass((ParameterizedType) fieldInformation.getField().getGenericType(), 0);
+        System.out.println(((ParameterizedType)type).getRawType());
+        System.out.println(getGenericTypeClass(((ParameterizedType)type),0));*/
+        Document document = new Document();
+        document.put("list",new ArrayList<Integer>(){{
+            add(1);
+            add(2);
+            add(3);
+        }});
+        MappingMongoConverter mappingMongoConverter = new MappingMongoConverter(null);
+        TypeInformation typeInformation = TypeInformation.of(Test.class);
+        FieldInformation annotationField = typeInformation.getAnnotationField(ID.class, "");
+        List<Test> list = new ArrayList<>();
+        Collection<?> objects = mappingMongoConverter.convertCollection(annotationField.getField().getGenericType(), document.get("list"), list);
+        annotationField.setValue(objects);
+        Test instance = typeInformation.getInstance();
+        System.out.println(JSON.toJSONString(instance));
+    }
+
+    /**
+     * 获取type的泛型
+     * @author anwen
+     * @date 2024/5/6 下午9:19
+     */
+    public static Type getGenericTypeClass(ParameterizedType parameterizedType,int size){
+        return parameterizedType.getActualTypeArguments()[size];
+    }
+
+    private ConversionStrategy<?> getConversionStrategy(Class<?> target){
+        Class<?> clazz = target;
+        if (Map.class.isAssignableFrom(target)){
+            clazz = Map.class;
+        } else if (Collection.class.isAssignableFrom(target)){
+            clazz = Collection.class;
+        }
+        ConversionStrategy<?> conversionStrategy = conversionStrategies.get(clazz);
+        if (conversionStrategy == null){
+            conversionStrategy = conversionStrategies.get(Object.class);
+        }
+        return conversionStrategy;
     }
 
 }

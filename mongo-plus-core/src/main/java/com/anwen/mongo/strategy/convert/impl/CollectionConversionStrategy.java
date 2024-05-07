@@ -2,11 +2,13 @@ package com.anwen.mongo.strategy.convert.impl;
 
 import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.convert.DocumentMapperConvert;
+import com.anwen.mongo.domain.MongoPlusConvertException;
 import com.anwen.mongo.strategy.convert.ConversionStrategy;
 import com.anwen.mongo.toolkit.ClassTypeUtil;
 import org.bson.Document;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -20,6 +22,7 @@ import java.util.List;
 public class CollectionConversionStrategy implements ConversionStrategy<Collection<?>> {
 
     @Override
+    @SuppressWarnings({"unchecked","rawtypes"})
     public Collection<?> convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
         if (!(fieldValue instanceof Collection<?>)){
             CollectionField collectionField = field.getAnnotation(CollectionField.class);
@@ -30,7 +33,13 @@ public class CollectionConversionStrategy implements ConversionStrategy<Collecti
                 }};
             }
         }
-        List<Object> arrayList = new ArrayList<>();
+        Class<?> fieldType = field.getType();
+        Collection<Object> arrayList;
+        try {
+            arrayList = fieldType.isAssignableFrom(ArrayList.class) ? new ArrayList<>() : (Collection<Object>) fieldType.getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | InvocationTargetException | NoSuchMethodException e) {
+            throw new MongoPlusConvertException("Failed to create Collection instance",e);
+        }
         if (fieldValue instanceof Collection) {
             ((ArrayList) fieldValue).forEach(value -> {
                 arrayList.add(DocumentMapperConvert.mapDocument((Document) value,ClassTypeUtil.getListGenericType(field),false));

@@ -1,6 +1,6 @@
 package com.anwen.mongo.cache.global;
 
-import com.anwen.mongo.mapping.ClassInformation;
+import com.anwen.mongo.mapping.TypeInformation;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,6 +10,6 @@ import java.util.Map;
  **/
 public class ClassInformationCache {
 
-    public static Map<Class<?>, ClassInformation> classInformationMap = new HashMap<>();
+    public static Map<Class<?>, TypeInformation> classInformationMap = new HashMap<>();
 
 }
