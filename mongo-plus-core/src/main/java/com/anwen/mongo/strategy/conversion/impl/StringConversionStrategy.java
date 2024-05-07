@@ -5,8 +5,6 @@ import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.mapping.MongoConverter;
 import com.anwen.mongo.strategy.conversion.ConversionStrategy;
 
-import java.lang.reflect.Field;
-
 /**
  * String类型转换策略
  *

@@ -15,6 +15,7 @@ import com.anwen.mongo.logging.Log;
 import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.model.AutoFillMetaObject;
+import com.anwen.mongo.strategy.conversion.ConversionStrategy;
 import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.toolkit.BsonUtil;
 import com.anwen.mongo.toolkit.CollUtil;
@@ -26,6 +27,8 @@ import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import java.io.Serializable;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.*;
 
 /**
@@ -133,7 +136,7 @@ public abstract class AbstractMongoConverter implements MongoConverter {
     }
 
     @Override
-    public <T> T entityRead(Document document, Class<T> clazz) {
+    public <T> T read(Document document, Class<T> clazz) {
         //拿到class封装类
         TypeInformation typeInformation = TypeInformation.of(clazz);
         //循环所有字段
@@ -152,6 +155,25 @@ public abstract class AbstractMongoConverter implements MongoConverter {
         return typeInformation.getInstance();
     }
 
+    @Override
+    public <T> T readInternal(Document document, Class<T> clazz){
+        //拿到class封装类
+        TypeInformation typeInformation = TypeInformation.of(clazz);
+        //循环所有字段
+        typeInformation.getFields().forEach(fieldInformation -> {
+            String fieldName = fieldInformation.getCamelCaseName();
+            if (fieldInformation.isSkipCheckField()){
+                return;
+            }
+            Object obj = document.get(fieldName);
+            if (obj == null){
+                return;
+            }
+            fieldInformation.setValue(read(fieldInformation,obj,fieldInformation.getTypeClass()));
+        });
+        return typeInformation.getInstance();
+    }
+
     /**
      * 抽象的映射方法
      * @param sourceObj        映射源对象
@@ -161,6 +183,13 @@ public abstract class AbstractMongoConverter implements MongoConverter {
      * @date 2024/5/1 下午6:40
      */
     public abstract void write(Object sourceObj, Bson bson, TypeInformation typeInformation);
+
+    /**
+     * 映射
+     * @author anwen
+     * @date 2024/5/7 下午5:11
+     */
+    public abstract <T> T read(FieldInformation fieldInformation,Object sourceObj, Class<T> clazz);
 
     /**
      * 生成id，写在这里，方便自己自定义

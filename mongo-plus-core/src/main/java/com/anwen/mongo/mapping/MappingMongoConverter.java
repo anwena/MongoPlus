@@ -1,26 +1,28 @@
 package com.anwen.mongo.mapping;
 
-import com.alibaba.fastjson.JSON;
-import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.cache.global.PropertyCache;
 import com.anwen.mongo.domain.MongoPlusConvertException;
 import com.anwen.mongo.domain.MongoPlusWriteException;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.strategy.conversion.ConversionStrategy;
-import com.anwen.mongo.strategy.conversion.impl.IntegerConversionStrategy;
+import com.anwen.mongo.strategy.conversion.impl.*;
 import com.anwen.mongo.toolkit.BsonUtil;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 将对象映射为Document
@@ -32,9 +34,25 @@ public class MappingMongoConverter extends AbstractMongoConverter {
     private static final Logger log = LoggerFactory.getLogger(MappingMongoConverter.class);
     private final SimpleTypeHolder simpleTypeHolder = new SimpleTypeHolder();
 
-    private final Map<Class<?>, ConversionStrategy<?>> conversionStrategies = new HashMap<Class<?>, ConversionStrategy<?>>(){{
-        put(Integer.class,new IntegerConversionStrategy());
-    }};
+    private final Map<Class<?>, ConversionStrategy<?>> conversionStrategies = new HashMap<>();
+
+    {
+        conversionStrategies.put(Integer.class,new IntegerConversionStrategy());
+        conversionStrategies.put(Long.class, new LongConversionStrategy());
+        conversionStrategies.put(Double.class, new DoubleConversionStrategy());
+        conversionStrategies.put(Float.class, new FloatConversionStrategy());
+        conversionStrategies.put(Boolean.class, new BooleanConversionStrategy());
+        conversionStrategies.put(String.class, new StringConversionStrategy());
+        conversionStrategies.put(LocalTime.class,new LocalTimeConversionStrategy());
+        conversionStrategies.put(LocalDate.class,new LocalDateConversionStrategy());
+        conversionStrategies.put(LocalDateTime.class,new LocalDateTimeConversionStrategy());
+        conversionStrategies.put(Date.class,new DateConversionStrategy());
+        conversionStrategies.put(Instant.class,new InstantConversionStrategy());
+        conversionStrategies.put(Object.class,new DefaultConversionStrategy());
+        conversionStrategies.put(BigDecimal.class,new BigDecimalConversionStrategy());
+        conversionStrategies.put(BigInteger.class,new BigIntegerConversionStrategy());
+        conversionStrategies.put(Enum.class,new EnumConversionStrategy<>());
+    }
 
     public MappingMongoConverter(MongoPlusClient mongoPlusClient) {
         super(mongoPlusClient);
@@ -147,7 +165,7 @@ public class MappingMongoConverter extends AbstractMongoConverter {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T read(FieldInformation fieldInformation, Object sourceObj, Class<T> clazz) {
+    public <T> T read(FieldInformation fieldInformation,Object sourceObj, Class<T> clazz) {
         ConversionStrategy<?> conversionStrategy = getConversionStrategy(clazz);
         try {
             if (Collection.class.isAssignableFrom(clazz) && null == conversionStrategy){
@@ -157,6 +175,8 @@ public class MappingMongoConverter extends AbstractMongoConverter {
             if (Map.class.isAssignableFrom(clazz) && null == conversionStrategy){
                 Type type = getGenericTypeClass((ParameterizedType) fieldInformation.getField().getGenericType(), 1);
                 return (T) convertMap(type,sourceObj,createMapInstance(clazz));
+            } else if (null == conversionStrategy){
+                conversionStrategy = conversionStrategies.get(Object.class);
             }
             return (T) conversionStrategy.convertValue(sourceObj, fieldInformation.getTypeClass() , this);
         } catch (IllegalAccessException e) {
@@ -164,9 +184,20 @@ public class MappingMongoConverter extends AbstractMongoConverter {
         }
     }
 
+    /**
+     * 调用该方法，肯定会走集合和map之外的转换器
+     * @param obj 值
+     * @param clazz 类型
+     * @return {@link T}
+     * @author anwen
+     * @date 2024/5/7 下午4:05
+     */
     @SuppressWarnings("unchecked")
     public <T> T convertValue(Object obj,Class<?> clazz){
         ConversionStrategy<?> conversionStrategy = getConversionStrategy(clazz);
+        if (conversionStrategy == null){
+            conversionStrategy = conversionStrategies.get(Object.class);
+        }
         try {
             return (T) conversionStrategy.convertValue(obj,clazz,this);
         } catch (IllegalAccessException e) {
@@ -207,6 +238,8 @@ public class MappingMongoConverter extends AbstractMongoConverter {
             collection.add(collectionInstance);
         } else if (Map.class.isAssignableFrom(metaClass)){
             valueList.forEach(value -> collection.add(convertMap(getGenericTypeClass((ParameterizedType) type, 1),value,createMapInstance(metaClass))));
+        } else {
+            valueList.forEach(value -> collection.add(readInternal((Document) value, metaClass)));
         }
         return collection;
     }
@@ -224,6 +257,8 @@ public class MappingMongoConverter extends AbstractMongoConverter {
             document.forEach((k,v) -> map.put(k,convertCollection(getGenericTypeClass((ParameterizedType) type, 1),v,createCollectionInstance(rawClass))));
         } else if (Map.class.isAssignableFrom(rawClass)){
             document.forEach((k,v) -> map.put(k,convertMap(getGenericTypeClass((ParameterizedType) type, 1),v,createMapInstance(rawClass))));
+        } else {
+            document.forEach((k,v) -> map.put(k,readInternal((Document) v, rawClass)));
         }
         return map;
     }
@@ -244,6 +279,7 @@ public class MappingMongoConverter extends AbstractMongoConverter {
     /**
      * 创建指定类型的集合实例
      */
+    @SuppressWarnings("rawtypes")
     private Collection<?> createCollectionInstance(Class<?> collectionClass) {
         Collection collection;
         try {
@@ -258,6 +294,7 @@ public class MappingMongoConverter extends AbstractMongoConverter {
         return collection;
     }
 
+    @SuppressWarnings("rawtypes")
     public Map createMapInstance(Class<?> mapClass){
         Map map;
         try {
@@ -272,24 +309,6 @@ public class MappingMongoConverter extends AbstractMongoConverter {
         return map;
     }
 
-    public static void main(String[] args) {
-        Document document = new Document();
-        document.put("list",new ArrayList<Document>(){{
-            add(new Document("a",new Document("a",1)));
-            add(new Document("b",new Document("b",2)));
-            add(new Document("c",new Document("c",3)));
-        }});
-        MappingMongoConverter mappingMongoConverter = new MappingMongoConverter(null);
-        TypeInformation typeInformation = TypeInformation.of(Test.class);
-        FieldInformation annotationField = typeInformation.getAnnotationField(ID.class, "");
-        Object read = mappingMongoConverter.read(annotationField, document.get("list"), annotationField.getTypeClass());
-        annotationField.setValue(read);
-        Test instance = typeInformation.getInstance();
-        ArrayList<LinkedList<Map<String, ConcurrentHashMap<String, Integer>>>> list1 = instance.getList();
-        LinkedList<Map<String, ConcurrentHashMap<String, Integer>>> maps = list1.get(0);
-        maps.forEach(stringConcurrentHashMapMap -> stringConcurrentHashMapMap.forEach((k, v) -> System.out.println(k+"--"+v)));
-    }
-
     /**
      * 获取type的泛型
      * @author anwen
@@ -300,17 +319,10 @@ public class MappingMongoConverter extends AbstractMongoConverter {
     }
 
     private ConversionStrategy<?> getConversionStrategy(Class<?> target){
-        Class<?> clazz = target;
-        if (Map.class.isAssignableFrom(target)){
-            clazz = Map.class;
-        } else if (Collection.class.isAssignableFrom(target)){
-            clazz = Collection.class;
+        if (Enum.class.isAssignableFrom(target)){
+            target = Enum.class;
         }
-        ConversionStrategy<?> conversionStrategy = conversionStrategies.get(clazz);
-        if (conversionStrategy == null){
-            conversionStrategy = conversionStrategies.get(Object.class);
-        }
-        return conversionStrategy;
+        return conversionStrategies.get(target);
     }
 
 }

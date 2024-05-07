@@ -1,5 +1,7 @@
 package com.anwen.mongo.mapping;
 
+import org.bson.Document;
+
 /**
  * Mongo对象映射为Bean
  * @author anwen
@@ -7,6 +9,6 @@ package com.anwen.mongo.mapping;
  */
 public interface EntityRead {
 
-    <T> T read(FieldInformation fieldInformation,Object sourceObj, Class<T> clazz);
+    <T> T read(Document document, Class<T> clazz);
 
 }

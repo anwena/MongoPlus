@@ -6,7 +6,6 @@ import com.anwen.mongo.toolkit.ArrayUtils;
 import com.anwen.mongo.toolkit.CollUtil;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.*;

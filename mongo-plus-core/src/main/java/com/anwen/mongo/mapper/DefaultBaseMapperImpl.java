@@ -6,9 +6,7 @@ import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.constant.SqlOperationConstant;
-import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.convert.DocumentMapperConvert;
-import com.anwen.mongo.enums.AggregateOptionsEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.execute.Execute;
 import com.anwen.mongo.execute.ExecutorFactory;
@@ -31,7 +29,6 @@ import org.bson.types.ObjectId;
 
 import java.io.Serializable;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -118,7 +115,9 @@ public class DefaultBaseMapperImpl implements BaseMapper {
 
     @Override
     public <T> List<T> list(Class<T> clazz) {
-        return DocumentMapperConvert.mapDocumentList(factory.getExecute().executeQuery(null,null,null,mongoPlusClient.getCollection(clazz),Document.class),clazz);
+//        return DocumentMapperConvert.mapDocumentList(factory.getExecute().executeQuery(null,null,null,mongoPlusClient.getCollection(clazz),Document.class),clazz);
+        FindIterable<Document> findIterable = factory.getExecute().executeQuery(null, null, null, mongoPlusClient.getCollection(clazz), Document.class);
+        return mongoConverter.read(findIterable, clazz);
     }
 
     @Override

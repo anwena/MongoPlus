@@ -3,8 +3,6 @@ package com.anwen.mongo.strategy.conversion.impl;
 import com.anwen.mongo.mapping.MongoConverter;
 import com.anwen.mongo.strategy.conversion.ConversionStrategy;
 
-import java.lang.reflect.Field;
-
 /**
  * 枚举的转换策略
  * @author anwen

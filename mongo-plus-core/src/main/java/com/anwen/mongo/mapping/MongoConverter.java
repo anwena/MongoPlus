@@ -1,5 +1,7 @@
 package com.anwen.mongo.mapping;
 
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoIterable;
 import org.bson.Document;
 
 import java.util.ArrayList;
@@ -67,6 +69,12 @@ public interface MongoConverter extends MongoWriter,EntityRead {
         return documentList;
     }
 
-    <T> T entityRead(Document document, Class<T> clazz);
+    <T> T readInternal(Document document, Class<T> clazz);
+
+    default <T> List<T> read(MongoIterable<Document> findIterable, Class<T> clazz){
+        List<T> resultList = new ArrayList<>();
+        findIterable.forEach(document -> resultList.add(read(document, clazz)));
+        return resultList;
+    }
 
 }
