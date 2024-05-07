@@ -224,6 +224,17 @@ public class Configuration {
     }
 
     /**
+     * 开启日志打印
+     *
+     * @param pretty 是否将 mongo 语句格式化可执行语句
+     * @author loser
+     */
+    public Configuration log(Boolean pretty) {
+        ListenerCache.listeners.add(new LogListener(pretty));
+        return this;
+    }
+
+    /**
      * 开启防攻击
      *
      * @author JiaChaoYang

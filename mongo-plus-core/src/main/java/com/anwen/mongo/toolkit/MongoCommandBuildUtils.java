@@ -15,7 +15,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * 根据 命令 构建 mong 语句
+ * 根据 命令 构建 mongo 语句
  *
  * @author loser
  * @date 2024/5/8

@@ -201,7 +201,7 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
     private void setListener() {
         List<Listener> listeners = ListenerCache.listeners;
         if (mongodbLogProperty.getLog()) {
-            listeners.add(new LogListener());
+            listeners.add(new LogListener(mongodbLogProperty.getPretty()));
         }
         if (mongodbCollectionProperty.getBlockAttackInner()) {
             listeners.add(new BlockAttackInnerListener());

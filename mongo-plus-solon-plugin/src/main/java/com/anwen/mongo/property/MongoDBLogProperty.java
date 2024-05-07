@@ -31,6 +31,21 @@ public class MongoDBLogProperty {
      */
     private int logOrder = 0;
 
+    /**
+     * 是否格式化 mongo 语句为可执行语句
+     *
+     * @author loser
+     */
+    private Boolean pretty = false;
+
+    public Boolean getPretty() {
+        return pretty;
+    }
+
+    public void setPretty(Boolean pretty) {
+        this.pretty = pretty;
+    }
+
     public int getLogOrder() {
         return logOrder;
     }
