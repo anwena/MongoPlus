@@ -7,6 +7,7 @@ import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.model.command.CommandFailed;
 import com.anwen.mongo.model.command.CommandStarted;
 import com.anwen.mongo.model.command.CommandSucceeded;
+import com.anwen.mongo.toolkit.MongoCommandBuildUtils;
 
 import java.util.Objects;
 
@@ -22,7 +23,7 @@ public class LogListener implements Listener {
     @Override
     public void commandStarted(CommandStarted commandStarted) {
         log.info(commandStarted.getCommandName()+" Statement Execution ==> ");
-        log.info(commandStarted.getCommand());
+        log.info(MongoCommandBuildUtils.buildCommand(commandStarted.getCommandStartedEvent()));
     }
 
     @Override
