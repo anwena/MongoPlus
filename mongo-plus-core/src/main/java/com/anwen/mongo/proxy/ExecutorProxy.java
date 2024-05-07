@@ -1,8 +1,10 @@
 package com.anwen.mongo.proxy;
 
 import com.anwen.mongo.cache.global.ExecutorProxyCache;
+import com.anwen.mongo.cache.global.ExecutorReplacerCache;
 import com.anwen.mongo.cache.global.InterceptorCache;
 import com.anwen.mongo.execute.Execute;
+import com.anwen.mongo.replacer.Replacer;
 import com.anwen.mongo.strategy.executor.MethodExecutorStrategy;
 
 import java.lang.reflect.InvocationHandler;
@@ -26,12 +28,22 @@ public class ExecutorProxy implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        String name = method.getName();
-        MethodExecutorStrategy executor = ExecutorProxyCache.EXECUTOR_MAP.get(name);
+
+        // 参数替换拦截器
+        MethodExecutorStrategy executor = ExecutorProxyCache.EXECUTOR_MAP.get(method.getName());
         if (Objects.nonNull(executor)) {
             InterceptorCache.interceptors.forEach(interceptor -> executor.invoke(interceptor, args));
         }
+
+        // 方法替换执行器 执行首个命中执行器
+        for (Replacer replacer : ExecutorReplacerCache.replacers) {
+            if (replacer.supplier().get(proxy, target, method, args)) {
+                return replacer.invoke(proxy, target, method, args);
+            }
+        }
+
         return method.invoke(target, args);
+
     }
 
 }
