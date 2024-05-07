@@ -1,6 +1,7 @@
 package com.anwen.mongo.config;
 
 import com.anwen.mongo.annotation.collection.CollectionName;
+import com.anwen.mongo.cache.global.ExecutorReplacerCache;
 import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.cache.global.InterceptorCache;
 import com.anwen.mongo.cache.global.ListenerCache;
@@ -20,6 +21,7 @@ import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBLogProperty;
+import com.anwen.mongo.replacer.Replacer;
 import com.anwen.mongo.service.IService;
 import com.anwen.mongo.service.impl.ServiceImpl;
 import com.anwen.mongo.strategy.convert.ConversionService;
@@ -79,6 +81,8 @@ public class MongoPlusAutoConfiguration {
         setListener(context);
         //拿到拦截器
         setInterceptor(context);
+        //拿到替换器
+        setReplacer(context);
     }
 
     /**
@@ -191,11 +195,24 @@ public class MongoPlusAutoConfiguration {
      * @date 2024/3/17 0:30
      */
     private void setInterceptor(AppContext context) {
-        Collection<Interceptor> interceptorCollection = context.getBeansOfType(Interceptor.class);
-        if (CollUtil.isNotEmpty(interceptorCollection)) {
-            interceptorCollection = interceptorCollection.stream().sorted(Comparator.comparing(Interceptor::order)).collect(Collectors.toList());
+        List<Interceptor> beansOfType = context.getBeansOfType(Interceptor.class);
+        if (CollUtil.isNotEmpty(beansOfType)) {
+            beansOfType = beansOfType.stream().sorted(Comparator.comparing(Interceptor::order)).collect(Collectors.toList());
         }
-        InterceptorCache.interceptors = new ArrayList<>(interceptorCollection);
+        InterceptorCache.interceptors = new ArrayList<>(beansOfType);
+    }
+
+    /**
+     * 从bean 容器中获取替换器
+     *
+     * @author loser
+     */
+    private void setReplacer(AppContext context) {
+        Collection<Replacer> replacers = context.getBeansOfType(Replacer.class);
+        if (CollUtil.isNotEmpty(replacers)) {
+            replacers = replacers.stream().sorted(Comparator.comparing(Replacer::order)).collect(Collectors.toList());
+        }
+        ExecutorReplacerCache.replacers = new ArrayList<>(replacers);
     }
 
 }

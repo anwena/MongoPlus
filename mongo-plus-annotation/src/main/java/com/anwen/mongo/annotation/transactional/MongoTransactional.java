@@ -49,5 +49,7 @@ public @interface MongoTransactional {
      */
     WriteConcernEnum writeConcern() default WriteConcernEnum.ACKNOWLEDGED;
 
+    long maxCommitTimeMS() default 0;
+
 
 }
