@@ -1,5 +1,6 @@
 package com.anwen.mongo.conn;
 
+import com.anwen.mongo.cache.global.CollectionLogicDeleteCache;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.factory.MongoClientFactory;
 import com.anwen.mongo.toolkit.ClassTypeUtil;
@@ -22,6 +23,7 @@ public class CollectionManager {
 
     /**
      * 缓存mongoCollection
+     *
      * @author JiaChaoYang
      * @date 2023/12/28 10:58
      */
@@ -38,24 +40,27 @@ public class CollectionManager {
 
     /**
      * 设置一个连接
+     *
      * @author JiaChaoYang
      * @date 2023/12/28 11:20
-    */
-    public void setCollectionMap(String key,MongoCollection<Document> value){
-        collectionMap.put(key,value);
+     */
+    public void setCollectionMap(String key, MongoCollection<Document> value) {
+        collectionMap.put(key, value);
     }
 
     private <T> MongoCollection<Document> getCollection(T entity) {
         return getCollection(ClassTypeUtil.getClass(entity)).withCodecRegistry(RegisterCodecUtil.registerCodec(entity));
     }
 
-    private MongoCollection<Document> getCollection(String collectionName,Map<?,?> map){
+    private MongoCollection<Document> getCollection(String collectionName, Map<?, ?> map) {
         return getCollection(collectionName).withCodecRegistry(RegisterCodecUtil.registerCodec(map));
     }
 
     public MongoCollection<Document> getCollection(Class<?> clazz) {
         String collectionName = this.collectionNameConvert.convert(clazz);
-        return getCollection(collectionName);
+        MongoCollection<Document> collection = getCollection(collectionName);
+        CollectionLogicDeleteCache.mapperClassByCollection(collection.getNamespace().getFullName(), clazz);
+        return collection;
     }
 
     public MongoCollection<Document> getCollection(String collectionName) {
@@ -64,7 +69,7 @@ public class CollectionManager {
         if (!this.collectionMap.containsKey(collectionName)) {
             mongoCollection = new ConnectMongoDB(MongoClientFactory.getInstance().getMongoClient(), database, collectionName).open();
             this.collectionMap.put(collectionName, mongoCollection);
-        }else {
+        } else {
             mongoCollection = this.collectionMap.get(collectionName);
         }
         return mongoCollection.withCodecRegistry(RegisterCodecUtil.getCodecCacheAndDefault());

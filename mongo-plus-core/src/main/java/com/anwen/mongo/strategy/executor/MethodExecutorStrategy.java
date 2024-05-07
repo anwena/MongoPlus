@@ -4,7 +4,7 @@ import com.anwen.mongo.enums.ExecuteMethodEnum;
 import com.anwen.mongo.interceptor.Interceptor;
 
 /**
- * 解耦逻辑
+ * 方法执行策略(解耦逻辑)
  *
  * @author loser
  * @date 2024/4/28
