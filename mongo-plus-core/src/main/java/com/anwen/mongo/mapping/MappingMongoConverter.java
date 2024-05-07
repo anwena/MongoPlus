@@ -20,6 +20,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 将对象映射为Document
@@ -151,7 +152,11 @@ public class MappingMongoConverter extends AbstractMongoConverter {
         try {
             if (Collection.class.isAssignableFrom(clazz) && null == conversionStrategy){
                 Type type = getGenericTypeClass((ParameterizedType) fieldInformation.getField().getGenericType(), 0);
-//                return (T) convertCollection(type,fieldInformation.getTypeClass(),sourceObj);
+                return (T) convertCollection(type,sourceObj,createCollectionInstance(clazz));
+            }
+            if (Map.class.isAssignableFrom(clazz) && null == conversionStrategy){
+                Type type = getGenericTypeClass((ParameterizedType) fieldInformation.getField().getGenericType(), 1);
+                return (T) convertMap(type,sourceObj,createMapInstance(clazz));
             }
             return (T) conversionStrategy.convertValue(sourceObj, fieldInformation.getTypeClass() , this);
         } catch (IllegalAccessException e) {
@@ -169,12 +174,6 @@ public class MappingMongoConverter extends AbstractMongoConverter {
         }
     }
 
-    public static String getActualType(Object o,int index) {
-        Type clazz = o.getClass().getGenericSuperclass();
-        ParameterizedType pt = (ParameterizedType)clazz;
-        return pt.getActualTypeArguments()[index].toString();
-    }
-
     /**
      * 集合单独处理
      * @author anwen
@@ -182,6 +181,9 @@ public class MappingMongoConverter extends AbstractMongoConverter {
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public Collection<?> convertCollection(Type type, Object fieldValue, Collection collection) {
+        if (fieldValue == null){
+            return collection;
+        }
         // 如果fieldValue不是Collection类型，则将其转换为单元素的ArrayList
         if (!(fieldValue instanceof Collection<?>)) {
             Object finalFieldValue = fieldValue;
@@ -189,30 +191,41 @@ public class MappingMongoConverter extends AbstractMongoConverter {
                 add(finalFieldValue);
             }};
         }
-
-        // 获取集合的泛型类型
-        Type collectionType = getGenericTypeClass((ParameterizedType) type, 0);
-        Class<?> collectionClass = getRawClass(collectionType);
-
+        //获取Type的Class
+        Class<?> metaClass = getRawClass(type);
         // 处理集合元素
         List valueList = (ArrayList) fieldValue;
-        if (simpleTypeHolder.isSimpleType(collectionClass)) {
+        if (simpleTypeHolder.isSimpleType(metaClass)) {
             // 如果泛型类型是简单类型，则直接添加到集合中
-            valueList.forEach(value -> {
-                collection.add(convertValue(value, value.getClass()));
-                System.out.printf("class：%s，值：%s%n", collectionClass, valueList);
-            });
-        } else if (Collection.class.isAssignableFrom(collectionClass)) {
+            valueList.forEach(value -> collection.add(convertValue(value, metaClass)));
+        } else if (Collection.class.isAssignableFrom(metaClass)) {
             // 如果泛型类型是集合类型，则递归处理
-            try {
-                Collection<?> collectionInstance = createCollectionInstance(collectionClass);
-                collection.addAll(convertCollection(collectionType, fieldValue, collectionInstance));
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                     NoSuchMethodException e) {
-                throw new RuntimeException(e);
-            }
+            // 获取集合的泛型类型
+            Type collectionType = getGenericTypeClass((ParameterizedType) type, 0);
+            Collection<?> collectionInstance = createCollectionInstance(metaClass);
+            convertCollection(collectionType, fieldValue, collectionInstance);
+            collection.add(collectionInstance);
+        } else if (Map.class.isAssignableFrom(metaClass)){
+            valueList.forEach(value -> collection.add(convertMap(getGenericTypeClass((ParameterizedType) type, 1),value,createMapInstance(metaClass))));
         }
         return collection;
+    }
+
+    @SuppressWarnings({"rawtypes","unchecked"})
+    public <V> Map<String,V> convertMap(Type type, Object fieldValue, Map map){
+        if(fieldValue == null){
+            return map;
+        }
+        Document document = (Document) fieldValue;
+        Class<?> rawClass = getRawClass(type);
+        if (simpleTypeHolder.isSimpleType(rawClass)){
+            document.forEach((k,v)-> map.put(k,convertValue(v,rawClass)));
+        } else if (Collection.class.isAssignableFrom(rawClass)){
+            document.forEach((k,v) -> map.put(k,convertCollection(getGenericTypeClass((ParameterizedType) type, 1),v,createCollectionInstance(rawClass))));
+        } else if (Map.class.isAssignableFrom(rawClass)){
+            document.forEach((k,v) -> map.put(k,convertMap(getGenericTypeClass((ParameterizedType) type, 1),v,createMapInstance(rawClass))));
+        }
+        return map;
     }
 
     /**
@@ -231,47 +244,50 @@ public class MappingMongoConverter extends AbstractMongoConverter {
     /**
      * 创建指定类型的集合实例
      */
-    private Collection<?> createCollectionInstance(Class<?> collectionClass) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        return collectionClass.isAssignableFrom(ArrayList.class) ? new ArrayList<>() : (Collection<?>) collectionClass.getDeclaredConstructor().newInstance();
+    private Collection<?> createCollectionInstance(Class<?> collectionClass) {
+        Collection collection;
+        try {
+            if (collectionClass.isInterface()){
+                collection = new ArrayList();
+            }else {
+                collection = (Collection) collectionClass.getDeclaredConstructor().newInstance();
+            }
+        } catch (InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
+            throw new MongoPlusConvertException("Failed to create Collection instance",e);
+        }
+        return collection;
     }
 
-
-    @SuppressWarnings("rawtypes")
-    public <V> Map<String,V> convertMap(ParameterizedType parameterizedType,Class<?> fieldType,Object fieldValue){
-        Document document = (Document) fieldValue;
+    public Map createMapInstance(Class<?> mapClass){
         Map map;
         try {
-            map = fieldType.equals(Map.class) ? new HashMap() : (Map) fieldType.getDeclaredConstructor().newInstance();
+            if (mapClass.isInterface()){
+                map = new HashMap();
+            } else {
+                map = (Map) mapClass.getDeclaredConstructor().newInstance();
+            }
         } catch (InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-            throw new MongoPlusConvertException("Failed to create a Map instance",e);
+            throw new MongoPlusConvertException("Failed to create Map instance",e);
         }
-
-        document.forEach((k,v)->{
-
-        });
-        return null;
+        return map;
     }
 
     public static void main(String[] args) {
-        /*TypeInformation typeInformation = TypeInformation.of(Test.class);
-        FieldInformation fieldInformation = typeInformation.getAnnotationField(ID.class,"");
-        Type type = getGenericTypeClass((ParameterizedType) fieldInformation.getField().getGenericType(), 0);
-        System.out.println(((ParameterizedType)type).getRawType());
-        System.out.println(getGenericTypeClass(((ParameterizedType)type),0));*/
         Document document = new Document();
-        document.put("list",new ArrayList<Integer>(){{
-            add(1);
-            add(2);
-            add(3);
+        document.put("list",new ArrayList<Document>(){{
+            add(new Document("a",new Document("a",1)));
+            add(new Document("b",new Document("b",2)));
+            add(new Document("c",new Document("c",3)));
         }});
         MappingMongoConverter mappingMongoConverter = new MappingMongoConverter(null);
         TypeInformation typeInformation = TypeInformation.of(Test.class);
         FieldInformation annotationField = typeInformation.getAnnotationField(ID.class, "");
-        List<Test> list = new ArrayList<>();
-        Collection<?> objects = mappingMongoConverter.convertCollection(annotationField.getField().getGenericType(), document.get("list"), list);
-        annotationField.setValue(objects);
+        Object read = mappingMongoConverter.read(annotationField, document.get("list"), annotationField.getTypeClass());
+        annotationField.setValue(read);
         Test instance = typeInformation.getInstance();
-        System.out.println(JSON.toJSONString(instance));
+        ArrayList<LinkedList<Map<String, ConcurrentHashMap<String, Integer>>>> list1 = instance.getList();
+        LinkedList<Map<String, ConcurrentHashMap<String, Integer>>> maps = list1.get(0);
+        maps.forEach(stringConcurrentHashMapMap -> stringConcurrentHashMapMap.forEach((k, v) -> System.out.println(k+"--"+v)));
     }
 
     /**
