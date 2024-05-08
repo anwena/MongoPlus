@@ -213,13 +213,9 @@ public class DefaultBaseMapperImpl implements BaseMapper {
         BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareConditionList);
         List<CompareCondition> pushConditionList = compareConditionList.stream().filter(compareCondition -> Objects.equals(compareCondition.getCondition(), SpecialConditionEnum.PUSH.getSubCondition())).collect(Collectors.toList());
         List<CompareCondition> setConditionList = compareConditionList.stream().filter(compareCondition -> Objects.equals(compareCondition.getCondition(), SpecialConditionEnum.SET.getSubCondition())).collect(Collectors.toList());
-        List<CompareCondition> incConditionList = compareConditionList.stream().filter(compareCondition -> Objects.equals(compareCondition.getCondition(), SpecialConditionEnum.SET.getSubCondition())).collect(Collectors.toList());
         BasicDBObject basicDBObject = new BasicDBObject() {{
             if (CollUtil.isNotEmpty(setConditionList)){
                 append(SpecialConditionEnum.SET.getCondition(), BuildCondition.buildUpdateValue(setConditionList));
-            }
-            if (CollUtil.isNotEmpty(incConditionList)){
-                append(SpecialConditionEnum.INC.getCondition(), BuildCondition.buildUpdateValue(incConditionList));
             }
             if (CollUtil.isNotEmpty(pushConditionList)){
                 append(SpecialConditionEnum.PUSH.getCondition(), BuildCondition.buildPushUpdateValue(pushConditionList));
