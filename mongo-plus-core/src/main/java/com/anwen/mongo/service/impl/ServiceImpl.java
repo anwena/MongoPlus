@@ -8,6 +8,7 @@ import com.anwen.mongo.conditions.query.QueryWrapper;
 import com.anwen.mongo.conditions.update.LambdaUpdateChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.constant.SqlOperationConstant;
+import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.model.MutablePair;
 import com.anwen.mongo.model.PageParam;
@@ -179,7 +180,9 @@ public class ServiceImpl<T> implements IService<T>{
         String valueOf = String.valueOf(filterValue);
         Bson filter = Filters.eq(column, ObjectId.isValid(valueOf) ? new ObjectId(valueOf) : filterValue);
         Document document = baseMapper.getMongoConverter().writeByUpdate(entity);
-        return baseMapper.update(filter,document,ClassTypeUtil.getClass(entity)) >= 1;
+        document.remove(column);
+        BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
+        return baseMapper.update(filter,update,ClassTypeUtil.getClass(entity)) >= 1;
     }
 
     @Override
