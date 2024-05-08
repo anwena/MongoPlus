@@ -30,15 +30,6 @@ public interface ChainQuery<T> {
     T one();
 
     /**
-     * 获取单个，返回T类型的对象
-     * <p>注：如果查询到大于一条数据，会取第一条返回</p>
-     * @author JiaChaoYang
-     * @date 2023/7/20 23:12
-    */
-    @Deprecated
-    T limitOne();
-
-    /**
      * 分页
      * @param pageParam 分页参数对象
      * @return {@link PageResult<T>}

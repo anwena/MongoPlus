@@ -3,7 +3,9 @@ package com.anwen.mongo.cache.global;
 import com.anwen.mongo.listener.Listener;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author JiaChaoYang
@@ -14,5 +16,9 @@ import java.util.List;
 public class ListenerCache {
 
     public static List<Listener> listeners = new ArrayList<>();
+
+    public static void sorted() {
+        listeners = listeners.stream().sorted(Comparator.comparing(Listener::getOrder)).collect(Collectors.toList());
+    }
 
 }

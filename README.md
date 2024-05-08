@@ -63,7 +63,7 @@ MyBatisPlus就是可以不用像MyBatis一样写过多的sql语句，Mongo-Plus�
 
 ### 联系我们
 #### 在使用MongoPlus的过程中，有任何问题和想法或者加入群聊请联系我
-#### v：JiaChaoYang_
+#### v：anwen_529
 #### 备注：MongoPlus
 <img src="wx.png" alt="微信">
 

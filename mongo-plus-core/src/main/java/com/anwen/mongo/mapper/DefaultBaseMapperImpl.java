@@ -1,24 +1,19 @@
 package com.anwen.mongo.mapper;
 
-import com.anwen.mongo.annotation.ID;
-import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.constant.SqlOperationConstant;
-import com.anwen.mongo.context.MongoTransactionContext;
-import com.anwen.mongo.convert.CollectionNameConvert;
-import com.anwen.mongo.convert.DocumentMapperConvert;
-import com.anwen.mongo.enums.AggregateOptionsEnum;
-import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.execute.Execute;
 import com.anwen.mongo.execute.ExecutorFactory;
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.manager.MongoPlusClient;
+import com.anwen.mongo.mapping.MongoConverter;
 import com.anwen.mongo.model.*;
-import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.toolkit.*;
 import com.mongodb.BasicDBObject;
 import com.mongodb.bulk.BulkWriteResult;
@@ -30,18 +25,10 @@ import com.mongodb.client.result.InsertManyResult;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
-import static com.anwen.mongo.toolkit.BeanMapUtilByReflect.getIdField;
 
 /**
  * baseMapper默认实现
@@ -51,9 +38,7 @@ import static com.anwen.mongo.toolkit.BeanMapUtilByReflect.getIdField;
  * @date 2024-02-05 11:47
  **/
 public class DefaultBaseMapperImpl implements BaseMapper {
-    private final Logger logger = LoggerFactory.getLogger(DefaultBaseMapperImpl.class);
-
-    private final CollectionNameConvert collectionNameConvert;
+    private final Log log = LogFactory.getLog(DefaultBaseMapperImpl.class);
 
     private final MongoPlusClient mongoPlusClient;
 
@@ -61,9 +46,11 @@ public class DefaultBaseMapperImpl implements BaseMapper {
 
     private final ExecutorFactory factory = new ExecutorFactory();
 
-    public DefaultBaseMapperImpl(MongoPlusClient mongoPlusClient) {
-        this.collectionNameConvert = mongoPlusClient.getCollectionNameConvert();
+    private final MongoConverter mongoConverter;
+
+    public DefaultBaseMapperImpl(MongoPlusClient mongoPlusClient,MongoConverter mongoConverter) {
         this.mongoPlusClient = mongoPlusClient;
+        this.mongoConverter = mongoConverter;
     }
 
     @Override
@@ -72,14 +59,19 @@ public class DefaultBaseMapperImpl implements BaseMapper {
     }
 
     @Override
+    public MongoConverter getMongoConverter() {
+        return this.mongoConverter;
+    }
+
+    @Override
     public <T> boolean save(T entity){
         try {
-            Document document = processIdField(entity,false);
+            Document document = new Document();
+            mongoConverter.writeBySave(entity, document);
             InsertManyResult insertManyResult = factory.getExecute().executeSave(Collections.singletonList(document), mongoPlusClient.getCollection(ClassTypeUtil.getClass(entity)));
-            setBackIdValue(document, entity);
             return insertManyResult.wasAcknowledged();
         } catch (Exception e) {
-            logger.error("save fail , error info : {}", e.getMessage(), e);
+            log.error("save fail , error info : {}", e.getMessage(), e);
             return false;
         }
     }
@@ -87,12 +79,13 @@ public class DefaultBaseMapperImpl implements BaseMapper {
     @Override
     public <T> Boolean saveBatch(Collection<T> entityList) {
         try {
-            List<Document> documentList = processIdFieldList(entityList);
+            List<Document> documentList = new ArrayList<>(entityList.size());
+            mongoConverter.writeBySaveBatch(entityList, documentList);
             MongoCollection<Document> collection = mongoPlusClient.getCollection(entityList.iterator().next().getClass());
             InsertManyResult insertManyResult = factory.getExecute().executeSave(documentList, collection);
             return insertManyResult.getInsertedIds().size() == entityList.size();
         } catch (Exception e) {
-            logger.error("saveBatch fail , error info : {}", e.getMessage(), e);
+            log.error("saveBatch fail , error info : {}", e.getMessage(), e);
             return false;
         }
     }
@@ -114,37 +107,21 @@ public class DefaultBaseMapperImpl implements BaseMapper {
 
     @Override
     public <T> Boolean update(T entity,QueryChainWrapper<T,?> queryChainWrapper){
-        MutablePair<BasicDBObject, BasicDBObject> updatePair = getUpdateCondition(queryChainWrapper.getCompareList(), entity);
+        MutablePair<BasicDBObject, BasicDBObject> updatePair = ConditionUtil.getUpdateCondition(queryChainWrapper.getCompareList(), entity,mongoConverter);
         return factory.getExecute().executeUpdate(updatePair.getLeft(),updatePair.getRight(),mongoPlusClient.getCollection(ClassTypeUtil.getClass(entity))).getModifiedCount() > 0;
-    }
-
-    private Boolean buildRemove(Serializable id, MongoCollection<Document> collection) {
-        Bson filterId = Filters.eq(SqlOperationConstant._ID, ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id);
-        return factory.getExecute().executeRemove(filterId,collection).getDeletedCount() >= 1;
-    }
-
-    public Boolean executeRemoveByColumn(String column,Object value,MongoCollection<Document> collection){
-        Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(value)) ? new ObjectId(String.valueOf(value)) : value);
-        return factory.getExecute().executeRemove(filter,collection).getDeletedCount() >= 1;
-    }
-
-    private Boolean executeRemoveBatchByIds(Collection<? extends Serializable> idList,MongoCollection<Document> collection){
-        List<Serializable> convertedIds = idList.stream()
-                .map(id -> ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id)
-                .collect(Collectors.toList());
-        Bson objectIdBson = Filters.in(SqlOperationConstant._ID, convertedIds);
-        return factory.getExecute().executeRemove(objectIdBson,collection).getDeletedCount() >= 1;
     }
 
     @Override
     public <T> List<T> list(Class<T> clazz) {
-        return DocumentMapperConvert.mapDocumentList(factory.getExecute().executeQuery(null,null,null,mongoPlusClient.getCollection(clazz),Document.class),clazz);
+        FindIterable<Document> findIterable = factory.getExecute().executeQuery(null, null, null, mongoPlusClient.getCollection(clazz), Document.class);
+        return mongoConverter.read(findIterable, clazz);
     }
 
     @Override
     public <T> List<T> list(QueryChainWrapper<T,?> queryChainWrapper, Class<T> clazz) {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
-        return lambdaOperate.getLambdaQueryResult(factory.getExecute().executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(),mongoPlusClient.getCollection(clazz),Document.class),clazz);
+        FindIterable<Document> documentFindIterable = factory.getExecute().executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), mongoPlusClient.getCollection(clazz), Document.class);
+        return mongoConverter.read(documentFindIterable, clazz);
     }
 
     @Override
@@ -158,20 +135,14 @@ public class DefaultBaseMapperImpl implements BaseMapper {
         }};
         aggregateConditionList.sort(Comparator.comparingInt(AggregateBasicDBObject::getOrder));
         AggregateIterable<Document> aggregateIterable = factory.getExecute().executeAggregate(aggregateConditionList, mongoPlusClient.getCollection(clazz),Document.class);
-        aggregateOptions(aggregateIterable,optionsBasicDBObject);
-        return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),clazz);
+        AggregateUtil.aggregateOptions(aggregateIterable,optionsBasicDBObject);
+        return mongoConverter.read(aggregateIterable,clazz);
     }
 
     @Override
     public <T> T one(QueryChainWrapper<T,?> queryChainWrapper,Class<T> clazz) {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),null,queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
-        return lambdaOperate.getLambdaQueryResultOne(factory.getExecute().executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(),mongoPlusClient.getCollection(clazz),Document.class).limit(1),clazz);
-    }
-
-    @Override
-    public <T> T limitOne(QueryChainWrapper<T, ?> queryChainWrapper,Class<T> clazz) {
-        BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
-        return lambdaOperate.getLambdaQueryResultOne(factory.getExecute().executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(),mongoPlusClient.getCollection(clazz),Document.class).limit(1),clazz);
+        return mongoConverter.readDocument(factory.getExecute().executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(),mongoPlusClient.getCollection(clazz),Document.class).limit(1),clazz);
     }
 
     @Override
@@ -185,14 +156,14 @@ public class DefaultBaseMapperImpl implements BaseMapper {
             count = count(queryChainWrapper,clazz);
         }
         FindIterable<Document> iterable = factory.getExecute().executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), collection,Document.class);
-        return lambdaOperate.getLambdaQueryResultPage(iterable,count,new PageParam(pageNum,pageSize),clazz);
+        return lambdaOperate.getLambdaQueryResultPage(iterable,count,new PageParam(pageNum,pageSize),clazz,mongoConverter);
     }
 
     @Override
     public <T> List<T> pageList(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize, Class<T> clazz) {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
         FindIterable<Document> iterable = factory.getExecute().executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), mongoPlusClient.getCollection(clazz),Document.class);
-        return DocumentMapperConvert.mapDocumentList(iterable.skip((pageNum - 1) * pageSize).limit(pageSize), clazz);
+        return mongoConverter.read(iterable.skip((pageNum - 1) * pageSize).limit(pageSize), clazz);
     }
 
     @Override
@@ -206,13 +177,13 @@ public class DefaultBaseMapperImpl implements BaseMapper {
             count = recentPageCount(queryChainWrapper.getCompareList(),clazz, pageNum,  pageSize, recentPageNum);
         }
         FindIterable<Document> iterable = factory.getExecute().executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), collection,Document.class);
-        return lambdaOperate.getLambdaQueryResultPage(iterable, count,new PageParam(pageNum,pageSize),clazz);
+        return lambdaOperate.getLambdaQueryResultPage(iterable, count,new PageParam(pageNum,pageSize),clazz,mongoConverter);
     }
 
     @Override
     public <T> T getById(Serializable id,Class<T> clazz) {
         BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id));
-        return DocumentMapperConvert.mapDocument(factory.getExecute().executeQuery(queryBasic,null,null,mongoPlusClient.getCollection(clazz),Document.class).first(),clazz);
+        return mongoConverter.read(factory.getExecute().executeQuery(queryBasic,null,null,mongoPlusClient.getCollection(clazz),Document.class).first(),clazz);
     }
 
     @Override
@@ -231,7 +202,7 @@ public class DefaultBaseMapperImpl implements BaseMapper {
     public <T> List<T> getByIds(Collection<? extends Serializable> ids,Class<T> clazz) {
         BasicDBObject basicDBObject = checkIdType(ids);
         FindIterable<Document> iterable = factory.getExecute().executeQuery(basicDBObject,null,null, mongoPlusClient.getCollection(clazz),Document.class);
-        return DocumentMapperConvert.mapDocumentList(iterable, clazz);
+        return mongoConverter.read(iterable, clazz);
     }
 
     @Override
@@ -250,7 +221,9 @@ public class DefaultBaseMapperImpl implements BaseMapper {
                 append(SpecialConditionEnum.PUSH.getCondition(), BuildCondition.buildPushUpdateValue(pushConditionList));
             }
         }};
-        return factory.getExecute().executeUpdate(queryBasic,DocumentUtil.handleBasicDBObject(basicDBObject),mongoPlusClient.getCollection(clazz)).getModifiedCount() >= 1;
+        BasicDBObject targetBasicDBObject = new BasicDBObject();
+        mongoConverter.write(basicDBObject,targetBasicDBObject);
+        return factory.getExecute().executeUpdate(queryBasic,targetBasicDBObject,mongoPlusClient.getCollection(clazz)).getModifiedCount() >= 1;
     }
 
     @Override
@@ -311,13 +284,13 @@ public class DefaultBaseMapperImpl implements BaseMapper {
     @Override
     public <T> List<T> queryCommand(String command,Class<T> clazz){
         FindIterable<Document> iterable = factory.getExecute().executeQuery(BasicDBObject.parse(command),null,null, mongoPlusClient.getCollection(clazz),Document.class);
-        return lambdaOperate.getLambdaQueryResult(iterable,clazz);
+        return mongoConverter.read(iterable,clazz);
     }
 
     @Override
     public <T> List<T> getByColumn(String column,Object value,Class<T> clazz){
         Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(value)) ? new ObjectId(String.valueOf(value)) : value);
-        return DocumentMapperConvert.mapDocumentList(factory.getExecute().executeQuery(filter,null,null,mongoPlusClient.getCollection(clazz),Document.class),clazz);
+        return mongoConverter.read(factory.getExecute().executeQuery(filter,null,null,mongoPlusClient.getCollection(clazz),Document.class),clazz);
     }
 
     @Override
@@ -375,175 +348,11 @@ public class DefaultBaseMapperImpl implements BaseMapper {
         factory.getExecute().doDropIndexes(dropIndexOptions,mongoPlusClient.getCollection(clazz));
     }
 
-    protected <T> MutablePair<BasicDBObject,BasicDBObject> getUpdate(T entity){
-        Document document = DocumentUtil.checkUpdateField(entity,false);
-        BasicDBObject filter = ExecuteUtil.getFilter(document);
-        BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
-        return new MutablePair<>(filter,update);
-    }
-
     protected BasicDBObject checkIdType(Collection<? extends Serializable> ids) {
         List<Serializable> convertedIds = ids.stream()
                 .map(id -> ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id)
                 .collect(Collectors.toList());
         return new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.IN.getCondition(), convertedIds));
-    }
-
-    protected <T> MutablePair<BasicDBObject,BasicDBObject> getUpdateCondition(List<CompareCondition> compareConditionList, T entity){
-        BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareConditionList);
-        Document document = DocumentUtil.checkUpdateField(entity,false);
-        document.remove(SqlOperationConstant._ID);
-        BasicDBObject updateField = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
-        return new MutablePair<>(queryBasic,updateField);
-    }
-
-    @Override
-    public <T> Document processIdField(T entity,Boolean skip){
-        Document tableFieldMap = DocumentUtil.checkTableField(entity);
-        fillId(entity, tableFieldMap);
-        if (HandlerCache.documentHandler != null && !skip){
-            //经过一下Document处理器
-            tableFieldMap = HandlerCache.documentHandler.insertInvoke(Collections.singletonList(tableFieldMap)).get(0);
-        }
-        return tableFieldMap;
-    }
-
-    protected Integer getAutoId(Class<?> clazz) {
-        String collectionName = collectionNameConvert.convert(clazz);
-        // 每个Collection单独加锁
-        synchronized (collectionName.intern()) {
-            MongoCollection<Document> collection = mongoPlusClient.getCollection(clazz,"counters");
-            Document query = new Document(SqlOperationConstant._ID, collectionName);
-            Document update = new Document("$inc", new Document(SqlOperationConstant.AUTO_NUM, 1));
-            Document document = Optional.ofNullable(MongoTransactionContext.getClientSessionContext())
-                    .map(session -> collection.findOneAndUpdate(session, query, update, new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)))
-                    .orElseGet(() -> collection.findOneAndUpdate(query, update, new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)));
-            int finalNum = 1;
-            if (document == null) {
-                Map<String, Object> map = new HashMap<>();
-                map.put(SqlOperationConstant._ID, collectionNameConvert.convert(clazz));
-                map.put(SqlOperationConstant.AUTO_NUM, finalNum);
-                collection.insertOne(new Document(map));
-            } else {
-                finalNum = Integer.parseInt(String.valueOf(document.get(SqlOperationConstant.AUTO_NUM)));
-            }
-            return finalNum;
-        }
-    }
-
-    protected <T> void fillId(T entity, Document document) {
-        // 用户自行设置了id字段
-        if (document.containsKey(SqlOperationConstant._ID)) {
-            // 检查一边id的入库类型
-            Object idObj = document.get(SqlOperationConstant._ID);
-            if (ObjectId.isValid(String.valueOf(idObj)) && !idObj.getClass().equals(ObjectId.class)) {
-                document.put(SqlOperationConstant._ID, new ObjectId(String.valueOf(idObj)));
-            }
-            return;
-        }
-        java.lang.reflect.Field idField = getIdField(ClassTypeUtil.getClass(entity));
-        // 没有指定id字段
-        if (idField == null) {
-            return;
-        }
-        ID annotation = idField.getAnnotation(ID.class);
-        Object _idValue;
-        if (annotation.type() == IdTypeEnum.AUTO) {
-            _idValue = getAutoId(ClassTypeUtil.getClass(entity));
-        } else {
-            if (annotation.type() == IdTypeEnum.OBJECT_ID){
-                return;
-            }
-            _idValue = Generate.generateId(annotation.type());
-        }
-        try {
-            Object value = ConversionService.convertValue(idField, ClassTypeUtil.getClass(entity).getDeclaredConstructor().newInstance(), _idValue);
-            document.put(SqlOperationConstant._ID, value);
-            //为自行设置id，需要在这里判断一下重入，自行设置checkTableField方法会进行处理
-            if (annotation.saveField()){
-                document.put(idField.getName(),value);
-            }
-        } catch (IllegalAccessException | InstantiationException | InvocationTargetException |
-                 NoSuchMethodException e) {
-            logger.error("Failed to convert to entity class's' _id 'field type when filling in'_id',error message: {}",e.getMessage(),e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    protected <T> void setBackIdValue(Document document, T entity) {
-        Object idValue = document.get(SqlOperationConstant._ID);
-        if (idValue == null) {
-            return;
-        }
-        Field idField = getIdField(ClassTypeUtil.getClass(entity));
-        if (idField == null) {
-            return;
-        }
-        if (ReflectionUtils.getFieldValue(entity, idField) != null) {
-            return;
-        }
-        try {
-            //使用策略转换器回写id
-            ConversionService.setValue(idField,entity,idValue);
-        } catch (Exception e) {
-            logger.error("set back id field value error, error message: {}", e.getMessage());
-        }
-    }
-
-    protected <T> void ifPresentOrElse(T value, Consumer<? super T> action, Runnable emptyAction) {
-        if (value != null) {
-            action.accept(value);
-        } else {
-            emptyAction.run();
-        }
-    }
-
-    protected <T> List<Document> processIdFieldList(Collection<T> entityList){
-        List<Document> documentList = entityList.stream().map(document -> processIdField(document,true)).collect(Collectors.toList());
-        return Optional.ofNullable(HandlerCache.documentHandler).map(documentHandler -> documentHandler.insertInvoke(documentList)).orElse(documentList);
-    }
-
-    protected void aggregateOptions(AggregateIterable<?> aggregateIterable,BasicDBObject optionsBasicDBObject){
-        options(aggregateIterable, optionsBasicDBObject);
-    }
-
-    public static void options(AggregateIterable<?> aggregateIterable, BasicDBObject optionsBasicDBObject) {
-        Set<String> keyedSet = optionsBasicDBObject.keySet();
-        for (String key : keyedSet) {
-            AggregateOptionsEnum aggregateOptionsEnum = AggregateOptionsEnum.getByOptions(key);
-            switch (Objects.requireNonNull(aggregateOptionsEnum)){
-                case ALLOW_DISK_USE:
-                    aggregateIterable.allowDiskUse(optionsBasicDBObject.getBoolean(key));
-                    break;
-                case COLLATION:
-                    aggregateIterable.collation((Collation) optionsBasicDBObject.get(key));
-                    break;
-                case BATCH_SIZE:
-                    aggregateIterable.batchSize(optionsBasicDBObject.getInt(key));
-                    break;
-                case MAX_TIME_MS:
-                    aggregateIterable.maxTime(optionsBasicDBObject.getLong(key), TimeUnit.MILLISECONDS);
-                    break;
-                case MAX_AWAIT_TIME_MS:
-                    aggregateIterable.maxAwaitTime(optionsBasicDBObject.getLong(key),TimeUnit.MILLISECONDS);
-                    break;
-                case BYPASS_DOCUMENT_VALIDATION:
-                    aggregateIterable.bypassDocumentValidation(optionsBasicDBObject.getBoolean(key));
-                    break;
-                case COMMENT:
-                    aggregateIterable.comment(String.valueOf(optionsBasicDBObject.get(key)));
-                    break;
-                case COMMENT_STR:
-                    aggregateIterable.comment(optionsBasicDBObject.getString(key));
-                    break;
-                case HINT:
-                    aggregateIterable.hint((Bson) optionsBasicDBObject.get(key));
-                    break;
-                case LET:
-                    aggregateIterable.let((Bson) optionsBasicDBObject.get(key));
-                    break;
-            }
-        }
     }
 
 }

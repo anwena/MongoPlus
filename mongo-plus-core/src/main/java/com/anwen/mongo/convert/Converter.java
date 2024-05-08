@@ -5,15 +5,11 @@ import com.anwen.mongo.toolkit.InstantUtil;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class Converter {
-
-    private static final Logger logger = LoggerFactory.getLogger(Converter.class);
 
     /**
      * 将FindIterable<Document>转换为List<Map<String, Object>>。
@@ -47,14 +43,6 @@ public class Converter {
         List<Map<String, Object>> resultList = new ArrayList<>();
         while (cursor.hasNext()) {
             resultList.add(convertKeysToCamelCase(cursor.next()));
-        }
-        return resultList;
-    }
-
-    public static List<Map<String, Object>> convertDocumentToMap(FindIterable<Map> iterable, Integer total) {
-        List<Map<String, Object>> resultList = new ArrayList<>(total);
-        for (Map<String, Object> map : iterable.batchSize(total)) {
-            resultList.add(convertKeysToCamelCase(map));
         }
         return resultList;
     }

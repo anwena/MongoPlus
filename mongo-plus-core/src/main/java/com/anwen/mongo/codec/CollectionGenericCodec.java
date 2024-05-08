@@ -5,8 +5,6 @@ import org.bson.BsonWriter;
 import org.bson.codecs.Codec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -18,8 +16,6 @@ import java.util.List;
  **/
 
 public class CollectionGenericCodec<T> implements Codec<T> {
-
-    private final Logger logger = LoggerFactory.getLogger(GenericCodec.class);
 
     private final Class<T> clazz;
 

@@ -1,9 +1,9 @@
 package com.anwen.mongo.toolkit;
 
-import com.mongodb.MongoException;
+import com.anwen.mongo.domain.MongoPlusConvertException;
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
 import org.bson.types.Binary;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.URL;
@@ -16,7 +16,7 @@ import java.net.URLConnection;
  **/
 public class BinaryConvertHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(BinaryConvertHandler.class);
+    private static final Log log = LogFactory.getLog(BinaryConvertHandler.class);
 
     /**
      * 将File转为Binary
@@ -40,8 +40,8 @@ public class BinaryConvertHandler {
             bos.close();
             return binary;
         } catch (IOException e) {
-            logger.error("convert binary error: {}",e.getMessage());
-            throw new MongoException(e.getMessage());
+            log.error("convert binary error: {}",e.getMessage());
+            throw new MongoPlusConvertException(e.getMessage());
         }
     }
 
@@ -74,8 +74,8 @@ public class BinaryConvertHandler {
             byte[] data = bos.toByteArray();
             return new Binary(data);
         } catch (IOException e) {
-            logger.error("convert binary error: {}",e.getMessage());
-            throw new MongoException(e.getMessage());
+            log.error("convert binary error: {}",e.getMessage());
+            throw new MongoPlusConvertException(e.getMessage());
         }
     }
 
@@ -102,8 +102,8 @@ public class BinaryConvertHandler {
             byte[] data = bos.toByteArray();
             return new Binary(data);
         } catch (IOException e) {
-            logger.error("convert binary error: {}",e.getMessage());
-            throw new MongoException(e.getMessage());
+            log.error("convert binary error: {}",e.getMessage());
+            throw new MongoPlusConvertException(e.getMessage());
         }
     }
 
@@ -135,8 +135,8 @@ public class BinaryConvertHandler {
             fos.write(data);
             fos.close();
         } catch (IOException e) {
-            logger.error("save binary error: {}",e.getMessage());
-            throw new MongoException(e.getMessage());
+            log.error("save binary error: {}",e.getMessage());
+            throw new MongoPlusConvertException(e.getMessage());
         }
     }
 

@@ -4,10 +4,10 @@ import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.cache.codec.MapCodecCache;
 import com.anwen.mongo.domain.InitMongoCollectionException;
+import com.anwen.mongo.domain.MongoPlusFieldException;
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.model.SlaveDataSource;
-import com.mongodb.MongoException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ClassTypeUtil {
 
-    private static final Logger logger = LoggerFactory.getLogger(ClassTypeUtil.class);
+    private static final Log log = LogFactory.getLog(ClassTypeUtil.class);
 
     // 内部缓存，存储已经处理过的对象类型及其字段的类型
     private static final Map<Class<?>, List<Class<?>>> cacheMap = new ConcurrentHashMap<>();
@@ -146,7 +146,7 @@ public class ClassTypeUtil {
             if (exception){
                 return null;
             }
-            throw new MongoException("_id undefined");
+            throw new MongoPlusFieldException("_id undefined");
         }
         try {
             return String.valueOf(fieldOptional.get().get(entity));
@@ -204,7 +204,7 @@ public class ClassTypeUtil {
                 }
                 set.add(fieldType);
             } catch (IllegalAccessException e) {
-                logger.error("get value error: {}",field.getName());
+                log.error("get value error: {}",field.getName());
             }
         }
         set.add(entity.getClass());
@@ -261,7 +261,14 @@ public class ClassTypeUtil {
      * @date 2023/11/10 14:54
     */
     public static Class<?> getListGenericType(Field field) {
-        Type genericType = field.getGenericType();
+        return getListGenericType(field.getGenericType());
+    }
+
+    public static Class<?> getListGenericType(Class<?> clazz){
+        return getListGenericType(clazz.getGenericSuperclass());
+    }
+
+    public static Class<?> getListGenericType(Type genericType) {
         if (genericType instanceof ParameterizedType) {
             ParameterizedType parameterizedType = (ParameterizedType) genericType;
             Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();

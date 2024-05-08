@@ -5,7 +5,7 @@ package com.anwen.mongo.domain;
  * 查询异常
  * @since 2023-02-10 13:37
  **/
-public class MongoQueryException extends RuntimeException {
+public class MongoQueryException extends MongoPlusException {
 
     private String message;
 
@@ -19,12 +19,8 @@ public class MongoQueryException extends RuntimeException {
     }
 
     public MongoQueryException(String message){
-        super();
+        super(message);
         this.message = message;
-    }
-
-    public MongoQueryException(){
-        super();
     }
 
 }

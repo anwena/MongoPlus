@@ -1,8 +1,10 @@
 package com.anwen.mongo.manager;
 
 import com.anwen.mongo.annotation.collection.CollectionName;
+import com.anwen.mongo.cache.global.DataSourceNameCache;
 import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.convert.CollectionNameConvert;
+import com.anwen.mongo.factory.MongoClientFactory;
 import com.anwen.mongo.model.BaseProperty;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.client.MongoClient;
@@ -13,6 +15,7 @@ import org.bson.Document;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -24,8 +27,6 @@ public class MongoPlusClient {
 
     private BaseProperty baseProperty;
 
-    private MongoClient mongoClient;
-
     private List<MongoDatabase> mongoDatabase;
 
     /**
@@ -33,7 +34,7 @@ public class MongoPlusClient {
      * @author JiaChaoYang
      * @date 2024/1/6 2:12
     */
-    private Map<String,CollectionManager> collectionManager;
+    private Map<String,Map<String,CollectionManager>> collectionManagerMap;
 
     private CollectionNameConvert collectionNameConvert;
 
@@ -45,8 +46,8 @@ public class MongoPlusClient {
         this.collectionNameConvert = collectionNameConvert;
     }
 
-    public Map<String,CollectionManager> getCollectionManager() {
-        return collectionManager;
+    public Map<String,Map<String,CollectionManager>> getCollectionManagerMap() {
+        return collectionManagerMap;
     }
 
     public MongoCollection<Document> getCollection(Class<?> clazz){
@@ -78,21 +79,31 @@ public class MongoPlusClient {
     }
 
     public CollectionManager getCollectionManager(String database){
-        Map<String, CollectionManager> managerMap = getCollectionManager();
+        Map<String, CollectionManager> managerMap = getCollectionManagerMap().get(DataSourceNameCache.getDataSource());
         if (StringUtils.isBlank(database)){
             database = managerMap.keySet().stream().findFirst().get();
         }
-        CollectionManager collectionManager = managerMap.get(database);
-        if (null == collectionManager){
-            collectionManager = new CollectionManager(getMongoClient(), collectionNameConvert, database);
+        if (null == managerMap || null == managerMap.get(database)){
+            CollectionManager collectionManager = new CollectionManager(getMongoClient(), collectionNameConvert, database);
             getMongoDatabase().add(getMongoClient().getDatabase(database));
-            getCollectionManager().put(database,collectionManager);
+            String finalDatabase = database;
+            getCollectionManagerMap().put(DataSourceNameCache.getDataSource(),new ConcurrentHashMap<String,CollectionManager>(){{
+                put(finalDatabase, collectionManager);
+            }});
         }
-        return collectionManager;
+        return getCollectionManagerMap().get(DataSourceNameCache.getDataSource()).get(database);
     }
 
-    public void setCollectionManager(Map<String,CollectionManager> collectionManager) {
-        this.collectionManager = collectionManager;
+    public void setCollectionManagerMap(String database) {
+        CollectionManager collectionManager = new CollectionManager(getMongoClient(), collectionNameConvert, database);
+        getMongoDatabase().add(getMongoClient().getDatabase(database));
+        getCollectionManagerMap().put(DataSourceNameCache.getDataSource(),new ConcurrentHashMap<String,CollectionManager>(){{
+            put(database, collectionManager);
+        }});
+    }
+
+    public void setCollectionManagerMap(Map<String,Map<String,CollectionManager>> collectionManagerMap) {
+        this.collectionManagerMap = collectionManagerMap;
     }
 
     public BaseProperty getBaseProperty() {
@@ -104,11 +115,7 @@ public class MongoPlusClient {
     }
 
     public MongoClient getMongoClient() {
-        return mongoClient;
-    }
-
-    public void setMongoClient(MongoClient mongoClient) {
-        this.mongoClient = mongoClient;
+        return MongoClientFactory.getInstance().getMongoClient();
     }
 
     public List<MongoDatabase> getMongoDatabase() {
@@ -123,9 +130,8 @@ public class MongoPlusClient {
     public String toString() {
         return "ConnectionManager{" +
                 "baseProperty=" + baseProperty +
-                ", mongoClient=" + mongoClient +
                 ", mongoDatabase=" + mongoDatabase +
-                ", collectionManager=" + collectionManager +
+                ", collectionManager=" + collectionManagerMap +
                 '}';
     }
 }

@@ -1,26 +1,29 @@
 package com.anwen.mongo.config;
 
 import com.anwen.mongo.annotation.collection.CollectionName;
-import com.anwen.mongo.cache.global.HandlerCache;
-import com.anwen.mongo.cache.global.InterceptorCache;
-import com.anwen.mongo.cache.global.ListenerCache;
+import com.anwen.mongo.cache.global.*;
 import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.conn.ConnectMongoDB;
+import com.anwen.mongo.constant.DataSourceConstant;
 import com.anwen.mongo.convert.CollectionNameConvert;
+import com.anwen.mongo.domain.MongoPlusConvertException;
 import com.anwen.mongo.handlers.DocumentHandler;
 import com.anwen.mongo.handlers.MetaObjectHandler;
 import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.listener.Listener;
 import com.anwen.mongo.listener.business.BlockAttackInnerListener;
 import com.anwen.mongo.listener.business.LogListener;
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBLogProperty;
+import com.anwen.mongo.property.MongoLogicDelProperty;
+import com.anwen.mongo.replacer.Replacer;
 import com.anwen.mongo.service.IService;
 import com.anwen.mongo.service.impl.ServiceImpl;
-import com.anwen.mongo.strategy.convert.ConversionService;
-import com.anwen.mongo.strategy.convert.ConversionStrategy;
+import com.anwen.mongo.strategy.conversion.ConversionStrategy;
 import com.anwen.mongo.toolkit.CollUtil;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
@@ -29,8 +32,6 @@ import org.bson.Document;
 import org.noear.solon.Solon;
 import org.noear.solon.annotation.Inject;
 import org.noear.solon.core.AppContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -53,19 +54,30 @@ public class MongoPlusAutoConfiguration {
 
     private final MongoDBCollectionProperty mongoDBCollectionProperty;
 
-    Logger logger = LoggerFactory.getLogger(MongoPlusAutoConfiguration.class);
+    private final MongoLogicDelProperty mongoLogicDelProperty;
 
-    public MongoPlusAutoConfiguration(BaseMapper baseMapper, MongoPlusClient mongoPlusClient, @Inject CollectionNameConvert collectionNameConvert, MongoDBLogProperty mongoDBLogProperty, MongoDBCollectionProperty mongoDBCollectionProperty){
+    Log log = LogFactory.getLog(MongoPlusAutoConfiguration.class);
+
+    public MongoPlusAutoConfiguration(BaseMapper baseMapper,
+                                      MongoPlusClient mongoPlusClient,
+                                      @Inject CollectionNameConvert collectionNameConvert,
+                                      MongoDBLogProperty mongoDBLogProperty,
+                                      MongoDBCollectionProperty mongoDBCollectionProperty,
+                                      MongoLogicDelProperty mongoLogicDelProperty){
         mongoDBCollectionProperty = Optional.ofNullable(mongoDBCollectionProperty).orElseGet(MongoDBCollectionProperty::new);
+        mongoLogicDelProperty = Optional.ofNullable(mongoLogicDelProperty).orElseGet(MongoLogicDelProperty::new);
         this.collectionNameConvert = collectionNameConvert;
         this.mongoPlusClient = mongoPlusClient;
         this.mongoDBLogProperty = mongoDBLogProperty;
         this.mongoDBCollectionProperty = mongoDBCollectionProperty;
         this.baseMapper = baseMapper;
+        this.mongoLogicDelProperty = mongoLogicDelProperty;
         AppContext context = Solon.context();
         context.subBeansOfType(IService.class, bean -> {
             if (bean instanceof ServiceImpl){
-                setExecute((ServiceImpl<?>) bean,bean.getGenericityClass());
+                ServiceImpl<?> service = (ServiceImpl<?>) bean;
+                setExecute(service,bean.getGenericityClass());
+                setLogicFiled(service.getGenericityClass());
             }
         });
         //拿到转换器
@@ -78,6 +90,18 @@ public class MongoPlusAutoConfiguration {
         setListener(context);
         //拿到拦截器
         setInterceptor(context);
+        //拿到替换器
+        setReplacer(context);
+    }
+
+    /**
+     * 配置逻辑删除
+     *
+     * @param collectionClasses 需要进行逻辑删除的 collection class 集合
+     * @author loser
+     */
+    private void setLogicFiled(Class<?>... collectionClasses) {
+        Configuration.builder().logic(this.mongoLogicDelProperty).setLogicFiled(collectionClasses);
     }
 
     /**
@@ -111,15 +135,17 @@ public class MongoPlusAutoConfiguration {
                 ConnectMongoDB connectMongodb = new ConnectMongoDB(mongoPlusClient.getMongoClient(), db, finalCollectionName);
                 MongoDatabase mongoDatabase = mongoPlusClient.getMongoClient().getDatabase(db);
                 mongoDatabaseList.add(mongoDatabase);
-                if (Objects.equals(db, finalDataBaseName[0])){
+                if (Objects.equals(db, finalDataBaseName[0])) {
                     MongoCollection<Document> collection = connectMongodb.open(mongoDatabase);
-                    collectionManager.setCollectionMap(finalCollectionName,collection);
+                    collectionManager.setCollectionMap(finalCollectionName, collection);
                 }
-                mongoPlusClient.getCollectionManager().put(db,collectionManager);
+                mongoPlusClient.getCollectionManagerMap().put(DataSourceConstant.DEFAULT_DATASOURCE, new HashMap<String, CollectionManager>() {{
+                    put(db, collectionManager);
+                }});
             });
             mongoPlusClient.setMongoDatabase(mongoDatabaseList);
         } catch (MongoException e) {
-            logger.error("Failed to connect to MongoDB: {}", e.getMessage(), e);
+            log.error("Failed to connect to MongoDB: {}", e.getMessage(), e);
         }
         return dataBaseName[0];
     }
@@ -138,13 +164,13 @@ public class MongoPlusAutoConfiguration {
                     ParameterizedType parameterizedType = (ParameterizedType) anInterface;
                     if (parameterizedType.getRawType().equals(ConversionStrategy.class)){
                         Class<?> clazz = (Class<?>) parameterizedType.getActualTypeArguments()[0];
-                        ConversionService.appendConversion(clazz,conversionStrategy);
+                        ConversionCache.putConversionStrategy(clazz,conversionStrategy);
                         break;
                     }
                 }
             }catch (Exception e){
-                logger.error("Unknown converter type");
-                throw new MongoException("Unknown converter type");
+                log.error("Unknown converter type");
+                throw new MongoPlusConvertException("Unknown converter type");
             }
         });
     }
@@ -168,9 +194,9 @@ public class MongoPlusAutoConfiguration {
      * @date 2023/11/22 18:39
      */
     private void setListener(AppContext context){
-        List<Listener> listeners = new ArrayList<>();
+        List<Listener> listeners = ListenerCache.listeners;
         if (mongoDBLogProperty.getLog()){
-            listeners.add(new LogListener());
+            listeners.add(new LogListener(mongoDBLogProperty.getPretty()));
         }
         if (mongoDBCollectionProperty.getBlockAttackInner()){
             listeners.add(new BlockAttackInnerListener());
@@ -179,17 +205,35 @@ public class MongoPlusAutoConfiguration {
         if (CollUtil.isNotEmpty(listenerCollection)){
             listeners.addAll(listenerCollection);
         }
-        ListenerCache.listeners = listeners.stream().sorted(Comparator.comparingInt(Listener::getOrder)).collect(Collectors.toList());
+        ListenerCache.sorted();
+
     }
 
     /**
      * 从Bean中拿到拦截器
+     *
      * @author JiaChaoYang
      * @date 2024/3/17 0:30
      */
-    private void setInterceptor(AppContext context){
-        Collection<Interceptor> interceptorCollection = context.getBeansOfType(Interceptor.class);
-        InterceptorCache.interceptors = new ArrayList<>(interceptorCollection);
+    private void setInterceptor(AppContext context) {
+        List<Interceptor> beansOfType = context.getBeansOfType(Interceptor.class);
+        if (CollUtil.isNotEmpty(beansOfType)) {
+            beansOfType = beansOfType.stream().sorted(Comparator.comparing(Interceptor::order)).collect(Collectors.toList());
+        }
+        InterceptorCache.interceptors = new ArrayList<>(beansOfType);
+    }
+
+    /**
+     * 从bean 容器中获取替换器
+     *
+     * @author loser
+     */
+    private void setReplacer(AppContext context) {
+        Collection<Replacer> replacers = context.getBeansOfType(Replacer.class);
+        if (CollUtil.isNotEmpty(replacers)) {
+            replacers = replacers.stream().sorted(Comparator.comparing(Replacer::order)).collect(Collectors.toList());
+        }
+        ExecutorReplacerCache.replacers = new ArrayList<>(replacers);
     }
 
 }

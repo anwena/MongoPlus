@@ -1,9 +1,7 @@
 package com.anwen.mongo.service.impl;
 
-import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper;
-import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conditions.query.QueryWrapper;
@@ -17,7 +15,10 @@ import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 import com.anwen.mongo.service.IService;
 import com.anwen.mongo.support.SFunction;
-import com.anwen.mongo.toolkit.*;
+import com.anwen.mongo.toolkit.ChainWrappers;
+import com.anwen.mongo.toolkit.ClassTypeUtil;
+import com.anwen.mongo.toolkit.ConditionUtil;
+import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.*;
@@ -116,18 +117,9 @@ public class ServiceImpl<T> implements IService<T>{
     public Boolean saveOrUpdateWrapper(T entity, QueryChainWrapper<T, ?> queryChainWrapper) {
         long count = count(queryChainWrapper);
         if (count > 0){
-            MutablePair<BasicDBObject,BasicDBObject> updatePair = getUpdateCondition(queryChainWrapper.getCompareList(), entity);
-            return baseMapper.update(updatePair.getLeft(),updatePair.getRight(),ClassTypeUtil.getClass(entity)) >= 1;
+            return baseMapper.update(entity,queryChainWrapper);
         }
         return save(entity);
-    }
-
-    protected MutablePair<BasicDBObject,BasicDBObject> getUpdateCondition(List<CompareCondition> compareConditionList, T entity){
-        BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareConditionList);
-        Document document = DocumentUtil.checkUpdateField(entity,false);
-        document.remove(SqlOperationConstant._ID);
-        BasicDBObject updateField = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
-        return new MutablePair<>(queryBasic,updateField);
     }
 
     @Override
@@ -136,9 +128,9 @@ public class ServiceImpl<T> implements IService<T>{
         entityList.forEach(entity -> {
             String idByEntity = ClassTypeUtil.getIdByEntity(entity, true);
             if (StringUtils.isBlank(idByEntity)){
-                writeModelList.add(new InsertOneModel<>(baseMapper.processIdField(entity,false)));
+                writeModelList.add(new InsertOneModel<>(baseMapper.getMongoConverter().writeBySave(entity)));
             } else {
-                MutablePair<BasicDBObject,BasicDBObject> basicDBObjectPair = getUpdate(entity);
+                MutablePair<BasicDBObject,BasicDBObject> basicDBObjectPair = ConditionUtil.getUpdate(entity,baseMapper.getMongoConverter());
                 writeModelList.add(new UpdateManyModel<>(basicDBObjectPair.getLeft(),basicDBObjectPair.getRight()));
             }
         });
@@ -152,10 +144,10 @@ public class ServiceImpl<T> implements IService<T>{
         entityList.forEach(entity -> {
             long count = baseMapper.count(queryChainWrapper, clazz);
             if (count > 0){
-                MutablePair<BasicDBObject,BasicDBObject> updatePair = getUpdateCondition(queryChainWrapper.getCompareList(), entity);
+                MutablePair<BasicDBObject,BasicDBObject> updatePair = ConditionUtil.getUpdateCondition(queryChainWrapper.getCompareList(), entity,baseMapper.getMongoConverter());
                 writeModelList.add(new UpdateManyModel<>(updatePair.getLeft(),updatePair.getRight()));
             } else {
-                writeModelList.add(new InsertOneModel<>(baseMapper.processIdField(entity,false)));
+                writeModelList.add(new InsertOneModel<>(baseMapper.getMongoConverter().writeBySave(entity)));
             }
         });
         return baseMapper.bulkWrite(writeModelList,entityList.stream().findFirst().get().getClass()) == entityList.size();
@@ -163,22 +155,15 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public Boolean updateById(T entity) {
-        MutablePair<BasicDBObject,BasicDBObject> basicDBObjectPair = getUpdate(entity);
+        MutablePair<BasicDBObject,BasicDBObject> basicDBObjectPair = ConditionUtil.getUpdate(entity,baseMapper.getMongoConverter());
         return baseMapper.update(basicDBObjectPair.getLeft(),basicDBObjectPair.getRight(),ClassTypeUtil.getClass(entity)) >= 1;
-    }
-
-    protected <T> MutablePair<BasicDBObject,BasicDBObject> getUpdate(T entity) {
-        Document document = DocumentUtil.checkUpdateField(entity,false);
-        BasicDBObject filter = ExecuteUtil.getFilter(document);
-        BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
-        return new MutablePair<>(filter,update);
     }
 
     @Override
     public Boolean updateBatchByIds(Collection<T> entityList) {
         List<WriteModel<Document>> writeModelList = new ArrayList<>();
         entityList.forEach(entity -> {
-            MutablePair<BasicDBObject,BasicDBObject> basicDBObjectPair = getUpdate(entity);
+            MutablePair<BasicDBObject,BasicDBObject> basicDBObjectPair = ConditionUtil.getUpdate(entity,baseMapper.getMongoConverter());
             writeModelList.add(new UpdateManyModel<>(basicDBObjectPair.getLeft(),basicDBObjectPair.getRight()));
         });
         return baseMapper.bulkWrite(writeModelList,entityList.stream().findFirst().get().getClass()) == entityList.size();
@@ -194,8 +179,10 @@ public class ServiceImpl<T> implements IService<T>{
         Object filterValue = ClassTypeUtil.getClassFieldValue(entity,column);
         String valueOf = String.valueOf(filterValue);
         Bson filter = Filters.eq(column, ObjectId.isValid(valueOf) ? new ObjectId(valueOf) : filterValue);
-        Document document = DocumentUtil.checkUpdateField(entity,false);
-        return baseMapper.update(filter,document,ClassTypeUtil.getClass(entity)) >= 1;
+        Document document = baseMapper.getMongoConverter().writeByUpdate(entity);
+        document.remove(column);
+        BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
+        return baseMapper.update(filter,update,ClassTypeUtil.getClass(entity)) >= 1;
     }
 
     @Override
@@ -247,12 +234,6 @@ public class ServiceImpl<T> implements IService<T>{
     @Override
     public T one(QueryChainWrapper<T,?> queryChainWrapper) {
         return baseMapper.one(queryChainWrapper,clazz);
-    }
-
-    @Override
-    @Deprecated
-    public T limitOne(QueryChainWrapper<T, ?> queryChainWrapper) {
-        return baseMapper.limitOne(queryChainWrapper,clazz);
     }
 
     @Override

@@ -40,8 +40,4 @@ public interface Query<T,Children> extends Project<T,Children> {
      */
     Children orderByDesc(String column);
 
-    Children limit(long limit);
-
-    Children skip(long skip);
-
 }

@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.gitee.anwena</groupId>
         <artifactId>mongo-plus-parent</artifactId>
-        <version>2.0.8.3</version>
+        <version>2.0.9</version>
         <relativePath>../mongo-plus-parent/pom.xml</relativePath>
     </parent>
 
@@ -38,6 +38,13 @@
             <timezone>+8</timezone>
         </developer>
     </developers>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-sync</artifactId>
+        </dependency>
+    </dependencies>
 
     <scm>
         <connection>https://gitee.com/anwena/mongo-plus.git</connection>

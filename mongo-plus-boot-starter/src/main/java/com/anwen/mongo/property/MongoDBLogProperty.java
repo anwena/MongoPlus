@@ -14,16 +14,33 @@ public class MongoDBLogProperty {
 
     /**
      * 是否开启日志
-     * @author: JiaChaoYang
-     * @date: 2023/6/7 23:08
-     **/
+     *
+     * @author JiaChaoYang
+     * @date 2024/5/1 下午1:26
+     */
     private Boolean log = false;
 
     /**
+     * 是否格式化 mongo 语句为可执行语句
+     *
+     * @author loser
+     */
+    private Boolean pretty = false;
+
+    public Boolean getPretty() {
+        return pretty;
+    }
+
+    public void setPretty(Boolean pretty) {
+        this.pretty = pretty;
+    }
+
+    /**
      * 指定日志拦截器的order，默认为0
+     *
      * @author JiaChaoYang
      * @date 2023/11/22 19:01
-    */
+     */
     private int logOrder = 0;
 
     public int getLogOrder() {
@@ -37,9 +54,10 @@ public class MongoDBLogProperty {
 
     /**
      * 是否打开格式化sql
+     *
      * @author JiaChaoYang
      * @date 2023/8/29 0:52
-    */
+     */
     private Boolean format = false;
 
     public Boolean getLog() {

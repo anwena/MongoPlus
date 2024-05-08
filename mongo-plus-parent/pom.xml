@@ -8,7 +8,7 @@
     <artifactId>mongo-plus-parent</artifactId>
     <packaging>pom</packaging>
     <name>mongo-plus-parent</name>
-    <version>2.0.8.3</version>
+    <version>2.0.9</version>
     <description>mongo-plus版本控制</description>
     <url>https://gitee.com/anwena/mongo-plus</url>
     <inceptionYear>2023</inceptionYear>
@@ -50,10 +50,14 @@
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <mongoplus.version>2.0.8.3</mongoplus.version>
+        <mongoplus.version>2.0.9</mongoplus.version>
         <mongodb-driver-sync.version>4.9.0</mongodb-driver-sync.version>
-        <fastjson.version>1.2.83</fastjson.version>
-        <slf4j-api.version>1.7.36</slf4j-api.version>
+        <slf4j-api.version>2.0.13</slf4j-api.version>
+        <reload4j.version>1.2.25</reload4j.version>
+        <commons-logging.version>1.3.1</commons-logging.version>
+        <log4j-api.version>2.23.1</log4j-api.version>
+        <logback-classic.version>1.5.6</logback-classic.version>
+        <log4j-core.version>2.23.1</log4j-core.version>
         <solon-api.version>2.5.11</solon-api.version>
         <aspectjweaver.version>1.9.7</aspectjweaver.version>
         <spring-tx.version>5.3.27</spring-tx.version>
@@ -61,35 +65,65 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- mongodb驱动 -->
             <dependency>
                 <groupId>org.mongodb</groupId>
                 <artifactId>mongodb-driver-sync</artifactId>
                 <version>${mongodb-driver-sync.version}</version>
             </dependency>
-            <dependency>
-                <groupId>com.alibaba</groupId>
-                <artifactId>fastjson</artifactId>
-                <version>${fastjson.version}</version>
-            </dependency>
+            <!-- slf4j -->
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>${slf4j-api.version}</version>
             </dependency>
+            <!-- solon -->
             <dependency>
                 <groupId>org.noear</groupId>
                 <artifactId>solon-api</artifactId>
                 <version>${solon-api.version}</version>
             </dependency>
+            <!-- 切面 -->
             <dependency>
                 <groupId>org.aspectj</groupId>
                 <artifactId>aspectjweaver</artifactId>
                 <version>${aspectjweaver.version}</version>
             </dependency>
+            <!-- spring事务 -->
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-tx</artifactId>
                 <version>${spring-tx.version}</version>
+            </dependency>
+            <!-- log4j -->
+            <dependency>
+                <groupId>ch.qos.reload4j</groupId>
+                <artifactId>reload4j</artifactId>
+                <version>${reload4j.version}</version>
+            </dependency>
+            <!-- commons-logging -->
+            <dependency>
+                <groupId>commons-logging</groupId>
+                <artifactId>commons-logging</artifactId>
+                <version>${commons-logging.version}</version>
+            </dependency>
+            <!-- log4j2 -->
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
+                <version>${log4j-api.version}</version>
+            </dependency>
+
+            <!-- Logging Support used in testing -->
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback-classic.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${log4j-core.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
