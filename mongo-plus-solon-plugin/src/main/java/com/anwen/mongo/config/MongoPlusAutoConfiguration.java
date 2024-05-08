@@ -1,12 +1,10 @@
 package com.anwen.mongo.config;
 
 import com.anwen.mongo.annotation.collection.CollectionName;
-import com.anwen.mongo.cache.global.ExecutorReplacerCache;
-import com.anwen.mongo.cache.global.HandlerCache;
-import com.anwen.mongo.cache.global.InterceptorCache;
-import com.anwen.mongo.cache.global.ListenerCache;
+import com.anwen.mongo.cache.global.*;
 import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.conn.ConnectMongoDB;
+import com.anwen.mongo.constant.DataSourceConstant;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.domain.MongoPlusConvertException;
 import com.anwen.mongo.handlers.DocumentHandler;
@@ -21,11 +19,11 @@ import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBLogProperty;
+import com.anwen.mongo.property.MongoLogicDelProperty;
 import com.anwen.mongo.replacer.Replacer;
 import com.anwen.mongo.service.IService;
 import com.anwen.mongo.service.impl.ServiceImpl;
-import com.anwen.mongo.strategy.convert.ConversionService;
-import com.anwen.mongo.strategy.convert.ConversionStrategy;
+import com.anwen.mongo.strategy.conversion.ConversionStrategy;
 import com.anwen.mongo.toolkit.CollUtil;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
@@ -56,19 +54,29 @@ public class MongoPlusAutoConfiguration {
 
     private final MongoDBCollectionProperty mongoDBCollectionProperty;
 
+    private final MongoLogicDelProperty mongoLogicDelProperty;
+
     Log log = LogFactory.getLog(MongoPlusAutoConfiguration.class);
 
-    public MongoPlusAutoConfiguration(BaseMapper baseMapper, MongoPlusClient mongoPlusClient, @Inject CollectionNameConvert collectionNameConvert, MongoDBLogProperty mongoDBLogProperty, MongoDBCollectionProperty mongoDBCollectionProperty){
+    public MongoPlusAutoConfiguration(BaseMapper baseMapper,
+                                      MongoPlusClient mongoPlusClient,
+                                      @Inject CollectionNameConvert collectionNameConvert,
+                                      MongoDBLogProperty mongoDBLogProperty,
+                                      MongoDBCollectionProperty mongoDBCollectionProperty,
+                                      MongoLogicDelProperty mongoLogicDelProperty){
         mongoDBCollectionProperty = Optional.ofNullable(mongoDBCollectionProperty).orElseGet(MongoDBCollectionProperty::new);
         this.collectionNameConvert = collectionNameConvert;
         this.mongoPlusClient = mongoPlusClient;
         this.mongoDBLogProperty = mongoDBLogProperty;
         this.mongoDBCollectionProperty = mongoDBCollectionProperty;
         this.baseMapper = baseMapper;
+        this.mongoLogicDelProperty = mongoLogicDelProperty;
         AppContext context = Solon.context();
         context.subBeansOfType(IService.class, bean -> {
             if (bean instanceof ServiceImpl){
-                setExecute((ServiceImpl<?>) bean,bean.getGenericityClass());
+                ServiceImpl<?> service = (ServiceImpl<?>) bean;
+                setExecute(service,bean.getGenericityClass());
+                setLogicFiled(service.getGenericityClass());
             }
         });
         //拿到转换器
@@ -83,6 +91,16 @@ public class MongoPlusAutoConfiguration {
         setInterceptor(context);
         //拿到替换器
         setReplacer(context);
+    }
+
+    /**
+     * 配置逻辑删除
+     *
+     * @param collectionClasses 需要进行逻辑删除的 collection class 集合
+     * @author loser
+     */
+    private void setLogicFiled(Class<?>... collectionClasses) {
+        Configuration.builder().logic(this.mongoLogicDelProperty).setLogicFiled(collectionClasses);
     }
 
     /**
@@ -116,11 +134,13 @@ public class MongoPlusAutoConfiguration {
                 ConnectMongoDB connectMongodb = new ConnectMongoDB(mongoPlusClient.getMongoClient(), db, finalCollectionName);
                 MongoDatabase mongoDatabase = mongoPlusClient.getMongoClient().getDatabase(db);
                 mongoDatabaseList.add(mongoDatabase);
-                if (Objects.equals(db, finalDataBaseName[0])){
+                if (Objects.equals(db, finalDataBaseName[0])) {
                     MongoCollection<Document> collection = connectMongodb.open(mongoDatabase);
-                    collectionManager.setCollectionMap(finalCollectionName,collection);
+                    collectionManager.setCollectionMap(finalCollectionName, collection);
                 }
-                mongoPlusClient.getCollectionManagerMap().put(db,collectionManager);
+                mongoPlusClient.getCollectionManagerMap().put(DataSourceConstant.DEFAULT_DATASOURCE, new HashMap<String, CollectionManager>() {{
+                    put(db, collectionManager);
+                }});
             });
             mongoPlusClient.setMongoDatabase(mongoDatabaseList);
         } catch (MongoException e) {
@@ -143,7 +163,7 @@ public class MongoPlusAutoConfiguration {
                     ParameterizedType parameterizedType = (ParameterizedType) anInterface;
                     if (parameterizedType.getRawType().equals(ConversionStrategy.class)){
                         Class<?> clazz = (Class<?>) parameterizedType.getActualTypeArguments()[0];
-                        ConversionService.appendConversion(clazz,conversionStrategy);
+                        ConversionCache.putConversionStrategy(clazz,conversionStrategy);
                         break;
                     }
                 }

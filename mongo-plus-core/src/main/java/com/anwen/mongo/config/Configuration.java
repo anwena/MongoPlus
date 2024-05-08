@@ -32,8 +32,7 @@ import com.anwen.mongo.model.ClassAnnotationFiled;
 import com.anwen.mongo.model.LogicDeleteResult;
 import com.anwen.mongo.model.LogicProperty;
 import com.anwen.mongo.replacer.Replacer;
-import com.anwen.mongo.strategy.convert.ConversionService;
-import com.anwen.mongo.strategy.convert.ConversionStrategy;
+import com.anwen.mongo.strategy.conversion.ConversionStrategy;
 import com.anwen.mongo.toolkit.MongoCollectionUtils;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.anwen.mongo.toolkit.UrlJoint;
@@ -163,7 +162,7 @@ public class Configuration {
                 if (parameterizedType.getRawType().equals(ConversionStrategy.class)) {
                     Class<?> clazz = (Class<?>) parameterizedType.getActualTypeArguments()[0];
                     try {
-                        ConversionService.appendConversion(clazz, clazzConversion.getDeclaredConstructor().newInstance());
+                        ConversionCache.putConversionStrategy(clazz, clazzConversion.getDeclaredConstructor().newInstance());
                     } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
                              NoSuchMethodException e) {
                         throw new RuntimeException(e);

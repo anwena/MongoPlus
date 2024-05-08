@@ -23,7 +23,7 @@ public class MongoDBConfigurationProperty {
      * @author JiaChaoYang
      * @date 2024/5/1 下午8:55
      */
-    private String autoIdCollectionName = "counters";
+    private String autoIdCollectionName;
 
     /**
      * 是否开启小黑子模式

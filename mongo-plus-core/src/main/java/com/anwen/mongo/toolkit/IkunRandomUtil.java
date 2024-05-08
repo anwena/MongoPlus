@@ -13,6 +13,7 @@ public class IkunRandomUtil {
         ikunThreadList.add("报错了，你干嘛哎呦  ");
         ikunThreadList.add("使用不规范，坤坤咬你蛋  ");
         ikunThreadList.add("漏出鸡脚了吧小黑子，这也能异常？  ");
+        ikunThreadList.add("报错了小黑子！绿尸寒警告！  ");
         ikunLogList.add("中分篮球背带裤，我是ikun你记住  ");
         ikunLogList.add("春风又绿江南岸，练习时常两年半  ");
         ikunLogList.add("五花马，千金裘 ，鸡你太美好风流  ");
@@ -37,9 +38,17 @@ public class IkunRandomUtil {
         return ikunLogList.get(random);
     }
 
+    public static void addRandomLog(String ikun){
+        ikunLogList.add(ikun);
+    }
+
     public static String getRandomThreadLog(){
         int random = (int) (Math.random() * ikunThreadList.size());
         return ikunThreadList.get(random);
+    }
+
+    public static void addRandomThreadLog(String ikun){
+        ikunThreadList.add(ikun);
     }
 
 }
