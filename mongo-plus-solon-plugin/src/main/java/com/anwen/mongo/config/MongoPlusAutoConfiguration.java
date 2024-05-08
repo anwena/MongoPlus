@@ -65,6 +65,7 @@ public class MongoPlusAutoConfiguration {
                                       MongoDBCollectionProperty mongoDBCollectionProperty,
                                       MongoLogicDelProperty mongoLogicDelProperty){
         mongoDBCollectionProperty = Optional.ofNullable(mongoDBCollectionProperty).orElseGet(MongoDBCollectionProperty::new);
+        mongoLogicDelProperty = Optional.ofNullable(mongoLogicDelProperty).orElseGet(MongoLogicDelProperty::new);
         this.collectionNameConvert = collectionNameConvert;
         this.mongoPlusClient = mongoPlusClient;
         this.mongoDBLogProperty = mongoDBLogProperty;

@@ -103,12 +103,7 @@ public class SimpleTypeInformation<T> implements TypeInformation {
     }
 
     public static <T> TypeInformation of(T instance){
-        Class<?> clazz = instance.getClass();
-        return Optional.ofNullable(ClassInformationCache.classInformationMap.get(clazz)).orElseGet(() -> {
-            SimpleTypeInformation<T> simpleClassInformation = new SimpleTypeInformation<>(instance);
-            ClassInformationCache.classInformationMap.put(clazz, simpleClassInformation);
-            return simpleClassInformation;
-        });
+        return new SimpleTypeInformation<>(instance);
     }
 
     @Override

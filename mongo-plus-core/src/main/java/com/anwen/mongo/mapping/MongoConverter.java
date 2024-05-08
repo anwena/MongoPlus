@@ -1,5 +1,6 @@
 package com.anwen.mongo.mapping;
 
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoIterable;
 import org.bson.Document;
 
@@ -82,7 +83,11 @@ public interface MongoConverter extends MongoWriter,EntityRead {
 
     default <T> List<T> read(MongoIterable<Document> findIterable, Class<T> clazz){
         List<T> resultList = new ArrayList<>();
-        findIterable.forEach(document -> resultList.add(read(document, clazz)));
+        try (MongoCursor<Document> mongoCursor = findIterable.iterator()) {
+            if (mongoCursor.hasNext()){
+                resultList.add(read(mongoCursor.next(), clazz));
+            }
+        }
         return resultList;
     }
 
