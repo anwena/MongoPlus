@@ -47,14 +47,6 @@ public class Converter {
         return resultList;
     }
 
-    public static List<Map<String, Object>> convertDocumentToMap(FindIterable<Map> iterable, Integer total) {
-        List<Map<String, Object>> resultList = new ArrayList<>(total);
-        for (Map<String, Object> map : iterable.batchSize(total)) {
-            resultList.add(convertKeysToCamelCase(map));
-        }
-        return resultList;
-    }
-
     public static Map<String, Object> convertKeysToCamelCase(Map<String, Object> map) {
         return map.entrySet().stream()
                 .collect(Collectors.toMap(

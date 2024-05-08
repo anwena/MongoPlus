@@ -180,16 +180,6 @@ public interface IService<T> {
 
     T one(QueryChainWrapper<T,?> queryChainWrapper);
 
-    /**
-     * 获取单个，返回T类型的对象
-     * <p style="color:red">注：如果查询到大于一条数据，会取第一条返回</p>
-     * @return Map< String, Object>
-     * @author JiaChaoYang
-     * @date 2023/7/20 23:20
-     */
-    @Deprecated
-    T limitOne(QueryChainWrapper<T,?> queryChainWrapper);
-
     List<T> list(QueryChainWrapper<T ,?> queryChainWrapper);
 
     List<T> list(AggregateChainWrapper<T,?> queryChainWrapper);

@@ -7,11 +7,7 @@ import org.bson.BsonArray;
 import org.bson.BsonDocument;
 import org.bson.BsonValue;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -158,7 +154,7 @@ public class MongoCommandBuildUtils {
                 }
             }
         }
-        if (jsons.size() == 0) {
+        if (jsons.isEmpty()) {
             return "";
         } else if (jsons.size() == 1) {
             return jsons.get(0);
@@ -189,6 +185,7 @@ public class MongoCommandBuildUtils {
 
     }
 
+    @SuppressWarnings("unchecked")
     private static String buildAggregateCommand(CommandStartedEvent event) {
 
         List<BsonDocument> pipeline = (List<BsonDocument>) event.getCommand().get("pipeline");

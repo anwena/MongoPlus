@@ -3,6 +3,7 @@ package com.anwen.mongo.mapping;
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.bson.MongoPlusDocument;
+import com.anwen.mongo.cache.global.ConversionCache;
 import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.cache.global.PropertyCache;
 import com.anwen.mongo.constant.SqlOperationConstant;
@@ -16,7 +17,6 @@ import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.model.AutoFillMetaObject;
 import com.anwen.mongo.strategy.conversion.ConversionStrategy;
-import com.anwen.mongo.strategy.convert.ConversionService;
 import com.anwen.mongo.toolkit.BsonUtil;
 import com.anwen.mongo.toolkit.CollUtil;
 import com.mongodb.client.MongoCollection;
@@ -27,9 +27,10 @@ import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import java.io.Serializable;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * 抽象的映射处理器
@@ -71,16 +72,11 @@ public abstract class AbstractMongoConverter implements MongoConverter {
             idValue = generateId(idFieldInformation.getId().type(), typeInformation);
         }
         if (idValue != null){
-            try {
-                Object value = ConversionService.convertValue(idFieldInformation.getField(), sourceObj, idValue);
-                document.put(SqlOperationConstant._ID, value);
-                //为自行设置id，需要在这里判断一下重入，自行设置checkTableField方法会进行处理
-                if (idFieldInformation.getId().saveField()){
-                    document.put(idFieldInformation.getName(),value);
-                }
-            } catch (IllegalAccessException e) {
-                log.error("Failed to convert to entity class's' _id 'field type when filling in'_id',error message: {}",e.getMessage(),e);
-                throw new RuntimeException(e);
+            Object value = convertValue(idValue,idFieldInformation.getTypeClass());
+            document.put(SqlOperationConstant._ID, value);
+            //为自行设置id，需要在这里判断一下重入，自行设置checkTableField方法会进行处理
+            if (idFieldInformation.getId().saveField()){
+                document.put(idFieldInformation.getName(),value);
             }
         }
         //如果存在元对象处理器，且插入或更新字段不为空，则获取自动填充字段
@@ -139,19 +135,21 @@ public abstract class AbstractMongoConverter implements MongoConverter {
     public <T> T read(Document document, Class<T> clazz) {
         //拿到class封装类
         TypeInformation typeInformation = TypeInformation.of(clazz);
-        //循环所有字段
-        typeInformation.getFields().forEach(fieldInformation -> {
-            String fieldName = fieldInformation.getIdOrCamelCaseName();
-            if (fieldInformation.isSkipCheckField()){
-                return;
-            }
-            Object obj = document.get(fieldName);
-            if (obj == null){
-                return;
-            }
-            obj = fieldInformation.isId() ? String.valueOf(obj) : obj;
-            fieldInformation.setValue(read(fieldInformation,obj,fieldInformation.getTypeClass()));
-        });
+        if (document != null) {
+            //循环所有字段
+            typeInformation.getFields().forEach(fieldInformation -> {
+                String fieldName = fieldInformation.getIdOrCamelCaseName();
+                if (fieldInformation.isSkipCheckField()) {
+                    return;
+                }
+                Object obj = document.get(fieldName);
+                if (obj == null) {
+                    return;
+                }
+                obj = fieldInformation.isId() ? String.valueOf(obj) : obj;
+                fieldInformation.setValue(read(fieldInformation, obj, fieldInformation.getTypeClass()));
+            });
+        }
         return typeInformation.getInstance();
     }
 
@@ -288,6 +286,34 @@ public abstract class AbstractMongoConverter implements MongoConverter {
                 }
             }
         });
+    }
+
+    /**
+     * 调用该方法，肯定会走集合和map之外的转换器
+     * @param obj 值
+     * @param clazz 类型
+     * @return {@link T}
+     * @author anwen
+     * @date 2024/5/7 下午4:05
+     */
+    @SuppressWarnings("unchecked")
+    protected <T> T convertValue(Object obj,Class<?> clazz){
+        ConversionStrategy<?> conversionStrategy = getConversionStrategy(clazz);
+        if (conversionStrategy == null){
+            conversionStrategy = ConversionCache.getConversionStrategy(Object.class);
+        }
+        try {
+            return (T) conversionStrategy.convertValue(obj,clazz,this);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected ConversionStrategy<?> getConversionStrategy(Class<?> target){
+        if (Enum.class.isAssignableFrom(target)){
+            target = Enum.class;
+        }
+        return ConversionCache.getConversionStrategy(target);
     }
 
 }

@@ -30,6 +30,7 @@ import java.util.Map;
 import static com.anwen.mongo.toolkit.StringPool.EMPTY;
 
 /**
+ * 以后不想再维护这个类了
  * @author JiaChaoYang
  **/
 public class MongoPlusMapMapper implements InjectQuery {

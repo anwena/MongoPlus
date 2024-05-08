@@ -234,12 +234,6 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
-    @Deprecated
-    public T limitOne(QueryChainWrapper<T, ?> queryChainWrapper) {
-        return baseMapper.limitOne(queryChainWrapper,clazz);
-    }
-
-    @Override
     public List<T> list() {
         return baseMapper.list(clazz);
     }

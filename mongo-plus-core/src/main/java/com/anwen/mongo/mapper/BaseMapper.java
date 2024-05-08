@@ -125,9 +125,6 @@ public interface BaseMapper{
      */
     <T> T one(QueryChainWrapper<T,?> queryChainWrapper,Class<T> clazz);
 
-    @Deprecated
-    <T> T limitOne(QueryChainWrapper<T, ?> queryChainWrapper,Class<T> clazz);
-
     /**
      * 分页查询，如果queryWrapper有条件，查询会慢，因为需要重新进行count查询
      * @param queryChainWrapper 条件

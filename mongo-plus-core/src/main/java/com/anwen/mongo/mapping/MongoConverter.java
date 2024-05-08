@@ -1,6 +1,5 @@
 package com.anwen.mongo.mapping;
 
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoIterable;
 import org.bson.Document;
 
@@ -41,6 +40,16 @@ public interface MongoConverter extends MongoWriter,EntityRead {
             writeBySave(sourceObj,document);
             documentList.add(document);
         });
+    }
+
+    default List<Document> writeBySaveBatch(Collection<?> sourceObjCollection){
+        return new ArrayList<Document>(){{
+            sourceObjCollection.forEach(sourceObj -> {
+                Document document = new Document();
+                writeBySave(sourceObj,document);
+                add(document);
+            });
+        }};
     }
 
     void writeByUpdate(Object sourceObj, Document document);

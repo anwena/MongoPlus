@@ -1,12 +1,12 @@
 package com.anwen.mongo.mapping;
 
+import com.anwen.mongo.cache.global.ConversionCache;
 import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.cache.global.PropertyCache;
 import com.anwen.mongo.domain.MongoPlusConvertException;
 import com.anwen.mongo.domain.MongoPlusWriteException;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.strategy.conversion.ConversionStrategy;
-import com.anwen.mongo.strategy.conversion.impl.*;
 import com.anwen.mongo.toolkit.BsonUtil;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -16,12 +16,6 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.*;
 
 /**
@@ -33,26 +27,6 @@ public class MappingMongoConverter extends AbstractMongoConverter {
 
     private static final Logger log = LoggerFactory.getLogger(MappingMongoConverter.class);
     private final SimpleTypeHolder simpleTypeHolder = new SimpleTypeHolder();
-
-    private final Map<Class<?>, ConversionStrategy<?>> conversionStrategies = new HashMap<>();
-
-    {
-        conversionStrategies.put(Integer.class,new IntegerConversionStrategy());
-        conversionStrategies.put(Long.class, new LongConversionStrategy());
-        conversionStrategies.put(Double.class, new DoubleConversionStrategy());
-        conversionStrategies.put(Float.class, new FloatConversionStrategy());
-        conversionStrategies.put(Boolean.class, new BooleanConversionStrategy());
-        conversionStrategies.put(String.class, new StringConversionStrategy());
-        conversionStrategies.put(LocalTime.class,new LocalTimeConversionStrategy());
-        conversionStrategies.put(LocalDate.class,new LocalDateConversionStrategy());
-        conversionStrategies.put(LocalDateTime.class,new LocalDateTimeConversionStrategy());
-        conversionStrategies.put(Date.class,new DateConversionStrategy());
-        conversionStrategies.put(Instant.class,new InstantConversionStrategy());
-        conversionStrategies.put(Object.class,new DefaultConversionStrategy());
-        conversionStrategies.put(BigDecimal.class,new BigDecimalConversionStrategy());
-        conversionStrategies.put(BigInteger.class,new BigIntegerConversionStrategy());
-        conversionStrategies.put(Enum.class,new EnumConversionStrategy<>());
-    }
 
     public MappingMongoConverter(MongoPlusClient mongoPlusClient) {
         super(mongoPlusClient);
@@ -176,30 +150,9 @@ public class MappingMongoConverter extends AbstractMongoConverter {
                 Type type = getGenericTypeClass((ParameterizedType) fieldInformation.getField().getGenericType(), 1);
                 return (T) convertMap(type,sourceObj,createMapInstance(clazz));
             } else if (null == conversionStrategy){
-                conversionStrategy = conversionStrategies.get(Object.class);
+                conversionStrategy = ConversionCache.getConversionStrategy(Object.class);
             }
             return (T) conversionStrategy.convertValue(sourceObj, fieldInformation.getTypeClass() , this);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * 调用该方法，肯定会走集合和map之外的转换器
-     * @param obj 值
-     * @param clazz 类型
-     * @return {@link T}
-     * @author anwen
-     * @date 2024/5/7 下午4:05
-     */
-    @SuppressWarnings("unchecked")
-    public <T> T convertValue(Object obj,Class<?> clazz){
-        ConversionStrategy<?> conversionStrategy = getConversionStrategy(clazz);
-        if (conversionStrategy == null){
-            conversionStrategy = conversionStrategies.get(Object.class);
-        }
-        try {
-            return (T) conversionStrategy.convertValue(obj,clazz,this);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
@@ -316,13 +269,6 @@ public class MappingMongoConverter extends AbstractMongoConverter {
      */
     public static Type getGenericTypeClass(ParameterizedType parameterizedType,int size){
         return parameterizedType.getActualTypeArguments()[size];
-    }
-
-    private ConversionStrategy<?> getConversionStrategy(Class<?> target){
-        if (Enum.class.isAssignableFrom(target)){
-            target = Enum.class;
-        }
-        return conversionStrategies.get(target);
     }
 
 }

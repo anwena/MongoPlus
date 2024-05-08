@@ -1,10 +1,7 @@
 package com.anwen.mongo.config;
 
 import com.anwen.mongo.annotation.collection.CollectionName;
-import com.anwen.mongo.cache.global.ExecutorReplacerCache;
-import com.anwen.mongo.cache.global.HandlerCache;
-import com.anwen.mongo.cache.global.InterceptorCache;
-import com.anwen.mongo.cache.global.ListenerCache;
+import com.anwen.mongo.cache.global.*;
 import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.conn.ConnectMongoDB;
 import com.anwen.mongo.constant.DataSourceConstant;
@@ -26,8 +23,7 @@ import com.anwen.mongo.property.MongoLogicDelProperty;
 import com.anwen.mongo.replacer.Replacer;
 import com.anwen.mongo.service.IService;
 import com.anwen.mongo.service.impl.ServiceImpl;
-import com.anwen.mongo.strategy.convert.ConversionService;
-import com.anwen.mongo.strategy.convert.ConversionStrategy;
+import com.anwen.mongo.strategy.conversion.ConversionStrategy;
 import com.anwen.mongo.toolkit.CollUtil;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
@@ -39,13 +35,7 @@ import org.springframework.context.ApplicationContext;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -72,7 +62,13 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
 
     Log log = LogFactory.getLog(MongoPlusAutoConfiguration.class);
 
-    public MongoPlusAutoConfiguration(MongoDBLogProperty mongodbLogProperty, MongoDBCollectionProperty mongodbCollectionProperty, MongoLogicDelProperty mongoLogicDelProperty, BaseMapper baseMapper, MongoPlusClient mongoPlusClient, ApplicationContext applicationContext, CollectionNameConvert collectionNameConvert) {
+    public MongoPlusAutoConfiguration(MongoDBLogProperty mongodbLogProperty,
+                                      MongoDBCollectionProperty mongodbCollectionProperty,
+                                      MongoLogicDelProperty mongoLogicDelProperty,
+                                      BaseMapper baseMapper,
+                                      MongoPlusClient mongoPlusClient,
+                                      ApplicationContext applicationContext,
+                                      CollectionNameConvert collectionNameConvert) {
         this.mongoPlusClient = mongoPlusClient;
         this.applicationContext = applicationContext;
         this.mongodbLogProperty = mongodbLogProperty;
@@ -152,16 +148,19 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
      * @author JiaChaoYang
      * @date 2023/10/19 12:49
      */
-    @SuppressWarnings("unchecked")
     private void setConversion() {
         applicationContext.getBeansOfType(ConversionStrategy.class).values().forEach(conversionStrategy -> {
             try {
+                if (conversionStrategy.getClass().isInterface()){
+                    ConversionCache.putConversionStrategy(conversionStrategy.getClass(), conversionStrategy);
+                    return;
+                }
                 Type[] genericInterfaces = conversionStrategy.getClass().getGenericInterfaces();
                 for (Type anInterface : genericInterfaces) {
                     ParameterizedType parameterizedType = (ParameterizedType) anInterface;
                     if (parameterizedType.getRawType().equals(ConversionStrategy.class)) {
                         Class<?> clazz = (Class<?>) parameterizedType.getActualTypeArguments()[0];
-                        ConversionService.appendConversion(clazz, conversionStrategy);
+                        ConversionCache.putConversionStrategy(clazz, conversionStrategy);
                         break;
                     }
                 }

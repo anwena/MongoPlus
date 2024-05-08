@@ -6,7 +6,6 @@ import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.constant.SqlOperationConstant;
-import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.execute.Execute;
 import com.anwen.mongo.execute.ExecutorFactory;
@@ -70,7 +69,6 @@ public class DefaultBaseMapperImpl implements BaseMapper {
             Document document = new Document();
             mongoConverter.writeBySave(entity, document);
             InsertManyResult insertManyResult = factory.getExecute().executeSave(Collections.singletonList(document), mongoPlusClient.getCollection(ClassTypeUtil.getClass(entity)));
-//            setBackIdValue(document, entity);
             return insertManyResult.wasAcknowledged();
         } catch (Exception e) {
             log.error("save fail , error info : {}", e.getMessage(), e);
@@ -115,7 +113,6 @@ public class DefaultBaseMapperImpl implements BaseMapper {
 
     @Override
     public <T> List<T> list(Class<T> clazz) {
-//        return DocumentMapperConvert.mapDocumentList(factory.getExecute().executeQuery(null,null,null,mongoPlusClient.getCollection(clazz),Document.class),clazz);
         FindIterable<Document> findIterable = factory.getExecute().executeQuery(null, null, null, mongoPlusClient.getCollection(clazz), Document.class);
         return mongoConverter.read(findIterable, clazz);
     }
@@ -123,7 +120,8 @@ public class DefaultBaseMapperImpl implements BaseMapper {
     @Override
     public <T> List<T> list(QueryChainWrapper<T,?> queryChainWrapper, Class<T> clazz) {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
-        return DocumentMapperConvert.mapDocumentList(factory.getExecute().executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(),mongoPlusClient.getCollection(clazz),Document.class),clazz);
+        FindIterable<Document> documentFindIterable = factory.getExecute().executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), mongoPlusClient.getCollection(clazz), Document.class);
+        return mongoConverter.read(documentFindIterable, clazz);
     }
 
     @Override
@@ -138,19 +136,13 @@ public class DefaultBaseMapperImpl implements BaseMapper {
         aggregateConditionList.sort(Comparator.comparingInt(AggregateBasicDBObject::getOrder));
         AggregateIterable<Document> aggregateIterable = factory.getExecute().executeAggregate(aggregateConditionList, mongoPlusClient.getCollection(clazz),Document.class);
         AggregateUtil.aggregateOptions(aggregateIterable,optionsBasicDBObject);
-        return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),clazz);
+        return mongoConverter.read(aggregateIterable,clazz);
     }
 
     @Override
     public <T> T one(QueryChainWrapper<T,?> queryChainWrapper,Class<T> clazz) {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),null,queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
-        return lambdaOperate.getLambdaQueryResultOne(factory.getExecute().executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(),mongoPlusClient.getCollection(clazz),Document.class).limit(1),clazz);
-    }
-
-    @Override
-    public <T> T limitOne(QueryChainWrapper<T, ?> queryChainWrapper,Class<T> clazz) {
-        BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
-        return lambdaOperate.getLambdaQueryResultOne(factory.getExecute().executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(),mongoPlusClient.getCollection(clazz),Document.class).limit(1),clazz);
+        return mongoConverter.read(factory.getExecute().executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(),mongoPlusClient.getCollection(clazz),Document.class).limit(1),clazz).get(0);
     }
 
     @Override
@@ -164,14 +156,14 @@ public class DefaultBaseMapperImpl implements BaseMapper {
             count = count(queryChainWrapper,clazz);
         }
         FindIterable<Document> iterable = factory.getExecute().executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), collection,Document.class);
-        return lambdaOperate.getLambdaQueryResultPage(iterable,count,new PageParam(pageNum,pageSize),clazz);
+        return lambdaOperate.getLambdaQueryResultPage(iterable,count,new PageParam(pageNum,pageSize),clazz,mongoConverter);
     }
 
     @Override
     public <T> List<T> pageList(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize, Class<T> clazz) {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
         FindIterable<Document> iterable = factory.getExecute().executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), mongoPlusClient.getCollection(clazz),Document.class);
-        return DocumentMapperConvert.mapDocumentList(iterable.skip((pageNum - 1) * pageSize).limit(pageSize), clazz);
+        return mongoConverter.read(iterable.skip((pageNum - 1) * pageSize).limit(pageSize), clazz);
     }
 
     @Override
@@ -185,13 +177,13 @@ public class DefaultBaseMapperImpl implements BaseMapper {
             count = recentPageCount(queryChainWrapper.getCompareList(),clazz, pageNum,  pageSize, recentPageNum);
         }
         FindIterable<Document> iterable = factory.getExecute().executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), collection,Document.class);
-        return lambdaOperate.getLambdaQueryResultPage(iterable, count,new PageParam(pageNum,pageSize),clazz);
+        return lambdaOperate.getLambdaQueryResultPage(iterable, count,new PageParam(pageNum,pageSize),clazz,mongoConverter);
     }
 
     @Override
     public <T> T getById(Serializable id,Class<T> clazz) {
         BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id));
-        return DocumentMapperConvert.mapDocument(factory.getExecute().executeQuery(queryBasic,null,null,mongoPlusClient.getCollection(clazz),Document.class).first(),clazz);
+        return mongoConverter.read(factory.getExecute().executeQuery(queryBasic,null,null,mongoPlusClient.getCollection(clazz),Document.class).first(),clazz);
     }
 
     @Override
@@ -210,7 +202,7 @@ public class DefaultBaseMapperImpl implements BaseMapper {
     public <T> List<T> getByIds(Collection<? extends Serializable> ids,Class<T> clazz) {
         BasicDBObject basicDBObject = checkIdType(ids);
         FindIterable<Document> iterable = factory.getExecute().executeQuery(basicDBObject,null,null, mongoPlusClient.getCollection(clazz),Document.class);
-        return DocumentMapperConvert.mapDocumentList(iterable, clazz);
+        return mongoConverter.read(iterable, clazz);
     }
 
     @Override
@@ -292,13 +284,13 @@ public class DefaultBaseMapperImpl implements BaseMapper {
     @Override
     public <T> List<T> queryCommand(String command,Class<T> clazz){
         FindIterable<Document> iterable = factory.getExecute().executeQuery(BasicDBObject.parse(command),null,null, mongoPlusClient.getCollection(clazz),Document.class);
-        return lambdaOperate.getLambdaQueryResult(iterable,clazz);
+        return mongoConverter.read(iterable,clazz);
     }
 
     @Override
     public <T> List<T> getByColumn(String column,Object value,Class<T> clazz){
         Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(value)) ? new ObjectId(String.valueOf(value)) : value);
-        return DocumentMapperConvert.mapDocumentList(factory.getExecute().executeQuery(filter,null,null,mongoPlusClient.getCollection(clazz),Document.class),clazz);
+        return mongoConverter.read(factory.getExecute().executeQuery(filter,null,null,mongoPlusClient.getCollection(clazz),Document.class),clazz);
     }
 
     @Override

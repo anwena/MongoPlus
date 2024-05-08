@@ -8,7 +8,6 @@ import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.convert.Converter;
-import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.domain.MongoPlusFieldException;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.execute.Execute;
@@ -271,7 +270,8 @@ public class InjectAbstractExecute {
         aggregateConditionList.sort(Comparator.comparingInt(AggregateBasicDBObject::getOrder));
         AggregateIterable<Document> aggregateIterable = execute.executeAggregate(aggregateConditionList, collectionManager.getCollection(collectionName),Document.class);
         aggregateOptions(aggregateIterable,optionsBasicDBObject);
-        return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),clazz);
+//        return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),clazz);
+        return mongoConverter.read(aggregateIterable,clazz);
     }
 
     public long count(String collectionName){
