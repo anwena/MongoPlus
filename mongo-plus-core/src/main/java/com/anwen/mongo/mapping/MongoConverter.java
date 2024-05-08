@@ -91,4 +91,14 @@ public interface MongoConverter extends MongoWriter,EntityRead {
         return resultList;
     }
 
+    @SuppressWarnings("unchecked")
+    default <T> T readDocument(MongoIterable<Document> findIterable,Class<?> clazz){
+        try (MongoCursor<Document> mongoCursor = findIterable.iterator()) {
+            if (mongoCursor.hasNext()){
+                return (T)read(mongoCursor.next(), clazz);
+            }
+        }
+        return TypeInformation.of(clazz).getInstance();
+    }
+
 }

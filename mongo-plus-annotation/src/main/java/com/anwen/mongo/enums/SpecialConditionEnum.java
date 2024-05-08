@@ -11,6 +11,8 @@ public enum SpecialConditionEnum {
 
     SET("$set"),
 
+    INC("$inc"),
+
     PUSH("$push"),
 
     EACH("$each"),

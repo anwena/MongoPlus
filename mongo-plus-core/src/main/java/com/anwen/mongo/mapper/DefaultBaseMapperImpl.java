@@ -142,7 +142,7 @@ public class DefaultBaseMapperImpl implements BaseMapper {
     @Override
     public <T> T one(QueryChainWrapper<T,?> queryChainWrapper,Class<T> clazz) {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),null,queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
-        return mongoConverter.read(factory.getExecute().executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(),mongoPlusClient.getCollection(clazz),Document.class).limit(1),clazz).get(0);
+        return mongoConverter.readDocument(factory.getExecute().executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(),mongoPlusClient.getCollection(clazz),Document.class).limit(1),clazz);
     }
 
     @Override
@@ -213,9 +213,13 @@ public class DefaultBaseMapperImpl implements BaseMapper {
         BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareConditionList);
         List<CompareCondition> pushConditionList = compareConditionList.stream().filter(compareCondition -> Objects.equals(compareCondition.getCondition(), SpecialConditionEnum.PUSH.getSubCondition())).collect(Collectors.toList());
         List<CompareCondition> setConditionList = compareConditionList.stream().filter(compareCondition -> Objects.equals(compareCondition.getCondition(), SpecialConditionEnum.SET.getSubCondition())).collect(Collectors.toList());
+        List<CompareCondition> incConditionList = compareConditionList.stream().filter(compareCondition -> Objects.equals(compareCondition.getCondition(), SpecialConditionEnum.SET.getSubCondition())).collect(Collectors.toList());
         BasicDBObject basicDBObject = new BasicDBObject() {{
             if (CollUtil.isNotEmpty(setConditionList)){
                 append(SpecialConditionEnum.SET.getCondition(), BuildCondition.buildUpdateValue(setConditionList));
+            }
+            if (CollUtil.isNotEmpty(incConditionList)){
+                append(SpecialConditionEnum.INC.getCondition(), BuildCondition.buildUpdateValue(incConditionList));
             }
             if (CollUtil.isNotEmpty(pushConditionList)){
                 append(SpecialConditionEnum.PUSH.getCondition(), BuildCondition.buildPushUpdateValue(pushConditionList));
