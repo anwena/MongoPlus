@@ -4,6 +4,8 @@ import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.logic.LogicDeleteHandler;
 import com.anwen.mongo.model.LogicDeleteResult;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.InsertOneModel;
+import com.mongodb.client.model.WriteModel;
 import org.bson.Document;
 
 import java.util.List;
@@ -36,5 +38,26 @@ public class LogicAutoFillInterceptor implements Interceptor {
 
     }
 
+    @Override
+    public List<WriteModel<Document>> executeBulkWrite(List<WriteModel<Document>> writeModelList, MongoCollection<Document> collection) {
+
+        Class<?> clazz = LogicDeleteHandler.getBeanClass(collection);
+        if (Objects.isNull(clazz)) {
+            return writeModelList;
+        }
+        for (WriteModel<Document> documentWriteModel : writeModelList) {
+            if (documentWriteModel instanceof InsertOneModel) {
+                Document document = ((InsertOneModel<Document>) documentWriteModel).getDocument();
+                LogicDeleteResult result = LogicDeleteHandler.mapper().get(clazz);
+                if (Objects.nonNull(result)) {
+                    if (!document.containsKey(result.getColumn())) {
+                        document.put(result.getColumn(), result.getLogicNotDeleteValue());
+                    }
+                }
+            }
+        }
+        return writeModelList;
+
+    }
 
 }
