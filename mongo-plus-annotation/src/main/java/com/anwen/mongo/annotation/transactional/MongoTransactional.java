@@ -59,10 +59,34 @@ public @interface MongoTransactional {
      */
     WriteConcernEnum writeConcern() default WriteConcernEnum.ACKNOWLEDGED;
 
+    /**
+     * 用于指定事务提交的最大时间限制以防止因为某些原因导致事务长时间无法提交。如果事务在指定的时间内没有提交，MongODB 会自动中止 (abort) 事务。
+     */
     long maxCommitTimeMS() default 0;
 
+    /**
+     * 时间单位
+     */
     TimeUnit timeUnit() default TimeUnit.MILLISECONDS;
 
+    /**
+     * 长度为1则有效
+     * 配置读取偏好设置
+     */
     MongoReadPreference[] preference() default {};
+
+    /**
+     * 捕获该异常并进行回滚
+     *
+     * @return 需要回滚的异常
+     */
+    Class<? extends Throwable>[] rollbackFor() default {};
+
+    /**
+     * 捕获该异常不进行回滚
+     *
+     * @return 不需要回滚的异常
+     */
+    Class<? extends Throwable>[] noRollbackFor() default {};
 
 }

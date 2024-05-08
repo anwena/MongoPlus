@@ -83,6 +83,12 @@ public class MongoTransactionalManager {
 
     }
 
+    /**
+     * 存在事务注解则进行自定义配置
+     *
+     * @param transactional 事务注解
+     * @param builder       回话配置对象
+     */
     private static void config(MongoTransactional transactional, ClientSessionOptions.Builder builder) {
 
         builder.causallyConsistent(transactional.causallyConsistent())
@@ -101,6 +107,13 @@ public class MongoTransactionalManager {
 
     }
 
+    /**
+     * ReadPreference 是一个枚举类型，用于指定数据从不同节点读取的偏好。
+     *
+     * @param preferences 配置参数
+     * @return 选择的读取偏好设置
+     * @author loser
+     */
     private static ReadPreference buildReadPreference(MongoReadPreference[] preferences) {
 
         if (Objects.isNull(preferences) || preferences.length != 1) {
@@ -118,6 +131,11 @@ public class MongoTransactionalManager {
 
     }
 
+    /**
+     * 不带超时时间
+     *
+     * @author loser
+     */
     private static ReadPreference getReadPreference(ReadPreferenceEnum preferenceEnum) {
 
         switch (preferenceEnum) {
@@ -137,6 +155,11 @@ public class MongoTransactionalManager {
 
     }
 
+    /**
+     * 带超时时间
+     *
+     * @author loser
+     */
     private static ReadPreference getReadPreference(ReadPreferenceEnum preferenceEnum, long maxStaleness, TimeUnit timeUnit) {
 
         switch (preferenceEnum) {
@@ -156,6 +179,13 @@ public class MongoTransactionalManager {
 
     }
 
+    /**
+     * WriteConcern 用于定义写入操作的安全等级。 WriteConcern 决定了一个写入操作需要被多少个节点确认才算成功。这可以用于保证数据的一致性和可靠性，在面对事务性操作时尤其重要
+     *
+     * @param writeConcernEnum 写入操作的安全等级枚举
+     * @return 写入操作的安全等级
+     * @author loser
+     */
     private static WriteConcern buildWriteConcern(WriteConcernEnum writeConcernEnum) {
 
         if (Objects.isNull(writeConcernEnum)) {
@@ -182,6 +212,13 @@ public class MongoTransactionalManager {
 
     }
 
+    /**
+     * readConcern 用于定义读取操作的一致性和隔离级别。 readConcern 可以在每个操作或每个会话的基础上进行设置。对于事务，必须设置 readConcern 为 majority 以确保事务期间的读取能反映在数据的大多数副本上的最新数据
+     *
+     * @param readConcernEnum 读取配置枚举
+     * @return 读取配置
+     * @author loser
+     */
     private static ReadConcern buildReadConcern(ReadConcernEnum readConcernEnum) {
 
         if (Objects.isNull(readConcernEnum)) {
