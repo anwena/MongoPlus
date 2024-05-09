@@ -84,7 +84,7 @@ public interface MongoConverter extends MongoWriter,EntityRead {
     default <T> List<T> read(MongoIterable<Document> findIterable, Class<T> clazz){
         List<T> resultList = new ArrayList<>();
         try (MongoCursor<Document> mongoCursor = findIterable.iterator()) {
-            if (mongoCursor.hasNext()){
+            while (mongoCursor.hasNext()){
                 resultList.add(read(mongoCursor.next(), clazz));
             }
         }
