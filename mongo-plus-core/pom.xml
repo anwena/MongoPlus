@@ -54,11 +54,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>2.0.32</version>
-        </dependency>
-        <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongodb-driver-sync</artifactId>
         </dependency>
@@ -188,19 +183,19 @@
                 </repository>
             </distributionManagement>
             <!-- 私服 -->
-<!--            <distributionManagement>
-                <repository>
-                    <id>mongo-plus-releases</id>
-                    <name>mongo-plus-releases</name>
-                    <url>https://www.mongoplus.cn/nexus/repository/mongo-plus-releases/</url>
-                    <uniqueVersion>true</uniqueVersion>
-                </repository>
-                <snapshotRepository>
-                    <id>mongo-plus-snapshots</id>
-                    <name>mongo-plus-snapshots</name>
-                    <url>https://www.mongoplus.cn/nexus/repository/mongo-plus-snapshots/</url>
-                </snapshotRepository>
-            </distributionManagement>-->
+            <!--            <distributionManagement>
+                            <repository>
+                                <id>mongo-plus-releases</id>
+                                <name>mongo-plus-releases</name>
+                                <url>https://www.mongoplus.cn/nexus/repository/mongo-plus-releases/</url>
+                                <uniqueVersion>true</uniqueVersion>
+                            </repository>
+                            <snapshotRepository>
+                                <id>mongo-plus-snapshots</id>
+                                <name>mongo-plus-snapshots</name>
+                                <url>https://www.mongoplus.cn/nexus/repository/mongo-plus-snapshots/</url>
+                            </snapshotRepository>
+                        </distributionManagement>-->
         </profile>
 
     </profiles>
