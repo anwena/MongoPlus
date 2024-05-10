@@ -133,28 +133,32 @@ public abstract class AbstractMongoConverter implements MongoConverter {
 
     @Override
     public <T> T read(Document document, Class<T> clazz) {
+        if (document == null){
+            return null;
+        }
         //拿到class封装类
         TypeInformation typeInformation = TypeInformation.of(clazz);
-        if (document != null) {
-            //循环所有字段
-            typeInformation.getFields().forEach(fieldInformation -> {
-                String fieldName = fieldInformation.getIdOrCamelCaseName();
-                if (fieldInformation.isSkipCheckField()) {
-                    return;
-                }
-                Object obj = document.get(fieldName);
-                if (obj == null) {
-                    return;
-                }
-                obj = fieldInformation.isId() ? String.valueOf(obj) : obj;
-                fieldInformation.setValue(read(fieldInformation, obj, fieldInformation.getTypeClass()));
-            });
-        }
+        //循环所有字段
+        typeInformation.getFields().forEach(fieldInformation -> {
+            String fieldName = fieldInformation.getIdOrCamelCaseName();
+            if (fieldInformation.isSkipCheckField()) {
+                return;
+            }
+            Object obj = document.get(fieldName);
+            if (obj == null) {
+                return;
+            }
+            obj = fieldInformation.isId() ? String.valueOf(obj) : obj;
+            fieldInformation.setValue(read(fieldInformation, obj, fieldInformation.getTypeClass()));
+        });
         return typeInformation.getInstance();
     }
 
     @Override
     public <T> T readInternal(Document document, Class<T> clazz){
+        if (document == null){
+            return null;
+        }
         //拿到class封装类
         TypeInformation typeInformation = TypeInformation.of(clazz);
         //循环所有字段
