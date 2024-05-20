@@ -16,6 +16,7 @@ import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.mapping.MongoConverter;
 import com.anwen.mongo.model.*;
 import com.anwen.mongo.toolkit.*;
+import com.anwen.mongo.toolkit.Filters;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
