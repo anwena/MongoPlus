@@ -1,5 +1,7 @@
 package com.anwen.mongo.toolkit;
 
+import com.anwen.mongo.enums.SpecialConditionEnum;
+import com.mongodb.BasicDBObject;
 import com.mongodb.client.model.TextSearchOptions;
 import com.mongodb.client.model.geojson.Geometry;
 import com.mongodb.client.model.geojson.Point;
@@ -18,6 +20,7 @@ import static java.util.Collections.unmodifiableSet;
 
 /**
  * 拷贝com.mongodb.client.model.Filters，需要用到内部类
+ *
  * @author anwen
  * @date 2024/5/21 上午12:16
  */
@@ -831,7 +834,12 @@ public final class Filters {
                 + '}';
     }
 
-    private static final class SimpleFilter implements Bson {
+
+    public interface MPBson extends Bson {
+        BasicDBObject getBasicDBObject();
+    }
+
+    public static final class SimpleFilter implements Bson {
         private final String fieldName;
         private final BsonValue value;
 
@@ -875,7 +883,7 @@ public final class Filters {
         }
     }
 
-    private static final class OperatorFilter<TItem> implements Bson {
+    public static final class OperatorFilter<TItem> implements Bson {
         private final String operatorName;
         private final String fieldName;
         private final TItem value;
@@ -935,7 +943,7 @@ public final class Filters {
         }
     }
 
-    private static class AndFilter implements Bson {
+    public static class AndFilter implements Bson {
         private final Iterable<Bson> filters;
 
         AndFilter(final Iterable<Bson> filters) {
@@ -979,7 +987,7 @@ public final class Filters {
         }
     }
 
-    private static class OrNorFilter implements Bson {
+    public static class OrNorFilter implements Bson {
         private enum Operator {
             OR("$or", "Or"),
             NOR("$nor", "Nor");
@@ -1047,7 +1055,7 @@ public final class Filters {
         }
     }
 
-    private static class IterableOperatorFilter<TItem> implements Bson {
+    public static class IterableOperatorFilter<TItem> implements MPBson {
         private final String fieldName;
         private final String operatorName;
         private final Iterable<TItem> values;
@@ -1056,6 +1064,11 @@ public final class Filters {
             this.fieldName = notNull("fieldName", fieldName);
             this.operatorName = notNull("operatorName", operatorName);
             this.values = notNull("values", values);
+        }
+
+        @Override
+        public BasicDBObject getBasicDBObject() {
+            return new BasicDBObject(fieldName, new BasicDBObject(SpecialConditionEnum.IN.getCondition(), values));
         }
 
         @Override
@@ -1113,9 +1126,14 @@ public final class Filters {
         }
     }
 
-    private static class SimpleEncodingFilter<TItem> implements Bson {
+    public static class SimpleEncodingFilter<TItem> implements MPBson {
         private final String fieldName;
         private final TItem value;
+
+        @Override
+        public BasicDBObject getBasicDBObject() {
+            return new BasicDBObject(fieldName, value);
+        }
 
         SimpleEncodingFilter(final String fieldName, @Nullable final TItem value) {
             this.fieldName = notNull("fieldName", fieldName);
@@ -1167,7 +1185,7 @@ public final class Filters {
         }
     }
 
-    private static class NotFilter implements Bson {
+    public static class NotFilter implements Bson {
         private static final Set<String> DBREF_KEYS = unmodifiableSet(new HashSet<>(asList("$ref", "$id")));
         private static final Set<String> DBREF_KEYS_WITH_DB = unmodifiableSet(new HashSet<>(asList("$ref", "$id", "$db")));
         private final Bson filter;
@@ -1242,7 +1260,7 @@ public final class Filters {
         }
     }
 
-    private static class GeometryOperatorFilter<TItem> implements Bson {
+    public static class GeometryOperatorFilter<TItem> implements Bson {
         private final String operatorName;
         private final String fieldName;
         private final TItem geometry;
@@ -1333,7 +1351,7 @@ public final class Filters {
         }
     }
 
-    private static class TextFilter implements Bson {
+    public static class TextFilter implements Bson {
         private final String search;
         private final TextSearchOptions textSearchOptions;
 

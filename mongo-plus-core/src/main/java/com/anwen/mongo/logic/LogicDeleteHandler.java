@@ -8,6 +8,7 @@ import com.anwen.mongo.conditions.query.QueryWrapper;
 import com.anwen.mongo.config.Configuration;
 import com.anwen.mongo.model.LogicDeleteResult;
 import com.anwen.mongo.toolkit.ChainWrappers;
+import com.anwen.mongo.toolkit.Filters;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCollection;
 import org.bson.BsonDocument;
@@ -69,9 +70,16 @@ public interface LogicDeleteHandler {
             bdb.put(result.getColumn(), new BsonString(result.getLogicNotDeleteValue()));
             return bdb;
         }
-        BsonDocument bsonDocument = query.toBsonDocument();
-        bsonDocument.append(result.getColumn(), new BsonString(result.getLogicNotDeleteValue()));
-        return bsonDocument;
+        if (query instanceof Filters.MPBson) {
+            Filters.MPBson filter = (Filters.MPBson) query;
+            BasicDBObject bdb = filter.getBasicDBObject();
+            bdb.put(result.getColumn(), new BsonString(result.getLogicNotDeleteValue()));
+            return bdb;
+        } else {
+            BsonDocument bsonDocument = query.toBsonDocument();
+            bsonDocument.append(result.getColumn(), new BsonString(result.getLogicNotDeleteValue()));
+            return bsonDocument;
+        }
 
     }
 
