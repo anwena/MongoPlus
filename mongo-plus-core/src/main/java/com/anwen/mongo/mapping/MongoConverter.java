@@ -37,21 +37,17 @@ public interface MongoConverter extends MongoWriter,EntityRead {
         return document;
     }
 
-    default List<Document> writeBatch(Collection<?> sourceObjCollection, List<Document> documentList){
+    default List<Document> writeBatch(Collection<Map<String,Object>> sourceObjCollection, List<Document> documentList){
         sourceObjCollection.forEach(sourceObj -> {
-            Document document = new Document();
-            write(sourceObj,document);
-            documentList.add(document);
+            documentList.add(write(sourceObj));
         });
         return documentList;
     }
 
-    default List<Document> writeBatch(Collection<?> sourceObjCollection){
+    default List<Document> writeBatch(Collection<Map<String,Object>> sourceObjCollection){
         return new ArrayList<Document>(){{
             sourceObjCollection.forEach(sourceObj -> {
-                Document document = new Document();
-                write(sourceObj,document);
-                add(document);
+                add(write(sourceObj));
             });
         }};
     }
