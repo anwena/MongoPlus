@@ -1,19 +1,21 @@
 package com.anwen.mongo.mapping;
 
+import com.anwen.mongo.annotation.ID;
+import com.anwen.mongo.constant.SqlOperationConstant;
+import com.anwen.mongo.domain.MongoPlusFieldException;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoIterable;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.Field;
+import java.util.*;
 
 /**
  * 将对象映射为Document和将Document映射为对象
  * @author JiaChaoYang
  * @date 2024/4/16 下午9:10
-*/ 
+*/
 public interface MongoConverter extends MongoWriter,EntityRead {
 
     /**
@@ -99,6 +101,38 @@ public interface MongoConverter extends MongoWriter,EntityRead {
             }
         }
         return TypeInformation.of(clazz).getInstance();
+    }
+
+    default void reSetIdValue(Object sourceObj, Document document) {
+        if (Objects.isNull(sourceObj) || Objects.isNull(document) || !document.containsKey(SqlOperationConstant._ID)) {
+            return;
+        }
+        TypeInformation typeInformation = TypeInformation.of(sourceObj);
+        FieldInformation idFieldInformation = typeInformation.getAnnotationField(ID.class, "@ID field not found");
+        Object idValue = idFieldInformation.getValue();
+        if (Objects.isNull(idValue)) {
+            Object idV = document.get(SqlOperationConstant._ID);
+            Field field = idFieldInformation.getField();
+            field.setAccessible(true);
+            try {
+                if (idV instanceof ObjectId) {
+                    field.set(sourceObj, idV.toString());
+                } else {
+                    field.set(sourceObj, idV);
+                }
+            } catch (Exception e) {
+                throw new MongoPlusFieldException("reSet id value error", e);
+            }
+        }
+    }
+
+    default <T> void batchReSetIdValue(Collection<T> entityList, List<Document> documentList) {
+        int index = 0;
+        for (T t : entityList) {
+            Document document = documentList.get(index);
+            reSetIdValue(t, document);
+            index++;
+        }
     }
 
 }

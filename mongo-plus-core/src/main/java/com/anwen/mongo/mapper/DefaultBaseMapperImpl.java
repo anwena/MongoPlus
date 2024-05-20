@@ -69,6 +69,7 @@ public class DefaultBaseMapperImpl implements BaseMapper {
             Document document = new Document();
             mongoConverter.writeBySave(entity, document);
             InsertManyResult insertManyResult = factory.getExecute().executeSave(Collections.singletonList(document), mongoPlusClient.getCollection(ClassTypeUtil.getClass(entity)));
+            mongoConverter.reSetIdValue(entity, document);
             return insertManyResult.wasAcknowledged();
         } catch (Exception e) {
             log.error("save fail , error info : {}", e.getMessage(), e);
@@ -83,6 +84,7 @@ public class DefaultBaseMapperImpl implements BaseMapper {
             mongoConverter.writeBySaveBatch(entityList, documentList);
             MongoCollection<Document> collection = mongoPlusClient.getCollection(entityList.iterator().next().getClass());
             InsertManyResult insertManyResult = factory.getExecute().executeSave(documentList, collection);
+            mongoConverter.batchReSetIdValue(entityList, documentList);
             return insertManyResult.getInsertedIds().size() == entityList.size();
         } catch (Exception e) {
             log.error("saveBatch fail , error info : {}", e.getMessage(), e);
