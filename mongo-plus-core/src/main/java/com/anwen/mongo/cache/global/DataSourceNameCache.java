@@ -1,7 +1,6 @@
 package com.anwen.mongo.cache.global;
 
 import com.anwen.mongo.constant.DataSourceConstant;
-import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.model.BaseProperty;
 import com.anwen.mongo.toolkit.StringUtils;
 

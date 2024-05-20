@@ -1,11 +1,6 @@
 package com.anwen.mongo.config;
 
-import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.cache.global.*;
-import com.anwen.mongo.conn.CollectionManager;
-import com.anwen.mongo.conn.ConnectMongoDB;
-import com.anwen.mongo.constant.DataSourceConstant;
-import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.domain.MongoPlusConvertException;
 import com.anwen.mongo.handlers.DocumentHandler;
 import com.anwen.mongo.handlers.MetaObjectHandler;
@@ -15,7 +10,6 @@ import com.anwen.mongo.listener.business.BlockAttackInnerListener;
 import com.anwen.mongo.listener.business.LogListener;
 import com.anwen.mongo.logging.Log;
 import com.anwen.mongo.logging.LogFactory;
-import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBLogProperty;
@@ -25,12 +19,7 @@ import com.anwen.mongo.service.IService;
 import com.anwen.mongo.service.impl.ServiceImpl;
 import com.anwen.mongo.strategy.conversion.ConversionStrategy;
 import com.anwen.mongo.toolkit.CollUtil;
-import com.mongodb.MongoException;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import org.bson.Document;
 import org.noear.solon.Solon;
-import org.noear.solon.annotation.Inject;
 import org.noear.solon.core.AppContext;
 
 import java.lang.reflect.ParameterizedType;

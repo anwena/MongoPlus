@@ -30,7 +30,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -131,7 +133,7 @@ public class MongoPlusConfiguration {
                         "                     __/ |                        \n" +
                         "                    |___/                         ");
             }
-            System.out.println(":: MongoPlus ::                        v2.0.9");
+            System.out.println(":: MongoPlus ::                        v2.0.9.2");
         }
         return mongoPlusClient;
     }

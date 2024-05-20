@@ -1,6 +1,5 @@
 package com.anwen.mongo.mapping;
 
-import com.anwen.mongo.cache.global.ClassInformationCache;
 import com.anwen.mongo.domain.MongoPlusFieldException;
 import com.anwen.mongo.toolkit.ArrayUtils;
 import com.anwen.mongo.toolkit.CollUtil;
