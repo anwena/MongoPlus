@@ -70,8 +70,7 @@ public class InjectAbstractExecute {
 
     public Boolean saveBatch(String collectionName, Collection<Map<String, Object>> entityList) {
         try {
-//            List<Document> documentList = DocumentUtil.handleMapList(entityList,true);
-            return execute.executeSave(mongoConverter.writeByUpdateBatch(entityList), collectionManager.getCollection(collectionName)).getInsertedIds().size() == entityList.size();
+            return execute.executeSave(mongoConverter.writeBatch(entityList), collectionManager.getCollection(collectionName)).getInsertedIds().size() == entityList.size();
         } catch (Exception e) {
             log.error("saveBatch fail , error info : {}", e.getMessage(), e);
             return false;
