@@ -175,7 +175,7 @@ public class ServiceImpl<T> implements IService<T>{
     public Boolean updateByColumn(T entity, String column) {
         Object filterValue = ClassTypeUtil.getClassFieldValue(entity,column);
         String valueOf = String.valueOf(filterValue);
-        BasicDBObject filter = new BasicDBObject(column, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(valueOf) ? new ObjectId(valueOf) : valueOf));
+        BasicDBObject filter = new BasicDBObject(column, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(valueOf) ? new ObjectId(valueOf) : filterValue));
         Document document = baseMapper.getMongoConverter().writeByUpdate(entity);
         document.remove(column);
         BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
