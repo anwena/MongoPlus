@@ -138,18 +138,18 @@ public class InjectAbstractExecute {
             throw new MongoPlusFieldException(column+" undefined");
         }
         Object columnValue = entityMap.get(column);
-        Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(columnValue)) ? new ObjectId(String.valueOf(columnValue)) : columnValue);
+        BasicDBObject filter = new BasicDBObject(column, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(),ObjectId.isValid(String.valueOf(columnValue)) ? new ObjectId(String.valueOf(columnValue)) : columnValue));
         Document document = mongoConverter.write(entityMap);
         return execute.executeUpdate(filter,document, collectionManager.getCollection(collectionName)).getModifiedCount() >= 1;
     }
 
     public Boolean removeById(String collectionName, Serializable id) {
-        Bson filterId = Filters.eq(SqlOperationConstant._ID, ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id);
+        BasicDBObject filterId = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id));
         return execute.executeRemove(filterId, collectionManager.getCollection(collectionName)).getDeletedCount() >= 1;
     }
 
     public Boolean removeByColumn(String collectionName,String column, Object value) {
-        Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(value)) ? new ObjectId(String.valueOf(value)) : value);
+        BasicDBObject filter = new BasicDBObject(column, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(value)) ? new ObjectId(String.valueOf(value)) : value));
         return execute.executeRemove(filter,collectionManager.getCollection(collectionName)).getDeletedCount() >= 1;
     }
 
@@ -157,7 +157,7 @@ public class InjectAbstractExecute {
         List<Serializable> convertedIds = idList.stream()
                 .map(id -> ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id)
                 .collect(Collectors.toList());
-        Bson objectIdBson = Filters.in(SqlOperationConstant._ID, convertedIds);
+        BasicDBObject objectIdBson = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.IN.getCondition(), convertedIds));
         return execute.executeRemove(objectIdBson, collectionManager.getCollection(collectionName)).getDeletedCount() >= 1;
     }
 
@@ -198,7 +198,7 @@ public class InjectAbstractExecute {
     }
 
     public List<Map<String,Object>> getByColumn(String collectionName,String column,Object value){
-        Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(value)) ? new ObjectId(String.valueOf(value)) : value);
+        BasicDBObject filter = new BasicDBObject(column, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(value)) ? new ObjectId(String.valueOf(value)) : value));
         return Converter.convertDocumentToMap(execute.executeQuery(filter,null,null,collectionManager.getCollection(collectionName),Map.class));
     }
 

@@ -175,7 +175,7 @@ public class ServiceImpl<T> implements IService<T>{
     public Boolean updateByColumn(T entity, String column) {
         Object filterValue = ClassTypeUtil.getClassFieldValue(entity,column);
         String valueOf = String.valueOf(filterValue);
-        Bson filter = Filters.eq(column, ObjectId.isValid(valueOf) ? new ObjectId(valueOf) : filterValue);
+        BasicDBObject filter = new BasicDBObject(column, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(valueOf) ? new ObjectId(valueOf) : valueOf));
         Document document = baseMapper.getMongoConverter().writeByUpdate(entity);
         document.remove(column);
         BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
@@ -199,7 +199,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public Boolean removeById(Serializable id) {
-        Bson filterId = Filters.eq(SqlOperationConstant._ID, ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id);
+        BasicDBObject filterId = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id));
         return baseMapper.remove(filterId,clazz) >= 1;
     }
 
@@ -210,7 +210,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public Boolean removeByColumn(String column, Object value) {
-        Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(value)) ? new ObjectId(String.valueOf(value)) : value);
+        BasicDBObject filter = new BasicDBObject(column, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(value)) ? new ObjectId(String.valueOf(value)) : value));
         return baseMapper.remove(filter,clazz) >= 1;
     }
 
@@ -219,7 +219,7 @@ public class ServiceImpl<T> implements IService<T>{
         List<Serializable> convertedIds = idList.stream()
                 .map(id -> ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id)
                 .collect(Collectors.toList());
-        Bson objectIdBson = Filters.in(SqlOperationConstant._ID, convertedIds);
+        BasicDBObject objectIdBson = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.IN.getCondition(), convertedIds));
         return baseMapper.remove(objectIdBson,clazz) >= 1;
     }
 
