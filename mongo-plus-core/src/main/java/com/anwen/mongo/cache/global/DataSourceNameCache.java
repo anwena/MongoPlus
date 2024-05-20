@@ -1,7 +1,12 @@
 package com.anwen.mongo.cache.global;
 
 import com.anwen.mongo.constant.DataSourceConstant;
+import com.anwen.mongo.mapper.BaseMapper;
+import com.anwen.mongo.model.BaseProperty;
 import com.anwen.mongo.toolkit.StringUtils;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * MongoClient缓存
@@ -18,8 +23,22 @@ public class DataSourceNameCache {
     */
     private static final ThreadLocal<String> dataSource = new InheritableThreadLocal<>();
 
+    private static final Map<String, BaseProperty> basePropertyMap = new HashMap<>();
+
+    public static void setBaseProperty(String ds,BaseProperty baseProperty){
+        basePropertyMap.put(ds,baseProperty);
+    }
+
+    public static BaseProperty getBaseProperty(String ds){
+        return basePropertyMap.get(ds);
+    }
+
     public static void setDataSource(String ds){
         dataSource.set(ds);
+    }
+
+    public static String getDatabase(){
+        return basePropertyMap.get(getDataSource()).getDatabase();
     }
 
     public static String getDataSource(){

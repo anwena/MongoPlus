@@ -1,11 +1,6 @@
 package com.anwen.mongo.config;
 
-import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.cache.global.*;
-import com.anwen.mongo.conn.CollectionManager;
-import com.anwen.mongo.conn.ConnectMongoDB;
-import com.anwen.mongo.constant.DataSourceConstant;
-import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.domain.MongoPlusConvertException;
 import com.anwen.mongo.handlers.DocumentHandler;
 import com.anwen.mongo.handlers.MetaObjectHandler;
@@ -15,7 +10,6 @@ import com.anwen.mongo.listener.business.BlockAttackInnerListener;
 import com.anwen.mongo.listener.business.LogListener;
 import com.anwen.mongo.logging.Log;
 import com.anwen.mongo.logging.LogFactory;
-import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBLogProperty;
@@ -25,17 +19,16 @@ import com.anwen.mongo.service.IService;
 import com.anwen.mongo.service.impl.ServiceImpl;
 import com.anwen.mongo.strategy.conversion.ConversionStrategy;
 import com.anwen.mongo.toolkit.CollUtil;
-import com.mongodb.MongoException;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import org.bson.Document;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -46,8 +39,6 @@ import java.util.stream.Collectors;
 @EnableConfigurationProperties(MongoDBLogProperty.class)
 public class MongoPlusAutoConfiguration implements InitializingBean {
 
-    private final MongoPlusClient mongoPlusClient;
-
     private final ApplicationContext applicationContext;
 
     private final MongoDBLogProperty mongodbLogProperty;
@@ -55,8 +46,6 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
     private final MongoDBCollectionProperty mongodbCollectionProperty;
 
     private final MongoLogicDelProperty mongoLogicDelProperty;
-
-    private final CollectionNameConvert collectionNameConvert;
 
     private final BaseMapper baseMapper;
 
@@ -66,15 +55,11 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
                                       MongoDBCollectionProperty mongodbCollectionProperty,
                                       MongoLogicDelProperty mongoLogicDelProperty,
                                       BaseMapper baseMapper,
-                                      MongoPlusClient mongoPlusClient,
-                                      ApplicationContext applicationContext,
-                                      CollectionNameConvert collectionNameConvert) {
-        this.mongoPlusClient = mongoPlusClient;
+                                      ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
         this.mongodbLogProperty = mongodbLogProperty;
         this.mongodbCollectionProperty = mongodbCollectionProperty;
         this.mongoLogicDelProperty = mongoLogicDelProperty;
-        this.collectionNameConvert = collectionNameConvert;
         setConversion();
         setMetaObjectHandler();
         setDocumentHandler();
@@ -103,44 +88,9 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
 
     private void setExecute(ServiceImpl<?> serviceImpl, Class<?> clazz) {
         serviceImpl.setClazz(clazz);
-        String database = initFactory(clazz);
-        //这里需要将MongoPlusClient给工厂
-        serviceImpl.setDatabase(database);
         serviceImpl.setBaseMapper(baseMapper);
     }
 
-    public String initFactory(Class<?> clazz) {
-        String collectionName = clazz.getSimpleName().toLowerCase();
-        final String[] dataBaseName = {""};
-        if (clazz.isAnnotationPresent(CollectionName.class)) {
-            CollectionName annotation = clazz.getAnnotation(CollectionName.class);
-            collectionName = annotation.value();
-            dataBaseName[0] = annotation.database();
-        }
-        try {
-            String finalCollectionName = collectionName;
-            final String[] finalDataBaseName = {dataBaseName[0]};
-            List<MongoDatabase> mongoDatabaseList = new ArrayList<>();
-            String database = mongoPlusClient.getBaseProperty().getDatabase();
-            Arrays.stream(database.split(",")).collect(Collectors.toList()).forEach(db -> {
-                CollectionManager collectionManager = new CollectionManager(mongoPlusClient.getMongoClient(), collectionNameConvert, db);
-                ConnectMongoDB connectMongodb = new ConnectMongoDB(mongoPlusClient.getMongoClient(), db, finalCollectionName);
-                MongoDatabase mongoDatabase = mongoPlusClient.getMongoClient().getDatabase(db);
-                mongoDatabaseList.add(mongoDatabase);
-                if (Objects.equals(db, finalDataBaseName[0])) {
-                    MongoCollection<Document> collection = connectMongodb.open(mongoDatabase);
-                    collectionManager.setCollectionMap(finalCollectionName, collection);
-                }
-                mongoPlusClient.getCollectionManagerMap().put(DataSourceConstant.DEFAULT_DATASOURCE, new HashMap<String, CollectionManager>() {{
-                    put(db, collectionManager);
-                }});
-            });
-            mongoPlusClient.setMongoDatabase(mongoDatabaseList);
-        } catch (MongoException e) {
-            log.error("Failed to connect to MongoDB: {}", e.getMessage(), e);
-        }
-        return dataBaseName[0];
-    }
 
     /**
      * 从Bean中拿到转换器

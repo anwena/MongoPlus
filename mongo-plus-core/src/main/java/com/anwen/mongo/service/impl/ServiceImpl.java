@@ -1,5 +1,7 @@
 package com.anwen.mongo.service.impl;
 
+import com.anwen.mongo.annotation.collection.CollectionName;
+import com.anwen.mongo.cache.global.DataSourceNameCache;
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper;
 import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
@@ -50,16 +52,6 @@ public class ServiceImpl<T> implements IService<T>{
 
     private Class<T> clazz;
 
-    private String database;
-
-    public String getDatabase() {
-        return database;
-    }
-
-    public void setDatabase(String database) {
-        this.database = database;
-    }
-
     public void setClazz(Class<?> clazz) {
         this.clazz = (Class<T>) clazz;
     }
@@ -86,6 +78,11 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public MongoCollection<Document> getCollection() {
+        String database = DataSourceNameCache.getDatabase();
+        CollectionName collectionName = clazz.getAnnotation(CollectionName.class);
+        if (collectionName != null && StringUtils.isNotBlank(collectionName.database())){
+            database = collectionName.database();
+        }
         return baseMapper.getMongoPlusClient().getCollection(database,clazz);
     }
 

@@ -2,6 +2,7 @@ package com.anwen.mongo.cache.global;
 
 import com.anwen.mongo.strategy.conversion.ConversionStrategy;
 import com.anwen.mongo.strategy.conversion.impl.*;
+import org.bson.Document;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -38,6 +39,7 @@ public class ConversionCache {
         conversionStrategieMap.put(BigDecimal.class,new BigDecimalConversionStrategy());
         conversionStrategieMap.put(BigInteger.class,new BigIntegerConversionStrategy());
         conversionStrategieMap.put(Enum.class,new EnumConversionStrategy<>());
+        conversionStrategieMap.put(Document.class,new DocumentConversionStrategy());
     }
 
     public static ConversionStrategy<?> getConversionStrategy(Class<?> clazz){

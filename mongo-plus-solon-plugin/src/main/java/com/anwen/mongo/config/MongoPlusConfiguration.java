@@ -1,7 +1,11 @@
 package com.anwen.mongo.config;
 
+import com.anwen.mongo.cache.global.DataSourceNameCache;
 import com.anwen.mongo.cache.global.MongoPlusClientCache;
+import com.anwen.mongo.conn.CollectionManager;
+import com.anwen.mongo.constant.DataSourceConstant;
 import com.anwen.mongo.convert.CollectionNameConvert;
+import com.anwen.mongo.factory.MongoClientFactory;
 import com.anwen.mongo.listener.BaseListener;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.BaseMapper;
@@ -9,7 +13,9 @@ import com.anwen.mongo.mapper.DefaultBaseMapperImpl;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
 import com.anwen.mongo.mapping.MappingMongoConverter;
 import com.anwen.mongo.mapping.MongoConverter;
+import com.anwen.mongo.model.BaseProperty;
 import com.anwen.mongo.property.*;
+import com.anwen.mongo.toolkit.CollUtil;
 import com.anwen.mongo.toolkit.MongoCollectionUtils;
 import com.anwen.mongo.toolkit.UrlJoint;
 import com.anwen.mongo.transactional.MongoTransactionalAspect;
@@ -22,8 +28,11 @@ import org.noear.solon.annotation.Condition;
 import org.noear.solon.annotation.Configuration;
 import org.noear.solon.annotation.Inject;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author JiaChaoYang
@@ -55,6 +64,22 @@ public class MongoPlusConfiguration {
     }
 
     @Bean
+    @Condition(onMissingBean = MongoClientFactory.class)
+    public MongoClientFactory mongoClientFactory(){
+        MongoClientFactory mongoClientFactory = MongoClientFactory.getInstance(getMongo(DataSourceConstant.DEFAULT_DATASOURCE,mongoDBConnectProperty));
+        if (CollUtil.isNotEmpty(mongoDBConnectProperty.getSlaveDataSource())){
+            mongoDBConnectProperty.getSlaveDataSource().forEach(slaveDataSource -> mongoClientFactory.addMongoClient(slaveDataSource.getSlaveName(),getMongo(slaveDataSource.getSlaveName(),slaveDataSource)));
+        }
+        return mongoClientFactory;
+    }
+
+    public MongoClient getMongo(String dsName, BaseProperty baseProperty){
+        DataSourceNameCache.setBaseProperty(dsName,baseProperty);
+        return MongoClients.create(MongoClientSettings.builder()
+                .applyConnectionString(new ConnectionString(new UrlJoint(baseProperty).jointMongoUrl())).commandListenerList(Collections.singletonList(new BaseListener())).build());
+    }
+
+    @Bean
     @Condition(onMissingBean = CollectionNameConvert.class)
     public CollectionNameConvert collectionNameConvert(){
         mongoDBCollectionProperty = Optional.ofNullable(mongoDBCollectionProperty).orElseGet(MongoDBCollectionProperty::new);
@@ -63,9 +88,13 @@ public class MongoPlusConfiguration {
 
     @Bean
     @Condition(onMissingBean = MongoPlusClient.class)
-    public MongoPlusClient mongoPlusClient(MongoClient mongo,CollectionNameConvert collectionNameConvert){
+    public MongoPlusClient mongoPlusClient(MongoClient mongo,CollectionNameConvert collectionNameConvert,MongoClientFactory mongoClientFactory){
         mongoDBConfigurationProperty = Optional.ofNullable(mongoDBConfigurationProperty).orElseGet(MongoDBConfigurationProperty::new);
         MongoPlusClient mongoPlusClient = com.anwen.mongo.config.Configuration.builder().initMongoPlusClient(mongo, collectionNameConvert, mongoDBConnectProperty);
+        mongoClientFactory.getMongoClientMap().forEach((ds,mongoClient) -> mongoPlusClient.getCollectionManagerMap().put(ds,new LinkedHashMap<String, CollectionManager>(){{
+            String database = DataSourceNameCache.getBaseProperty(ds).getDatabase();
+            Arrays.stream(database.split(",")).collect(Collectors.toList()).forEach(db -> put(db,new CollectionManager(mongoClient,collectionNameConvert,db)));
+        }}));
         MongoPlusClientCache.mongoPlusClient = mongoPlusClient;
         if (mongoDBConfigurationProperty.getBanner()){
             // 参考 Easy-ES
@@ -129,11 +158,9 @@ public class MongoPlusConfiguration {
 
     @Bean
     public MongoPlusAutoConfiguration mongoPlusAutoConfiguration(@Inject BaseMapper baseMapper,
-                                                                 @Inject MongoPlusClient mongoPlusClient,
-                                                                 @Inject CollectionNameConvert collectionNameConvert,
                                                                  @Inject("${mongo-plus}") MongoDBLogProperty mongoDBLogProperty,
                                                                  @Inject(value = "${mongo-plus.configuration.logic}",required = false) MongoLogicDelProperty mongoLogicDelProperty){
-        return new MongoPlusAutoConfiguration(baseMapper,mongoPlusClient,collectionNameConvert,mongoDBLogProperty,mongoDBCollectionProperty,mongoLogicDelProperty);
+        return new MongoPlusAutoConfiguration(baseMapper,mongoDBLogProperty,mongoDBCollectionProperty,mongoLogicDelProperty);
     }
 
     @Bean

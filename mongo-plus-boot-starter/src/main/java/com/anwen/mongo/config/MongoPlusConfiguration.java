@@ -1,6 +1,9 @@
 package com.anwen.mongo.config;
 
+import com.anwen.mongo.cache.global.DataSourceNameCache;
 import com.anwen.mongo.cache.global.MongoPlusClientCache;
+import com.anwen.mongo.conn.CollectionManager;
+import com.anwen.mongo.constant.DataSourceConstant;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.datasource.MongoDataSourceAspect;
 import com.anwen.mongo.factory.MongoClientFactory;
@@ -27,7 +30,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
-import java.util.Collections;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author JiaChaoYang
@@ -52,9 +56,9 @@ public class MongoPlusConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public MongoClientFactory mongoClientFactory(){
-        MongoClientFactory mongoClientFactory = MongoClientFactory.getInstance(getMongo(mongoDBConnectProperty));
+        MongoClientFactory mongoClientFactory = MongoClientFactory.getInstance(getMongo(DataSourceConstant.DEFAULT_DATASOURCE,mongoDBConnectProperty));
         if (CollUtil.isNotEmpty(mongoDBConnectProperty.getSlaveDataSource())){
-            mongoDBConnectProperty.getSlaveDataSource().forEach(slaveDataSource -> mongoClientFactory.addMongoClient(slaveDataSource.getSlaveName(),getMongo(slaveDataSource)));
+            mongoDBConnectProperty.getSlaveDataSource().forEach(slaveDataSource -> mongoClientFactory.addMongoClient(slaveDataSource.getSlaveName(),getMongo(slaveDataSource.getSlaveName(),slaveDataSource)));
         }
         return mongoClientFactory;
     }
@@ -70,7 +74,8 @@ public class MongoPlusConfiguration {
         return mongoClientFactory.getMongoClient();
     }
 
-    public MongoClient getMongo(BaseProperty baseProperty){
+    public MongoClient getMongo(String dsName,BaseProperty baseProperty){
+        DataSourceNameCache.setBaseProperty(dsName,baseProperty);
         return MongoClients.create(MongoClientSettings.builder()
                 .applyConnectionString(new ConnectionString(new UrlJoint(baseProperty).jointMongoUrl())).commandListenerList(Collections.singletonList(new BaseListener())).build());
     }
@@ -83,8 +88,12 @@ public class MongoPlusConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(MongoPlusClient.class)
-    public MongoPlusClient mongoPlusClient(MongoClient mongo,CollectionNameConvert collectionNameConvert){
+    public MongoPlusClient mongoPlusClient(MongoClient mongo,CollectionNameConvert collectionNameConvert,MongoClientFactory mongoClientFactory){
         MongoPlusClient mongoPlusClient = Configuration.builder().initMongoPlusClient(mongo,collectionNameConvert,mongoDBConnectProperty);
+        mongoClientFactory.getMongoClientMap().forEach((ds,mongoClient) -> mongoPlusClient.getCollectionManagerMap().put(ds,new LinkedHashMap<String, CollectionManager>(){{
+            String database = DataSourceNameCache.getBaseProperty(ds).getDatabase();
+            Arrays.stream(database.split(",")).collect(Collectors.toList()).forEach(db -> put(db,new CollectionManager(mongoClient,collectionNameConvert,db)));
+        }}));
         MongoPlusClientCache.mongoPlusClient = mongoPlusClient;
         if (mongoDBConfigurationProperty.getBanner()){
             // 参考 Easy-ES

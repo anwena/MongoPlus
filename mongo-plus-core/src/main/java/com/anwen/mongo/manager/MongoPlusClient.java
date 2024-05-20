@@ -67,7 +67,7 @@ public class MongoPlusClient {
     }
 
     public CollectionManager getCollectionManager(Class<?> clazz){
-        String database = baseProperty.getDatabase();
+        String database = DataSourceNameCache.getDatabase();
         if (database.contains(",")){
             database = Arrays.stream(database.split(",")).collect(Collectors.toList()).get(0);
         }

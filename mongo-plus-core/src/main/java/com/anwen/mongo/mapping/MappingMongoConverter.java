@@ -207,7 +207,7 @@ public class MappingMongoConverter extends AbstractMongoConverter {
         if (simpleTypeHolder.isSimpleType(rawClass)){
             document.forEach((k,v)-> map.put(k,convertValue(v,rawClass)));
         } else if (Collection.class.isAssignableFrom(rawClass)){
-            document.forEach((k,v) -> map.put(k,convertCollection(getGenericTypeClass((ParameterizedType) type, 1),v,createCollectionInstance(rawClass))));
+            document.forEach((k,v) -> map.put(k,convertCollection(getGenericTypeClass((ParameterizedType) type, 0),v,createCollectionInstance(rawClass))));
         } else if (Map.class.isAssignableFrom(rawClass)){
             document.forEach((k,v) -> map.put(k,convertMap(getGenericTypeClass((ParameterizedType) type, 1),v,createMapInstance(rawClass))));
         } else {

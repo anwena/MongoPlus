@@ -46,10 +46,6 @@ public class MongoPlusAutoConfiguration {
 
     private final BaseMapper baseMapper;
 
-    private final MongoPlusClient mongoPlusClient;
-
-    private final CollectionNameConvert collectionNameConvert;
-
     private final MongoDBLogProperty mongoDBLogProperty;
 
     private final MongoDBCollectionProperty mongoDBCollectionProperty;
@@ -59,15 +55,11 @@ public class MongoPlusAutoConfiguration {
     Log log = LogFactory.getLog(MongoPlusAutoConfiguration.class);
 
     public MongoPlusAutoConfiguration(BaseMapper baseMapper,
-                                      MongoPlusClient mongoPlusClient,
-                                      @Inject CollectionNameConvert collectionNameConvert,
                                       MongoDBLogProperty mongoDBLogProperty,
                                       MongoDBCollectionProperty mongoDBCollectionProperty,
                                       MongoLogicDelProperty mongoLogicDelProperty){
         mongoDBCollectionProperty = Optional.ofNullable(mongoDBCollectionProperty).orElseGet(MongoDBCollectionProperty::new);
         mongoLogicDelProperty = Optional.ofNullable(mongoLogicDelProperty).orElseGet(MongoLogicDelProperty::new);
-        this.collectionNameConvert = collectionNameConvert;
-        this.mongoPlusClient = mongoPlusClient;
         this.mongoDBLogProperty = mongoDBLogProperty;
         this.mongoDBCollectionProperty = mongoDBCollectionProperty;
         this.baseMapper = baseMapper;
@@ -111,43 +103,7 @@ public class MongoPlusAutoConfiguration {
     */
     private void setExecute(ServiceImpl<?> serviceImpl, Class<?> clazz) {
         serviceImpl.setClazz(clazz);
-        String database = initFactory(clazz);
-        //这里需要将MongoPlusClient给工厂
-        serviceImpl.setDatabase(database);
         serviceImpl.setBaseMapper(baseMapper);
-    }
-
-    public String initFactory(Class<?> clazz) {
-        String collectionName = clazz.getSimpleName().toLowerCase();
-        final String[] dataBaseName = {""};
-        if (clazz.isAnnotationPresent(CollectionName.class)) {
-            CollectionName annotation = clazz.getAnnotation(CollectionName.class);
-            collectionName = annotation.value();
-            dataBaseName[0] = annotation.database();
-        }
-        try {
-            String finalCollectionName = collectionName;
-            final String[] finalDataBaseName = {dataBaseName[0]};
-            List<MongoDatabase> mongoDatabaseList = new ArrayList<>();
-            String database = mongoPlusClient.getBaseProperty().getDatabase();
-            Arrays.stream(database.split(",")).collect(Collectors.toList()).forEach(db -> {
-                CollectionManager collectionManager = new CollectionManager(mongoPlusClient.getMongoClient(), collectionNameConvert, db);
-                ConnectMongoDB connectMongodb = new ConnectMongoDB(mongoPlusClient.getMongoClient(), db, finalCollectionName);
-                MongoDatabase mongoDatabase = mongoPlusClient.getMongoClient().getDatabase(db);
-                mongoDatabaseList.add(mongoDatabase);
-                if (Objects.equals(db, finalDataBaseName[0])) {
-                    MongoCollection<Document> collection = connectMongodb.open(mongoDatabase);
-                    collectionManager.setCollectionMap(finalCollectionName, collection);
-                }
-                mongoPlusClient.getCollectionManagerMap().put(DataSourceConstant.DEFAULT_DATASOURCE, new HashMap<String, CollectionManager>() {{
-                    put(db, collectionManager);
-                }});
-            });
-            mongoPlusClient.setMongoDatabase(mongoDatabaseList);
-        } catch (MongoException e) {
-            log.error("Failed to connect to MongoDB: {}", e.getMessage(), e);
-        }
-        return dataBaseName[0];
     }
 
     /**

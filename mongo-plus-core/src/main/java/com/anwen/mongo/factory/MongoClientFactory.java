@@ -72,6 +72,10 @@ public class MongoClientFactory implements AutoCloseable {
         return getMongoClient(DataSourceNameCache.getDataSource());
     }
 
+    public Map<String, MongoClient> getMongoClientMap() {
+        return mongoClientMap;
+    }
+
     @Override
     public void close() throws Exception {
         if (log.isDebugEnabled()){
