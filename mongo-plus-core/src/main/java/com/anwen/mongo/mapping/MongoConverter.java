@@ -115,7 +115,7 @@ public interface MongoConverter extends MongoWriter,EntityRead {
                 return (T)read(mongoCursor.next(), clazz);
             }
         }
-        return TypeInformation.of(clazz).getInstance();
+        return null;
     }
 
     default void reSetIdValue(Object sourceObj, Document document) {
