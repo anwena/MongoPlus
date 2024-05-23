@@ -21,7 +21,11 @@ public class InstantUtil {
      * @author JiaChaoYang
      * @date 2023/10/18 22:46
     */
-    public static LocalDateTime convertTimestampToLocalDateTime(long timestamp) {
+    public static LocalDateTime convertTimestampToLocalDateTime8(long timestamp) {
+        return convertTimestampToLocalDateTime(timestamp).minusHours(8);
+    }
+
+    public static LocalDateTime convertTimestampToLocalDateTime(long timestamp){
         Instant instant;
         try {
             instant = Instant.ofEpochMilli(timestamp);
@@ -29,10 +33,10 @@ public class InstantUtil {
             logger.error("Convert To Instant Fail,message: {}",e.getMessage(),e);
             throw new MongoException("Convert To Instant Fail");
         }
-        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).minusHours(8);
+        return LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
     }
 
-    public static LocalDateTime convertTimestampToLocalDateTime(Instant instant){
+    public static LocalDateTime convertTimestampToLocalDateTime8(Instant instant){
         return LocalDateTime.ofInstant(instant,ZoneId.systemDefault()).minusHours(8);
     }
 
@@ -44,11 +48,11 @@ public class InstantUtil {
      * @date 2023/10/18 22:50
     */
     public static LocalDate convertTimestampToLocalDate(long timestamp){
-        return convertTimestampToLocalDateTime(timestamp).toLocalDate();
+        return convertTimestampToLocalDateTime8(timestamp).toLocalDate();
     }
 
     public static LocalDate convertTimestampToLocalDate(Instant instant){
-        return convertTimestampToLocalDateTime(instant).toLocalDate();
+        return convertTimestampToLocalDateTime8(instant).toLocalDate();
     }
 
     /**
@@ -63,7 +67,7 @@ public class InstantUtil {
     }
 
     public static LocalTime convertTimestampToLocalTime(Instant instant){
-        return convertTimestampToLocalDateTime(instant).toLocalTime();
+        return convertTimestampToLocalDateTime8(instant).toLocalTime();
     }
 
 }

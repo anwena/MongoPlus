@@ -4,7 +4,6 @@ import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper;
 import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
-import com.anwen.mongo.conditions.query.QueryWrapper;
 import com.anwen.mongo.conditions.update.LambdaUpdateChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.model.PageParam;
@@ -188,6 +187,7 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @date 2023/7/20 23:20
      */
+    @Deprecated
     T limitOne(QueryChainWrapper<T,?> queryChainWrapper);
 
     List<T> list(QueryChainWrapper<T ,?> queryChainWrapper);
@@ -245,6 +245,37 @@ public interface IService<T> {
     PageResult<T> page(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize, Integer recentPageNum);
 
     PageResult<T> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam, Integer recentPageNum);
+
+    /**
+     * 返回List的page，无需进行count查询，速度会比较快
+     * @author JiaChaoYang
+     * @date 2024/3/16 23:56
+    */
+    List<T> pageList(PageParam pageParam);
+
+    /**
+     * 返回List的page，无需进行count查询，速度会比较快
+     *
+     * @author JiaChaoYang
+     * @date 2024/3/16 23:56
+     */
+    List<T> pageList(Integer pageNum,Integer pageSize);
+
+    /**
+     * 返回List的page，无需进行count查询，速度会比较快
+     *
+     * @author JiaChaoYang
+     * @date 2024/3/16 23:56
+     */
+    List<T> pageList(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize);
+
+    /**
+     * 返回List的page，无需进行count查询，速度会比较快
+     *
+     * @author JiaChaoYang
+     * @date 2024/3/16 23:56
+     */
+    List<T> pageList(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam);
 
     /**
      * 根据id查询单个

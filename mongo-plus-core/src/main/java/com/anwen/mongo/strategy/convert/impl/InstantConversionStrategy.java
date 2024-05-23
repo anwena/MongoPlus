@@ -23,7 +23,7 @@ public class InstantConversionStrategy implements ConversionStrategy<Instant> {
         try {
             value = Instant.ofEpochMilli(Long.parseLong(StringUtils.isNotBlankAndConvert(fieldValue)));
         } catch (Exception e){
-            logger.error("Conversion to timestamp failed, exception message: {}",e.getMessage());
+            logger.warn("Conversion to timestamp failed, exception message: {}",e.getMessage());
         }
         return value;
     }

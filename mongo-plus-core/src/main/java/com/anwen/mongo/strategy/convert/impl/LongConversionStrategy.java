@@ -22,7 +22,7 @@ public class LongConversionStrategy implements ConversionStrategy<Long> {
         try {
             value = Long.parseLong(StringUtils.isNotBlankAndConvert(fieldValue));
         } catch (Exception e) {
-            logger.error("Conversion to Long failed, exception message: {}",e.getMessage());
+            logger.warn("Conversion to Long failed, exception message: {}",e.getMessage());
         }
         return value;
     }

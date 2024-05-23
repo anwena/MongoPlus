@@ -2,12 +2,14 @@ package com.anwen.mongo.config;
 
 import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.cache.global.HandlerCache;
+import com.anwen.mongo.cache.global.InterceptorCache;
 import com.anwen.mongo.cache.global.ListenerCache;
 import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.conn.ConnectMongoDB;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.handlers.DocumentHandler;
 import com.anwen.mongo.handlers.MetaObjectHandler;
+import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.listener.Listener;
 import com.anwen.mongo.listener.business.BlockAttackInnerListener;
 import com.anwen.mongo.listener.business.LogListener;
@@ -72,6 +74,8 @@ public class MongoPlusAutoConfiguration {
         setMetaObjectHandler(context);
         //拿到Document处理器
         setDocumentHandler(context);
+        //拿到监听器
+        setListener(context);
         //拿到拦截器
         setInterceptor(context);
     }
@@ -101,20 +105,18 @@ public class MongoPlusAutoConfiguration {
             String finalCollectionName = collectionName;
             final String[] finalDataBaseName = {dataBaseName[0]};
             List<MongoDatabase> mongoDatabaseList = new ArrayList<>();
-            mongoPlusClient.setCollectionManager(new LinkedHashMap<String, CollectionManager>(){{
-                String database = mongoPlusClient.getBaseProperty().getDatabase();
-                Arrays.stream(database.split(",")).collect(Collectors.toList()).forEach(db -> {
-                    CollectionManager collectionManager = new CollectionManager(mongoPlusClient.getMongoClient(), collectionNameConvert, db);
-                    ConnectMongoDB connectMongoDB = new ConnectMongoDB(mongoPlusClient.getMongoClient(), db, finalCollectionName);
-                    MongoDatabase mongoDatabase = mongoPlusClient.getMongoClient().getDatabase(db);
-                    mongoDatabaseList.add(mongoDatabase);
-                    if (Objects.equals(db, finalDataBaseName[0])){
-                        MongoCollection<Document> collection = connectMongoDB.open(mongoDatabase);
-                        collectionManager.setCollectionMap(finalCollectionName,collection);
-                    }
-                    put(db,collectionManager);
-                });
-            }});
+            String database = mongoPlusClient.getBaseProperty().getDatabase();
+            Arrays.stream(database.split(",")).collect(Collectors.toList()).forEach(db -> {
+                CollectionManager collectionManager = new CollectionManager(mongoPlusClient.getMongoClient(), collectionNameConvert, db);
+                ConnectMongoDB connectMongodb = new ConnectMongoDB(mongoPlusClient.getMongoClient(), db, finalCollectionName);
+                MongoDatabase mongoDatabase = mongoPlusClient.getMongoClient().getDatabase(db);
+                mongoDatabaseList.add(mongoDatabase);
+                if (Objects.equals(db, finalDataBaseName[0])){
+                    MongoCollection<Document> collection = connectMongodb.open(mongoDatabase);
+                    collectionManager.setCollectionMap(finalCollectionName,collection);
+                }
+                mongoPlusClient.getCollectionManagerMap().put(db,collectionManager);
+            });
             mongoPlusClient.setMongoDatabase(mongoDatabaseList);
         } catch (MongoException e) {
             logger.error("Failed to connect to MongoDB: {}", e.getMessage(), e);
@@ -161,11 +163,11 @@ public class MongoPlusAutoConfiguration {
     }
 
     /**
-     * 从Bean中拿到拦截器
+     * 从Bean中拿到监听器
      * @author JiaChaoYang
      * @date 2023/11/22 18:39
      */
-    private void setInterceptor(AppContext context){
+    private void setListener(AppContext context){
         List<Listener> listeners = new ArrayList<>();
         if (mongoDBLogProperty.getLog()){
             listeners.add(new LogListener());
@@ -178,6 +180,16 @@ public class MongoPlusAutoConfiguration {
             listeners.addAll(listenerCollection);
         }
         ListenerCache.listeners = listeners.stream().sorted(Comparator.comparingInt(Listener::getOrder)).collect(Collectors.toList());
+    }
+
+    /**
+     * 从Bean中拿到拦截器
+     * @author JiaChaoYang
+     * @date 2024/3/17 0:30
+     */
+    private void setInterceptor(AppContext context){
+        Collection<Interceptor> interceptorCollection = context.getBeansOfType(Interceptor.class);
+        InterceptorCache.interceptors = new ArrayList<>(interceptorCollection);
     }
 
 }

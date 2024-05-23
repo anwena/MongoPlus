@@ -18,6 +18,6 @@ public class LocalDateTimeConversionStrategy implements ConversionStrategy<Local
     public LocalDateTime convertValue(Field field, Object obj, Object fieldValue) throws IllegalAccessException {
         return fieldValue.getClass().equals(Long.class) ?
                 InstantUtil.convertTimestampToLocalDateTime((Long) fieldValue) :
-                InstantUtil.convertTimestampToLocalDateTime(((Date) fieldValue).toInstant());
+                InstantUtil.convertTimestampToLocalDateTime8(((Date) fieldValue).toInstant());
     }
 }

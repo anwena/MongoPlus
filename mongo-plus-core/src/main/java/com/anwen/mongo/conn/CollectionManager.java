@@ -1,6 +1,7 @@
 package com.anwen.mongo.conn;
 
 import com.anwen.mongo.convert.CollectionNameConvert;
+import com.anwen.mongo.factory.MongoClientFactory;
 import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.anwen.mongo.toolkit.codec.RegisterCodecUtil;
 import com.mongodb.client.MongoClient;
@@ -26,14 +27,11 @@ public class CollectionManager {
      */
     private final Map<String, MongoCollection<Document>> collectionMap = new ConcurrentHashMap<>();
 
-    private final MongoClient mongoClient;
-
     private final CollectionNameConvert collectionNameConvert;
 
     private final String database;
 
     public CollectionManager(MongoClient mongoClient, CollectionNameConvert collectionNameConvert, String database) {
-        this.mongoClient = mongoClient;
         this.collectionNameConvert = collectionNameConvert;
         this.database = database;
     }
@@ -64,7 +62,7 @@ public class CollectionManager {
         MongoCollection<Document> mongoCollection;
         // 检查连接是否需要重新创建
         if (!this.collectionMap.containsKey(collectionName)) {
-            mongoCollection = new ConnectMongoDB(mongoClient, database, collectionName).open();
+            mongoCollection = new ConnectMongoDB(MongoClientFactory.getInstance().getMongoClient(), database, collectionName).open();
             this.collectionMap.put(collectionName, mongoCollection);
         }else {
             mongoCollection = this.collectionMap.get(collectionName);

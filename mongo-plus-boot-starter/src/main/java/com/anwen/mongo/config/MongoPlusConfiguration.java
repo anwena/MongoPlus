@@ -2,14 +2,18 @@ package com.anwen.mongo.config;
 
 import com.anwen.mongo.cache.global.MongoPlusClientCache;
 import com.anwen.mongo.convert.CollectionNameConvert;
+import com.anwen.mongo.datasource.MongoDataSourceAspect;
+import com.anwen.mongo.factory.MongoClientFactory;
 import com.anwen.mongo.listener.BaseListener;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.mapper.DefaultBaseMapperImpl;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
+import com.anwen.mongo.model.BaseProperty;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBConfigurationProperty;
 import com.anwen.mongo.property.MongoDBConnectProperty;
+import com.anwen.mongo.toolkit.CollUtil;
 import com.anwen.mongo.toolkit.MongoCollectionUtils;
 import com.anwen.mongo.toolkit.UrlJoint;
 import com.anwen.mongo.transactional.MongoTransactionalAspect;
@@ -43,16 +47,30 @@ public class MongoPlusConfiguration {
         this.mongoDBConfigurationProperty = mongodbConfigurationProperty;
     }
 
+    @Bean
+    @ConditionalOnMissingBean
+    public MongoClientFactory mongoClientFactory(){
+        MongoClientFactory mongoClientFactory = MongoClientFactory.getInstance(getMongo(mongoDBConnectProperty));
+        if (CollUtil.isNotEmpty(mongoDBConnectProperty.getSlaveDataSource())){
+            mongoDBConnectProperty.getSlaveDataSource().forEach(slaveDataSource -> mongoClientFactory.addMongoClient(slaveDataSource.getSlaveName(),getMongo(slaveDataSource)));
+        }
+        return mongoClientFactory;
+    }
+
     /**
      * 这里将MongoClient注册为Bean，但是只是给MongoTemplate使用，master的client
      * @author JiaChaoYang
      * @date 2024/1/4 23:49
-    */
+     */
     @Bean
     @ConditionalOnMissingBean
-    public MongoClient mongo(){
+    public MongoClient mongo(MongoClientFactory mongoClientFactory){
+        return mongoClientFactory.getMongoClient();
+    }
+
+    public MongoClient getMongo(BaseProperty baseProperty){
         return MongoClients.create(MongoClientSettings.builder()
-                .applyConnectionString(new ConnectionString(new UrlJoint(mongoDBConnectProperty).jointMongoUrl())).commandListenerList(Collections.singletonList(new BaseListener())).build());
+                .applyConnectionString(new ConnectionString(new UrlJoint(baseProperty).jointMongoUrl())).commandListenerList(Collections.singletonList(new BaseListener())).build());
     }
 
     @Bean
@@ -64,10 +82,7 @@ public class MongoPlusConfiguration {
     @Bean
     @ConditionalOnMissingBean(MongoPlusClient.class)
     public MongoPlusClient mongoPlusClient(MongoClient mongo,CollectionNameConvert collectionNameConvert){
-        MongoPlusClient mongoPlusClient = new MongoPlusClient();
-        mongoPlusClient.setMongoClient(mongo);
-        mongoPlusClient.setBaseProperty(mongoDBConnectProperty);
-        mongoPlusClient.setCollectionNameConvert(collectionNameConvert);
+        MongoPlusClient mongoPlusClient = Configuration.builder().initMongoPlusClient(mongo,collectionNameConvert,mongoDBConnectProperty);
         MongoPlusClientCache.mongoPlusClient = mongoPlusClient;
         if (mongoDBConfigurationProperty.getBanner()){
             System.out.println("___  ___                       ______ _           \n" +
@@ -96,8 +111,14 @@ public class MongoPlusConfiguration {
 
     @Bean("mongoTransactionalAspect")
     @ConditionalOnMissingBean
-    public MongoTransactionalAspect mongoTransactionalAspect(MongoClient mongo) {
-        return new MongoTransactionalAspect(mongo);
+    public MongoTransactionalAspect mongoTransactionalAspect() {
+        return new MongoTransactionalAspect();
+    }
+
+    @Bean("mongoDataSourceAspect")
+    @ConditionalOnMissingBean
+    public MongoDataSourceAspect mongoDataSourceAspect() {
+        return new MongoDataSourceAspect();
     }
 
 }

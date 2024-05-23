@@ -41,6 +41,10 @@
 
 MyBatisPlus就是可以不用像MyBatis一样写过多的sql语句，Mongo-Plus也一样！
 
+### 项目已接入墨菲安全
+##### 点击查看检测报告
+[![Security Status](https://www.murphysec.com/platform3/v31/badge/1775074551634931712.svg)](https://www.murphysec.com/console/report/1775074551597182976/1775074551634931712)
+
 ###   更新日志
 * v1.0      基础用法</br>
 * v2.0      修复1.0BUG</br>
@@ -58,8 +62,9 @@ MyBatisPlus就是可以不用像MyBatis一样写过多的sql语句，Mongo-Plus�
 文档地址： https://www.mongoplus.cn/
 
 ### 联系我们
-遇到任何问题或者加入群聊，请联系我<br/>
-v：JiaChaoYang_<br/>
+#### 在使用MongoPlus的过程中，有任何问题和想法或者加入群聊请联系我
+#### 目前裸辞，北京求内推😟
+#### v：JiaChaoYang_
 <img src="wx.png" alt="微信">
 
 ###  参与贡献

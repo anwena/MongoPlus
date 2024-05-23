@@ -2,12 +2,15 @@ package com.anwen.mongo.config;
 
 import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.cache.global.HandlerCache;
+import com.anwen.mongo.cache.global.InterceptorCache;
 import com.anwen.mongo.cache.global.ListenerCache;
 import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.conn.ConnectMongoDB;
+import com.anwen.mongo.constant.DataSourceConstant;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.handlers.DocumentHandler;
 import com.anwen.mongo.handlers.MetaObjectHandler;
+import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.listener.Listener;
 import com.anwen.mongo.listener.business.BlockAttackInnerListener;
 import com.anwen.mongo.listener.business.LogListener;
@@ -65,6 +68,7 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         setConversion();
         setMetaObjectHandler();
         setDocumentHandler();
+        setListener();
         setInterceptor();
         this.baseMapper = baseMapper;
     }
@@ -98,20 +102,20 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
             String finalCollectionName = collectionName;
             final String[] finalDataBaseName = {dataBaseName[0]};
             List<MongoDatabase> mongoDatabaseList = new ArrayList<>();
-            mongoPlusClient.setCollectionManager(new LinkedHashMap<String, CollectionManager>(){{
-                String database = mongoPlusClient.getBaseProperty().getDatabase();
-                Arrays.stream(database.split(",")).collect(Collectors.toList()).forEach(db -> {
-                    CollectionManager collectionManager = new CollectionManager(mongoPlusClient.getMongoClient(), collectionNameConvert, db);
-                    ConnectMongoDB connectMongodb = new ConnectMongoDB(mongoPlusClient.getMongoClient(), db, finalCollectionName);
-                    MongoDatabase mongoDatabase = mongoPlusClient.getMongoClient().getDatabase(db);
-                    mongoDatabaseList.add(mongoDatabase);
-                    if (Objects.equals(db, finalDataBaseName[0])){
-                        MongoCollection<Document> collection = connectMongodb.open(mongoDatabase);
-                        collectionManager.setCollectionMap(finalCollectionName,collection);
-                    }
+            String database = mongoPlusClient.getBaseProperty().getDatabase();
+            Arrays.stream(database.split(",")).collect(Collectors.toList()).forEach(db -> {
+                CollectionManager collectionManager = new CollectionManager(mongoPlusClient.getMongoClient(), collectionNameConvert, db);
+                ConnectMongoDB connectMongodb = new ConnectMongoDB(mongoPlusClient.getMongoClient(), db, finalCollectionName);
+                MongoDatabase mongoDatabase = mongoPlusClient.getMongoClient().getDatabase(db);
+                mongoDatabaseList.add(mongoDatabase);
+                if (Objects.equals(db, finalDataBaseName[0])){
+                    MongoCollection<Document> collection = connectMongodb.open(mongoDatabase);
+                    collectionManager.setCollectionMap(finalCollectionName,collection);
+                }
+                mongoPlusClient.getCollectionManagerMap().put(DataSourceConstant.DEFAULT_DATASOURCE,new HashMap<String,CollectionManager>(){{
                     put(db,collectionManager);
-                });
-            }});
+                }});
+            });
             mongoPlusClient.setMongoDatabase(mongoDatabaseList);
         } catch (MongoException e) {
             logger.error("Failed to connect to MongoDB: {}", e.getMessage(), e);
@@ -163,11 +167,11 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
     }
 
     /**
-     * 从Bean中拿到拦截器
+     * 从Bean中拿到监听器
      * @author JiaChaoYang
      * @date 2023/11/22 18:39
     */
-    private void setInterceptor(){
+    private void setListener(){
         List<Listener> listeners = new ArrayList<>();
         if (mongodbLogProperty.getLog()){
             listeners.add(new LogListener());
@@ -180,6 +184,16 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
             listeners.addAll(listenerCollection);
         }
         ListenerCache.listeners = listeners.stream().sorted(Comparator.comparingInt(Listener::getOrder)).collect(Collectors.toList());
+    }
+
+    /**
+     * 从Bean中拿到拦截器
+     * @author JiaChaoYang
+     * @date 2024/3/17 0:30
+    */
+    private void setInterceptor(){
+        Collection<Interceptor> interceptorCollection = applicationContext.getBeansOfType(Interceptor.class).values();
+        InterceptorCache.interceptors = new ArrayList<>(interceptorCollection);
     }
 
 }

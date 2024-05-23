@@ -1,6 +1,5 @@
 package com.anwen.mongo.conditions.update;
 
-import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.mapper.BaseMapper;
 
 public class LambdaUpdateChainWrapper<T> extends UpdateChainWrapper<T,LambdaUpdateChainWrapper<T>> implements ChainUpdate {

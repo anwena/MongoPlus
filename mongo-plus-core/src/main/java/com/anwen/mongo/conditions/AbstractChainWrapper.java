@@ -6,10 +6,7 @@ import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.constant.SqlOperationConstant;
-import com.anwen.mongo.enums.CompareEnum;
-import com.anwen.mongo.enums.LogicTypeEnum;
-import com.anwen.mongo.enums.ProjectionEnum;
-import com.anwen.mongo.enums.TypeEnum;
+import com.anwen.mongo.enums.*;
 import com.anwen.mongo.support.SFunction;
 import com.mongodb.BasicDBObject;
 import org.bson.conversions.Bson;
@@ -212,6 +209,46 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
     @Override
     public Children like(String column, Object value) {
         return getBaseCondition(column,value);
+    }
+
+    @Override
+    public Children likeLeft(boolean condition, SFunction<T, Object> column, Object value) {
+        return condition ? likeLeft(column,value) : typedThis;
+    }
+
+    @Override
+    public Children likeLeft(SFunction<T, Object> column, Object value) {
+        return like(column,"^"+value);
+    }
+
+    @Override
+    public Children likeLeft(boolean condition, String column, Object value) {
+        return condition ? likeLeft(column,value) : typedThis;
+    }
+
+    @Override
+    public Children likeLeft(String column, Object value) {
+        return like(column,"^"+value);
+    }
+
+    @Override
+    public Children likeRight(boolean condition, SFunction<T, Object> column, Object value) {
+        return condition ? likeRight(column,value) : typedThis;
+    }
+
+    @Override
+    public Children likeRight(SFunction<T, Object> column, Object value) {
+        return like(column,value+"$");
+    }
+
+    @Override
+    public Children likeRight(boolean condition, String column, Object value) {
+        return condition ? likeRight(column,value) : typedThis;
+    }
+
+    @Override
+    public Children likeRight(String column, Object value) {
+        return like(column,value+"$");
     }
 
     @Override
@@ -436,12 +473,12 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
     }
 
     @Override
-    public Children elemMatch(boolean condition, SFunction<?, Object> column, QueryChainWrapper<?, ?> queryChainWrapper) {
+    public Children elemMatch(boolean condition, SFunction<T,Object> column, QueryChainWrapper<?, ?> queryChainWrapper) {
         return condition ? elemMatch(column,queryChainWrapper) : typedThis;
     }
 
     @Override
-    public Children elemMatch(SFunction<?, Object> column, QueryChainWrapper<?,?> queryChainWrapper) {
+    public Children elemMatch(SFunction<T,Object> column, QueryChainWrapper<?,?> queryChainWrapper) {
         return getChildBaseCondition(column,queryChainWrapper.getCompareList(),LogicTypeEnum.ELEMMATCH.getKey());
     }
 
@@ -577,13 +614,13 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
     }
 
     public Children getBaseOrCondition(List<CompareCondition> compareConditionList){
-        this.compareList.add(CompareCondition.builder().type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.OR.getKey()).childCondition(compareConditionList).build());
+        this.compareList.add(CompareCondition.builder().condition(QueryOperatorEnum.OR.getValue()).type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.OR.getKey()).childCondition(compareConditionList).build());
         return typedThis;
     }
 
     public Children getBaseAndCondition(List<CompareCondition> compareConditionList){
         CompareCondition compareCondition = new CompareCondition();
-        compareCondition.setCondition("and");
+        compareCondition.setCondition(QueryOperatorEnum.AND.getValue());
         compareCondition.setType(CompareEnum.QUERY.getKey());
         compareCondition.setLogicType(LogicTypeEnum.AND.getKey());
         compareCondition.setChildCondition(compareConditionList);
@@ -592,12 +629,23 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
     }
 
     public Children getBaseCondition(SFunction<T, Object> column, Object value){
-        compareList.add(CompareCondition.builder().condition(Thread.currentThread().getStackTrace()[2].getMethodName()).column(column.getFieldNameLine()).value(value).type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.AND.getKey()).build());
+        compareList.add(CompareCondition.builder()
+                .condition(Thread.currentThread().getStackTrace()[2].getMethodName())
+                .column(column.getFieldNameLine())
+                .value(value)
+                .type(CompareEnum.QUERY.getKey())
+                .logicType(LogicTypeEnum.AND.getKey())
+                .build());
         return typedThis;
     }
 
     public Children getChildBaseCondition(SFunction<?,Object> column,List<CompareCondition> value,Integer logic){
-        this.compareList.add(CompareCondition.builder().column(column.getFieldNameLine()).type(CompareEnum.QUERY.getKey()).logicType(logic).childCondition(value).build());
+        this.compareList.add(CompareCondition.builder()
+                .column(column.getFieldNameLine())
+                .type(CompareEnum.QUERY.getKey())
+                .logicType(logic)
+                .childCondition(value)
+                .build());
         return typedThis;
     }
 

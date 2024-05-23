@@ -9,7 +9,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.*;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.InsertManyResult;
-import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -34,6 +33,8 @@ public interface Execute {
     <T> AggregateIterable<T> executeAggregate(List<AggregateBasicDBObject> aggregateConditionList, MongoCollection<Document> collection, Class<T> clazz);
 
     long executeCount(BasicDBObject queryBasic,CountOptions countOptions,MongoCollection<Document> collection);
+
+    long estimatedDocumentCount(MongoCollection<Document> collection);
 
     BulkWriteResult executeBulkWrite(List<WriteModel<Document>> writeModelList, MongoCollection<Document> collection);
 

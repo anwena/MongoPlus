@@ -312,6 +312,90 @@ public interface Compare<T,Children> extends Serializable {
     Children like(String column, Object value);
 
     /**
+     * 左包含（模糊查询）
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
+     * @param column 列名、字段名
+     * @param value 值
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/6/20/020
+     */
+    Children likeLeft(boolean condition , SFunction<T,Object> column, Object value);
+
+    /**
+     * 左包含（模糊查询）
+     * @param column 列名、字段名，lambda方式
+     * @param value 值
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/6/20/020
+     */
+    Children likeLeft(SFunction<T,Object> column, Object value);
+
+    /**
+     * 左包含（模糊查询）
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
+     * @param column 列名、字段名
+     * @param value 值
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/6/20/020
+     */
+    Children likeLeft(boolean condition , String column, Object value);
+
+    /**
+     * 左包含（模糊查询）
+     * @param column 列名、字段名，lambda方式
+     * @param value 值
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/6/20/020
+     */
+    Children likeLeft(String column, Object value);
+
+    /**
+     * 右包含（模糊查询）
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
+     * @param column 列名、字段名
+     * @param value 值
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/6/20/020
+     */
+    Children likeRight(boolean condition , SFunction<T,Object> column, Object value);
+
+    /**
+     * 右包含（模糊查询）
+     * @param column 列名、字段名，lambda方式
+     * @param value 值
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/6/20/020
+     */
+    Children likeRight(SFunction<T,Object> column, Object value);
+
+    /**
+     * 右包含（模糊查询）
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
+     * @param column 列名、字段名
+     * @param value 值
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/6/20/020
+     */
+    Children likeRight(boolean condition , String column, Object value);
+
+    /**
+     * 右包含（模糊查询）
+     * @param column 列名、字段名，lambda方式
+     * @param value 值
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/6/20/020
+     */
+    Children likeRight(String column, Object value);
+
+    /**
      * 多值查询
      * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名，lambda方式
@@ -754,7 +838,7 @@ public interface Compare<T,Children> extends Serializable {
      * @author JiaChaoYang
      * @date 2023/7/19 23:29
     */
-    Children elemMatch(boolean condition,SFunction<?,Object> column , QueryChainWrapper<?,?> queryChainWrapper);
+    Children elemMatch(boolean condition,SFunction<T,Object> column , QueryChainWrapper<?,?> queryChainWrapper);
 
     /**
      * 匹配数组中的值
@@ -764,7 +848,7 @@ public interface Compare<T,Children> extends Serializable {
      * @author JiaChaoYang
      * @date 2023/7/19 23:31
     */
-    Children elemMatch(SFunction<?,Object> column , QueryChainWrapper<?,?> queryChainWrapper);
+    Children elemMatch(SFunction<T,Object> column , QueryChainWrapper<?,?> queryChainWrapper);
 
     /**
      * 匹配数组中的值

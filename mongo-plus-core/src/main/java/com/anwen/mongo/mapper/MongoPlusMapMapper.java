@@ -1,4 +1,3 @@
-
 package com.anwen.mongo.mapper;
 
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
@@ -38,9 +37,17 @@ public class MongoPlusMapMapper implements InjectQuery {
 
     private final MongoPlusClient mongoPlusClient;
 
+    public ExecutorFactory getFactory() {
+        return factory;
+    }
+
+    public MongoPlusClient getMongoPlusClient() {
+        return mongoPlusClient;
+    }
+
     public MongoPlusMapMapper(MongoPlusClient mongoPlusClient) {
         this.mongoPlusClient = mongoPlusClient;
-        factory = new ExecutorFactory();
+        factory = new ExecutorFactory(mongoPlusClient);
     }
 
     /**
@@ -114,13 +121,15 @@ public class MongoPlusMapMapper implements InjectQuery {
     }
 
     @Override
+    @Deprecated
     public Map<String, Object> limitOne(String collectionName, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
         return limitOne(EMPTY,collectionName,queryChainWrapper);
     }
 
     @Override
+    @Deprecated
     public Map<String, Object> limitOne(String database, String collectionName, QueryChainWrapper<Map<String, Object>, ?> queryChainWrapper) {
-        return factory.getInjectExecute(database).limitOne(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList(),queryChainWrapper.getOrderList());
+        return factory.getInjectExecute(database).limitOne(collectionName,queryChainWrapper.getCompareList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
     }
 
     @Override

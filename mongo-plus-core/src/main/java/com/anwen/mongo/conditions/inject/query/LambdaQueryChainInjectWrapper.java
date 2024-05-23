@@ -2,7 +2,6 @@ package com.anwen.mongo.conditions.inject.query;
 
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.execute.ExecutorFactory;
-import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 
@@ -42,7 +41,7 @@ public class LambdaQueryChainInjectWrapper extends QueryChainWrapper<Map<String,
 
     @Override
     public Map<String, Object> limitOne(String database, String collectionName) {
-        return factory.getInjectExecute(database).limitOne(collectionName,getCompareList(),getProjectionList(),getBasicDBObjectList(),getOrderList());
+        return factory.getInjectExecute(database).limitOne(collectionName,getCompareList(),getProjectionList(),getBasicDBObjectList());
     }
 
     @Override

@@ -11,8 +11,8 @@ import com.anwen.mongo.conditions.update.LambdaUpdateChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.enums.SpecialConditionEnum;
-import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.mapper.BaseMapper;
+import com.anwen.mongo.model.MutablePair;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 import com.anwen.mongo.service.IService;
@@ -21,7 +21,6 @@ import com.anwen.mongo.toolkit.*;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.*;
-import javafx.util.Pair;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
@@ -117,18 +116,18 @@ public class ServiceImpl<T> implements IService<T>{
     public Boolean saveOrUpdateWrapper(T entity, QueryChainWrapper<T, ?> queryChainWrapper) {
         long count = count(queryChainWrapper);
         if (count > 0){
-            Pair<BasicDBObject, BasicDBObject> updatePair = getUpdateCondition(queryChainWrapper.getCompareList(), entity);
-            return baseMapper.update(updatePair.getKey(),updatePair.getValue(),ClassTypeUtil.getClass(entity)) >= 1;
+            MutablePair<BasicDBObject,BasicDBObject> updatePair = getUpdateCondition(queryChainWrapper.getCompareList(), entity);
+            return baseMapper.update(updatePair.getLeft(),updatePair.getRight(),ClassTypeUtil.getClass(entity)) >= 1;
         }
         return save(entity);
     }
 
-    protected Pair<BasicDBObject,BasicDBObject> getUpdateCondition(List<CompareCondition> compareConditionList, T entity){
+    protected MutablePair<BasicDBObject,BasicDBObject> getUpdateCondition(List<CompareCondition> compareConditionList, T entity){
         BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareConditionList);
         Document document = DocumentUtil.checkUpdateField(entity,false);
         document.remove(SqlOperationConstant._ID);
         BasicDBObject updateField = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
-        return new Pair<>(queryBasic,updateField);
+        return new MutablePair<>(queryBasic,updateField);
     }
 
     @Override
@@ -139,8 +138,8 @@ public class ServiceImpl<T> implements IService<T>{
             if (StringUtils.isBlank(idByEntity)){
                 writeModelList.add(new InsertOneModel<>(baseMapper.processIdField(entity,false)));
             } else {
-                Pair<BasicDBObject,BasicDBObject> basicDBObjectPair = getUpdate(entity);
-                writeModelList.add(new UpdateManyModel<>(basicDBObjectPair.getKey(),basicDBObjectPair.getValue()));
+                MutablePair<BasicDBObject,BasicDBObject> basicDBObjectPair = getUpdate(entity);
+                writeModelList.add(new UpdateManyModel<>(basicDBObjectPair.getLeft(),basicDBObjectPair.getRight()));
             }
         });
         return baseMapper.bulkWrite(writeModelList,entityList.stream().findFirst().get().getClass()) == entityList.size();
@@ -153,8 +152,8 @@ public class ServiceImpl<T> implements IService<T>{
         entityList.forEach(entity -> {
             long count = baseMapper.count(queryChainWrapper, clazz);
             if (count > 0){
-                Pair<BasicDBObject, BasicDBObject> updatePair = getUpdateCondition(queryChainWrapper.getCompareList(), entity);
-                writeModelList.add(new UpdateManyModel<>(updatePair.getKey(),updatePair.getValue()));
+                MutablePair<BasicDBObject,BasicDBObject> updatePair = getUpdateCondition(queryChainWrapper.getCompareList(), entity);
+                writeModelList.add(new UpdateManyModel<>(updatePair.getLeft(),updatePair.getRight()));
             } else {
                 writeModelList.add(new InsertOneModel<>(baseMapper.processIdField(entity,false)));
             }
@@ -164,23 +163,23 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public Boolean updateById(T entity) {
-        Pair<BasicDBObject,BasicDBObject> basicDBObjectPair = getUpdate(entity);
-        return baseMapper.update(basicDBObjectPair.getKey(),basicDBObjectPair.getValue(),ClassTypeUtil.getClass(entity)) >= 1;
+        MutablePair<BasicDBObject,BasicDBObject> basicDBObjectPair = getUpdate(entity);
+        return baseMapper.update(basicDBObjectPair.getLeft(),basicDBObjectPair.getRight(),ClassTypeUtil.getClass(entity)) >= 1;
     }
 
-    protected <T> Pair<BasicDBObject,BasicDBObject> getUpdate(T entity) {
+    protected <T> MutablePair<BasicDBObject,BasicDBObject> getUpdate(T entity) {
         Document document = DocumentUtil.checkUpdateField(entity,false);
         BasicDBObject filter = ExecuteUtil.getFilter(document);
         BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
-        return new Pair<>(filter,update);
+        return new MutablePair<>(filter,update);
     }
 
     @Override
     public Boolean updateBatchByIds(Collection<T> entityList) {
         List<WriteModel<Document>> writeModelList = new ArrayList<>();
         entityList.forEach(entity -> {
-            Pair<BasicDBObject,BasicDBObject> basicDBObjectPair = getUpdate(entity);
-            writeModelList.add(new UpdateManyModel<>(basicDBObjectPair.getKey(),basicDBObjectPair.getValue()));
+            MutablePair<BasicDBObject,BasicDBObject> basicDBObjectPair = getUpdate(entity);
+            writeModelList.add(new UpdateManyModel<>(basicDBObjectPair.getLeft(),basicDBObjectPair.getRight()));
         });
         return baseMapper.bulkWrite(writeModelList,entityList.stream().findFirst().get().getClass()) == entityList.size();
     }
@@ -251,6 +250,7 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    @Deprecated
     public T limitOne(QueryChainWrapper<T, ?> queryChainWrapper) {
         return baseMapper.limitOne(queryChainWrapper,clazz);
     }
@@ -298,6 +298,26 @@ public class ServiceImpl<T> implements IService<T>{
     @Override
     public PageResult<T> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam, Integer recentPageNum) {
         return page(queryChainWrapper,pageParam.getPageNum(),pageParam.getPageSize(),recentPageNum);
+    }
+
+    @Override
+    public List<T> pageList(PageParam pageParam) {
+        return pageList(pageParam.getPageNum(),pageParam.getPageSize());
+    }
+
+    @Override
+    public List<T> pageList(Integer pageNum, Integer pageSize) {
+        return baseMapper.pageList(new QueryWrapper<>(),pageNum,pageSize,clazz);
+    }
+
+    @Override
+    public List<T> pageList(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize) {
+        return baseMapper.pageList(queryChainWrapper,pageNum,pageSize,clazz);
+    }
+
+    @Override
+    public List<T> pageList(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam) {
+        return baseMapper.pageList(queryChainWrapper,pageParam.getPageNum(),pageParam.getPageSize(),clazz);
     }
 
     @Override

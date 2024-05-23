@@ -1,9 +1,6 @@
 package com.anwen.mongo.execute.instance;
 
-import com.anwen.mongo.conn.CollectionManager;
-import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.convert.DocumentMapperConvert;
-import com.anwen.mongo.execute.AbstractExecute;
 import com.anwen.mongo.execute.Execute;
 import com.anwen.mongo.model.AggregateBasicDBObject;
 import com.mongodb.BasicDBObject;
@@ -14,7 +11,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.*;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.InsertManyResult;
-import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -63,6 +59,11 @@ public class DefaultExecute implements Execute {
     @Override
     public long executeCount(BasicDBObject queryBasic, CountOptions countOptions, MongoCollection<Document> collection) {
         return Optional.ofNullable(countOptions).map(co -> collection.countDocuments(queryBasic,co)).orElseGet(() -> collection.countDocuments(queryBasic));
+    }
+
+    @Override
+    public long estimatedDocumentCount(MongoCollection<Document> collection) {
+        return collection.estimatedDocumentCount();
     }
 
     @Override

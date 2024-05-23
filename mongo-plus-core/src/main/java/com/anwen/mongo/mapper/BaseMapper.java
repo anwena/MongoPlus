@@ -1,16 +1,13 @@
 package com.anwen.mongo.mapper;
 
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
-import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
-import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.execute.Execute;
 import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.model.PageResult;
-import com.mongodb.BasicDBObject;
 import com.mongodb.client.model.*;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -22,7 +19,7 @@ import java.util.List;
 
 /**
  * mapper层
- * TODO 名称待定，方法留CRUD
+ * TODO 名称待定，方法留CRUD，不同数据库实现该接口
  * @author JiaChaoYang
  **/
 public interface BaseMapper{
@@ -53,9 +50,12 @@ public interface BaseMapper{
 
     <T> T one(QueryChainWrapper<T,?> queryChainWrapper,Class<T> clazz);
 
+    @Deprecated
     <T> T limitOne(QueryChainWrapper<T, ?> queryChainWrapper,Class<T> clazz);
 
     <T> PageResult<T> page(QueryChainWrapper<T,?> queryChainWrapper, Integer pageNum, Integer pageSize, Class<T> clazz);
+
+    <T> List<T> pageList(QueryChainWrapper<T,?> queryChainWrapper, Integer pageNum, Integer pageSize, Class<T> clazz);
 
     <T> PageResult<T> page(QueryChainWrapper<T,?> queryChainWrapper, Integer pageNum, Integer pageSize, Integer recentPageNum, Class<T> clazz);
 
