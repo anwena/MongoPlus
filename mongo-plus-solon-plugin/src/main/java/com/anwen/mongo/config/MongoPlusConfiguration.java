@@ -13,6 +13,7 @@ import com.anwen.mongo.mapper.DefaultBaseMapperImpl;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
 import com.anwen.mongo.mapping.MappingMongoConverter;
 import com.anwen.mongo.mapping.MongoConverter;
+import com.anwen.mongo.mapping.SimpleTypeHolder;
 import com.anwen.mongo.model.BaseProperty;
 import com.anwen.mongo.property.*;
 import com.anwen.mongo.toolkit.CollUtil;
@@ -144,9 +145,15 @@ public class MongoPlusConfiguration {
     }
 
     @Bean
+    @Condition(onMissingBean = SimpleTypeHolder.class)
+    public SimpleTypeHolder simpleTypeHolder() {
+        return new SimpleTypeHolder();
+    }
+
+    @Bean
     @Condition(onMissingBean = MongoConverter.class)
-    public MongoConverter mongoConverter(MongoPlusClient mongoPlusClient) {
-        return new MappingMongoConverter(mongoPlusClient);
+    public MongoConverter mongoConverter(MongoPlusClient mongoPlusClient,SimpleTypeHolder simpleTypeHolder) {
+        return new MappingMongoConverter(mongoPlusClient,simpleTypeHolder);
     }
 
     @Bean("mongoTransactionalAspect")

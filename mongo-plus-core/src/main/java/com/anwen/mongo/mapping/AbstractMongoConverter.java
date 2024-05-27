@@ -45,8 +45,6 @@ public abstract class AbstractMongoConverter implements MongoConverter {
         this.mongoPlusClient = mongoPlusClient;
     }
 
-    private final Log log = LogFactory.getLog(AbstractMongoConverter.class);
-
     //定义添加自动填充字段
     private final AutoFillMetaObject insertFillAutoFillMetaObject = new AutoFillMetaObject(new MongoPlusDocument());
     private final AutoFillMetaObject updateFillAutoFillMetaObject = new AutoFillMetaObject(new MongoPlusDocument());

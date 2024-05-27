@@ -25,10 +25,11 @@ import java.util.*;
  **/
 public class MappingMongoConverter extends AbstractMongoConverter {
 
-    private final SimpleTypeHolder simpleTypeHolder = new SimpleTypeHolder();
+    private final SimpleTypeHolder simpleTypeHolder;
 
-    public MappingMongoConverter(MongoPlusClient mongoPlusClient) {
+    public MappingMongoConverter(MongoPlusClient mongoPlusClient,SimpleTypeHolder simpleTypeHolder) {
         super(mongoPlusClient);
+        this.simpleTypeHolder = simpleTypeHolder;
     }
 
     @Override

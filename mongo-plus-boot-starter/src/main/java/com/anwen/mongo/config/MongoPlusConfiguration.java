@@ -14,6 +14,7 @@ import com.anwen.mongo.mapper.DefaultBaseMapperImpl;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
 import com.anwen.mongo.mapping.MappingMongoConverter;
 import com.anwen.mongo.mapping.MongoConverter;
+import com.anwen.mongo.mapping.SimpleTypeHolder;
 import com.anwen.mongo.model.BaseProperty;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBConfigurationProperty;
@@ -55,6 +56,12 @@ public class MongoPlusConfiguration {
         this.mongoDBConfigurationProperty = mongodbConfigurationProperty;
     }
 
+    /**
+     * 注册MongoClient工厂
+     * @return {@link MongoClientFactory}
+     * @author anwen
+     * @date 2024/5/27 下午11:21
+     */
     @Bean
     @ConditionalOnMissingBean
     public MongoClientFactory mongoClientFactory(){
@@ -76,18 +83,41 @@ public class MongoPlusConfiguration {
         return mongoClientFactory.getMongoClient();
     }
 
+    /**
+     * 建立连接
+     * @param dsName 数据源名称
+     * @param baseProperty 配置
+     * @return {@link MongoClient}
+     * @author anwen
+     * @date 2024/5/27 下午11:20
+     */
     public MongoClient getMongo(String dsName,BaseProperty baseProperty){
         DataSourceNameCache.setBaseProperty(dsName,baseProperty);
         return MongoClients.create(MongoClientSettings.builder()
                 .applyConnectionString(new ConnectionString(new UrlJoint(baseProperty).jointMongoUrl())).commandListenerList(Collections.singletonList(new BaseListener())).build());
     }
 
+    /**
+     * 注册集合名转换器
+     * @return {@link CollectionNameConvert}
+     * @author anwen
+     * @date 2024/5/27 下午11:20
+     */
     @Bean
     @ConditionalOnMissingBean(CollectionNameConvert.class)
     public CollectionNameConvert collectionNameConvert(){
         return MongoCollectionUtils.build(mongoDBCollectionProperty.getMappingStrategy());
     }
 
+    /**
+     * MongoPlusClient注册
+     * @param mongo MongoClient
+     * @param collectionNameConvert 集合名转换器
+     * @param mongoClientFactory MongoClient工厂
+     * @return {@link com.anwen.mongo.manager.MongoPlusClient}
+     * @author anwen
+     * @date 2024/5/27 下午11:20
+     */
     @Bean
     @ConditionalOnMissingBean(MongoPlusClient.class)
     public MongoPlusClient mongoPlusClient(MongoClient mongo,CollectionNameConvert collectionNameConvert,MongoClientFactory mongoClientFactory){
@@ -138,30 +168,79 @@ public class MongoPlusConfiguration {
         return mongoPlusClient;
     }
 
+    /**
+     * 简单类型注册
+     * @return {@link SimpleTypeHolder}
+     * @author anwen
+     * @date 2024/5/27 下午11:17
+     */
     @Bean
-    @ConditionalOnMissingBean(MongoConverter.class)
-    public MongoConverter mongoConverter(MongoPlusClient mongoPlusClient){
-        return new MappingMongoConverter(mongoPlusClient);
+    @ConditionalOnMissingBean(SimpleTypeHolder.class)
+    public SimpleTypeHolder simpleTypeHolder(){
+        return new SimpleTypeHolder();
     }
 
+    /**
+     * 注册mongo转换器
+     * @param mongoPlusClient MongoPlusClient
+     * @param simpleTypeHolder 简单类型
+     * @return {@link com.anwen.mongo.mapping.MongoConverter}
+     * @author anwen
+     * @date 2024/5/27 下午11:17
+     */
+    @Bean
+    @ConditionalOnMissingBean(MongoConverter.class)
+    public MongoConverter mongoConverter(MongoPlusClient mongoPlusClient,SimpleTypeHolder simpleTypeHolder){
+        return new MappingMongoConverter(mongoPlusClient,simpleTypeHolder);
+    }
+
+    /**
+     * baseMapper注册
+     * @param mongoPlusClient mongoPlusClient
+     * @param mongoConverter 转换器
+     * @return {@link com.anwen.mongo.mapper.BaseMapper}
+     * @author anwen
+     * @date 2024/5/27 下午11:18
+     */
     @Bean
     @ConditionalOnMissingBean(BaseMapper.class)
     public BaseMapper baseMapper(MongoPlusClient mongoPlusClient,MongoConverter mongoConverter){
         return new DefaultBaseMapperImpl(mongoPlusClient,mongoConverter);
     }
 
+    /**
+     * 注册MongoPlusMapMapper
+     * @param mongoPlusClient mongoPlusClient
+     * @param mongoConverter 转换器
+     * @return {@link com.anwen.mongo.mapper.MongoPlusMapMapper}
+     * @author anwen
+     * @date 2024/5/27 下午11:19
+     */
     @Bean("mongoPlusMapMapper")
     @ConditionalOnMissingBean
     public MongoPlusMapMapper mongoPlusMapMapper(MongoPlusClient mongoPlusClient,MongoConverter mongoConverter) {
         return new MongoPlusMapMapper(mongoPlusClient,mongoConverter);
     }
 
+    /**
+     * 注册MongoPlus事务切面
+     * @return {@link MongoTransactionalAspect}
+     * @author anwen
+     * @date 2024/5/27 下午11:19
+     */
     @Bean("mongoTransactionalAspect")
     @ConditionalOnMissingBean
     public MongoTransactionalAspect mongoTransactionalAspect() {
         return new MongoTransactionalAspect();
     }
 
+    /**
+     * 注册mongoPlus多数据源切面
+     * @param
+     * @return {@link MongoDataSourceAspect}
+     * @author anwen
+     * @date 2024/5/27 下午11:19
+     */
     @Bean("mongoDataSourceAspect")
     @ConditionalOnMissingBean
     public MongoDataSourceAspect mongoDataSourceAspect() {
