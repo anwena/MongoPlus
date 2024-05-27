@@ -176,13 +176,23 @@ public interface IService<T> {
     */
     List<T> list();
 
+    <R> List<R> list(Class<R> rClazz);
+
     List<T> aggregateList(AggregateChainWrapper<T,?> queryChainWrapper);
+
+    <R> List<R> aggregateList(AggregateChainWrapper<T,?> queryChainWrapper,Class<R> rClazz);
 
     T one(QueryChainWrapper<T,?> queryChainWrapper);
 
+    <R> R one(QueryChainWrapper<T,?> queryChainWrapper,Class<R> rClazz);
+
     List<T> list(QueryChainWrapper<T ,?> queryChainWrapper);
 
+    <R> List<R> list(QueryChainWrapper<T ,?> queryChainWrapper,Class<R> rClazz);
+
     List<T> list(AggregateChainWrapper<T,?> queryChainWrapper);
+
+    <R> List<R> list(AggregateChainWrapper<T,?> queryChainWrapper,Class<R> rClazz);
 
     long count();
 
@@ -197,6 +207,8 @@ public interface IService<T> {
     */
     PageResult<T> page(PageParam pageParam);
 
+    <R> PageResult<R> page(PageParam pageParam,Class<R> rClazz);
+
     /**
      * 分页查询
      * @param pageParam 分页参数对象
@@ -207,6 +219,8 @@ public interface IService<T> {
     */
     PageResult<T> page(PageParam pageParam, Integer recentPageNum);
 
+    <R> PageResult<R> page(PageParam pageParam, Integer recentPageNum,Class<R> rClazz);
+
     /**
      * 分页查询
      * @param pageNum 当前页
@@ -216,6 +230,8 @@ public interface IService<T> {
      * @date 2023/6/25/025
     */
     PageResult<T> page(Integer pageNum,Integer pageSize);
+
+    <R> PageResult<R> page(Integer pageNum,Integer pageSize,Class<R> rClazz);
 
     /**
      * 分页查询
@@ -237,11 +253,37 @@ public interface IService<T> {
     PageResult<T> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam, Integer recentPageNum);
 
     /**
+     * 分页查询
+     * @param pageNum 当前页
+     * @param pageSize 每页显示行数
+     * @param recentPageNum 查询最近n页的数据  {参数=null 表示仅查询当前页数据}  {参数取值[5-50] 表示查询最近[5-50]页的数据 建议recentPageNum等于10 参考 百度分页检索}
+     * @return com.anwen.mongo.sql.model.PageResult<T>
+     * @author JiaChaoYang
+     * @date 2023/6/25/025
+     */
+    <R> PageResult<R> page(Integer pageNum,Integer pageSize, Integer recentPageNum,Class<R> rClazz);
+
+    <R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize,Class<R> rClazz);
+
+    <R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam,Class<R> rClazz);
+
+    <R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize, Integer recentPageNum,Class<R> rClazz);
+
+    <R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam, Integer recentPageNum,Class<R> rClazz);
+
+    /**
      * 返回List的page，无需进行count查询，速度会比较快
      * @author JiaChaoYang
      * @date 2024/3/16 23:56
     */
     List<T> pageList(PageParam pageParam);
+
+    /**
+     * 返回List的page，无需进行count查询，速度会比较快
+     * @author JiaChaoYang
+     * @date 2024/3/16 23:56
+     */
+    <R> List<R> pageList(PageParam pageParam,Class<R> rClazz);
 
     /**
      * 返回List的page，无需进行count查询，速度会比较快
@@ -257,6 +299,14 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @date 2024/3/16 23:56
      */
+    <R> List<R> pageList(Integer pageNum,Integer pageSize,Class<R> rClazz);
+
+    /**
+     * 返回List的page，无需进行count查询，速度会比较快
+     *
+     * @author JiaChaoYang
+     * @date 2024/3/16 23:56
+     */
     List<T> pageList(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize);
 
     /**
@@ -265,7 +315,23 @@ public interface IService<T> {
      * @author JiaChaoYang
      * @date 2024/3/16 23:56
      */
+    <R> List<R> pageList(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize,Class<R> rClazz);
+
+    /**
+     * 返回List的page，无需进行count查询，速度会比较快
+     *
+     * @author JiaChaoYang
+     * @date 2024/3/16 23:56
+     */
     List<T> pageList(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam);
+
+    /**
+     * 返回List的page，无需进行count查询，速度会比较快
+     *
+     * @author JiaChaoYang
+     * @date 2024/3/16 23:56
+     */
+    <R> List<R> pageList(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam,Class<R> rClazz);
 
     /**
      * 根据id查询单个
@@ -277,6 +343,15 @@ public interface IService<T> {
     T getById(Serializable id);
 
     /**
+     * 根据id查询单个
+     * @param id id
+     * @return T
+     * @author JiaChaoYang
+     * @date 2023/6/25/025
+     */
+    <R> R getById(Serializable id,Class<R> rClazz);
+
+    /**
      * 根据多个id查询
      * @param ids id集合
      * @return {@link List<T>}
@@ -286,6 +361,15 @@ public interface IService<T> {
     List<T> getByIds(Collection<? extends Serializable> ids);
 
     /**
+     * 根据多个id查询
+     * @param ids id集合
+     * @return {@link List<T>}
+     * @author anwen
+     * @date 2024/5/2 上午12:43
+     */
+    <R> List<R> getByIds(Collection<? extends Serializable> ids,Class<R> rClazz);
+
+    /**
      * 命令查询接口，传入值为json，如{eq:XXX}
      * @param command 命令json
      * @return java.util.List<T>
@@ -293,6 +377,15 @@ public interface IService<T> {
      * @date 2023/12/30 23:28
     */
     List<T> queryCommand(String command);
+
+    /**
+     * 命令查询接口，传入值为json，如{eq:XXX}
+     * @param command 命令json
+     * @return java.util.List<T>
+     * @author JiaChaoYang
+     * @date 2023/12/30 23:28
+     */
+    <R> List<R> queryCommand(String command,Class<R> rClazz);
 
     /**
      * 根据某一列查询
@@ -308,11 +401,31 @@ public interface IService<T> {
      * 根据某一列查询
      * @param field 字段
      * @param fieldValue 字段值
+     * @return List<T>
+     * @author JiaChaoYang
+     * @date 2023/10/19 23:28
+     */
+    <R> List<R> getByColumn(SFunction<T,Object> field,Object fieldValue,Class<R> rClazz);
+
+    /**
+     * 根据某一列查询
+     * @param field 字段
+     * @param fieldValue 字段值
      * @return T
      * @author JiaChaoYang
      * @date 2023/10/19 23:30
     */
     List<T> getByColumn(String field,Object fieldValue);
+
+    /**
+     * 根据某一列查询
+     * @param field 字段
+     * @param fieldValue 字段值
+     * @return T
+     * @author JiaChaoYang
+     * @date 2023/10/19 23:30
+     */
+    <R> List<R> getByColumn(String field,Object fieldValue,Class<R> rClazz);
 
     /**
      * 是否存在

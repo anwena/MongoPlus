@@ -2,6 +2,7 @@ package com.anwen.mongo.mapping;
 
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.constant.SqlOperationConstant;
+import com.anwen.mongo.convert.Converter;
 import com.anwen.mongo.domain.MongoPlusFieldException;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoIterable;
@@ -10,6 +11,8 @@ import org.bson.types.ObjectId;
 
 import java.lang.reflect.Field;
 import java.util.*;
+
+import static com.anwen.mongo.convert.Converter.convertKeysToCamelCase;
 
 /**
  * 将对象映射为Document和将Document映射为对象
@@ -98,11 +101,13 @@ public interface MongoConverter extends MongoWriter,EntityRead {
 
     <T> T readInternal(Document document, Class<T> clazz);
 
-    default <T> List<T> read(MongoIterable<Document> findIterable, Class<T> clazz){
+    default <T> List<T> read(MongoIterable<Document> findIterable, Class<T> clazz) {
         List<T> resultList = new ArrayList<>();
         try (MongoCursor<Document> mongoCursor = findIterable.iterator()) {
-            while (mongoCursor.hasNext()){
-                resultList.add(read(mongoCursor.next(), clazz));
+            while (mongoCursor.hasNext()) {
+                Document document = mongoCursor.next();
+                T convertedDocument = convertDocument(document, clazz);
+                resultList.add(convertedDocument);
             }
         }
         return resultList;
@@ -112,10 +117,19 @@ public interface MongoConverter extends MongoWriter,EntityRead {
     default <T> T readDocument(MongoIterable<Document> findIterable,Class<?> clazz){
         try (MongoCursor<Document> mongoCursor = findIterable.iterator()) {
             if (mongoCursor.hasNext()){
-                return (T)read(mongoCursor.next(), clazz);
+                return (T) convertDocument(mongoCursor.next(), clazz);
             }
         }
         return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    default  <T> T convertDocument(Document document, Class<T> clazz) {
+        if (clazz.isAssignableFrom(Map.class)) {
+            return (T) convertKeysToCamelCase(document);
+        } else {
+            return read(document, clazz);
+        }
     }
 
     default void reSetIdValue(Object sourceObj, Document document) {

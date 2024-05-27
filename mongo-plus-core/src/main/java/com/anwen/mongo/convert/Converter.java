@@ -5,6 +5,7 @@ import com.anwen.mongo.toolkit.InstantUtil;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
+import org.bson.Document;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,6 +29,7 @@ public class Converter {
         }
         return resultList;
     }
+
 
     public static Map<String,Object> convertDocumentToMapOne(FindIterable<Map> iterable){
         try (MongoCursor<Map> cursor = iterable.iterator()) {

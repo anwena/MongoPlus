@@ -25,7 +25,6 @@ import java.util.*;
  **/
 public class MappingMongoConverter extends AbstractMongoConverter {
 
-    private static final Logger log = LoggerFactory.getLogger(MappingMongoConverter.class);
     private final SimpleTypeHolder simpleTypeHolder = new SimpleTypeHolder();
 
     public MappingMongoConverter(MongoPlusClient mongoPlusClient) {

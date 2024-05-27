@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
  * 接口实现
  * @since 2023-02-09 14:13
  **/
-public class ServiceImpl<T> implements IService<T>{
+public class ServiceImpl<T> implements IService<T> {
 
     private BaseMapper baseMapper;
 
@@ -223,27 +223,52 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public List<T> aggregateList(AggregateChainWrapper<T, ?> queryChainWrapper) {
-        return baseMapper.aggregateList(queryChainWrapper,clazz);
+        return aggregateList(queryChainWrapper,clazz);
+    }
+
+    @Override
+    public <R> List<R> aggregateList(AggregateChainWrapper<T, ?> queryChainWrapper, Class<R> rClazz) {
+        return baseMapper.aggregateList(queryChainWrapper,clazz,rClazz);
     }
 
     @Override
     public T one(QueryChainWrapper<T,?> queryChainWrapper) {
-        return baseMapper.one(queryChainWrapper,clazz);
+        return one(queryChainWrapper,clazz);
+    }
+
+    @Override
+    public <R> R one(QueryChainWrapper<T, ?> queryChainWrapper, Class<R> rClazz) {
+        return baseMapper.one(queryChainWrapper,clazz,rClazz);
     }
 
     @Override
     public List<T> list() {
-        return baseMapper.list(clazz);
+        return list(clazz);
+    }
+
+    @Override
+    public <R> List<R> list(Class<R> rClazz) {
+        return baseMapper.list(clazz,rClazz);
     }
 
     @Override
     public List<T> list(QueryChainWrapper<T,?> queryChainWrapper) {
-        return baseMapper.list(queryChainWrapper,clazz);
+        return list(queryChainWrapper,clazz);
+    }
+
+    @Override
+    public <R> List<R> list(QueryChainWrapper<T, ?> queryChainWrapper, Class<R> rClazz) {
+        return baseMapper.list(queryChainWrapper,clazz,rClazz);
     }
 
     @Override
     public List<T> list(AggregateChainWrapper<T,?> queryChainWrapper) {
-        return baseMapper.aggregateList(queryChainWrapper,clazz);
+        return aggregateList(queryChainWrapper,clazz);
+    }
+
+    @Override
+    public <R> List<R> list(AggregateChainWrapper<T, ?> queryChainWrapper, Class<R> rClazz) {
+        return baseMapper.aggregateList(queryChainWrapper,clazz,rClazz);
     }
 
     @Override
@@ -258,7 +283,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public PageResult<T> page(QueryChainWrapper<T,?> queryChainWrapper, Integer pageNum, Integer pageSize){
-        return baseMapper.page(queryChainWrapper, pageNum,pageSize,clazz);
+        return page(queryChainWrapper, pageNum,pageSize,clazz);
     }
 
     @Override
@@ -268,7 +293,7 @@ public class ServiceImpl<T> implements IService<T>{
 
     @Override
     public PageResult<T> page(QueryChainWrapper<T,?> queryChainWrapper, Integer pageNum, Integer pageSize, Integer recentPageNum){
-        return baseMapper.page(queryChainWrapper, pageNum,pageSize,recentPageNum,clazz);
+        return page(queryChainWrapper, pageNum,pageSize,recentPageNum,clazz);
     }
 
     @Override
@@ -277,23 +302,68 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    public <R> PageResult<R> page(Integer pageNum, Integer pageSize, Integer recentPageNum, Class<R> rClazz) {
+        return baseMapper.page(new QueryWrapper<>(),pageNum,pageSize,recentPageNum,clazz,rClazz);
+    }
+
+    @Override
+    public <R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize, Class<R> rClazz) {
+        return baseMapper.page(queryChainWrapper,pageNum,pageSize,clazz,rClazz);
+    }
+
+    @Override
+    public <R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam, Class<R> rClazz) {
+        return baseMapper.page(queryChainWrapper,pageParam.getPageNum(),pageParam.getPageSize(),clazz,rClazz);
+    }
+
+    @Override
+    public <R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize, Integer recentPageNum, Class<R> rClazz) {
+        return baseMapper.page(queryChainWrapper,pageNum,pageSize,recentPageNum,clazz,rClazz);
+    }
+
+    @Override
+    public <R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam, Integer recentPageNum, Class<R> rClazz) {
+        return baseMapper.page(queryChainWrapper,pageParam.getPageNum(),pageParam.getPageSize(),recentPageNum,clazz,rClazz);
+    }
+
+    @Override
     public List<T> pageList(PageParam pageParam) {
         return pageList(pageParam.getPageNum(),pageParam.getPageSize());
     }
 
     @Override
+    public <R> List<R> pageList(PageParam pageParam, Class<R> rClazz) {
+        return pageList(pageParam.getPageNum(),pageParam.getPageSize(),rClazz);
+    }
+
+    @Override
     public List<T> pageList(Integer pageNum, Integer pageSize) {
-        return baseMapper.pageList(new QueryWrapper<>(),pageNum,pageSize,clazz);
+        return pageList(new QueryWrapper<>(),pageNum,pageSize,clazz);
+    }
+
+    @Override
+    public <R> List<R> pageList(Integer pageNum, Integer pageSize, Class<R> rClazz) {
+        return baseMapper.pageList(new QueryWrapper<>(),pageNum,pageSize,clazz,rClazz);
     }
 
     @Override
     public List<T> pageList(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize) {
-        return baseMapper.pageList(queryChainWrapper,pageNum,pageSize,clazz);
+        return pageList(queryChainWrapper,pageNum,pageSize,clazz);
+    }
+
+    @Override
+    public <R> List<R> pageList(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize, Class<R> rClazz) {
+        return baseMapper.pageList(queryChainWrapper,pageNum,pageSize,clazz,rClazz);
     }
 
     @Override
     public List<T> pageList(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam) {
-        return baseMapper.pageList(queryChainWrapper,pageParam.getPageNum(),pageParam.getPageSize(),clazz);
+        return pageList(queryChainWrapper,pageParam.getPageNum(),pageParam.getPageSize(),clazz);
+    }
+
+    @Override
+    public <R> List<R> pageList(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam, Class<R> rClazz) {
+        return baseMapper.pageList(queryChainWrapper,pageParam.getPageNum(),pageParam.getPageSize(),clazz,rClazz);
     }
 
     @Override
@@ -302,8 +372,18 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    public <R> PageResult<R> page(PageParam pageParam, Class<R> rClazz) {
+        return page(pageParam.getPageNum(),pageParam.getPageSize(),rClazz);
+    }
+
+    @Override
     public PageResult<T> page(PageParam pageParam, Integer recentPageNum) {
         return page(pageParam.getPageNum(), pageParam.getPageSize(), recentPageNum);
+    }
+
+    @Override
+    public <R> PageResult<R> page(PageParam pageParam, Integer recentPageNum, Class<R> rClazz) {
+        return page(pageParam.getPageNum(), pageParam.getPageSize(), recentPageNum, rClazz);
     }
 
     @Override
@@ -312,33 +392,63 @@ public class ServiceImpl<T> implements IService<T>{
     }
 
     @Override
+    public <R> PageResult<R> page(Integer pageNum, Integer pageSize, Class<R> rClazz) {
+        return baseMapper.page(new QueryWrapper<>(),pageNum,pageSize,clazz,rClazz);
+    }
+
+    @Override
     public PageResult<T> page(Integer pageNum, Integer pageSize, Integer recentPageNum) {
-        return baseMapper.page(new QueryWrapper<>(),pageNum,pageSize,recentPageNum,clazz);
+        return page(new QueryWrapper<>(),pageNum,pageSize,recentPageNum,clazz);
     }
 
     @Override
     public T getById(Serializable id) {
-        return baseMapper.getById(id,clazz);
+        return getById(id,clazz);
+    }
+
+    @Override
+    public <R> R getById(Serializable id, Class<R> rClazz) {
+        return baseMapper.getById(id,clazz,rClazz);
     }
 
     @Override
     public List<T> getByIds(Collection<? extends Serializable> ids) {
-        return baseMapper.getByIds(ids,clazz);
+        return getByIds(ids,clazz);
+    }
+
+    @Override
+    public <R> List<R> getByIds(Collection<? extends Serializable> ids, Class<R> rClazz) {
+        return baseMapper.getByIds(ids,clazz,rClazz);
     }
 
     @Override
     public List<T> queryCommand(String command) {
-        return baseMapper.queryCommand(command,clazz);
+        return queryCommand(command,clazz);
+    }
+
+    @Override
+    public <R> List<R> queryCommand(String command, Class<R> rClazz) {
+        return baseMapper.queryCommand(command,clazz,rClazz);
     }
 
     @Override
     public List<T> getByColumn(SFunction<T, Object> field, Object fieldValue) {
-        return baseMapper.getByColumn(field.getFieldNameLine(), fieldValue,clazz);
+        return getByColumn(field.getFieldNameLine(), fieldValue,clazz);
+    }
+
+    @Override
+    public <R> List<R> getByColumn(SFunction<T, Object> field, Object fieldValue, Class<R> rClazz) {
+        return baseMapper.getByColumn(field.getFieldNameLine(), fieldValue,clazz,rClazz);
     }
 
     @Override
     public List<T> getByColumn(String field, Object fieldValue) {
-        return baseMapper.getByColumn(field,fieldValue,clazz);
+        return getByColumn(field,fieldValue,clazz);
+    }
+
+    @Override
+    public <R> List<R> getByColumn(String field, Object fieldValue, Class<R> rClazz) {
+        return baseMapper.getByColumn(field,fieldValue,clazz,rClazz);
     }
 
     @Override
