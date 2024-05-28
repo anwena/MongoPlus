@@ -8,6 +8,7 @@ import com.anwen.mongo.execute.Execute;
 import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapping.MongoConverter;
+import com.anwen.mongo.mapping.TypeReference;
 import com.anwen.mongo.model.PageResult;
 import com.mongodb.client.model.*;
 import org.bson.Document;
@@ -161,6 +162,16 @@ public interface BaseMapper {
      * @date 2024/5/4 下午1:24
      */
     <T,R> List<R> list(Class<T> clazz,Class<R> rClazz);
+
+    /**
+     * 查询所有
+     * @param clazz 操作的class
+     * @param typeReference 返回的class
+     * @return {@link List <T>}
+     * @author anwen
+     * @date 2024/5/4 下午1:24
+     */
+    <T,R> List<R> list(Class<T> clazz, TypeReference<R> typeReference);
 
     /**
      * 根据条件查询

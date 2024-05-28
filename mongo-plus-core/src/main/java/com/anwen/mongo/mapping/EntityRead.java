@@ -11,4 +11,11 @@ public interface EntityRead {
 
     <T> T read(Document document, Class<T> clazz);
 
+    /**
+     * 映射
+     * @author anwen
+     * @date 2024/5/7 下午5:11
+     */
+    <T> T read(Object sourceObj,TypeReference<T> typeReference);
+
 }

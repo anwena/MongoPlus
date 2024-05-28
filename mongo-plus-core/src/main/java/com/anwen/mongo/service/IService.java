@@ -6,6 +6,7 @@ import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conditions.update.LambdaUpdateChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
+import com.anwen.mongo.mapping.TypeReference;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 import com.anwen.mongo.support.SFunction;
@@ -177,6 +178,14 @@ public interface IService<T> {
     List<T> list();
 
     <R> List<R> list(Class<R> rClazz);
+
+    /**
+     * 暂时标记已删除，但是能用，只是只有这一个方法加了
+     * @author anwen
+     * @date 2024/5/28 下午9:03
+     */
+    @Deprecated
+    <R> List<R> list(TypeReference<R> typeReference);
 
     List<T> aggregateList(AggregateChainWrapper<T,?> queryChainWrapper);
 

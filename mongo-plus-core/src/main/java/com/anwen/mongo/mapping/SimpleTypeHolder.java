@@ -3,6 +3,7 @@ package com.anwen.mongo.mapping;
 import com.anwen.mongo.toolkit.Assert;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
 
 /**
@@ -45,6 +46,7 @@ public class SimpleTypeHolder {
         defaults.add(Class.class);
         defaults.add(Enum.class);
         defaults.add(BigDecimal.class);
+        defaults.add(BigInteger.class);
         DEFAULTS = Collections.unmodifiableSet(defaults);
     }
 

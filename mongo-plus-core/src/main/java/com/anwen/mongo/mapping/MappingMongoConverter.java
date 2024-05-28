@@ -5,13 +5,14 @@ import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.cache.global.PropertyCache;
 import com.anwen.mongo.domain.MongoPlusConvertException;
 import com.anwen.mongo.domain.MongoPlusWriteException;
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.strategy.conversion.ConversionStrategy;
+import com.anwen.mongo.strategy.mapping.MappingStrategy;
 import com.anwen.mongo.toolkit.BsonUtil;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
@@ -24,6 +25,8 @@ import java.util.*;
  * @author JiaChaoYang
  **/
 public class MappingMongoConverter extends AbstractMongoConverter {
+
+    private Log log = LogFactory.getLog(MappingMongoConverter.class);
 
     private final SimpleTypeHolder simpleTypeHolder;
 
@@ -80,7 +83,16 @@ public class MappingMongoConverter extends AbstractMongoConverter {
      */
     private Object writeProperties(Object sourceObj){
         Object resultObj;
-        if (sourceObj == null || simpleTypeHolder.isSimpleType(sourceObj.getClass())) {
+        MappingStrategy<Object> mappingStrategy = getMappingStrategy(sourceObj.getClass());
+        if (mappingStrategy != null){
+            try {
+                resultObj = mappingStrategy.mapping(sourceObj);
+            } catch (IllegalAccessException e) {
+                String error = String.format("Exception mapping %s to simple type", sourceObj.getClass().getName());
+                log.error(error,e);
+                throw new MongoPlusWriteException(error);
+            }
+        } else if (simpleTypeHolder.isSimpleType(sourceObj.getClass())) {
             resultObj = getPotentiallyConvertedSimpleWrite(sourceObj);
         } else if (sourceObj instanceof Collection || sourceObj.getClass().isArray()) {
             resultObj = writeCollectionInternal(BsonUtil.asCollection(sourceObj), new ArrayList<>());
@@ -139,20 +151,21 @@ public class MappingMongoConverter extends AbstractMongoConverter {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T read(FieldInformation fieldInformation,Object sourceObj, Class<T> clazz) {
+    public <T> T read(Object sourceObj, TypeReference<T> typeReference) {
+        Class<?> clazz = typeReference.getClazz();
         ConversionStrategy<?> conversionStrategy = getConversionStrategy(clazz);
         try {
             if (Collection.class.isAssignableFrom(clazz) && null == conversionStrategy){
-                Type type = getGenericTypeClass((ParameterizedType) fieldInformation.getField().getGenericType(), 0);
-                return (T) convertCollection(type,sourceObj,createCollectionInstance(clazz));
+                Type genericTypeClass = getGenericTypeClass((ParameterizedType) typeReference.getType(), 0);
+                return (T) convertCollection(genericTypeClass,sourceObj,createCollectionInstance(clazz));
             }
             if (Map.class.isAssignableFrom(clazz) && null == conversionStrategy){
-                Type type = getGenericTypeClass((ParameterizedType) fieldInformation.getField().getGenericType(), 1);
-                return (T) convertMap(type,sourceObj,createMapInstance(clazz));
+                Type genericTypeClass = getGenericTypeClass((ParameterizedType) typeReference.getType(), 1);
+                return (T) convertMap(genericTypeClass,sourceObj,createMapInstance(clazz));
             } else if (null == conversionStrategy){
                 conversionStrategy = ConversionCache.getConversionStrategy(Object.class);
             }
-            return (T) conversionStrategy.convertValue(sourceObj, fieldInformation.getTypeClass() , this);
+            return (T) conversionStrategy.convertValue(sourceObj, clazz , this);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }

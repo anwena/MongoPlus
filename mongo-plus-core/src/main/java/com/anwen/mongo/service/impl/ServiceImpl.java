@@ -12,13 +12,14 @@ import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.mapper.BaseMapper;
+import com.anwen.mongo.mapping.TypeReference;
 import com.anwen.mongo.model.MutablePair;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 import com.anwen.mongo.service.IService;
 import com.anwen.mongo.support.SFunction;
-import com.anwen.mongo.toolkit.*;
 import com.anwen.mongo.toolkit.Filters;
+import com.anwen.mongo.toolkit.*;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.*;
@@ -249,6 +250,11 @@ public class ServiceImpl<T> implements IService<T> {
     @Override
     public <R> List<R> list(Class<R> rClazz) {
         return baseMapper.list(clazz,rClazz);
+    }
+
+    @Override
+    public <R> List<R> list(TypeReference<R> typeReference) {
+        return baseMapper.list(clazz,typeReference);
     }
 
     @Override

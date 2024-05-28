@@ -16,16 +16,20 @@ import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.mapping.MongoConverter;
 import com.anwen.mongo.model.*;
 import com.anwen.mongo.toolkit.*;
-import com.anwen.mongo.toolkit.Filters;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
-import com.mongodb.client.model.*;
+import com.mongodb.client.model.CreateIndexOptions;
+import com.mongodb.client.model.DropIndexOptions;
+import com.mongodb.client.model.IndexModel;
+import com.mongodb.client.model.IndexOptions;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -163,7 +167,12 @@ public class InjectAbstractExecute {
     }
 
     public List<Map<String, Object>> list(String collectionName) {
-        return Converter.convertDocumentToMap(execute.executeQuery(null,null,null,collectionManager.getCollection(collectionName), Map.class));
+        return list(collectionName,Map.class);
+    }
+
+    public <R> List<R> list(String collectionName, Type type) {
+//        return mongoConverter.read(execute.executeQuery(null,null,null,collectionManager.getCollection(collectionName), Document.class),type);
+        return null;
     }
 
     public List<Map<String, Object>> list(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList, List<Projection> projectionList, List<BasicDBObject> basicDBObjectList) {

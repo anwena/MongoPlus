@@ -54,4 +54,8 @@ public interface FieldInformation {
 
     CollectionField getCollectionField();
 
+    Type getGenericType();
+
+    void setGenericType(Type type);
+
 }

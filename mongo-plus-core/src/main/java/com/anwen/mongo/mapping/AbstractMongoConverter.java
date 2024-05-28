@@ -5,6 +5,7 @@ import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.bson.MongoPlusDocument;
 import com.anwen.mongo.cache.global.ConversionCache;
 import com.anwen.mongo.cache.global.HandlerCache;
+import com.anwen.mongo.cache.global.MappingCache;
 import com.anwen.mongo.cache.global.PropertyCache;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.context.MongoTransactionContext;
@@ -12,11 +13,10 @@ import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.enums.FieldFill;
 import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.incrementer.id.IdWorker;
-import com.anwen.mongo.logging.Log;
-import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.model.AutoFillMetaObject;
 import com.anwen.mongo.strategy.conversion.ConversionStrategy;
+import com.anwen.mongo.strategy.mapping.MappingStrategy;
 import com.anwen.mongo.toolkit.BsonUtil;
 import com.anwen.mongo.toolkit.CollUtil;
 import com.mongodb.client.MongoCollection;
@@ -27,10 +27,7 @@ import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * 抽象的映射处理器
@@ -131,14 +128,32 @@ public abstract class AbstractMongoConverter implements MongoConverter {
 
     @Override
     public <T> T read(Document document, Class<T> clazz) {
-        if (document == null){
+        return readInternal(document,clazz,true);
+    }
+
+    @Override
+    public <T> T readInternal(Document document, Class<T> clazz){
+        return readInternal(document,clazz,false);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> T readInternal(Document document, Class<T> clazz, boolean useIdAsFieldName) {
+        if (document == null) {
             return null;
         }
-        //拿到class封装类
+        if (clazz.isAssignableFrom(Document.class)) {
+            return (T) document;
+        } else if (clazz.isAssignableFrom(Map.class)) {
+            return (T) read(document, new TypeReference<Map<String, Object>>() {});
+        } else if (clazz.isAssignableFrom(Collection.class)){
+            return (T) read(document, new TypeReference<Collection<Object>>() {});
+        }
+        // 拿到class封装类
         TypeInformation typeInformation = TypeInformation.of(clazz);
-        //循环所有字段
+
+        // 循环所有字段
         typeInformation.getFields().forEach(fieldInformation -> {
-            String fieldName = fieldInformation.getIdOrCamelCaseName();
+            String fieldName = useIdAsFieldName ? fieldInformation.getIdOrCamelCaseName() : fieldInformation.getCamelCaseName();
             if (fieldInformation.isSkipCheckField()) {
                 return;
             }
@@ -146,31 +161,12 @@ public abstract class AbstractMongoConverter implements MongoConverter {
             if (obj == null) {
                 return;
             }
-            obj = fieldInformation.isId() ? String.valueOf(obj) : obj;
-            fieldInformation.setValue(read(fieldInformation, obj, fieldInformation.getTypeClass()));
+            if (useIdAsFieldName && fieldInformation.isId()) {
+                obj = String.valueOf(obj);
+            }
+            fieldInformation.setValue(read(obj, TypeReference.of(fieldInformation.getGenericType())));
         });
-        return typeInformation.getInstance();
-    }
 
-    @Override
-    public <T> T readInternal(Document document, Class<T> clazz){
-        if (document == null){
-            return null;
-        }
-        //拿到class封装类
-        TypeInformation typeInformation = TypeInformation.of(clazz);
-        //循环所有字段
-        typeInformation.getFields().forEach(fieldInformation -> {
-            String fieldName = fieldInformation.getCamelCaseName();
-            if (fieldInformation.isSkipCheckField()){
-                return;
-            }
-            Object obj = document.get(fieldName);
-            if (obj == null){
-                return;
-            }
-            fieldInformation.setValue(read(fieldInformation,obj,fieldInformation.getTypeClass()));
-        });
         return typeInformation.getInstance();
     }
 
@@ -183,13 +179,6 @@ public abstract class AbstractMongoConverter implements MongoConverter {
      * @date 2024/5/1 下午6:40
      */
     public abstract void write(Object sourceObj, Bson bson, TypeInformation typeInformation);
-
-    /**
-     * 映射
-     * @author anwen
-     * @date 2024/5/7 下午5:11
-     */
-    public abstract <T> T read(FieldInformation fieldInformation,Object sourceObj, Class<T> clazz);
 
     /**
      * 生成id，写在这里，方便自己自定义
@@ -316,6 +305,11 @@ public abstract class AbstractMongoConverter implements MongoConverter {
             target = Enum.class;
         }
         return ConversionCache.getConversionStrategy(target);
+    }
+
+    @SuppressWarnings("unchecked")
+    protected MappingStrategy<Object> getMappingStrategy(Class<?> target){
+        return (MappingStrategy<Object>) MappingCache.getMappingStrategy(target);
     }
 
 }

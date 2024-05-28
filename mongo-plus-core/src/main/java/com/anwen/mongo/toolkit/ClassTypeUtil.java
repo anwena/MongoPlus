@@ -9,9 +9,7 @@ import com.anwen.mongo.logging.Log;
 import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.model.SlaveDataSource;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -318,6 +316,29 @@ public class ClassTypeUtil {
             put("dataSourceName", finalDataSourceName);
             put("database", finalDatabase);
         }};
+    }
+
+    /**
+     * 获取类
+     * @author JiaChaoYang
+     * @date 2023/11/10 14:54
+    */
+    public static Class<?> getClassFromType(Type type) {
+        if (type instanceof Class<?>) {
+            return (Class<?>) type;
+        } else if (type instanceof ParameterizedType) {
+            return (Class<?>) ((ParameterizedType) type).getRawType();
+        } else if (type instanceof GenericArrayType) {
+            Type componentType = ((GenericArrayType) type).getGenericComponentType();
+            Class<?> componentClass = getClassFromType(componentType);
+            return java.lang.reflect.Array.newInstance(componentClass, 0).getClass();
+        } else if (type instanceof TypeVariable) {
+            Type[] bounds = ((TypeVariable<?>) type).getBounds();
+            if (bounds.length > 0) {
+                return getClassFromType(bounds[0]);
+            }
+        }
+        throw new IllegalArgumentException("Type not supported: " + type);
     }
 
 }

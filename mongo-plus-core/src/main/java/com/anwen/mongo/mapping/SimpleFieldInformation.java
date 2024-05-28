@@ -42,6 +42,8 @@ public class SimpleFieldInformation<T> implements FieldInformation {
 
     private Type[] types;
 
+    private Type genericType;
+
     @Override
     public Field getField() {
         return field;
@@ -223,5 +225,16 @@ public class SimpleFieldInformation<T> implements FieldInformation {
         return this.collectionField;
     }
 
+    @Override
+    public Type getGenericType() {
+        if (genericType == null) {
+            genericType = field.getGenericType();
+        }
+        return genericType;
+    }
+
+    public void setGenericType(Type genericType) {
+        this.genericType = genericType;
+    }
 
 }

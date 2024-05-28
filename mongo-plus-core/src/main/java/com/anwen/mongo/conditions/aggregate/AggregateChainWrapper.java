@@ -552,6 +552,11 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
     public Children lookup(String from, List<Let> letList, AggregateChainWrapper<T, ?> pipeline, String as) {
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.LOOKUP.getType(), new LookupConcretePipeline(new BasicDBObject(){{
             put("from",from);
+            put("let",new BasicDBObject(){{
+                letList.forEach(let -> {
+                    put(let.getVariable(),let.getValue());
+                });
+            }});
             put("pipeline",new ArrayList<BasicDBObject>(){{
                 pipeline.getBaseAggregateList().forEach(baseAggregate -> add(new BasicDBObject("$"+baseAggregate.getType(),baseAggregate.getPipelineStrategy().buildAggregate())));
                 addAll(pipeline.getBasicDBObjectList());

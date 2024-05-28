@@ -13,9 +13,10 @@ import com.anwen.mongo.logging.Log;
 import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapping.MongoConverter;
+import com.anwen.mongo.mapping.TypeReference;
 import com.anwen.mongo.model.*;
-import com.anwen.mongo.toolkit.*;
 import com.anwen.mongo.toolkit.Filters;
+import com.anwen.mongo.toolkit.*;
 import com.mongodb.BasicDBObject;
 import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.AggregateIterable;
@@ -127,6 +128,12 @@ public class DefaultBaseMapperImpl implements BaseMapper {
     public <T,R> List<R> list(Class<T> clazz,Class<R> rClazz) {
         FindIterable<Document> findIterable = factory.getExecute().executeQuery(null, null, null, mongoPlusClient.getCollection(clazz), Document.class);
         return mongoConverter.read(findIterable, rClazz);
+    }
+
+    @Override
+    public <T, R> List<R> list(Class<T> clazz, TypeReference<R> typeReference) {
+        FindIterable<Document> findIterable = factory.getExecute().executeQuery(null, null, null, mongoPlusClient.getCollection(clazz), Document.class);
+        return mongoConverter.read(findIterable, typeReference);
     }
 
     @Override
