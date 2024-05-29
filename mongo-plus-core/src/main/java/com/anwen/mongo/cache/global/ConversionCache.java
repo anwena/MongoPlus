@@ -40,6 +40,7 @@ public class ConversionCache {
         conversionStrategieMap.put(BigInteger.class,new BigIntegerConversionStrategy());
         conversionStrategieMap.put(Enum.class,new EnumConversionStrategy<>());
         conversionStrategieMap.put(Document.class,new DocumentConversionStrategy());
+        conversionStrategieMap.put(byte[].class,new ByteArrayConversionStrategy());
     }
 
     public static ConversionStrategy<?> getConversionStrategy(Class<?> clazz){

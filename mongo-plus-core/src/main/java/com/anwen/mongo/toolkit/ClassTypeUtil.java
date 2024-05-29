@@ -4,6 +4,7 @@ import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.cache.codec.MapCodecCache;
 import com.anwen.mongo.domain.InitMongoCollectionException;
+import com.anwen.mongo.domain.MongoPlusException;
 import com.anwen.mongo.domain.MongoPlusFieldException;
 import com.anwen.mongo.logging.Log;
 import com.anwen.mongo.logging.LogFactory;
@@ -339,6 +340,15 @@ public class ClassTypeUtil {
             }
         }
         throw new IllegalArgumentException("Type not supported: " + type);
+    }
+
+    public static <T> T getInstanceByClass(Class<T> clazz){
+        try {
+            return clazz.getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            log.error("Failed to create " + clazz.getName() +", message: {}", e.getMessage(), e);
+            throw new MongoPlusException("Failed to create " + clazz.getName());
+        }
     }
 
 }

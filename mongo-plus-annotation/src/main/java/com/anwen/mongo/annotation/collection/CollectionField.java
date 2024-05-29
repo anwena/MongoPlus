@@ -45,4 +45,11 @@ public @interface CollectionField {
     */
     FieldFill fill() default FieldFill.DEFAULT;
 
+    /**
+     * 类型处理器，必须实现{@link com.anwen.mongo.handlers.TypeHandler}接口
+     * @author anwen
+     * @date 2024/5/29 下午10:24
+     */
+    Class<?> typeHandler() default Void.class;
+
 }

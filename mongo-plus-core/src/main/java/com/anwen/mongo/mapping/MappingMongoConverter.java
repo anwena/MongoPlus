@@ -1,10 +1,12 @@
 package com.anwen.mongo.mapping;
 
+import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.cache.global.ConversionCache;
 import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.cache.global.PropertyCache;
 import com.anwen.mongo.domain.MongoPlusConvertException;
 import com.anwen.mongo.domain.MongoPlusWriteException;
+import com.anwen.mongo.handlers.TypeHandler;
 import com.anwen.mongo.logging.Log;
 import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.manager.MongoPlusClient;
@@ -36,27 +38,60 @@ public class MappingMongoConverter extends AbstractMongoConverter {
     }
 
     @Override
-    public void write(Object sourceObj, Bson bson, TypeInformation typeInformation){
-        typeInformation.getFields().stream()
-                .filter(fieldInformation -> !fieldInformation.isSkipCheckField() && !fieldInformation.isId())
-                .forEach(fieldInformation -> writeProperties(bson, fieldInformation.getName(), fieldInformation.getValue()));
+    public void write(Object sourceObj, Bson bson, TypeInformation typeInformation) {
+        processFields(typeInformation.getFields(), bson, true);
     }
-
-
 
     /**
      * 写入内部对象
      * @param sourceObj 源对象
      * @param bson bson
      * @return {@link Bson}
-     * @author anwen
-     * @date 2024/5/1 下午11:44
      */
-    public Bson writeInternal(Object sourceObj, Bson bson){
-        TypeInformation.of(sourceObj).getFields().stream()
-                .filter(fieldInformation -> !fieldInformation.isSkipCheckField())
-                .forEach(fieldInformation -> writeProperties(bson, fieldInformation.getName(), fieldInformation.getValue()));
+    public Bson writeInternal(Object sourceObj, Bson bson) {
+        processFields(TypeInformation.of(sourceObj).getFields(), bson, false);
         return bson;
+    }
+
+    /**
+     * 处理字段信息并写入 BSON
+     * @param fields 字段信息列表
+     * @param bson BSON 对象
+     * @param filterId 是否过滤掉 ID 字段
+     */
+    private void processFields(List<FieldInformation> fields, Bson bson, boolean filterId) {
+        fields.stream()
+                .filter(fieldInformation -> !fieldInformation.isSkipCheckField() && (!filterId || !fieldInformation.isId()))
+                .forEach(fieldInformation -> {
+                    CollectionField collectionField = fieldInformation.getCollectionField();
+                    Object obj = null;
+                    if (collectionField != null && TypeHandler.class.isAssignableFrom(collectionField.typeHandler())) {
+                        obj = handleTypeHandler(fieldInformation, bson, collectionField);
+                    }
+                    //如果类型处理器返回null，则继续走默认处理
+                    if (obj != null) {
+                        BsonUtil.addToMap(bson, fieldInformation.getName(), obj);
+                    } else {
+                        writeProperties(bson, fieldInformation.getName(), fieldInformation.getValue());
+                    }
+                });
+    }
+
+    /**
+     * 处理类型处理器
+     * @param fieldInformation 字段信息
+     * @param bson BSON 对象
+     * @param collectionField 集合字段
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private Object handleTypeHandler(FieldInformation fieldInformation, Bson bson, CollectionField collectionField) {
+        try {
+            TypeHandler typeHandler = (TypeHandler) collectionField.typeHandler().getDeclaredConstructor().newInstance();
+            return typeHandler.setParameter(fieldInformation.getName(),fieldInformation.getValue(), bson);
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            log.error("Failed to create TypeHandler, message: {}", e.getMessage(), e);
+            throw new MongoPlusWriteException("Failed to create TypeHandler, message: " + e.getMessage());
+        }
     }
 
     /**
@@ -94,7 +129,7 @@ public class MappingMongoConverter extends AbstractMongoConverter {
             }
         } else if (simpleTypeHolder.isSimpleType(sourceObj.getClass())) {
             resultObj = getPotentiallyConvertedSimpleWrite(sourceObj);
-        } else if (sourceObj instanceof Collection || sourceObj.getClass().isArray()) {
+        } else if (Collection.class.isAssignableFrom(sourceObj.getClass()) || sourceObj.getClass().isArray()) {
             resultObj = writeCollectionInternal(BsonUtil.asCollection(sourceObj), new ArrayList<>());
         } else if (Map.class.isAssignableFrom(sourceObj.getClass())) {
             resultObj = writeMapInternal((Map<?, ?>) sourceObj,new Document());
@@ -108,7 +143,7 @@ public class MappingMongoConverter extends AbstractMongoConverter {
      * map类型的处理
      * @param obj 源对象
      * @param bson bson
-     * @return {@link org.bson.conversions.Bson}
+     * @return {@link Bson}
      * @author anwen
      * @date 2024/5/1 下午11:46
      */

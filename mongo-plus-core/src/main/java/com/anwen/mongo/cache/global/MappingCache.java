@@ -12,7 +12,7 @@ public class MappingCache {
     private static final Map<Class<?>, MappingStrategy<?>> mappingStrategyMap = new HashMap<>();
 
     static {
-//        mappingStrategyMap.put(BigInteger.class,new BigIntegerMappingStrategy());
+        mappingStrategyMap.put(BigInteger.class,new BigIntegerMappingStrategy());
     }
 
     public static MappingStrategy<?> getMappingStrategy(Class<?> clazz){

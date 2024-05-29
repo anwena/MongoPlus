@@ -10,14 +10,19 @@ import com.anwen.mongo.cache.global.PropertyCache;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.context.MongoTransactionContext;
 import com.anwen.mongo.convert.CollectionNameConvert;
+import com.anwen.mongo.domain.MongoPlusWriteException;
 import com.anwen.mongo.enums.FieldFill;
 import com.anwen.mongo.enums.IdTypeEnum;
+import com.anwen.mongo.handlers.TypeHandler;
 import com.anwen.mongo.incrementer.id.IdWorker;
+import com.anwen.mongo.logging.Log;
+import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.model.AutoFillMetaObject;
 import com.anwen.mongo.strategy.conversion.ConversionStrategy;
 import com.anwen.mongo.strategy.mapping.MappingStrategy;
 import com.anwen.mongo.toolkit.BsonUtil;
+import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.anwen.mongo.toolkit.CollUtil;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
@@ -27,6 +32,7 @@ import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 /**
@@ -35,6 +41,8 @@ import java.util.*;
  * @date 2024/5/1 下午6:22
  */
 public abstract class AbstractMongoConverter implements MongoConverter {
+
+    private Log log = LogFactory.getLog(AbstractMongoConverter.class);
 
     private final MongoPlusClient mongoPlusClient;
 
@@ -136,7 +144,7 @@ public abstract class AbstractMongoConverter implements MongoConverter {
         return readInternal(document,clazz,false);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private <T> T readInternal(Document document, Class<T> clazz, boolean useIdAsFieldName) {
         if (document == null) {
             return null;
@@ -164,7 +172,21 @@ public abstract class AbstractMongoConverter implements MongoConverter {
             if (useIdAsFieldName && fieldInformation.isId()) {
                 obj = String.valueOf(obj);
             }
-            fieldInformation.setValue(read(obj, TypeReference.of(fieldInformation.getGenericType())));
+            CollectionField collectionField = fieldInformation.getCollectionField();
+            Object resultObj = null;
+            if (collectionField != null && TypeHandler.class.isAssignableFrom(collectionField.typeHandler())){
+                try {
+                    TypeHandler typeHandler = (TypeHandler) collectionField.typeHandler().getDeclaredConstructor().newInstance();
+                    resultObj = typeHandler.getResult(obj);
+                } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                    log.error("Failed to create TypeHandler, message: {}", e.getMessage(), e);
+                    throw new MongoPlusWriteException("Failed to create TypeHandler, message: " + e.getMessage());
+                }
+            }
+            if (resultObj == null) {
+                resultObj = read(obj, TypeReference.of(fieldInformation.getGenericType()));
+            }
+            fieldInformation.setValue(resultObj);
         });
 
         return typeInformation.getInstance();
