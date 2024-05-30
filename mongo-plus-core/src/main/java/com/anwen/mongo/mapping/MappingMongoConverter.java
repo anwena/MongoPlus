@@ -176,25 +176,54 @@ public class MappingMongoConverter extends AbstractMongoConverter {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T> T read(Object sourceObj, TypeReference<T> typeReference) {
         Class<?> clazz = typeReference.getClazz();
         ConversionStrategy<?> conversionStrategy = getConversionStrategy(clazz);
+
         try {
-            if (Collection.class.isAssignableFrom(clazz) && null == conversionStrategy){
-                Type genericTypeClass = getGenericTypeClass((ParameterizedType) typeReference.getType(), 0);
-                return (T) convertCollection(genericTypeClass,sourceObj,createCollectionInstance(clazz));
+            if (Collection.class.isAssignableFrom(clazz)) {
+                return handleCollectionType(sourceObj, typeReference, clazz, conversionStrategy);
+            } else if (Map.class.isAssignableFrom(clazz)) {
+                return handleMapType(sourceObj, typeReference, clazz, conversionStrategy);
+            } else {
+                return handleDefaultType(sourceObj, clazz, conversionStrategy);
             }
-            if (Map.class.isAssignableFrom(clazz) && null == conversionStrategy){
-                Type genericTypeClass = getGenericTypeClass((ParameterizedType) typeReference.getType(), 1);
-                return (T) convertMap(genericTypeClass,sourceObj,createMapInstance(clazz));
-            } else if (null == conversionStrategy){
-                conversionStrategy = ConversionCache.getConversionStrategy(Object.class);
-            }
-            return (T) conversionStrategy.convertValue(sourceObj, clazz , this);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> T handleCollectionType(Object sourceObj, TypeReference<T> typeReference, Class<?> clazz, ConversionStrategy<?> conversionStrategy) throws IllegalAccessException {
+        if (conversionStrategy == null) {
+            Type genericTypeClass = extractGenericType(typeReference, 0);
+            return (T) convertCollection(genericTypeClass, sourceObj, createCollectionInstance(clazz));
+        }
+        return (T) conversionStrategy.convertValue(sourceObj, clazz, this);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> T handleMapType(Object sourceObj, TypeReference<T> typeReference, Class<?> clazz, ConversionStrategy<?> conversionStrategy) throws IllegalAccessException {
+        if (conversionStrategy == null) {
+            Type genericTypeClass = extractGenericType(typeReference, 1);
+            return (T) convertMap(genericTypeClass, sourceObj, createMapInstance(clazz));
+        }
+        return (T) conversionStrategy.convertValue(sourceObj, clazz, this);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> T handleDefaultType(Object sourceObj, Class<?> clazz, ConversionStrategy<?> conversionStrategy) throws IllegalAccessException {
+        if (conversionStrategy == null) {
+            conversionStrategy = ConversionCache.getConversionStrategy(Object.class);
+        }
+        return (T) conversionStrategy.convertValue(sourceObj, clazz, this);
+    }
+
+    private Type extractGenericType(TypeReference<?> typeReference, int index) {
+        if (typeReference.getType() instanceof ParameterizedType) {
+            return getGenericTypeClass((ParameterizedType) typeReference.getType(), index);
+        }
+        return Object.class;
     }
 
     /**
