@@ -1,5 +1,6 @@
 package com.anwen.mongo.mapper;
 
+import com.anwen.mongo.cache.global.CollectionLogicDeleteCache;
 import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
@@ -11,6 +12,7 @@ import com.anwen.mongo.execute.Execute;
 import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.logging.Log;
 import com.anwen.mongo.logging.LogFactory;
+import com.anwen.mongo.logic.LogicDeleteHandler;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapping.MongoConverter;
 import com.anwen.mongo.mapping.TypeReference;
@@ -169,7 +171,7 @@ public class DefaultBaseMapperImpl implements BaseMapper {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
         MongoCollection<Document> collection = mongoPlusClient.getCollection(clazz);
         long count;
-        if (CollUtil.isEmpty(queryChainWrapper.getCompareList())){
+        if (!(CollectionLogicDeleteCache.open && Objects.nonNull(LogicDeleteHandler.mapper().get(clazz))) && CollUtil.isEmpty(queryChainWrapper.getCompareList())){
             count = factory.getExecute().estimatedDocumentCount(collection);
         }else {
             count = count(queryChainWrapper,clazz);
@@ -190,7 +192,7 @@ public class DefaultBaseMapperImpl implements BaseMapper {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
         MongoCollection<Document> collection = mongoPlusClient.getCollection(clazz);
         long count;
-        if (CollUtil.isEmpty(queryChainWrapper.getCompareList())){
+        if (!(CollectionLogicDeleteCache.open && Objects.nonNull(LogicDeleteHandler.mapper().get(clazz))) && CollUtil.isEmpty(queryChainWrapper.getCompareList())){
             count = factory.getExecute().estimatedDocumentCount(collection);
         }else {
             count = recentPageCount(queryChainWrapper.getCompareList(),clazz, pageNum,  pageSize, recentPageNum);
@@ -259,9 +261,13 @@ public class DefaultBaseMapperImpl implements BaseMapper {
     public long count(QueryChainWrapper<?, ?> queryChainWrapper,Class<?> clazz){
         Execute execute = factory.getExecute();
         MongoCollection<Document> collection = mongoPlusClient.getCollection(clazz);
-        return Optional.ofNullable(queryChainWrapper.getCompareList())
-                .map(compare -> execute.executeCount(BuildCondition.buildQueryCondition(compare),null,collection))
-                .orElseGet(() -> execute.estimatedDocumentCount(collection));
+        long line;
+        if (!(CollectionLogicDeleteCache.open && Objects.nonNull(LogicDeleteHandler.mapper().get(clazz))) && CollUtil.isEmpty(queryChainWrapper.getCompareList())){
+            line = execute.estimatedDocumentCount(collection);
+        } else {
+            line = execute.executeCount(BuildCondition.buildQueryCondition(queryChainWrapper.getCompareList()),null,collection);
+        }
+        return line;
     }
 
     /**
@@ -297,7 +303,15 @@ public class DefaultBaseMapperImpl implements BaseMapper {
 
     @Override
     public long count(Class<?> clazz){
-        return factory.getExecute().estimatedDocumentCount(mongoPlusClient.getCollection(clazz));
+        MongoCollection<Document> mongoCollection = mongoPlusClient.getCollection(clazz);
+        Execute execute = factory.getExecute();
+        long line;
+        if (!(CollectionLogicDeleteCache.open && Objects.nonNull(LogicDeleteHandler.mapper().get(clazz)))){
+            line = execute.estimatedDocumentCount(mongoCollection);
+        } else {
+            line = execute.executeCount(null,null,mongoCollection);
+        }
+        return line;
     }
 
     @Override
