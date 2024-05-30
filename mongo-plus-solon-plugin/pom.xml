@@ -147,20 +147,6 @@
                     <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
                 </repository>
             </distributionManagement>
-            <!-- 私服 -->
-<!--            <distributionManagement>
-                <repository>
-                    <id>mongo-plus-releases</id>
-                    <name>mongo-plus-releases</name>
-                    <url>https://www.mongoplus.cn/nexus/repository/mongo-plus-releases/</url>
-                    <uniqueVersion>true</uniqueVersion>
-                </repository>
-                <snapshotRepository>
-                    <id>mongo-plus-snapshots</id>
-                    <name>mongo-plus-snapshots</name>
-                    <url>https://www.mongoplus.cn/nexus/repository/mongo-plus-snapshots/</url>
-                </snapshotRepository>
-            </distributionManagement>-->
         </profile>
 
     </profiles>

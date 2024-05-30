@@ -26,7 +26,7 @@
 * #### Sneak into the night with the wind
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Can be used in combination with the existing Mongo framework, non-invasive
 * #### Simplify development
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;With simple configuration, CRUD operations can be performed quickly, and chain calls are more convenient
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;With simple configuration, CRUD operations can be quickly performed, and chain calls are more convenient
 
 ### Advantages:
 
@@ -36,10 +36,12 @@
 * Support Lambda form call: Through Lambda expressions, it is convenient to write various query conditions, no need to worry about the wrong field
 * Support automatic generation of primary keys: Support up to 5 primary key strategies (including distributed unique ID generator - Sequence), which can be freely configured to perfectly solve the primary key problem
 * Support operations without entity classes
+* Support dynamic data sources
+* Support logical deletion, prevent full collection update and deletion, automatic filling and other functions
 
 ### Rapid development
 
-MyBatisPlus does not need to write too many SQL statements like MyBatis, and the same is true for Mongo-Plus!
+MyBatisPlus does not need to write too many SQL statements like MyBatis, and Mongo-Plus is the same!
 
 ### The project has been connected to Murphy Security
 ##### Click to view the detection report
@@ -59,13 +61,13 @@ MyBatisPlus does not need to write too many SQL statements like MyBatis, and the
 * v2.0.6.1 Fix dependency introduction problem
 * No longer update here Update log
 ### Document
-Document address: https://www.mongoplus.cn/
+Document address: https://www.mongoplus.com/
 
 ### Contact us
 #### If you have any questions or ideas when using MongoPlus, please contact me
 #### v: anwen_529
 #### Note: MongoPlus
-<img src="wx.png" alt="微信">
+<img src="wx.png" alt="WeChat">
 
 ### Contribute
 
