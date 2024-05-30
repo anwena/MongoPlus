@@ -28,7 +28,7 @@ import java.util.*;
  **/
 public class MappingMongoConverter extends AbstractMongoConverter {
 
-    private Log log = LogFactory.getLog(MappingMongoConverter.class);
+    private final Log log = LogFactory.getLog(MappingMongoConverter.class);
 
     private final SimpleTypeHolder simpleTypeHolder;
 
@@ -109,7 +109,10 @@ public class MappingMongoConverter extends AbstractMongoConverter {
      */
     private Object writeProperties(Object sourceObj){
         Object resultObj;
-        MappingStrategy<Object> mappingStrategy = getMappingStrategy(sourceObj.getClass());
+        MappingStrategy<Object> mappingStrategy = null;
+        if (sourceObj != null) {
+            mappingStrategy = getMappingStrategy(sourceObj.getClass());
+        }
         if (mappingStrategy != null){
             try {
                 resultObj = mappingStrategy.mapping(sourceObj);
@@ -118,7 +121,7 @@ public class MappingMongoConverter extends AbstractMongoConverter {
                 log.error(error,e);
                 throw new MongoPlusWriteException(error);
             }
-        } else if (simpleTypeHolder.isSimpleType(sourceObj.getClass())) {
+        } else if (sourceObj == null || simpleTypeHolder.isSimpleType(sourceObj.getClass())) {
             resultObj = getPotentiallyConvertedSimpleWrite(sourceObj);
         } else if (Collection.class.isAssignableFrom(sourceObj.getClass()) || sourceObj.getClass().isArray()) {
             resultObj = writeCollectionInternal(BsonUtil.asCollection(sourceObj), new ArrayList<>());
