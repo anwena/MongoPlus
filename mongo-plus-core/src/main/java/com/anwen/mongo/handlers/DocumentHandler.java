@@ -10,6 +10,7 @@ import java.util.List;
  * @author JiaChaoYang
  * @date 2023/11/23 12:50
 */
+@Deprecated
 public interface DocumentHandler {
 
     /**

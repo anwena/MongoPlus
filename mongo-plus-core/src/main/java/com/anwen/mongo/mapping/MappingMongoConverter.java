@@ -59,6 +59,7 @@ public class MappingMongoConverter extends AbstractMongoConverter {
      * @param bson BSON 对象
      * @param filterId 是否过滤掉 ID 字段
      */
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private void processFields(List<FieldInformation> fields, Bson bson, boolean filterId) {
         fields.stream()
                 .filter(fieldInformation -> !fieldInformation.isSkipCheckField() && (!filterId || !fieldInformation.isId()))
@@ -66,7 +67,13 @@ public class MappingMongoConverter extends AbstractMongoConverter {
                     CollectionField collectionField = fieldInformation.getCollectionField();
                     Object obj = null;
                     if (collectionField != null && TypeHandler.class.isAssignableFrom(collectionField.typeHandler())) {
-                        obj = handleTypeHandler(fieldInformation, bson, collectionField);
+                        try {
+                            TypeHandler typeHandler = (TypeHandler) collectionField.typeHandler().getDeclaredConstructor().newInstance();
+                            obj = typeHandler.setParameter(fieldInformation.getName(),fieldInformation.getValue());
+                        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                            log.error("Failed to create TypeHandler, message: {}", e.getMessage(), e);
+                            throw new MongoPlusWriteException("Failed to create TypeHandler, message: " + e.getMessage());
+                        }
                     }
                     //如果类型处理器返回null，则继续走默认处理
                     if (obj != null) {
@@ -77,22 +84,6 @@ public class MappingMongoConverter extends AbstractMongoConverter {
                 });
     }
 
-    /**
-     * 处理类型处理器
-     * @param fieldInformation 字段信息
-     * @param bson BSON 对象
-     * @param collectionField 集合字段
-     */
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private Object handleTypeHandler(FieldInformation fieldInformation, Bson bson, CollectionField collectionField) {
-        try {
-            TypeHandler typeHandler = (TypeHandler) collectionField.typeHandler().getDeclaredConstructor().newInstance();
-            return typeHandler.setParameter(fieldInformation.getName(),fieldInformation.getValue(), bson);
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            log.error("Failed to create TypeHandler, message: {}", e.getMessage(), e);
-            throw new MongoPlusWriteException("Failed to create TypeHandler, message: " + e.getMessage());
-        }
-    }
 
     /**
      * 属性写入Bson中

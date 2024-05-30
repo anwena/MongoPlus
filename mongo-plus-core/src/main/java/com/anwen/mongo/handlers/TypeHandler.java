@@ -15,13 +15,13 @@ public interface TypeHandler<T> {
     /**
      * 设置值。
      * 比如某个字段使用了BigInteger类型，但是MongoDB驱动是不支持该类型的，所以可以在这里将该值转换为Integer类型并返回（默认已在映射器支持）
+     * @param fieldName 字段名
      * @param obj 内容
-     * @param bson 最终对象
      * @return {@link Object}
      * @author anwen
      * @date 2024/5/29 下午10:12
      */
-    Object setParameter(String fieldName,T obj, Bson bson);
+    Object setParameter(String fieldName,T obj);
 
     /**
      * 获取结果

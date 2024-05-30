@@ -42,8 +42,8 @@ public interface MetaObjectHandler {
     /**
      * 更新文档对象字段填充（用于更新时对公共字段的填充）
      *
-     * @param insertAutoFillMetaObject 更新文档字段，这里只有设置了自动填充的字段
+     * @param updateAutoFillMetaObject 更新文档字段，这里只有设置了自动填充的字段
      */
-    default void updateFill(AutoFillMetaObject insertAutoFillMetaObject){}
+    default void updateFill(AutoFillMetaObject updateAutoFillMetaObject){}
 
 }

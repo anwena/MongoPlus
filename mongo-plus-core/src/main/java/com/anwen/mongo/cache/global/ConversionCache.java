@@ -41,6 +41,7 @@ public class ConversionCache {
         conversionStrategieMap.put(Enum.class,new EnumConversionStrategy<>());
         conversionStrategieMap.put(Document.class,new DocumentConversionStrategy());
         conversionStrategieMap.put(byte[].class,new ByteArrayConversionStrategy());
+        conversionStrategieMap.put(Byte.class,new ByteConversionStrategy());
     }
 
     public static ConversionStrategy<?> getConversionStrategy(Class<?> clazz){

@@ -4,6 +4,8 @@ import com.anwen.mongo.cache.global.*;
 import com.anwen.mongo.domain.MongoPlusConvertException;
 import com.anwen.mongo.handlers.DocumentHandler;
 import com.anwen.mongo.handlers.MetaObjectHandler;
+import com.anwen.mongo.incrementer.IdentifierGenerator;
+import com.anwen.mongo.incrementer.id.IdWorker;
 import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.listener.Listener;
 import com.anwen.mongo.listener.business.BlockAttackInnerListener;
@@ -68,6 +70,7 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         setInterceptor();
         setReplacer();
         setMapping();
+        setIdGenerator();
         this.baseMapper = baseMapper;
     }
 
@@ -218,6 +221,17 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
                 throw new MongoPlusConvertException("Unknown converter type");
             }
         });
+    }
+
+    /**
+     * 自定义id生成器
+     * @author anwen
+     * @date 2024/5/30 下午1:35
+     */
+    private void setIdGenerator() {
+        try {
+            IdWorker.setIdentifierGenerator(applicationContext.getBean(IdentifierGenerator.class));
+        } catch (Exception ignored){}
     }
 
 }
