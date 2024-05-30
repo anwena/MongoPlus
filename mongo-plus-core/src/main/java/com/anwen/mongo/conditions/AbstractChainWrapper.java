@@ -493,22 +493,22 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
     }
 
     @Override
-    public Children all(boolean condition, SFunction<T, Object> column, Collection<Object> value) {
+    public Children all(boolean condition, SFunction<T, Object> column, Collection<?> value) {
         return condition ? all(column,value) : typedThis;
     }
 
     @Override
-    public Children all(SFunction<T, Object> column, Collection<Object> value) {
+    public Children all(SFunction<T, Object> column, Collection<?> value) {
         return getBaseCondition(column,value);
     }
 
     @Override
-    public Children all(boolean condition, String column, Collection<Object> value) {
+    public Children all(boolean condition, String column, Collection<?> value) {
         return condition ? all(column,value) : typedThis;
     }
 
     @Override
-    public Children all(String column, Collection<Object> value) {
+    public Children all(String column, Collection<?> value) {
         return getBaseCondition(column,value);
     }
 

@@ -880,7 +880,7 @@ public interface Compare<T,Children> extends Serializable {
      * @author JiaChaoYang
      * @date 2023/7/19 23:36
     */
-    Children all(boolean condition,SFunction<T,Object> column,Collection<Object> value);
+    Children all(boolean condition,SFunction<T,Object> column,Collection<?> value);
 
     /**
      * 匹配数组中的值 必须同时包含指定的多个元素
@@ -890,7 +890,7 @@ public interface Compare<T,Children> extends Serializable {
      * @author JiaChaoYang
      * @date 2023/7/19 23:36
     */
-    Children all(SFunction<T,Object> column,Collection<Object> value);
+    Children all(SFunction<T,Object> column,Collection<?> value);
 
     /**
      * 匹配数组中的值 必须同时包含指定的多个元素
@@ -901,7 +901,7 @@ public interface Compare<T,Children> extends Serializable {
      * @author JiaChaoYang
      * @date 2023/7/19 23:37
     */
-    Children all(boolean condition,String column,Collection<Object> value);
+    Children all(boolean condition,String column,Collection<?> value);
 
     /**
      * 匹配数组中的值 必须同时包含指定的多个元素
@@ -911,7 +911,7 @@ public interface Compare<T,Children> extends Serializable {
      * @author JiaChaoYang
      * @date 2023/7/19 23:37
     */
-    Children all(String column,Collection<Object> value);
+    Children all(String column,Collection<?> value);
 
     /**
      * 正则表达式查询
