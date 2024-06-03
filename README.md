@@ -1,4 +1,4 @@
-<p >
+<div style="margin-bottom: 40px">
     <p align="center" >
         <strong>愿世界和平</strong> <br /><br />
         铭记苦难，心系巴勒斯坦，哀悼逝者。<br />
@@ -6,10 +6,12 @@
         愿悲剧不再重演，和平永驻人间。
     </p>
     <div align="center">
-        <img src="https://gitee.com/aizuda/easy-manager-tool/raw/master/img/national/img.png" alt="China" width="75" style="align-content: center" /> perce & love
+        <img src="https://gitee.com/aizuda/easy-manager-tool/raw/master/img/national/img.png" alt="China" width="75" style="align-content: center" /> 
+        peace & love
         <img src="https://gitee.com/aizuda/easy-manager-tool/raw/master/img/national/img_1.png" alt="Palestine" width="99" style="align-content: center" />
     </div>
-</p>
+</div>
+
 <p align="center">
   <a href="https://gitee.com/anwena/mongo-plus/blob/master/LICENSE">
     <img src="https://img.shields.io/hexpm/l/plug.svg" alt="License">
