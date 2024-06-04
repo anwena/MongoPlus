@@ -42,7 +42,7 @@ import java.util.*;
  */
 public abstract class AbstractMongoConverter implements MongoConverter {
 
-    private Log log = LogFactory.getLog(AbstractMongoConverter.class);
+    private final Log log = LogFactory.getLog(AbstractMongoConverter.class);
 
     private final MongoPlusClient mongoPlusClient;
 
@@ -51,8 +51,8 @@ public abstract class AbstractMongoConverter implements MongoConverter {
     }
 
     //定义添加自动填充字段
-    private final AutoFillMetaObject insertFillAutoFillMetaObject = new AutoFillMetaObject(new MongoPlusDocument());
-    private final AutoFillMetaObject updateFillAutoFillMetaObject = new AutoFillMetaObject(new MongoPlusDocument());
+    private final AutoFillMetaObject insertFillAutoFillMetaObject = new AutoFillMetaObject();
+    private final AutoFillMetaObject updateFillAutoFillMetaObject = new AutoFillMetaObject();
 
     @Override
     public void writeBySave(Object sourceObj, Document document) {
@@ -89,7 +89,7 @@ public abstract class AbstractMongoConverter implements MongoConverter {
         //映射到Document
         write(sourceObj,document);
         //添加自动填充字段
-        document.putAll(insertFillAutoFillMetaObject.getAllFillField());
+        insertFillAutoFillMetaObject.getAllFillFieldAndClear(document);
         //经过一下Document处理器
         if (HandlerCache.documentHandler != null){
             HandlerCache.documentHandler.insertInvoke(Collections.singletonList(document));
@@ -115,13 +115,33 @@ public abstract class AbstractMongoConverter implements MongoConverter {
             HandlerCache.metaObjectHandler.updateFill(updateFillAutoFillMetaObject);
         }
         //添加自动填充字段
-        document.putAll(updateFillAutoFillMetaObject.getAllFillField());
+        updateFillAutoFillMetaObject.getAllFillFieldAndClear(document);
         //映射到Document
         write(sourceObj,document);
         //经过一下Document处理器
         if (HandlerCache.documentHandler != null){
             HandlerCache.documentHandler.updateInvoke(Collections.singletonList(document));
         }
+    }
+
+    public void getFillInsertAndUpdateField(TypeInformation typeInformation, AutoFillMetaObject insertFillAutoFillMetaObject, AutoFillMetaObject updateFillAutoFillMetaObject){
+        typeInformation.getFields().forEach(field -> {
+            CollectionField collectionField = field.getCollectionField();
+            if (collectionField != null && collectionField.fill() != FieldFill.DEFAULT){
+                MongoPlusDocument insertFillAutoField = insertFillAutoFillMetaObject.getDocument();
+                MongoPlusDocument updateFillAutoField = updateFillAutoFillMetaObject.getDocument();
+                if (collectionField.fill() == FieldFill.INSERT){
+                    insertFillAutoField.put(field.getName(),field.getValue());
+                }
+                if (collectionField.fill() == FieldFill.UPDATE){
+                    updateFillAutoField.put(field.getName(),field.getValue());
+                }
+                if (collectionField.fill() == FieldFill.INSERT_UPDATE){
+                    insertFillAutoField.put(field.getName(),field.getValue());
+                    updateFillAutoField.put(field.getName(),field.getValue());
+                }
+            }
+        });
     }
 
     @Override
@@ -279,26 +299,6 @@ public abstract class AbstractMongoConverter implements MongoConverter {
         }
 
         return Enum.class.isAssignableFrom(value.getClass()) ? ((Enum<?>) value).name() : value;
-    }
-
-    public void getFillInsertAndUpdateField(TypeInformation typeInformation, AutoFillMetaObject insertFillAutoFillMetaObject, AutoFillMetaObject updateFillAutoFillMetaObject){
-        typeInformation.getFields().forEach(field -> {
-            CollectionField collectionField = field.getCollectionField();
-            if (collectionField != null && collectionField.fill() != FieldFill.DEFAULT){
-                MongoPlusDocument insertFillAutoField = insertFillAutoFillMetaObject.getAllFillField();
-                MongoPlusDocument updateFillAutoField = updateFillAutoFillMetaObject.getAllFillField();
-                if (collectionField.fill() == FieldFill.INSERT){
-                    insertFillAutoField.put(field.getName(),field.getValue());
-                }
-                if (collectionField.fill() == FieldFill.UPDATE){
-                    updateFillAutoField.put(field.getName(),field.getValue());
-                }
-                if (collectionField.fill() == FieldFill.INSERT_UPDATE){
-                    insertFillAutoField.put(field.getName(),field.getValue());
-                    updateFillAutoField.put(field.getName(),field.getValue());
-                }
-            }
-        });
     }
 
     /**
