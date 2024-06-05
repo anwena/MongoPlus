@@ -5,6 +5,7 @@ import com.anwen.mongo.model.LogicProperty;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -14,6 +15,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2024/4/29
  */
 public class CollectionLogicDeleteCache {
+
+    private static final ThreadLocal<Boolean> logicIgnore = new InheritableThreadLocal<>();
 
     /**
      * 是否开启逻辑删除功能
@@ -46,4 +49,19 @@ public class CollectionLogicDeleteCache {
             fullNameMap.put(fullName, clazz);
         }
     }
+
+    public static void setLogicIgnore(boolean ignore) {
+        logicIgnore.set(ignore);
+    }
+
+    public static boolean getLogicIgnore() {
+        Boolean ignore = logicIgnore.get();
+        return Objects.nonNull(ignore) && ignore;
+
+    }
+
+    public static void clear() {
+        logicIgnore.remove();
+    }
+
 }
