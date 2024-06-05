@@ -11,6 +11,8 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
 
+import java.lang.reflect.Method;
+
 /**
  * 多数据源切面
  *
@@ -20,22 +22,35 @@ import org.springframework.core.annotation.Order;
 @Order(0)
 public class MongoDataSourceAspect {
 
-    @Around("@annotation(com.anwen.mongo.annotation.datasource.MongoDs)")
+    @Around("@within(com.anwen.mongo.annotation.datasource.MongoDs) || @annotation(com.anwen.mongo.annotation.datasource.MongoDs)")
     public Object manageDataSource(ProceedingJoinPoint joinPoint) throws Throwable {
-        // 获取方法上的注解
         MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
-        MongoDs mongoDs = AnnotationUtils.findAnnotation(methodSignature.getMethod(), MongoDs.class);
-        if (mongoDs == null || StringUtils.isBlank(mongoDs.value())){
+        Method method = methodSignature.getMethod();
+
+        // 获取方法或类上的注解
+        MongoDs mongoDs = getMongoDsAnnotation(method);
+
+        if (mongoDs == null || StringUtils.isBlank(mongoDs.value())) {
             throw new MongoPlusException("Data source not found");
         }
+
         DataSourceNameCache.setDataSource(mongoDs.value());
-        Object proceed;
+
         try {
-            proceed = joinPoint.proceed();
-        }finally {
+            return joinPoint.proceed();
+        } finally {
             DataSourceNameCache.clear();
         }
-        return proceed;
+    }
+
+    private MongoDs getMongoDsAnnotation(Method method) {
+        MongoDs mongoDs = AnnotationUtils.findAnnotation(method, MongoDs.class);
+
+        if (mongoDs == null || StringUtils.isBlank(mongoDs.value())) {
+            mongoDs = AnnotationUtils.findAnnotation(method.getDeclaringClass(), MongoDs.class);
+        }
+
+        return mongoDs;
     }
 
 }
