@@ -22,7 +22,6 @@ import com.anwen.mongo.model.AutoFillMetaObject;
 import com.anwen.mongo.strategy.conversion.ConversionStrategy;
 import com.anwen.mongo.strategy.mapping.MappingStrategy;
 import com.anwen.mongo.toolkit.BsonUtil;
-import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.anwen.mongo.toolkit.CollUtil;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.FindOneAndUpdateOptions;

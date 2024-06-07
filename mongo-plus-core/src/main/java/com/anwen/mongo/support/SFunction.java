@@ -32,6 +32,10 @@ public interface SFunction<T,R> extends Function<T,R>, Serializable {
         return StringUtils.firstCharToLowerCase(methodName);
     }
 
+    default String getFieldNameLineOption(){
+        return "$"+getFieldNameLine();
+    }
+
     /**
      * 获取实体类的字段名称(实体声明的字段名称)
      */

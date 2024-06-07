@@ -10,21 +10,18 @@ import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.enums.*;
-import com.anwen.mongo.model.AggregateBasicDBObject;
-import com.anwen.mongo.model.BaseAggregate;
-import com.anwen.mongo.model.FuncGroupField;
-import com.anwen.mongo.model.GroupField;
+import com.anwen.mongo.model.*;
+import com.anwen.mongo.model.aggregate.Field;
 import com.anwen.mongo.strategy.aggregate.impl.*;
 import com.anwen.mongo.support.SFunction;
 import com.mongodb.BasicDBObject;
+import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Collation;
 import com.mongodb.client.model.CollationStrength;
 import org.bson.BsonValue;
 import org.bson.conversions.Bson;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author JiaChaoYang
@@ -568,6 +565,19 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
     public Children lookup(BasicDBObject basicDBObject) {
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.LOOKUP.getType(), new DefaultConcretePipeline(basicDBObject),getNextAggregateOrder()));
         return typedThis;
+    }
+
+    public static void main(String[] args) {
+        Field<Field<ArrayList<Map<String, List<Integer>>>>> mongoPlusFieldMongoPlusField = Field.of(BaseProperty::getHost, Field.of("$concatArrays", new ArrayList<Map<String, List<Integer>>>() {{
+            add(new HashMap<String, List<Integer>>() {{
+                put("$homework", new ArrayList<Integer>() {{
+                    add(7);
+                }});
+            }});
+        }}));
+        System.out.println(mongoPlusFieldMongoPlusField);
+        Bson bson = Aggregates.addFields(mongoPlusFieldMongoPlusField);
+        System.out.println(bson);
     }
 
     @Override

@@ -1,8 +1,5 @@
 package com.anwen.mongo.handlers;
 
-import com.anwen.mongo.toolkit.BsonUtil;
-import org.bson.conversions.Bson;
-
 /**
  * 类型处理器，但只作用于实体类字段的赋值和转换
  * 类型处理器优先级比转换器和映射器高，因为TypeHandler作用于字段
