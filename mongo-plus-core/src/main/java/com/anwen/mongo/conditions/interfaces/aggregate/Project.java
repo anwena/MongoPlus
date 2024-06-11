@@ -1,29 +1,14 @@
-package com.anwen.mongo.conditions.interfaces;
+package com.anwen.mongo.conditions.interfaces.aggregate;
 
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.project.Projection;
 import com.anwen.mongo.support.SFunction;
 
-import java.util.List;
-
-public interface Project<T,Children> {
-
-    /**
-     * 要显示哪写字段或者不显示哪些字段
-     * @param projection Projection对象
-     * @return Children
-     * @author JiaChaoYang
-     * @date 2023/8/1 21:36
-     */
-    Children project(Projection... projection);
-
-    /**
-     * 要显示哪写字段或者不显示哪些字段
-     * @param projectionList Projection集合
-     * @return Children
-     * @author JiaChaoYang
-     * @date 2023/8/1 21:36
-     */
-    Children project(List<Projection> projectionList);
+/**
+ * $project阶段
+ * @author anwen
+ * @date 2024/6/10 下午4:45
+ */
+public interface Project<Children> {
 
     /**
      * 显示哪些字段
@@ -32,7 +17,7 @@ public interface Project<T,Children> {
      * @author JiaChaoYang
      * @date 2023/8/1 21:37
      */
-    Children projectDisplay(SFunction<T,Object>... column);
+    <T,R> Children projectDisplay(SFunction<T,R>... column);
 
     /**
      * 显示哪些字段
@@ -50,7 +35,7 @@ public interface Project<T,Children> {
      * @author JiaChaoYang
      * @date 2023/8/1 21:37
      */
-    Children projectNone(SFunction<T,Object>... column);
+    <T,R> Children projectNone(SFunction<T,R>... column);
 
     /**
      * 不显示哪些字段
@@ -64,13 +49,12 @@ public interface Project<T,Children> {
     /**
      * 要显示哪写字段或者不显示哪些字段
      * @param displayId 是否显示_id
-     * @param projection
-     * @param
+     * @param projection 对象
      * @return Children
      * @author JiaChaoYang
      * @date 2023/8/1 21:36
      */
-    Children project(boolean displayId,Projection... projection);
+    Children project(boolean displayId, Projection... projection);
 
     /**
      * 显示哪些字段
@@ -80,7 +64,7 @@ public interface Project<T,Children> {
      * @author JiaChaoYang
      * @date 2023/8/1 21:37
      */
-    Children projectDisplay(boolean displayId,SFunction<T,Object>... column);
+    <T,R> Children projectDisplay(boolean displayId,SFunction<T,R>... column);
 
     /**
      * 显示哪些字段
@@ -100,7 +84,7 @@ public interface Project<T,Children> {
      * @author JiaChaoYang
      * @date 2023/8/1 21:37
      */
-    Children projectNone(boolean displayId,SFunction<T,Object>... column);
+    <T,R> Children projectNone(boolean displayId,SFunction<T,R>... column);
 
     /**
      * 不显示哪些字段

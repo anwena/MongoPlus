@@ -2,7 +2,7 @@ package com.anwen.mongo.conditions.query;
 
 import com.anwen.mongo.conditions.AbstractChainWrapper;
 import com.anwen.mongo.conditions.interfaces.Query;
-import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
+import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.project.Projection;
 import com.anwen.mongo.enums.OrderEnum;
 import com.anwen.mongo.support.SFunction;
 
@@ -81,22 +81,22 @@ public abstract class QueryChainWrapper<T,Children extends QueryChainWrapper<T,C
 
     @Override
     public Children orderByAsc(SFunction<T, Object> column) {
-        return getBaseOrder(OrderEnum.ORDER_BY.getFlag(), column);
+        return getBaseOrder(OrderEnum.ASC.getValue(), column);
     }
 
     @Override
     public Children orderByDesc(SFunction<T, Object> column) {
-        return getBaseOrder(OrderEnum.ORDER_BY_DESC.getFlag(), column);
+        return getBaseOrder(OrderEnum.DESC.getValue(), column);
     }
 
     @Override
     public Children orderByAsc(String column) {
-        return getBaseOrder(OrderEnum.ORDER_BY.getFlag(), column);
+        return getBaseOrder(OrderEnum.ASC.getValue(), column);
     }
 
     @Override
     public Children orderByDesc(String column) {
-        return getBaseOrder(OrderEnum.ORDER_BY_DESC.getFlag(), column);
+        return getBaseOrder(OrderEnum.DESC.getValue(), column);
     }
 
 }

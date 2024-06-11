@@ -1,28 +1,25 @@
 package com.anwen.mongo.enums;
 
 /**
- * @Description: 排序枚举
- * @BelongsProject: mongo
- * @BelongsPackage: com.anwen.mongo.enums
- * @Author: JiaChaoYang
- * @CreateTime: 2023-02-19 13:25
- * @Version: 1.0
+ * 排序枚举
+ * @author JiaChaoYang
+ * @date 2023-02-19 13:25
  */
 public enum OrderEnum {
 
-    ORDER_BY(1),
+    ASC(1),
 
-    ORDER_BY_DESC(-1)
+    DESC(-1)
 
     ;
 
-    private final Integer flag;
+    private final Integer value;
 
-    public Integer getFlag() {
-        return flag;
+    public Integer getValue() {
+        return value;
     }
 
-    OrderEnum(Integer flag) {
-        this.flag = flag;
+    OrderEnum(Integer value) {
+        this.value = value;
     }
 }

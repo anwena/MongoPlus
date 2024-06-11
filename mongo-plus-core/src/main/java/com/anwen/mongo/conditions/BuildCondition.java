@@ -3,7 +3,7 @@ package com.anwen.mongo.conditions;
 import com.anwen.mongo.bson.MongoPlusBasicDBObject;
 import com.anwen.mongo.conditions.accumulator.Accumulator;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.AddFields;
-import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
+import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.project.Projection;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.ReplaceRoot;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.constant.IndexConstant;

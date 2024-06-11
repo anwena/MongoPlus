@@ -1,7 +1,7 @@
 package com.anwen.mongo.strategy.aggregate.impl;
 
 import com.anwen.mongo.conditions.BuildCondition;
-import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
+import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.project.Projection;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.enums.ProjectionEnum;
 import com.anwen.mongo.strategy.aggregate.PipelineStrategy;

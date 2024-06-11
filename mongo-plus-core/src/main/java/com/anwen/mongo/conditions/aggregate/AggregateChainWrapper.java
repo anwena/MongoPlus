@@ -4,18 +4,16 @@ import com.anwen.mongo.conditions.accumulator.Accumulator;
 import com.anwen.mongo.conditions.interfaces.aggregate.Aggregate;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.AddFields;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Let;
-import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
+import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.project.Projection;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.ReplaceRoot;
 import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.enums.*;
 import com.anwen.mongo.model.*;
-import com.anwen.mongo.model.aggregate.Field;
 import com.anwen.mongo.strategy.aggregate.impl.*;
 import com.anwen.mongo.support.SFunction;
 import com.mongodb.BasicDBObject;
-import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Collation;
 import com.mongodb.client.model.CollationStrength;
 import org.bson.BsonValue;
@@ -222,7 +220,7 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
                 new SortConcretePipeline(
                         new ArrayList<Order>() {{
                             for (SFunction<T, Object> sFunction : field) {
-                                add(new Order(OrderEnum.ORDER_BY.getFlag(), sFunction.getFieldNameLine()));
+                                add(new Order(OrderEnum.ASC.getValue(), sFunction.getFieldNameLine()));
                             }
                         }}
                 ),
@@ -236,7 +234,7 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.SORT.getType(), new SortConcretePipeline(
             new ArrayList<Order>(){{
                 for (String col : field) {
-                    add(new Order(OrderEnum.ORDER_BY.getFlag(), col));
+                    add(new Order(OrderEnum.ASC.getValue(), col));
                 }
             }}
         ),getNextAggregateOrder()));
@@ -249,7 +247,7 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.SORT.getType(), new SortConcretePipeline(
                 new ArrayList<Order>(){{
                     for (SFunction<T, Object> sFunction : field) {
-                        add(new Order(OrderEnum.ORDER_BY_DESC.getFlag(),sFunction.getFieldNameLine()));
+                        add(new Order(OrderEnum.DESC.getValue(),sFunction.getFieldNameLine()));
                     }
                 }}
         ),getNextAggregateOrder()));
@@ -261,7 +259,7 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.SORT.getType(), new SortConcretePipeline(
             new ArrayList<Order>(){{
                 for (String col : field) {
-                    add(new Order(OrderEnum.ORDER_BY_DESC.getFlag(), col));
+                    add(new Order(OrderEnum.DESC.getValue(), col));
                 }
             }}
         ),getNextAggregateOrder()));
@@ -565,19 +563,6 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
     public Children lookup(BasicDBObject basicDBObject) {
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.LOOKUP.getType(), new DefaultConcretePipeline(basicDBObject),getNextAggregateOrder()));
         return typedThis;
-    }
-
-    public static void main(String[] args) {
-        Field<Field<ArrayList<Map<String, List<Integer>>>>> mongoPlusFieldMongoPlusField = Field.of(BaseProperty::getHost, Field.of("$concatArrays", new ArrayList<Map<String, List<Integer>>>() {{
-            add(new HashMap<String, List<Integer>>() {{
-                put("$homework", new ArrayList<Integer>() {{
-                    add(7);
-                }});
-            }});
-        }}));
-        System.out.println(mongoPlusFieldMongoPlusField);
-        Bson bson = Aggregates.addFields(mongoPlusFieldMongoPlusField);
-        System.out.println(bson);
     }
 
     @Override
