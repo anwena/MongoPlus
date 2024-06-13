@@ -46,7 +46,7 @@ public class SessionExecute implements Execute {
 
     @Override
     public DeleteResult executeRemove(Bson filter, MongoCollection<Document> collection) {
-        return collection.deleteOne(clientSession, filter);
+        return collection.deleteMany(clientSession, filter);
     }
 
     @Override

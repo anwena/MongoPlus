@@ -13,8 +13,6 @@ import org.bson.conversions.Bson;
 import java.util.Collection;
 import java.util.List;
 
-import static java.util.Arrays.asList;
-
 public interface Aggregate<Children> extends Project<Children> {
 
     /**
@@ -49,7 +47,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/7 下午3:37
      */
-    <T,R> Children addFields(final SFunction<T,R> field,final String value);
+    <T> Children addFields(final SFunction<T,?> field,final String value);
 
     /**
      * 向嵌套文档或文档中加入一个新字段
@@ -62,7 +60,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @date 2024/6/7 下午3:37
      */
     @SuppressWarnings("unchecked")
-    <T,R> Children addFields(final String value,final SFunction<T,R>... field);
+    <T> Children addFields(final String value,final SFunction<T,?>... field);
 
     /**
      * $addFields阶段，指定现有字段，覆盖原字段
@@ -72,7 +70,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/7 下午3:31
      */
-    <T,R> Children addFields(final SFunction<T,R> field,final Object value);
+    <T> Children addFields(final SFunction<T,?> field,final Object value);
 
     /**
      * $addFields阶段，向数组中添加元素
@@ -82,7 +80,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/7 下午3:44
      */
-    <T,R> Children addFields(final SFunction<T,R> field, final Collection<?> value);
+    <T> Children addFields(final SFunction<T,?> field, final Collection<?> value);
 
     /**
      * $addFields阶段，向数组中添加元素
@@ -149,7 +147,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/7 下午3:37
      */
-    <T,R> Children set(final SFunction<T,R> field,final String value);
+    <T> Children set(final SFunction<T,?> field,final String value);
 
     /**
      * 向嵌套文档或文档中加入一个新字段
@@ -162,7 +160,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @date 2024/6/7 下午3:37
      */
     @SuppressWarnings("unchecked")
-    <T,R> Children set(final String value,final SFunction<T,R>... field);
+    <T> Children set(final String value,final SFunction<T,?>... field);
 
     /**
      * $set阶段，指定现有字段，覆盖原字段
@@ -172,7 +170,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/7 下午3:31
      */
-    <T,R> Children set(final SFunction<T,R> field,final Object value);
+    <T> Children set(final SFunction<T,?> field,final Object value);
 
     /**
      * $set阶段，向数组中添加元素
@@ -182,7 +180,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/7 下午3:44
      */
-    <T,R> Children set(final SFunction<T,R> field, final Collection<?> value);
+    <T> Children set(final SFunction<T,?> field, final Collection<?> value);
 
     /**
      * $set阶段，向数组中添加元素
@@ -235,7 +233,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/7 下午5:07
      */
-    <T,R,Boundary> Children bucket(final SFunction<T,R> groupBy,final List<Boundary> boundaries);
+    <Boundary,T> Children bucket(final SFunction<T,?> groupBy,final List<Boundary> boundaries);
 
     /**
      * $bucket阶段
@@ -256,7 +254,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/7 下午5:08
      */
-    <T,R,Boundary> Children bucket(final SFunction<T,R> groupBy, final List<Boundary> boundaries, BucketOptions options);
+    <Boundary,T> Children bucket(final SFunction<T,?> groupBy, final List<Boundary> boundaries, BucketOptions options);
 
     /**
      * $bucket阶段
@@ -292,7 +290,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/7 下午5:15
      */
-    <T,R> Children bucketAuto(final SFunction<T,R> groupBy,final Integer buckets);
+    <T> Children bucketAuto(final SFunction<T,?> groupBy,final Integer buckets);
 
     /**
      * $bucketAuto阶段
@@ -313,7 +311,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/7 下午5:18
      */
-    <T,R> Children bucketAuto(final SFunction<T,R> groupBy, final Integer buckets, BucketAutoOptions options);
+    <T> Children bucketAuto(final SFunction<T,?> groupBy, final Integer buckets, BucketAutoOptions options);
 
     /**
      * $bucketAuto阶段
@@ -365,7 +363,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/7 下午5:45
      */
-    <T,R> Children count(final SFunction<T,R> field);
+    <T> Children count(final SFunction<T,?> field);
 
     /* $count阶段 end */
 
@@ -430,7 +428,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/11 下午5:33
      */
-    <T,R> Children sort(final SFunction<T,R> field,final Integer value);
+    <T> Children sort(final SFunction<T,?> field,final Integer value);
 
     /**
      * $sort阶段，按照指定字段升序排序
@@ -439,7 +437,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/11 下午5:35
      */
-    <T,R> Children sortAsc(final SFunction<T,R> field);
+    <T> Children sortAsc(final SFunction<T,?> field);
 
     /**
      * $sort阶段，按照指定字段升序排序
@@ -457,7 +455,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/11 下午5:35
      */
-    <T,R> Children sortAsc(final SFunction<T, R>... field);
+    <T> Children sortAsc(final SFunction<T, ?>... field);
 
     /**
      * $sort阶段，按照指定字段升序排序
@@ -475,7 +473,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/11 下午5:35
      */
-    <T,R> Children sortAscLambda(final List<SFunction<T,R>> field);
+    <T> Children sortAscLambda(final List<SFunction<T,?>> field);
 
     /**
      * $sort阶段，按照指定字段升序排序
@@ -493,7 +491,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/11 下午5:35
      */
-    <T,R> Children sortDesc(final SFunction<T,R> field);
+    <T> Children sortDesc(final SFunction<T,?> field);
 
     /**
      * $sort阶段，按照指定字段降序排序
@@ -511,7 +509,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/11 下午5:35
      */
-    <T,R> Children sortDesc(final SFunction<T, R>... field);
+    <T> Children sortDesc(final SFunction<T, ?>... field);
 
     /**
      * $sort阶段，按照指定字段降序排序
@@ -529,7 +527,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/11 下午5:35
      */
-    <T,R> Children sortDescLambda(final List<SFunction<T,R>> field);
+    <T> Children sortDescLambda(final List<SFunction<T,?>> field);
 
     /**
      * $sort阶段，按照指定字段降序排序
@@ -556,7 +554,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/11 下午6:31
      */
-    <T,R> Children metaTextScore(final SFunction<T,R> field);
+    <T> Children metaTextScore(final SFunction<T,?> field);
 
     /**
      * $sort阶段，如果MongoPlus封装的条件未满足该阶段的需求，请自行构建Bson
@@ -589,7 +587,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/11 下午6:36
      */
-    <T,R> Children sortByCount(final SFunction<T,R> field);
+    <T> Children sortByCount(final SFunction<T,?> field);
 
     /* $sortByCount阶段 end */
 
@@ -667,7 +665,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/11 下午7:05
      */
-    <T,R> Children lookup(final String from,final SFunction<T,R> localField,final SFunction<T,R> foreignField, final String as);
+    <T,R> Children lookup(final String from,final SFunction<T,?> localField,final SFunction<R,?> foreignField, final String as);
 
     /**
      * $lookup阶段
@@ -679,7 +677,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/11 下午7:05
      */
-    <T,R> Children lookup(final String from,final SFunction<T,R> localField,final String foreignField,final String as);
+    <T> Children lookup(final String from,final SFunction<T,?> localField,final String foreignField,final String as);
 
     /**
      * $lookup阶段
@@ -691,7 +689,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/11 下午7:05
      */
-    <T,R> Children lookup(final String from,final String localField,final SFunction<T,R> foreignField,final String as);
+    <T> Children lookup(final String from,final String localField,final SFunction<T,?> foreignField,final String as);
 
     /**
      * $lookup阶段
@@ -820,8 +818,8 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/11 下午8:30
      */
-    <T,R> Children graphLookup(final String from, final SFunction<T,R> startWith, final SFunction<T,R> connectFromField,
-                         final SFunction<T,R> connectToField, final String as);
+    <T,R,U> Children graphLookup(final String from, final SFunction<T,?> startWith, final SFunction<R,?> connectFromField,
+                         final SFunction<U,?> connectToField, final String as);
 
     /**
      * $graphLookup阶段
@@ -834,8 +832,8 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/11 下午8:30
      */
-    <T,R> Children graphLookup(final String from, final Object startWith, final SFunction<T,R> connectFromField,
-                               final SFunction<T,R> connectToField, final String as);
+    <T,R> Children graphLookup(final String from, final Object startWith, final SFunction<T,?> connectFromField,
+                               final SFunction<R,?> connectToField, final String as);
 
     /**
      * $graphLookup阶段
@@ -874,8 +872,8 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/11 下午8:30
      */
-    <T,R> Children graphLookup(final String from, final SFunction<T,R> startWith, final SFunction<T,R> connectFromField,
-                               final SFunction<T,R> connectToField, final String as, final GraphLookupOptions options);
+    <T,R,U> Children graphLookup(final String from, final SFunction<T,?> startWith, final SFunction<R,?> connectFromField,
+                               final SFunction<U,?> connectToField, final String as, final GraphLookupOptions options);
 
     /**
      * $graphLookup阶段
@@ -894,8 +892,8 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/11 下午8:30
      */
-    <T,R> Children graphLookup(final String from, final Object startWith, final SFunction<T,R> connectFromField,
-                               final SFunction<T,R> connectToField, final String as, final GraphLookupOptions options);
+    <T,R> Children graphLookup(final String from, final Object startWith, final SFunction<T,?> connectFromField,
+                               final SFunction<R,?> connectToField, final String as, final GraphLookupOptions options);
 
     /**
      * $graphLookup阶段,如果MongoPlus封装的条件未满足该阶段的需求，请自行构建Bson
@@ -928,7 +926,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/11 下午9:12
      */
-    <T,R> Children group(final SFunction<T,R> _id);
+    <T> Children group(final SFunction<T,?> _id);
 
     /**
      * $group阶段

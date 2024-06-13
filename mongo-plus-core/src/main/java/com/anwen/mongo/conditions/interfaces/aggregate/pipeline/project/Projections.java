@@ -2,6 +2,8 @@ package com.anwen.mongo.conditions.interfaces.aggregate.pipeline.project;
 
 import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
+import com.anwen.mongo.model.BaseModelID;
+import com.anwen.mongo.model.BaseProperty;
 import com.anwen.mongo.support.SFunction;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
@@ -54,7 +56,7 @@ public class Projections {
      * @see #computedSearchMeta(String)
      * @see Aggregates#project(Bson)
      */
-    public static <TExpression,T,R> Bson computed(final SFunction<T,R> fieldName, final TExpression expression) {
+    public static <TExpression,T> Bson computed(final SFunction<T,?> fieldName, final TExpression expression) {
         return computed(fieldName.getFieldNameLine(), expression);
     }
 
@@ -84,7 +86,7 @@ public class Projections {
      * @see SearchCollector
      * @since 4.7
      */
-    public static <T,R> Bson computedSearchMeta(final SFunction<T,R> fieldName) {
+    public static <T> Bson computedSearchMeta(final SFunction<T,?> fieldName) {
         return computed(fieldName, "$$SEARCH_META");
     }
 
@@ -105,7 +107,7 @@ public class Projections {
      * @return $project
      */
     @SafeVarargs
-    public static <T,R> Bson include(final SFunction<T,R>... fieldNames) {
+    public static <T> Bson include(final SFunction<T,?>... fieldNames) {
         return include(Arrays.stream(fieldNames).map(SFunction::getFieldNameLine).toArray(String[]::new));
     }
 
@@ -125,7 +127,7 @@ public class Projections {
      * @param fieldNames 字段名
      * @return $project
      */
-    public static <T,R> Bson includeLambda(final List<SFunction<T,R>> fieldNames) {
+    public static <T> Bson includeLambda(final List<SFunction<T,?>> fieldNames) {
         return combine(fieldNames.stream().map(SFunction::getFieldNameLine).collect(Collectors.toList()), new BsonInt32(1));
     }
 
@@ -146,7 +148,7 @@ public class Projections {
      * @return $project
      */
     @SafeVarargs
-    public static <T,R> Bson exclude(final SFunction<T,R>... fieldNames) {
+    public static <T> Bson exclude(final SFunction<T,?>... fieldNames) {
         return exclude(Arrays.stream(fieldNames).map(SFunction::getFieldNameLine).toArray(String[]::new));
     }
 
@@ -166,7 +168,7 @@ public class Projections {
      * @param fieldNames 字段名
      * @return $project
      */
-    public static <T,R> Bson excludeLambda(final List<SFunction<T,R>> fieldNames) {
+    public static <T> Bson excludeLambda(final List<SFunction<T,?>> fieldNames) {
         return combine(fieldNames.stream().map(SFunction::getFieldNameLine).collect(Collectors.toList()), new BsonInt32(0));
     }
 
@@ -197,7 +199,7 @@ public class Projections {
      * @return $project
      * @since mongodb.driver.manual reference/operator/projection/positional/#projection Project the first matching element ($ operator)
      */
-    public static <T,R> Bson elemMatch(final SFunction<T,R> fieldName) {
+    public static <T> Bson elemMatch(final SFunction<T,?> fieldName) {
         return elemMatch(fieldName.getFieldNameLine());
     }
 
@@ -233,7 +235,7 @@ public class Projections {
      * @return $project
      * @since mongodb.driver.manual reference/operator/projection/elemMatch elemMatch
      */
-    public static <T,R> Bson elemMatch(final SFunction<T,R> fieldName, final Bson filter) {
+    public static <T> Bson elemMatch(final SFunction<T,?> fieldName, final Bson filter) {
         return elemMatch(fieldName.getFieldNameLine(),filter);
     }
 
@@ -245,7 +247,7 @@ public class Projections {
      * @return $project
      * @since mongodb.driver.manual reference/operator/projection/elemMatch elemMatch
      */
-    public static <T,R> Bson elemMatch(final SFunction<T,R> fieldName, final QueryChainWrapper<?, ?> queryChainWrapper) {
+    public static <T> Bson elemMatch(final SFunction<T,?> fieldName, final QueryChainWrapper<?, ?> queryChainWrapper) {
         return elemMatch(fieldName.getFieldNameLine(),queryChainWrapper);
     }
 
@@ -277,7 +279,7 @@ public class Projections {
      * @see #metaSearchScore(String)
      * @see #metaSearchHighlights(String)
      */
-    public static <T,R> Bson meta(final SFunction<T,R> fieldName, final String metaFieldName) {
+    public static <T> Bson meta(final SFunction<T,?> fieldName, final String metaFieldName) {
         return meta(fieldName.getFieldNameLine(),metaFieldName);
     }
 
@@ -293,7 +295,7 @@ public class Projections {
      * @see #metaSearchScore(String)
      * @see #metaSearchHighlights(String)
      */
-    public static <T,R> Bson meta(final SFunction<T,R> fieldName, final SFunction<T,R> metaFieldName) {
+    public static <T,R> Bson meta(final SFunction<T,?> fieldName, final SFunction<R,?> metaFieldName) {
         return meta(fieldName.getFieldNameLine(),metaFieldName.getFieldNameLine());
     }
 
@@ -319,7 +321,7 @@ public class Projections {
      * @see Filters#text(String, TextSearchOptions)
      * @since mongodb.driver.manual reference/operator/aggregation/meta/#text-score-metadata--meta---textscore- textScore
      */
-    public static <T,R> Bson metaTextScore(final SFunction<T,R> fieldName) {
+    public static <T> Bson metaTextScore(final SFunction<T,?> fieldName) {
         return meta(fieldName, "textScore");
     }
 
@@ -347,7 +349,7 @@ public class Projections {
      * @since mongodb.atlas.manual atlas-search/scoring/ Scoring
      * @since 4.7
      */
-    public static <T,R> Bson metaSearchScore(final SFunction<T,R> fieldName) {
+    public static <T> Bson metaSearchScore(final SFunction<T,?> fieldName) {
         return meta(fieldName, "searchScore");
     }
 
@@ -377,7 +379,7 @@ public class Projections {
      * @since mongodb.atlas.manual atlas-search/highlighting/ Highlighting
      * @since 4.7
      */
-    public static <T,R> Bson metaSearchHighlights(final SFunction<T,R> fieldName) {
+    public static <T> Bson metaSearchHighlights(final SFunction<T,?> fieldName) {
         return meta(fieldName, "searchHighlights");
     }
 
@@ -401,16 +403,16 @@ public class Projections {
      * @return $project
      * @since mongodb.driver.manual reference/operator/projection/slice Slice
      */
-    public static <T,R> Bson slice(final SFunction<T,R> fieldName, final int limit) {
+    public static <T> Bson slice(final SFunction<T,?> fieldName, final int limit) {
         return slice(fieldName.getFieldNameLine(), limit);
     }
 
     /**
-     * Creates a projection to the given field name of a slice of the array value of that field.
+     * 为该字段的数组值片段的给定字段名称创建一个投影。
      *
-     * @param fieldName the field name
-     * @param skip      the number of elements to skip before applying the limit
-     * @param limit     the number of elements to project
+     * @param fieldName 字段名称
+     * @param skip      应用限制之前要跳过的元素数量
+     * @param limit     要投影的元素数量
      * @return $project
      * @since mongodb.driver.manual reference/operator/projection/slice Slice
      */
@@ -427,7 +429,7 @@ public class Projections {
      * @return $project
      * @since mongodb.driver.manual reference/operator/projection/slice Slice
      */
-    public static <T,R> Bson slice(final SFunction<T,R> fieldName, final int skip, final int limit) {
+    public static <T> Bson slice(final SFunction<T,?> fieldName, final int skip, final int limit) {
         return slice(fieldName.getFieldNameLine(), skip,limit);
     }
 

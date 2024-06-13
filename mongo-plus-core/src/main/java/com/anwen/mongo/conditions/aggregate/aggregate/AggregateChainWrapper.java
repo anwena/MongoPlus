@@ -44,14 +44,14 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
     }
 
     @Override
-    public <T,R> Children addFields(SFunction<T, R> field, String value) {
+    public <T> Children addFields(SFunction<T, ?> field, String value) {
         return addFields(field.getFieldNameLine(),value);
     }
 
     @Override
-    public <T,R> Children addFields(String value, SFunction<T,R>... field) {
+    public <T> Children addFields(String value, SFunction<T, ?>... field) {
         StringBuilder sb = new StringBuilder();
-        for (SFunction<T,R> sFunction : field) {
+        for (SFunction<T,?> sFunction : field) {
             sb.append(sFunction.getFieldNameLine()).append(".");
         }
         sb.deleteCharAt(sb.length()-1);
@@ -59,12 +59,12 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
     }
 
     @Override
-    public <T,R> Children addFields(SFunction<T,R> field, Object value) {
+    public <T> Children addFields(SFunction<T,?> field, Object value) {
         return addFields(Field.of(field,value));
     }
 
     @Override
-    public <T,R> Children addFields(SFunction<T,R> field, Collection<?> value) {
+    public <T> Children addFields(SFunction<T, ?> field, Collection<?> value) {
         return addFields(field.getFieldNameLine(),value);
     }
 
@@ -96,14 +96,14 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
     }
 
     @Override
-    public <T,R> Children set(SFunction<T,R> field, String value) {
+    public <T> Children set(SFunction<T,?> field, String value) {
         return set(field.getFieldNameLine(),value);
     }
 
     @Override
-    public <T,R> Children set(String value, SFunction<T,R>... field) {
+    public <T> Children set(String value, SFunction<T,?>... field) {
         StringBuilder sb = new StringBuilder();
-        for (SFunction<T,R> sFunction : field) {
+        for (SFunction<T,?> sFunction : field) {
             sb.append(sFunction.getFieldNameLine()).append(".");
         }
         sb.deleteCharAt(sb.length()-1);
@@ -111,12 +111,12 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
     }
 
     @Override
-    public <T,R> Children set(SFunction<T,R> field, Object value) {
+    public <T> Children set(SFunction<T,?> field, Object value) {
         return set(Field.of(field,value));
     }
 
     @Override
-    public <T,R> Children set(SFunction<T,R> field, Collection<?> value) {
+    public <T> Children set(SFunction<T,?> field, Collection<?> value) {
         return set(field.getFieldNameLine(),value);
     }
 
@@ -143,7 +143,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
     }
 
     @Override
-    public <T,R,Boundary> Children bucket(SFunction<T,R> groupBy, List<Boundary> boundaries) {
+    public <Boundary,T> Children bucket(SFunction<T,?> groupBy, List<Boundary> boundaries) {
         return bucket(groupBy.getFieldNameLineOption(),boundaries);
     }
 
@@ -153,7 +153,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
     }
 
     @Override
-    public <T,R,Boundary> Children bucket(SFunction<T,R> groupBy, List<Boundary> boundaries, BucketOptions options) {
+    public <Boundary,T> Children bucket(SFunction<T,?> groupBy, List<Boundary> boundaries, BucketOptions options) {
         return bucket(groupBy.getFieldNameLineOption(),boundaries,options);
     }
 
@@ -168,7 +168,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
     }
 
     @Override
-    public <T,R> Children bucketAuto(SFunction<T,R> groupBy, Integer buckets) {
+    public <T> Children bucketAuto(SFunction<T,?> groupBy, Integer buckets) {
         return bucketAuto(groupBy.getFieldNameLineOption(),buckets);
     }
 
@@ -178,7 +178,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
     }
 
     @Override
-    public <T,R> Children bucketAuto(SFunction<T,R> groupBy, Integer buckets, BucketAutoOptions options) {
+    public <T> Children bucketAuto(SFunction<T,?> groupBy, Integer buckets, BucketAutoOptions options) {
         return bucketAuto(groupBy.getFieldNameLineOption(),buckets,options);
     }
 
@@ -203,7 +203,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
     }
 
     @Override
-    public <T, R> Children count(SFunction<T, R> field) {
+    public <T> Children count(SFunction<T, ?> field) {
         return count(field.getFieldNameLine());
     }
 
@@ -273,12 +273,12 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
     }
 
     @Override
-    public <T, R> Children sort(SFunction<T, R> field, Integer value) {
+    public <T> Children sort(SFunction<T, ?> field, Integer value) {
         return sort(field.getFieldNameLine(),value);
     }
 
     @Override
-    public <T, R> Children sortAsc(SFunction<T, R> field) {
+    public <T> Children sortAsc(SFunction<T, ?> field) {
         return sortAsc(field.getFieldNameLine());
     }
 
@@ -288,7 +288,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
     }
 
     @Override
-    public <T, R> Children sortAsc(SFunction<T, R>... field) {
+    public <T> Children sortAsc(SFunction<T, ?>... field) {
         return sortAscLambda(Arrays.stream(field).collect(Collectors.toList()));
     }
 
@@ -298,7 +298,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
     }
 
     @Override
-    public <T, R> Children sortAscLambda(List<SFunction<T, R>> field) {
+    public <T> Children sortAscLambda(List<SFunction<T, ?>> field) {
         return sortAsc(field.stream().map(SFunction::getFieldNameLine).collect(Collectors.toList()));
     }
 
@@ -308,7 +308,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
     }
 
     @Override
-    public <T, R> Children sortDesc(SFunction<T, R> field) {
+    public <T> Children sortDesc(SFunction<T, ?> field) {
         return sortDesc(field.getFieldNameLine());
     }
 
@@ -318,7 +318,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
     }
 
     @Override
-    public <T, R> Children sortDesc(SFunction<T, R>... field) {
+    public <T> Children sortDesc(SFunction<T, ?>... field) {
         return sortDescLambda(Arrays.stream(field).collect(Collectors.toList()));
     }
 
@@ -328,7 +328,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
     }
 
     @Override
-    public <T, R> Children sortDescLambda(List<SFunction<T, R>> field) {
+    public <T> Children sortDescLambda(List<SFunction<T, ?>> field) {
         return sortDesc(field.stream().map(SFunction::getFieldNameLine).collect(Collectors.toList()));
     }
 
@@ -343,7 +343,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
     }
 
     @Override
-    public <T, R> Children metaTextScore(SFunction<T, R> field) {
+    public <T> Children metaTextScore(SFunction<T, ?> field) {
         return metaTextScore(field.getFieldNameLine());
     }
 
@@ -358,7 +358,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
     }
 
     @Override
-    public <T, R> Children sortByCount(SFunction<T, R> field) {
+    public <T> Children sortByCount(SFunction<T, ?> field) {
         return sortByCount(field.getFieldNameLineOption());
     }
 
@@ -388,17 +388,17 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
     }
 
     @Override
-    public <T, R> Children lookup(String from, SFunction<T, R> localField, SFunction<T, R> foreignField, String as) {
+    public <T, R> Children lookup(String from, SFunction<T, ?> localField, SFunction<R, ?> foreignField, String as) {
         return lookup(from, localField.getFieldNameLine(),foreignField.getFieldNameLine(),as);
     }
 
     @Override
-    public <T, R> Children lookup(String from, SFunction<T, R> localField, String foreignField, String as) {
+    public <T> Children lookup(String from, SFunction<T, ?> localField, String foreignField, String as) {
         return lookup(from, localField.getFieldNameLine(),foreignField,as);
     }
 
     @Override
-    public <T, R> Children lookup(String from, String localField, SFunction<T, R> foreignField, String as) {
+    public <T> Children lookup(String from, String localField, SFunction<T, ?> foreignField, String as) {
         return lookup(from, localField,foreignField.getFieldNameLine(),as);
     }
 
@@ -454,12 +454,12 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
     }
 
     @Override
-    public <T, R> Children graphLookup(String from, SFunction<T, R> startWith, SFunction<T, R> connectFromField, SFunction<T, R> connectToField, String as) {
+    public <T,R,U> Children graphLookup(String from, SFunction<T, ?> startWith, SFunction<R, ?> connectFromField, SFunction<U, ?> connectToField, String as) {
         return graphLookup(from,startWith.getFieldNameLineOption(),connectFromField.getFieldNameLine(),connectToField.getFieldNameLine(),as);
     }
 
     @Override
-    public <T, R> Children graphLookup(String from, Object startWith, SFunction<T, R> connectFromField, SFunction<T, R> connectToField, String as) {
+    public <T, R> Children graphLookup(String from, Object startWith, SFunction<T, ?> connectFromField, SFunction<R, ?> connectToField, String as) {
         return graphLookup(from,startWith,connectFromField.getFieldNameLine(),connectToField.getFieldNameLine(),as);
     }
 
@@ -469,18 +469,43 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
     }
 
     @Override
-    public <T, R> Children graphLookup(String from, SFunction<T, R> startWith, SFunction<T, R> connectFromField, SFunction<T, R> connectToField, String as, GraphLookupOptions options) {
+    public <T, R, U> Children graphLookup(String from, SFunction<T, ?> startWith, SFunction<R, ?> connectFromField, SFunction<U, ?> connectToField, String as, GraphLookupOptions options) {
         return graphLookup(from,startWith.getFieldNameLineOption(),connectFromField.getFieldNameLine(),connectToField.getFieldNameLine(),as,options);
     }
 
     @Override
-    public <T, R> Children graphLookup(String from, Object startWith, SFunction<T, R> connectFromField, SFunction<T, R> connectToField, String as, GraphLookupOptions options) {
+    public <T, R> Children graphLookup(String from, Object startWith, SFunction<T, ?> connectFromField, SFunction<R,?> connectToField, String as, GraphLookupOptions options) {
         return graphLookup(from,startWith,connectFromField.getFieldNameLine(),connectToField.getFieldNameLine(),as,options);
     }
 
     @Override
     public Children graphLookup(Bson bson) {
         return custom(bson);
+    }
+
+    @Override
+    public Children group(String _id) {
+        return null;
+    }
+
+    @Override
+    public <T> Children group(SFunction<T, ?> _id) {
+        return null;
+    }
+
+    @Override
+    public <TExpression> Children group(TExpression id, BsonField... fieldAccumulators) {
+        return null;
+    }
+
+    @Override
+    public <TExpression> Children group(TExpression id, List<BsonField> fieldAccumulators) {
+        return null;
+    }
+
+    @Override
+    public Children group(Bson bson) {
+        return null;
     }
 
     @Override
