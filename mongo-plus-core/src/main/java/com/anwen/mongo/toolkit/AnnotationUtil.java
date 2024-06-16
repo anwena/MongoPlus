@@ -1,6 +1,7 @@
 package com.anwen.mongo.toolkit;
 
 import com.anwen.mongo.annotation.ID;
+import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.model.BaseModelID;
 
@@ -65,6 +66,15 @@ public class AnnotationUtil {
             }
         }
         return null;
+    }
+
+    public static String collectionName(Class<?> clazz){
+        String collectionName = clazz.getName();
+        CollectionName annotation = clazz.getAnnotation(CollectionName.class);
+        if (annotation != null && StringUtils.isNotBlank(annotation.value())){
+            collectionName = annotation.value();
+        }
+        return collectionName;
     }
 
 }

@@ -6,18 +6,25 @@ import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.project.Projecti
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.constant.AggregationOperators;
 import com.anwen.mongo.constant.SqlOperationConstant;
+import com.anwen.mongo.enums.AggregateEnum;
 import com.anwen.mongo.enums.OrderEnum;
 import com.anwen.mongo.enums.ProjectionEnum;
 import com.anwen.mongo.model.aggregate.Field;
 import com.anwen.mongo.support.SFunction;
+import com.anwen.mongo.toolkit.AnnotationUtil;
 import com.mongodb.BasicDBObject;
+import com.mongodb.MongoNamespace;
 import com.mongodb.client.model.*;
+import org.bson.BsonBoolean;
 import org.bson.BsonDocument;
 import org.bson.BsonInt32;
+import org.bson.BsonString;
 import org.bson.conversions.Bson;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.mongodb.assertions.Assertions.notNull;
 
 @SuppressWarnings("unchecked")
 public class AggregateChainWrapper<Children> implements Aggregate<Children> {
@@ -82,12 +89,12 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children addFields(List<Field<?>> fields) {
-        return addFields(Aggregates.addFields(new ArrayList<>(fields)));
+        return custom(Aggregates.addFields(new ArrayList<>(fields)));
     }
 
     @Override
     public Children addFields(Bson bson) {
-        return custom(bson);
+        return custom(new BasicDBObject(AggregateEnum.ADD_FIELDS.getValue(),bson));
     }
 
     @Override
@@ -134,12 +141,12 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children set(List<Field<?>> fields) {
-        return set(Aggregates.set(new ArrayList<>(fields)));
+        return custom(Aggregates.set(new ArrayList<>(fields)));
     }
 
     @Override
     public Children set(Bson bson) {
-        return custom(bson);
+        return custom(new BasicDBObject(AggregateEnum.SET.getValue(),bson));
     }
 
     @Override
@@ -149,7 +156,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public <Boundary> Children bucket(Object groupBy, List<Boundary> boundaries) {
-        return bucket(Aggregates.bucket(groupBy,boundaries));
+        return custom(Aggregates.bucket(groupBy,boundaries));
     }
 
     @Override
@@ -159,12 +166,12 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public <Boundary> Children bucket(Object groupBy, List<Boundary> boundaries, BucketOptions options) {
-        return bucket(Aggregates.bucket(groupBy,boundaries,options));
+        return custom(Aggregates.bucket(groupBy,boundaries,options));
     }
 
     @Override
     public Children bucket(Bson bson) {
-        return custom(bson);
+        return custom(new BasicDBObject(AggregateEnum.BUCKET.getValue(),bson));
     }
 
     @Override
@@ -174,7 +181,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children bucketAuto(Object groupBy, Integer buckets) {
-        return bucketAuto(Aggregates.bucketAuto(groupBy,buckets));
+        return custom(Aggregates.bucketAuto(groupBy,buckets));
     }
 
     @Override
@@ -184,12 +191,12 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children bucketAuto(Object groupBy, Integer buckets, BucketAutoOptions options) {
-        return bucketAuto(Aggregates.bucketAuto(groupBy,buckets,options));
+        return custom(Aggregates.bucketAuto(groupBy,buckets,options));
     }
 
     @Override
     public Children bucketAuto(Bson bson) {
-        return custom(bson);
+        return custom(new BasicDBObject(AggregateEnum.BUCKET_AUTO.getValue(),bson));
     }
 
     @Override
@@ -209,12 +216,12 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children match(QueryChainWrapper<?, ?> queryChainWrapper) {
-        return match(BuildCondition.buildQueryCondition(queryChainWrapper.getCompareList()));
+        return custom(BuildCondition.buildQueryCondition(queryChainWrapper.getCompareList()));
     }
 
     @Override
     public Children match(Bson bson) {
-        return custom(bson);
+        return custom(new BasicDBObject(AggregateEnum.MATCH.getValue(),bson));
     }
 
     @Override
@@ -264,12 +271,12 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children project(Bson bson) {
-        return custom(bson);
+        return custom(new BasicDBObject(AggregateEnum.PROJECT.getValue(),bson));
     }
 
     @Override
     public Children sort(String field, Integer value) {
-        return sort(orderBy(field,value));
+        return custom(orderBy(field,value));
     }
 
     @Override
@@ -304,7 +311,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children sortAsc(List<String> field) {
-        return sort(orderBy(field,OrderEnum.ASC.getValue()));
+        return custom(orderBy(field,OrderEnum.ASC.getValue()));
     }
 
     @Override
@@ -334,12 +341,12 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children sortDesc(List<String> field) {
-        return sort(orderBy(field,OrderEnum.DESC.getValue()));
+        return custom(orderBy(field,OrderEnum.DESC.getValue()));
     }
 
     @Override
     public Children metaTextScore(String field) {
-        return sort(Sorts.metaTextScore(field));
+        return custom(Sorts.metaTextScore(field));
     }
 
     @Override
@@ -349,7 +356,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children sort(Bson bson) {
-        return custom(bson);
+        return custom(new BasicDBObject(AggregateEnum.SORT.getValue(),bson));
     }
 
     @Override
@@ -384,7 +391,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children lookup(String from, String localField, String foreignField, String as) {
-        return lookup(Aggregates.lookup(from, localField, foreignField, as));
+        return custom(Aggregates.lookup(from, localField, foreignField, as));
     }
 
     @Override
@@ -415,7 +422,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children lookup(Bson bson) {
-        return custom(bson);
+        return custom(new BasicDBObject(AggregateEnum.LOOKUP.getValue(),bson));
     }
 
     @Override
@@ -435,22 +442,22 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children facet(Facet... facets) {
-        return facet(Aggregates.facet(facets));
+        return custom(Aggregates.facet(facets));
     }
 
     @Override
     public Children facet(List<Facet> facets) {
-        return facet(Aggregates.facet(facets));
+        return custom(Aggregates.facet(facets));
     }
 
     @Override
     public Children facet(Bson bson) {
-        return custom(bson);
+        return custom(new BasicDBObject(AggregateEnum.FACET.getValue(),bson));
     }
 
     @Override
     public Children graphLookup(String from, Object startWith, String connectFromField, String connectToField, String as) {
-        return graphLookup(Aggregates.graphLookup(from,startWith,connectFromField,connectToField,as));
+        return custom(Aggregates.graphLookup(from,startWith,connectFromField,connectToField,as));
     }
 
     @Override
@@ -465,7 +472,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children graphLookup(String from, Object startWith, String connectFromField, String connectToField, String as, GraphLookupOptions options) {
-        return graphLookup(Aggregates.graphLookup(from,startWith,connectFromField,connectToField,as,options));
+        return custom(Aggregates.graphLookup(from,startWith,connectFromField,connectToField,as,options));
     }
 
     @Override
@@ -480,32 +487,152 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children graphLookup(Bson bson) {
-        return custom(bson);
+        return custom(new BasicDBObject(AggregateEnum.GRAPH_LOOKUP.getValue(),bson));
     }
 
     @Override
     public Children group(String _id) {
-        return null;
+        return group(_id, new ArrayList<>());
     }
 
     @Override
     public <T> Children group(SFunction<T, ?> _id) {
-        return null;
+        return group(_id.getFieldNameLineOption());
     }
 
     @Override
     public <TExpression> Children group(TExpression id, BsonField... fieldAccumulators) {
-        return null;
+        return group(id, Arrays.stream(fieldAccumulators).collect(Collectors.toList()));
     }
 
     @Override
     public <TExpression> Children group(TExpression id, List<BsonField> fieldAccumulators) {
-        return null;
+        return custom(Aggregates.group(id,fieldAccumulators));
     }
 
     @Override
     public Children group(Bson bson) {
-        return null;
+        return custom(new BasicDBObject(AggregateEnum.GROUP.getValue(),bson));
+    }
+
+    @Override
+    public Children unionWith(String collectionName, Aggregate<?> aggregate) {
+        return unionWith(collectionName,aggregate.getAggregateConditionList());
+    }
+
+    @Override
+    public Children unionWith(String collectionName, List<? extends Bson> aggregate) {
+        return custom(Aggregates.unionWith(collectionName,aggregate));
+    }
+
+    @Override
+    public Children unionWith(Class<?> collection, Aggregate<?> aggregate) {
+        return unionWith(AnnotationUtil.collectionName(collection),aggregate);
+    }
+
+    @Override
+    public Children unionWith(Class<?> collection, List<? extends Bson> aggregate) {
+        return unionWith(AnnotationUtil.collectionName(collection),aggregate);
+    }
+
+    @Override
+    public Children unionWith(Bson bson) {
+        return custom(new BasicDBObject(AggregateEnum.UNION_WITH.getValue(),bson));
+    }
+
+    @Override
+    public Children unwind(String fieldName) {
+        return custom(Aggregates.unwind(fieldName));
+    }
+
+    @Override
+    public <T> Children unwind(SFunction<T, ?> fieldName) {
+        return unwind(fieldName.getFieldNameLineOption());
+    }
+
+    @Override
+    public Children unwind(String fieldName, com.anwen.mongo.conditions.interfaces.aggregate.pipeline.UnwindOptions unwindOptions) {
+        notNull("unwindOptions", unwindOptions);
+        BsonDocument options = new BsonDocument("path", new BsonString(fieldName));
+        Boolean preserveNullAndEmptyArrays = unwindOptions.isPreserveNullAndEmptyArrays();
+        if (preserveNullAndEmptyArrays != null) {
+            options.append("preserveNullAndEmptyArrays", BsonBoolean.valueOf(preserveNullAndEmptyArrays));
+        }
+        String includeArrayIndex = unwindOptions.getIncludeArrayIndex();
+        if (includeArrayIndex != null) {
+            options.append("includeArrayIndex", new BsonString(includeArrayIndex));
+        }
+        return custom(new BsonDocument("$unwind", options));
+    }
+
+    @Override
+    public <T> Children unwind(SFunction<T, ?> fieldName, com.anwen.mongo.conditions.interfaces.aggregate.pipeline.UnwindOptions unwindOptions) {
+        return unwind(fieldName.getFieldNameLineOption(),unwindOptions);
+    }
+
+    @Override
+    public Children unwind(Bson bson) {
+        return custom(new BasicDBObject(AggregateEnum.UNWIND.getValue(),bson));
+    }
+
+    @Override
+    public Children out(String collectionName) {
+        return custom(Aggregates.out(collectionName));
+    }
+
+    @Override
+    public Children out(Class<?> collection) {
+        return out(AnnotationUtil.collectionName(collection));
+    }
+
+    @Override
+    public Children out(String databaseName, String collectionName) {
+        return custom(Aggregates.out(databaseName,collectionName));
+    }
+
+    @Override
+    public Children out(Bson bson) {
+        return custom(Aggregates.out(bson));
+    }
+
+    @Override
+    public Children merge(String collectionName) {
+        return custom(Aggregates.merge(collectionName));
+    }
+
+    @Override
+    public Children merge(Class<?> collection) {
+        return merge(AnnotationUtil.collectionName(collection));
+    }
+
+    @Override
+    public Children merge(MongoNamespace namespace) {
+        return custom(Aggregates.merge(namespace));
+    }
+
+    @Override
+    public Children merge(String collectionName, MergeOptions options) {
+        return custom(Aggregates.merge(collectionName,options));
+    }
+
+    @Override
+    public Children merge(Class<?> collection, MergeOptions options) {
+        return merge(AnnotationUtil.collectionName(collection),options);
+    }
+
+    @Override
+    public Children merge(MongoNamespace namespace, MergeOptions options) {
+        return custom(Aggregates.merge(namespace,options));
+    }
+
+    @Override
+    public Children merge(Bson bson) {
+        return custom(new BasicDBObject(AggregateEnum.MERGE.getValue(),bson));
+    }
+
+    @Override
+    public Children replaceRoot(Bson bson) {
+        return custom(new BasicDBObject(AggregateEnum.REPLACE_ROOT.getValue(),bson));
     }
 
     @Override
@@ -542,7 +669,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
     }
 
     private Children buildProject(List<Projection> projectionList){
-        return project(Aggregates.project(BuildCondition.buildProjection(projectionList)));
+        return custom(Aggregates.project(BuildCondition.buildProjection(projectionList)));
     }
 
     private Bson orderBy(final String fieldName, final Integer value){

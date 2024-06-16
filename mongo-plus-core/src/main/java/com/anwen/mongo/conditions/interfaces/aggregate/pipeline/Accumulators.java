@@ -1,11 +1,9 @@
-package com.anwen.mongo.conditions.interfaces.aggregate.pipeline.group;
+package com.anwen.mongo.conditions.interfaces.aggregate.pipeline;
 
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.project.SimpleExpression;
 import com.anwen.mongo.support.SFunction;
 import com.mongodb.BasicDBObject;
-import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.BsonField;
-import com.mongodb.client.model.Sorts;
 import com.mongodb.lang.Nullable;
 import org.bson.BsonArray;
 import org.bson.BsonDocument;
@@ -214,7 +212,7 @@ public final class Accumulators {
      * 返回计算字段和累加器的组合，该组合产生根据提供的sortBy规范排序的组内顶部元素计算的给定outExpression的值。
      *
      * @param fieldName 由累加器计算的字段
-     * @param sortBy {@linkplain Sorts 排序规范}。语法与 {@link Aggregates#sort(Bson)}所期望的语法相同。
+     * @param sortBy {@linkplain Sorts 排序规范}。语法与 {@link com.anwen.mongo.conditions.interfaces.aggregate.aggregate.Aggregate#sort(Bson)}所期望的语法相同。
      * @param outExpression 输出表达式.
      * @param <OutExpression> 输出表达式的类型.
      * @return The requested {@link BsonField}.
@@ -231,7 +229,7 @@ public final class Accumulators {
      * 返回计算字段和累加器的组合，该组合产生根据提供的sortBy规范排序的组内顶部元素计算的给定outExpression的值。
      *
      * @param fieldName 由累加器计算的字段
-     * @param sortBy {@linkplain Sorts 排序规范}。语法与 {@link Aggregates#sort(Bson)}所期望的语法相同。
+     * @param sortBy {@linkplain Sorts 排序规范}。语法与 {@link com.anwen.mongo.conditions.interfaces.aggregate.aggregate.Aggregate#sort(Bson)}所期望的语法相同。
      * @param outExpression 输出表达式.
      * @param <OutExpression> 输出表达式的类型.
      * @return The requested {@link BsonField}.
@@ -247,7 +245,7 @@ public final class Accumulators {
      * 返回计算字段和累加器的组合，该组合产生根据提供的sortBy规范排序的组内顶部元素计算的给定outExpression的值。
      *
      * @param fieldName 由累加器计算的字段
-     * @param sortBy {@linkplain Sorts 排序规范}。语法与 {@link Aggregates#sort(Bson)}所期望的语法相同。
+     * @param sortBy {@linkplain Sorts 排序规范}。语法与 {@link com.anwen.mongo.conditions.interfaces.aggregate.aggregate.Aggregate#sort(Bson)}所期望的语法相同。
      * @param outExpression 输出表达式.
      * @return The requested {@link BsonField}.
      * @since mongodb.driver.manual reference/operator/aggregation/top/ $top
@@ -262,7 +260,7 @@ public final class Accumulators {
      * 返回计算字段和累加器的组合，该组合产生根据提供的sortBy规范排序的组内顶部元素计算的给定outExpression的值。
      *
      * @param fieldName 由累加器计算的字段
-     * @param sortBy {@linkplain Sorts 排序规范}。语法与 {@link Aggregates#sort(Bson)}所期望的语法相同。
+     * @param sortBy {@linkplain Sorts 排序规范}。语法与 {@link com.anwen.mongo.conditions.interfaces.aggregate.aggregate.Aggregate#sort(Bson)}所期望的语法相同。
      * @param outExpression 输出表达式.
      * @return The requested {@link BsonField}.
      * @since mongodb.driver.manual reference/operator/aggregation/top/ $top
@@ -277,7 +275,7 @@ public final class Accumulators {
      * 返回计算字段和累加器的组合，该组合生成一个 BSON {@link org.bson.BsonType#ARRAY Array} ，该数组包含根据提供的{@code sortBy}规范排序的组内前{@code N}个元素计算的给定{@code outExpression}的值，其中{@code N}是{@code nExpression}的正整数值。
      *
      * @param fieldName 由累加器计算的字段.
-     * @param sortBy {@linkplain Sorts 排序规范}。语法与 {@link Aggregates#sort(Bson)}所期望的语法相同。
+     * @param sortBy {@linkplain Sorts 排序规范}。语法与 {@link com.anwen.mongo.conditions.interfaces.aggregate.aggregate.Aggregate#sort(Bson)}所期望的语法相同。
      * @param outExpression 输出表达式.
      * @param nExpression 限制产生的值的数量的表达式.
      * @param <OutExpression> 输出表达式的类型.
@@ -297,7 +295,7 @@ public final class Accumulators {
      * 返回计算字段和累加器的组合，该组合生成一个 BSON {@link org.bson.BsonType#ARRAY Array} ，该数组包含根据提供的{@code sortBy}规范排序的组内前{@code N}个元素计算的给定{@code outExpression}的值，其中{@code N}是{@code nExpression}的正整数值。
      *
      * @param fieldName 由累加器计算的字段.
-     * @param sortBy {@linkplain Sorts 排序规范}。语法与 {@link Aggregates#sort(Bson)}所期望的语法相同。
+     * @param sortBy {@linkplain Sorts 排序规范}。语法与 {@link com.anwen.mongo.conditions.interfaces.aggregate.aggregate.Aggregate#sort(Bson)}所期望的语法相同。
      * @param outExpression 输出表达式.
      * @param nExpression 限制产生的值的数量的表达式.
      * @param <OutExpression> 输出表达式的类型.
@@ -316,7 +314,7 @@ public final class Accumulators {
      * 返回计算字段和累加器的组合，该组合生成一个 BSON {@link org.bson.BsonType#ARRAY Array} ，该数组包含根据提供的{@code sortBy}规范排序的组内前{@code N}个元素计算的给定{@code outExpression}的值，其中{@code N}是{@code nExpression}的正整数值。
      *
      * @param fieldName 由累加器计算的字段.
-     * @param sortBy {@linkplain Sorts 排序规范}。语法与 {@link Aggregates#sort(Bson)}所期望的语法相同。
+     * @param sortBy {@linkplain Sorts 排序规范}。语法与 {@link com.anwen.mongo.conditions.interfaces.aggregate.aggregate.Aggregate#sort(Bson)}所期望的语法相同。
      * @param outExpression 输出表达式.
      * @param nExpression 限制产生的值的数量的表达式.
      * @param <NExpression> 限制表达式的类型.
@@ -334,7 +332,7 @@ public final class Accumulators {
      * 返回计算字段和累加器的组合，该组合生成一个 BSON {@link org.bson.BsonType#ARRAY Array} ，该数组包含根据提供的{@code sortBy}规范排序的组内前{@code N}个元素计算的给定{@code outExpression}的值，其中{@code N}是{@code nExpression}的正整数值。
      *
      * @param fieldName 由累加器计算的字段.
-     * @param sortBy {@linkplain Sorts 排序规范}。语法与 {@link Aggregates#sort(Bson)}所期望的语法相同。
+     * @param sortBy {@linkplain Sorts 排序规范}。语法与 {@link com.anwen.mongo.conditions.interfaces.aggregate.aggregate.Aggregate#sort(Bson)}所期望的语法相同。
      * @param outExpression 输出表达式.
      * @param nExpression 限制产生的值的数量的表达式.
      * @param <NExpression> 限制表达式的类型.
@@ -352,7 +350,7 @@ public final class Accumulators {
      * 返回计算字段和累加器的组合，该组合生成一个 BSON {@link org.bson.BsonType#ARRAY Array} ，该数组包含根据提供的{@code sortBy}规范排序的组内前{@code N}个元素计算的给定{@code outExpression}的值，其中{@code N}是{@code nExpression}的正整数值。
      *
      * @param fieldName 由累加器计算的字段.
-     * @param sortBy {@linkplain Sorts 排序规范}。语法与 {@link Aggregates#sort(Bson)}所期望的语法相同。
+     * @param sortBy {@linkplain Sorts 排序规范}。语法与 {@link com.anwen.mongo.conditions.interfaces.aggregate.aggregate.Aggregate#sort(Bson)}所期望的语法相同。
      * @param outExpression 输出表达式.
      * @param nExpression 限制产生的值的数量的表达式.
      * @param <NExpression> 限制表达式的类型.
@@ -509,7 +507,7 @@ public final class Accumulators {
      * sorted according to the provided {@code sortBy} specification.
      *
      * @param fieldName {@link BsonField} computed by the accumulator.
-     * @param sortBy The {@linkplain Sorts sort specification}. The syntax is identical to the one expected by {@link Aggregates#sort(Bson)}.
+     * @param sortBy The {@linkplain Sorts sort specification}. The syntax is identical to the one expected by {@link com.anwen.mongo.conditions.interfaces.aggregate.aggregate.Aggregate#sort(Bson)}.
      * @param outExpression The output expression.
      * @param <OutExpression> The type of the output expression.
      * @return The requested {@link BsonField}.
@@ -526,7 +524,7 @@ public final class Accumulators {
      * 返回计算字段和累加器的组合，该组合产生根据提供的{@code sortBy}规范排序的组内底部元素计算的给定{@code outExpression}的值
      *
      * @param fieldName 由累加器计算的{@link BsonField}.
-     * @param sortBy {@linkplain Sorts 排序规范}。语法与{@link Aggregates#sort(Bson)}所期望的语法相同.
+     * @param sortBy {@linkplain Sorts 排序规范}。语法与{@link com.anwen.mongo.conditions.interfaces.aggregate.aggregate.Aggregate#sort(Bson)}所期望的语法相同.
      * @param outExpression 输出表达式.
      * @param <OutExpression> 输出表达式的类型.
      * @return 请求的 {@link BsonField}.
@@ -542,7 +540,7 @@ public final class Accumulators {
      * 返回计算字段和累加器的组合，该组合产生根据提供的{@code sortBy}规范排序的组内底部元素计算的给定{@code outExpression}的值
      *
      * @param fieldName 由累加器计算的{@link BsonField}.
-     * @param sortBy {@linkplain Sorts 排序规范}。语法与{@link Aggregates#sort(Bson)}所期望的语法相同.
+     * @param sortBy {@linkplain Sorts 排序规范}。语法与{@link com.anwen.mongo.conditions.interfaces.aggregate.aggregate.Aggregate#sort(Bson)}所期望的语法相同.
      * @param outExpression 输出表达式.
      * @return 请求的 {@link BsonField}.
      * @since mongodb.driver.manual reference/operator/aggregation/bottom/ $bottom
@@ -557,7 +555,7 @@ public final class Accumulators {
      * 返回计算字段和累加器的组合，该组合产生根据提供的{@code sortBy}规范排序的组内底部元素计算的给定{@code outExpression}的值
      *
      * @param fieldName 由累加器计算的{@link BsonField}.
-     * @param sortBy {@linkplain Sorts 排序规范}。语法与{@link Aggregates#sort(Bson)}所期望的语法相同.
+     * @param sortBy {@linkplain Sorts 排序规范}。语法与{@link com.anwen.mongo.conditions.interfaces.aggregate.aggregate.Aggregate#sort(Bson)}所期望的语法相同.
      * @param outExpression 输出表达式.
      * @return 请求的 {@link BsonField}.
      * @since mongodb.driver.manual reference/operator/aggregation/bottom/ $bottom
@@ -572,7 +570,7 @@ public final class Accumulators {
      * 返回计算字段和累加器的组合，该组合产生根据提供的{@code sortBy}规范排序的组内底部元素计算的给定{@code outExpression}的值
      *
      * @param fieldName 由累加器计算的{@link BsonField}.
-     * @param sortBy {@linkplain Sorts 排序规范}。语法与{@link Aggregates#sort(Bson)}所期望的语法相同.
+     * @param sortBy {@linkplain Sorts 排序规范}。语法与{@link com.anwen.mongo.conditions.interfaces.aggregate.aggregate.Aggregate#sort(Bson)}所期望的语法相同.
      * @param outExpression 输出表达式.
      * @return 请求的 {@link BsonField}.
      * @since mongodb.driver.manual reference/operator/aggregation/bottom/ $bottom
@@ -590,7 +588,7 @@ public final class Accumulators {
      * where {@code N} is the positive integral value of the {@code nExpression}.
      *
      * @param fieldName The field computed by the accumulator.
-     * @param sortBy The {@linkplain Sorts sort specification}. The syntax is identical to the one expected by {@link Aggregates#sort(Bson)}.
+     * @param sortBy The {@linkplain Sorts sort specification}. The syntax is identical to the one expected by {@link com.anwen.mongo.conditions.interfaces.aggregate.aggregate.Aggregate#sort(Bson)}.
      * @param outExpression The output expression.
      * @param nExpression The expression limiting the number of produced values.
      * @param <OutExpression> The type of the output expression.
@@ -610,7 +608,7 @@ public final class Accumulators {
      * 返回计算字段和累加器的组合，该组合生成一个 BSON {@link org.bson.BsonType#ARRAY Array} ，该数组包含根据提供的{@code sortBy}规范排序的组内底部{@code N}个元素计算的给定{@code outExpression}的值，其中{@code N}是nExpression的正整数值。
      *
      * @param fieldName 由累加器计算的字段.
-     * @param sortBy {@linkplain Sorts 排序规范}。语法与{@link Aggregates#sort(Bson)}所期望的语法相同.
+     * @param sortBy {@linkplain Sorts 排序规范}。语法与{@link com.anwen.mongo.conditions.interfaces.aggregate.aggregate.Aggregate#sort(Bson)}所期望的语法相同.
      * @param outExpression 输出表达式.
      * @param nExpression 限制产生的值的数量的表达式.
      * @param <OutExpression> 输出表达式的类型.
@@ -629,7 +627,7 @@ public final class Accumulators {
      * 返回计算字段和累加器的组合，该组合生成一个 BSON {@link org.bson.BsonType#ARRAY Array} ，该数组包含根据提供的{@code sortBy}规范排序的组内底部{@code N}个元素计算的给定{@code outExpression}的值，其中{@code N}是nExpression的正整数值。
      *
      * @param fieldName 由累加器计算的字段.
-     * @param sortBy {@linkplain Sorts 排序规范}。语法与{@link Aggregates#sort(Bson)}所期望的语法相同.
+     * @param sortBy {@linkplain Sorts 排序规范}。语法与{@link com.anwen.mongo.conditions.interfaces.aggregate.aggregate.Aggregate#sort(Bson)}所期望的语法相同.
      * @param outExpression 输出表达式.
      * @param nExpression 限制产生的值的数量的表达式.
      * @param <NExpression> 限制表达式的类型.
@@ -647,7 +645,7 @@ public final class Accumulators {
      * 返回计算字段和累加器的组合，该组合生成一个 BSON {@link org.bson.BsonType#ARRAY Array} ，该数组包含根据提供的{@code sortBy}规范排序的组内底部{@code N}个元素计算的给定{@code outExpression}的值，其中{@code N}是nExpression的正整数值。
      *
      * @param fieldName 由累加器计算的字段.
-     * @param sortBy {@linkplain Sorts 排序规范}。语法与{@link Aggregates#sort(Bson)}所期望的语法相同.
+     * @param sortBy {@linkplain Sorts 排序规范}。语法与{@link com.anwen.mongo.conditions.interfaces.aggregate.aggregate.Aggregate#sort(Bson)}所期望的语法相同.
      * @param outExpression 输出表达式.
      * @param nExpression 限制产生的值的数量的表达式.
      * @param <NExpression> 限制表达式的类型.
@@ -665,7 +663,7 @@ public final class Accumulators {
      * 返回计算字段和累加器的组合，该组合生成一个 BSON {@link org.bson.BsonType#ARRAY Array} ，该数组包含根据提供的{@code sortBy}规范排序的组内底部{@code N}个元素计算的给定{@code outExpression}的值，其中{@code N}是nExpression的正整数值。
      *
      * @param fieldName 由累加器计算的字段.
-     * @param sortBy {@linkplain Sorts 排序规范}。语法与{@link Aggregates#sort(Bson)}所期望的语法相同.
+     * @param sortBy {@linkplain Sorts 排序规范}。语法与{@link com.anwen.mongo.conditions.interfaces.aggregate.aggregate.Aggregate#sort(Bson)}所期望的语法相同.
      * @param outExpression 输出表达式.
      * @param nExpression 限制产生的值的数量的表达式.
      * @param <NExpression> 限制表达式的类型.
@@ -1312,19 +1310,17 @@ public final class Accumulators {
     }
 
     /**
-     * Creates an $accumulator pipeline stage
+     * 创建 $accumulator 管道阶段
      *
-     * @param fieldName            {@link BsonField} name
-     * @param initFunction         a function used to initialize the state
-     * @param initArgs             init function’s arguments (may be null)
-     * @param accumulateFunction   a function used to accumulate documents
-     * @param accumulateArgs       additional accumulate function’s arguments (may be null). The first argument to the function
-     *                             is ‘state’.
-     * @param mergeFunction        a function used to merge two internal states, e.g. accumulated on different shards or threads. It
-     *                             returns the resulting state of the accumulator.
-     * @param finalizeFunction     a function used to finalize the state and return the result (may be null)
-     * @param lang                 a language specifier
-     * @return the $accumulator pipeline stage
+     * @param fieldName            {@link BsonField} 名称
+     * @param initFunction         用于初始化状态的函数
+     * @param initArgs             init 函数的参数（可以为空）
+     * @param accumulateFunction   用于累积文档的函数
+     * @param accumulateArgs       累积函数的附加参数（可以为空）。该函数的第一个参数是“state”.
+     * @param mergeFunction        用于合并两个内部状态的函数，例如在不同的分片或线程上累积的状态。它返回累加器的结果状态.
+     * @param finalizeFunction     用于完成状态并返回结果的函数（可以为空）
+     * @param lang                 语言说明符
+     * @return $accumulator 管道阶段
      * @since mongodb.driver.manual reference/operator/aggregation/accumulator/ $accumulator
      * @since mongodb.server.release 4.4
      * @since 4.1

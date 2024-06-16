@@ -1,13 +1,17 @@
 package com.anwen.mongo.conditions.interfaces.aggregate.aggregate;
 
 import com.anwen.mongo.conditions.aggregate.aggregate.AggregateChainWrapper;
-import com.anwen.mongo.conditions.interfaces.aggregate.Project;
+import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Accumulators;
+import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Project;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.project.Projections;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.model.aggregate.Field;
 import com.anwen.mongo.support.SFunction;
+import com.mongodb.MongoNamespace;
 import com.mongodb.client.model.*;
 import com.mongodb.lang.Nullable;
+import org.bson.BsonDocument;
+import org.bson.BsonString;
 import org.bson.conversions.Bson;
 
 import java.util.Collection;
@@ -931,7 +935,7 @@ public interface Aggregate<Children> extends Project<Children> {
     /**
      * $group阶段
      * @param id group的_id表达式，可以为null
-     * @param fieldAccumulators 零个或多个字段累加器对
+     * @param fieldAccumulators 零个或多个字段累加器对，使用{@link Accumulators}构建
      * @return {@link org.bson.conversions.Bson}
      * @author anwen
      * @date 2024/6/11 下午9:06
@@ -941,7 +945,7 @@ public interface Aggregate<Children> extends Project<Children> {
     /**
      * $group阶段
      * @param id group的_id表达式，可以为null
-     * @param fieldAccumulators 零个或多个字段累加器对
+     * @param fieldAccumulators 零个或多个字段累加器对，使用{@link Accumulators}构建
      * @return {@link org.bson.conversions.Bson}
      * @author anwen
      * @date 2024/6/11 下午9:07
@@ -956,6 +960,242 @@ public interface Aggregate<Children> extends Project<Children> {
      * @date 2024/6/11 下午9:04
      */
     Children group(final Bson bson);
+
+    /* $group阶段 end */
+
+    /* =============================================================================== */
+
+    /* $unionWith阶段 start */
+
+    /**
+     * $unionWith阶段
+     * @param collectionName 要执行合并的同一数据库中的集合的名称
+     * @param aggregate 应用于输入文档的聚合管道
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/16 下午8:44
+     */
+    Children unionWith(final String collectionName,final Aggregate<?> aggregate);
+
+    /**
+     * $unionWith阶段
+     * @param collectionName 要执行合并的同一数据库中的集合的名称
+     * @param aggregate 应用于输入文档的聚合管道
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/16 下午8:44
+     */
+    Children unionWith(final String collectionName,final List<? extends Bson> aggregate);
+
+    /**
+     * $unionWith阶段
+     * @param collection 集合名称，取用类名，如有@CollectionName注解，则取用注解值
+     * @param aggregate 应用于输入文档的聚合管道
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/16 下午8:44
+     */
+    Children unionWith(final Class<?> collection,final Aggregate<?> aggregate);
+
+    /**
+     * $unionWith阶段
+     * @param collection 集合名称，取用类名，如有@CollectionName注解，则取用注解值
+     * @param aggregate 应用于输入文档的聚合管道
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/16 下午8:44
+     */
+    Children unionWith(final Class<?> collection,final List<? extends Bson> aggregate);
+
+    /**
+     * $unionWith阶段，如果MongoPlus封装的条件未满足该阶段的需求，请自行构建Bson
+     * @param bson bson
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/16 下午8:41
+     */
+    Children unionWith(final Bson bson);
+
+    /* $unionWith阶段 end */
+
+    /* =============================================================================== */
+
+    /* $unwind阶段 start */
+
+    /**
+     * $unwind阶段
+     * @param fieldName 该字段名称必须以'$'符号为前缀
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/16 下午9:02
+     */
+    Children unwind(final String fieldName);
+
+    /**
+     * $unwind阶段
+     * @param fieldName 字段名称
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/16 下午9:02
+     */
+    <T> Children unwind(final SFunction<T,?> fieldName);
+
+    /**
+     * $unwind阶段
+     * @param fieldName 该字段名称必须以'$'符号为前缀
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/16 下午9:02
+     */
+    Children unwind(final String fieldName, final com.anwen.mongo.conditions.interfaces.aggregate.pipeline.UnwindOptions unwindOptions);
+
+    /**
+     * $unwind阶段
+     * @param fieldName 字段名称
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/16 下午9:02
+     */
+    <T> Children unwind(final SFunction<T,?> fieldName,final com.anwen.mongo.conditions.interfaces.aggregate.pipeline.UnwindOptions unwindOptions);
+
+    /**
+     * $unwind阶段，如果MongoPlus封装的条件未满足该阶段的需求，请自行构建Bson
+     * @param bson bson
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/16 下午9:02
+     */
+    Children unwind(final Bson bson);
+
+    /* $unwind阶段 end */
+
+    /* =============================================================================== */
+
+    /* $out阶段 start */
+
+    /**
+     * $out阶段
+     * @param collectionName 集合名称
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/16 下午9:19
+     */
+    Children out(final String collectionName);
+
+    /**
+     * $out阶段
+     * @param collection 集合名称
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/16 下午9:19
+     */
+    Children out(final Class<?> collection);
+
+    /**
+     * $out
+     * @param databaseName 数据库名称
+     * @param collectionName 集合名称
+     * @return {@link Bson}
+     * @author anwen
+     * @date 2024/6/16 下午9:20
+     */
+    Children out(final String databaseName, final String collectionName);
+
+    /**
+     * $out阶段,如果MongoPlus封装的条件未满足该阶段的需求，请自行构建Bson
+     * @param bson bson
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/16 下午9:18
+     */
+    Children out(final Bson bson);
+
+    /* $out阶段 end */
+
+    /* =============================================================================== */
+
+    /* $merge阶段 start */
+
+    /**
+     * $merge阶段
+     * @param collectionName 要合并的集合的名称
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/16 下午9:49
+     */
+    Children merge(final String collectionName);
+
+    /**
+     * $merge阶段
+     * @param collection 集合
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/16 下午9:49
+     */
+    Children merge(final Class<?> collection);
+
+    /**
+     * $merge阶段
+     * @param namespace 要合并到的命名空间
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/16 下午9:50
+     */
+    Children merge(final MongoNamespace namespace);
+
+    /**
+     * $merge阶段
+     * @param collectionName 要合并的集合的名称
+     * @param options 合并选项
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/16 下午9:51
+     */
+    Children merge(final String collectionName, final MergeOptions options);
+
+    /**
+     * $merge阶段
+     * @param collection 要合并的集合
+     * @param options 合并选项
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/16 下午9:51
+     */
+    Children merge(final Class<?> collection, final MergeOptions options);
+
+    /**
+     * $merge阶段
+     * @param namespace 要合并到的命名空间
+     * @param options 合并选项
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/16 下午9:52
+     */
+    Children merge(final MongoNamespace namespace, final MergeOptions options);
+
+    /**
+     * $merge阶段，如果MongoPlus封装的条件未满足该阶段的需求，请自行构建Bson
+     * @param bson bson
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/16 下午9:47
+     */
+    Children merge(final Bson bson);
+
+    /* $out阶段 end */
+
+    /* =============================================================================== */
+
+    /* replaceRoot阶段 */
+
+    /**
+     * $replaceRoot阶段，如果MongoPlus封装的条件未满足该阶段的需求，请自行构建Bson
+     * @param bson bson
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/16 下午9:56
+     */
+    Children replaceRoot(final Bson bson);
 
     /**
      * 如果缺少管道，请使用该方法构建
