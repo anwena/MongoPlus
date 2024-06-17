@@ -311,7 +311,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children sortAsc(List<String> field) {
-        return custom(orderBy(field,OrderEnum.ASC.getValue()));
+        return sort(orderBy(field,OrderEnum.ASC.getValue()));
     }
 
     @Override
@@ -341,12 +341,12 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children sortDesc(List<String> field) {
-        return custom(orderBy(field,OrderEnum.DESC.getValue()));
+        return sort(orderBy(field,OrderEnum.DESC.getValue()));
     }
 
     @Override
     public Children metaTextScore(String field) {
-        return custom(Sorts.metaTextScore(field));
+        return sort(Sorts.metaTextScore(field));
     }
 
     @Override
@@ -356,7 +356,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children sort(Bson bson) {
-        return custom(new BasicDBObject(AggregateEnum.SORT.getValue(),bson));
+        return custom(bson);
     }
 
     @Override
@@ -391,7 +391,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children lookup(String from, String localField, String foreignField, String as) {
-        return custom(Aggregates.lookup(from, localField, foreignField, as));
+        return lookup(Aggregates.lookup(from, localField, foreignField, as));
     }
 
     @Override
@@ -422,7 +422,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children lookup(Bson bson) {
-        return custom(new BasicDBObject(AggregateEnum.LOOKUP.getValue(),bson));
+        return custom(bson);
     }
 
     @Override
@@ -442,22 +442,22 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children facet(Facet... facets) {
-        return custom(Aggregates.facet(facets));
+        return facet(Aggregates.facet(facets));
     }
 
     @Override
     public Children facet(List<Facet> facets) {
-        return custom(Aggregates.facet(facets));
+        return facet(Aggregates.facet(facets));
     }
 
     @Override
     public Children facet(Bson bson) {
-        return custom(new BasicDBObject(AggregateEnum.FACET.getValue(),bson));
+        return custom(bson);
     }
 
     @Override
     public Children graphLookup(String from, Object startWith, String connectFromField, String connectToField, String as) {
-        return custom(Aggregates.graphLookup(from,startWith,connectFromField,connectToField,as));
+        return graphLookup(Aggregates.graphLookup(from,startWith,connectFromField,connectToField,as));
     }
 
     @Override
@@ -472,7 +472,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children graphLookup(String from, Object startWith, String connectFromField, String connectToField, String as, GraphLookupOptions options) {
-        return custom(Aggregates.graphLookup(from,startWith,connectFromField,connectToField,as,options));
+        return graphLookup(Aggregates.graphLookup(from,startWith,connectFromField,connectToField,as,options));
     }
 
     @Override
@@ -487,7 +487,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children graphLookup(Bson bson) {
-        return custom(new BasicDBObject(AggregateEnum.GRAPH_LOOKUP.getValue(),bson));
+        return custom(bson);
     }
 
     @Override
@@ -507,12 +507,12 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public <TExpression> Children group(TExpression id, List<BsonField> fieldAccumulators) {
-        return custom(Aggregates.group(id,fieldAccumulators));
+        return group(Aggregates.group(id,fieldAccumulators));
     }
 
     @Override
     public Children group(Bson bson) {
-        return custom(new BasicDBObject(AggregateEnum.GROUP.getValue(),bson));
+        return custom(bson);
     }
 
     @Override
@@ -522,7 +522,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children unionWith(String collectionName, List<? extends Bson> aggregate) {
-        return custom(Aggregates.unionWith(collectionName,aggregate));
+        return unionWith(Aggregates.unionWith(collectionName,aggregate));
     }
 
     @Override
@@ -537,7 +537,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children unionWith(Bson bson) {
-        return custom(new BasicDBObject(AggregateEnum.UNION_WITH.getValue(),bson));
+        return custom(bson);
     }
 
     @Override
@@ -572,12 +572,12 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children unwind(Bson bson) {
-        return custom(new BasicDBObject(AggregateEnum.UNWIND.getValue(),bson));
+        return custom(bson);
     }
 
     @Override
     public Children out(String collectionName) {
-        return custom(Aggregates.out(collectionName));
+        return out(Aggregates.out(collectionName));
     }
 
     @Override
@@ -587,7 +587,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children out(String databaseName, String collectionName) {
-        return custom(Aggregates.out(databaseName,collectionName));
+        return out(Aggregates.out(databaseName,collectionName));
     }
 
     @Override
@@ -597,7 +597,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children merge(String collectionName) {
-        return custom(Aggregates.merge(collectionName));
+        return merge(Aggregates.merge(collectionName));
     }
 
     @Override
@@ -607,12 +607,12 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children merge(MongoNamespace namespace) {
-        return custom(Aggregates.merge(namespace));
+        return merge(Aggregates.merge(namespace));
     }
 
     @Override
     public Children merge(String collectionName, MergeOptions options) {
-        return custom(Aggregates.merge(collectionName,options));
+        return merge(Aggregates.merge(collectionName,options));
     }
 
     @Override
@@ -622,17 +622,72 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     public Children merge(MongoNamespace namespace, MergeOptions options) {
-        return custom(Aggregates.merge(namespace,options));
+        return merge(Aggregates.merge(namespace,options));
     }
 
     @Override
     public Children merge(Bson bson) {
-        return custom(new BasicDBObject(AggregateEnum.MERGE.getValue(),bson));
+        return custom(bson);
+    }
+
+    @Override
+    public <TExpression> Children replaceRoot(TExpression fieldName) {
+        return replaceRoot(Aggregates.replaceRoot(fieldName));
+    }
+
+    @Override
+    public <T> Children replaceRoot(SFunction<T, ?> fieldName) {
+        return replaceRoot(fieldName.getFieldNameLineOption());
     }
 
     @Override
     public Children replaceRoot(Bson bson) {
-        return custom(new BasicDBObject(AggregateEnum.REPLACE_ROOT.getValue(),bson));
+        return custom(bson);
+    }
+
+    @Override
+    public <TExpression> Children replaceWith(TExpression fieldName) {
+        return replaceWith(Aggregates.replaceWith(fieldName));
+    }
+
+    @Override
+    public <T> Children replaceWith(SFunction<T, ?> fieldName) {
+        return replaceWith(fieldName.getFieldNameLineOption());
+    }
+
+    @Override
+    public Children replaceWith(Bson bson) {
+        return custom(bson);
+    }
+
+    @Override
+    public Children sample(int size) {
+        return sample(Aggregates.sample(size));
+    }
+
+    @Override
+    public Children sample(long size) {
+        return sample(Math.toIntExact(size));
+    }
+
+    @Override
+    public Children sample(Bson bson) {
+        return custom(bson);
+    }
+
+    @Override
+    public <TExpression> Children setWindowFields(TExpression partitionBy, Bson sortBy, WindowOutputField output, WindowOutputField... moreOutput) {
+        return setWindowFields(Aggregates.setWindowFields(partitionBy,sortBy,output,moreOutput));
+    }
+
+    @Override
+    public <TExpression> Children setWindowFields(TExpression partitionBy, Bson sortBy, Iterable<? extends WindowOutputField> output) {
+        return setWindowFields(Aggregates.setWindowFields(partitionBy,sortBy,output));
+    }
+
+    @Override
+    public Children setWindowFields(Bson bson) {
+        return custom(bson);
     }
 
     @Override
@@ -669,7 +724,7 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
     }
 
     private Children buildProject(List<Projection> projectionList){
-        return custom(Aggregates.project(BuildCondition.buildProjection(projectionList)));
+        return project(Aggregates.project(BuildCondition.buildProjection(projectionList)));
     }
 
     private Bson orderBy(final String fieldName, final Integer value){

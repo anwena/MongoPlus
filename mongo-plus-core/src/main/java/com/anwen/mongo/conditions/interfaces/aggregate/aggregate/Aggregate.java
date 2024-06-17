@@ -9,13 +9,17 @@ import com.anwen.mongo.model.aggregate.Field;
 import com.anwen.mongo.support.SFunction;
 import com.mongodb.MongoNamespace;
 import com.mongodb.client.model.*;
+import com.mongodb.client.model.densify.DensifyOptions;
+import com.mongodb.client.model.densify.DensifyRange;
 import com.mongodb.lang.Nullable;
-import org.bson.BsonDocument;
-import org.bson.BsonString;
 import org.bson.conversions.Bson;
 
 import java.util.Collection;
 import java.util.List;
+
+import static com.mongodb.assertions.Assertions.notNull;
+import static com.mongodb.client.model.densify.DensifyOptions.densifyOptions;
+import static com.mongodb.internal.Iterables.concat;
 
 public interface Aggregate<Children> extends Project<Children> {
 
@@ -1189,6 +1193,24 @@ public interface Aggregate<Children> extends Project<Children> {
     /* replaceRoot阶段 */
 
     /**
+     * $replaceRoot阶段
+     * @param fieldName 字段
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/17 下午10:39
+     */
+    <TExpression> Children replaceRoot(final TExpression fieldName);
+
+    /**
+     * $replaceRoot阶段
+     * @param fieldName 字段
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/17 下午10:39
+     */
+    <T> Children replaceRoot(final SFunction<T,?> fieldName);
+
+    /**
      * $replaceRoot阶段，如果MongoPlus封装的条件未满足该阶段的需求，请自行构建Bson
      * @param bson bson
      * @return {@link Children}
@@ -1196,6 +1218,169 @@ public interface Aggregate<Children> extends Project<Children> {
      * @date 2024/6/16 下午9:56
      */
     Children replaceRoot(final Bson bson);
+
+    /* $replaceRoot阶段 end */
+
+    /* =============================================================================== */
+
+    /* $replaceWith阶段 start*/
+
+    /**
+     * $replaceWith阶段
+     * @param fieldName 字段
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/17 下午10:42
+     */
+    <TExpression> Children replaceWith(final TExpression fieldName);
+
+    /**
+     * $replaceWith阶段
+     * @param fieldName 字段
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/17 下午10:39
+     */
+    <T> Children replaceWith(final SFunction<T,?> fieldName);
+
+    /**
+     * $replaceWith阶段，如果MongoPlus封装的条件未满足该阶段的需求，请自行构建Bson
+     * @param bson bson
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/17 下午10:42
+     */
+    Children replaceWith(final Bson bson);
+
+    /* $replaceWith阶段 end */
+
+    /* =============================================================================== */
+
+    /* $sample阶段 start */
+
+    /**
+     * $sample阶段
+     * @param size 指定数量
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/17 下午10:46
+     */
+    Children sample(final int size);
+
+    /**
+     * $sample阶段
+     * @param size 指定数量
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/17 下午10:46
+     */
+    Children sample(final long size);
+
+    /**
+     * $sample阶段，如果MongoPlus封装的条件未满足该阶段的需求，请自行构建Bson
+     * @param bson bson
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/17 下午10:45
+     */
+    Children sample(final Bson bson);
+
+    /* $sample阶段 end */
+
+    /* =============================================================================== */
+
+    /* $setWindowFields阶段 start */
+
+    /**
+     * $setWindowFields阶段，可以使用{@link WindowOutputFields}构建WindowOutputField
+     * 创建一个 {@code $setWindowFields} 管道阶段，允许使用窗口运算符.
+     * 此阶段对输入文档进行分区，类似于 {@link #group(Object, List) $group} 管道阶段,可选择对它们进行排序，
+     * 通过计算每个指定的 {@linkplain Window windows} 上的窗口函数来计算文档中的字段函数，并输出文档。
+     * 与{@code $group}管道阶段的重要区别在于，属于同一分区或窗口的文档不会折叠成单个文档.
+     *
+     * @param partitionBy 可选的数据分区，如 {@link #group(Object, List)} 中的 {@code id} 指定.
+     *                    如果{@code null}，则所有文档属于同一分区.
+     * @param sortBy 排序依据的字段。语法与 {@link #sort(Bson)} 中的 {@code sort} 相同（请参阅 {@link com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Sorts}）.
+     *               某些函数需要排序，某些窗口可能需要排序（有关更多详细信息，请参阅{@link Windows}）.
+     *               排序仅用于计算窗口函数，并不保证输出文档的排序.
+     * @param output {@linkplain WindowOutputField 窗口计算}.
+     * @param moreOutput 更多{@linkplain WindowOutputField 窗口计算}.
+     * @param <TExpression> {@code partitionBy} 表达式类型.
+     * @return {@code $setWindowFields} 管道阶段.
+     * @author anwen
+     * @date 2024/6/17 下午11:46
+     */
+    <TExpression> Children setWindowFields(@Nullable final TExpression partitionBy, @Nullable final Bson sortBy,
+                                                     final WindowOutputField output, final WindowOutputField... moreOutput);
+
+    /**
+     * $setWindowFields阶段，可以使用{@link WindowOutputFields}构建WindowOutputField
+     * 创建一个 {@code $setWindowFields} 管道阶段，允许使用窗口运算符.
+     * 此阶段对输入文档进行分区，类似于 {@link #group(Object, List) $group} 管道阶段,
+     * 可选择对它们进行排序, 通过计算每个指定的 {@linkplain Window windows} 上的窗口函数来计算文档中的字段功能,
+     * 并输出文档。与 {@code $group} 管道阶段的重要区别在于,属于同一分区或窗口的文档不会折叠成一个文档.
+     *
+     * @param partitionBy 数据的可选分区指定为 {@link #group(Object, List)} 中的 {@code id}。如果{@code null}，则所有文档属于同一个分区.
+     * @param sortBy 排序依据的字段。语法与 {@link #sort(Bson)} 中的 {@code sort} 相同（请参阅 {@link com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Sorts}）.
+     *               某些函数需要排序，某些窗口可能需要排序（有关更多详细信息，请参阅{@link Windows}）.
+     *               排序仅用于计算窗口函数，并不保证输出文档的排序.
+     * @param output {@linkplain WindowOutputField 窗口计算}的列表.
+     * 指定空列表不是错误，但生成的阶段不会执行任何有用的操作.
+     * @param <TExpression> {@code partitionBy} 表达式类型.
+     * @return {@code $setWindowFields} 管道阶段.
+     * @author anwen
+     * @date 2024/6/17 下午11:46
+     */
+    <TExpression> Children setWindowFields(@Nullable final TExpression partitionBy, @Nullable final Bson sortBy,
+                                                     final Iterable<? extends WindowOutputField> output);
+
+    /**
+     * $setWindowFields阶段，如果MongoPlus封装的条件未满足该阶段的需求，请自行构建Bson
+     * @param bson bson
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/17 下午11:41
+     */
+    Children setWindowFields(Bson bson);
+
+    /* $setWindowFields阶段 end */
+
+    /* =============================================================================== */
+
+    /* $densify阶段 start */
+
+    /**
+     * $densify阶段
+     * @param field 字段
+     * @param range 范围 指定如何密集化数据的对象
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/18 上午12:03
+     */
+    Children densify(final String field, final DensifyRange range);
+
+    /**
+     * $densify阶段
+     * @param field 字段
+     * @param range 范围 指定如何密集化数据的对象
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/18 上午12:04
+     */
+    <T> Children densify(final SFunction<T,?> field, final DensifyRange range);
+
+    /**
+     * $desify阶段
+     * @param field 字段
+     * @param range 范围 制定如何密集化数据的 对象
+     * @param options 表示聚合管道的$densify管道阶段的可选字段
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/18 上午12:06
+     */
+    Children densify(final String field, final DensifyRange range, final DensifyOptions options);
+
+    /* $densify阶段 end */
 
     /**
      * 如果缺少管道，请使用该方法构建
