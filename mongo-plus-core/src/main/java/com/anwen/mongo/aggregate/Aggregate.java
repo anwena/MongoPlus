@@ -1,35 +1,41 @@
-package com.anwen.mongo.conditions.interfaces.aggregate.aggregate;
+package com.anwen.mongo.aggregate;
 
-import com.anwen.mongo.conditions.aggregate.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Accumulators;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Project;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.project.Projections;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.model.aggregate.Field;
 import com.anwen.mongo.support.SFunction;
+import com.mongodb.BasicDBObject;
 import com.mongodb.MongoNamespace;
 import com.mongodb.client.model.*;
 import com.mongodb.client.model.densify.DensifyOptions;
 import com.mongodb.client.model.densify.DensifyRange;
+import com.mongodb.client.model.fill.FillOptions;
+import com.mongodb.client.model.fill.FillOutputField;
 import com.mongodb.lang.Nullable;
 import org.bson.conversions.Bson;
 
 import java.util.Collection;
 import java.util.List;
 
-import static com.mongodb.assertions.Assertions.notNull;
-import static com.mongodb.client.model.densify.DensifyOptions.densifyOptions;
-import static com.mongodb.internal.Iterables.concat;
-
 public interface Aggregate<Children> extends Project<Children> {
 
     /**
      * 获取管道列表
-     * @return {@link java.util.List<org.bson.conversions.Bson>}
+     * @return {@link List< Bson>}
      * @author anwen
      * @date 2024/6/11 下午8:18
      */
     List<Bson> getAggregateConditionList();
+
+    /**
+     * 获取聚合管道选项
+     * @return {@link com.mongodb.BasicDBObject}
+     * @author anwen
+     * @date 2024/6/19 下午11:45
+     */
+    BasicDBObject getAggregateOptions();
 
     /* $addFields阶段 start */
 
@@ -710,7 +716,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @date 2023/8/12 21:07
      */
     <TExpression> Children lookup(final String from, final List<Variable<TExpression>> letList,
-                                  final AggregateChainWrapper<?> aggregate, final String as);
+                                  final Aggregate<?> aggregate, final String as);
 
     /**
      * $lookup阶段
@@ -721,7 +727,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author JiaChaoYang
      * @date 2023/8/12 21:07
      */
-    Children lookup(final String from, final AggregateChainWrapper<?> aggregate, final String as);
+    Children lookup(final String from, final Aggregate<?> aggregate, final String as);
 
     /**
      * $lookup阶段,如果MongoPlus封装的条件未满足该阶段的需求，请自行构建Bson
@@ -940,7 +946,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * $group阶段
      * @param id group的_id表达式，可以为null
      * @param fieldAccumulators 零个或多个字段累加器对，使用{@link Accumulators}构建
-     * @return {@link org.bson.conversions.Bson}
+     * @return {@link Bson}
      * @author anwen
      * @date 2024/6/11 下午9:06
      */
@@ -950,7 +956,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * $group阶段
      * @param id group的_id表达式，可以为null
      * @param fieldAccumulators 零个或多个字段累加器对，使用{@link Accumulators}构建
-     * @return {@link org.bson.conversions.Bson}
+     * @return {@link Bson}
      * @author anwen
      * @date 2024/6/11 下午9:07
      */
@@ -1380,7 +1386,112 @@ public interface Aggregate<Children> extends Project<Children> {
      */
     Children densify(final String field, final DensifyRange range, final DensifyOptions options);
 
+    /**
+     * $desify阶段
+     * @param field 字段
+     * @param range 范围 制定如何密集化数据的 对象
+     * @param options 表示聚合管道的$densify管道阶段的可选字段
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/18 上午12:06
+     */
+    <T> Children densify(final SFunction<T,?> field, final DensifyRange range, final DensifyOptions options);
+
+    /**
+     * $desify阶段，如果MongoPlus封装的条件未满足该阶段的需求，请自行构建Bson
+     * @param bson bson
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/19 下午10:42
+     */
+    Children densify(final Bson bson);
+
     /* $densify阶段 end */
+
+    /* =============================================================================== */
+
+    /* $fill阶段 start */
+
+    /**
+     * $fill阶段
+     * @param options 填充选项
+     * @param output {@link FillOutputField}，可以使用{@link com.anwen.mongo.conditions.interfaces.aggregate.pipeline.FillField}
+     * @param moreOutput {@link FillOutputField}，可以使用{@link com.anwen.mongo.conditions.interfaces.aggregate.pipeline.FillField}
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/19 下午11:15
+     */
+    Children fill(final FillOptions options, final FillOutputField output, final FillOutputField... moreOutput);
+
+    /**
+     * $fill阶段
+     * @param options 填充选项
+     * @param output {@link FillOutputField}，可以使用{@link com.anwen.mongo.conditions.interfaces.aggregate.pipeline.FillField}
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/19 下午11:15
+     */
+    Children fill(final FillOptions options, final Iterable<? extends FillOutputField> output);
+
+    /**
+     * $fill阶段，如果MongoPlus封装的条件未满足该阶段的需求，请自行构建Bson
+     * @param bson bson
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/19 下午10:51
+     */
+    Children fill(final Bson bson);
+
+    /* $fill阶段 end */
+
+    /* =============================================================================== */
+
+    /* $unset阶段 start */
+
+    /**
+     * $unset阶段
+     * @param field 字段
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/19 下午11:21
+     */
+    Children unset(final String... field);
+
+    /**
+     * $unset阶段
+     * @param field 字段
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/19 下午11:21
+     */
+    <T> Children unset(final SFunction<T,?>... field);
+
+    /**
+     * $unset阶段
+     * @param fields 字段
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/19 下午11:22
+     */
+    Children unset(final List<String> fields);
+
+    /**
+     * $unset阶段
+     * @param fields 字段
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/19 下午11:22
+     */
+    <T> Children unsetLambda(final List<SFunction<T,?>> fields);
+
+    /**
+     * $unset阶段，如果MongoPlus封装的条件未满足该阶段的需求，请自行构建Bson
+     * @param bson bson
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/19 下午11:19
+     */
+    Children unset(final Bson bson);
 
     /**
      * 如果缺少管道，请使用该方法构建

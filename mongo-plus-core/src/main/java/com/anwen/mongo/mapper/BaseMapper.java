@@ -1,5 +1,6 @@
 package com.anwen.mongo.mapper;
 
+import com.anwen.mongo.aggregate.Aggregate;
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
@@ -192,6 +193,16 @@ public interface BaseMapper {
      * @date 2024/5/4 下午1:24
      */
     <T,R> List<R> aggregateList(AggregateChainWrapper<T, ?> queryChainWrapper, Class<T> clazz, Class<R> rClazz);
+
+    /**
+     * 管道查询
+     * @param aggregate 管道构建
+     * @param clazz class
+     * @return {@link List<T>}
+     * @author anwen
+     * @date 2024/5/4 下午1:24
+     */
+    <T,R> List<R> aggregateList(Aggregate<?> aggregate, Class<T> clazz, Class<R> rClazz);
 
     /**
      * 根据条件查询单个

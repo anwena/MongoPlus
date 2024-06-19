@@ -1,12 +1,12 @@
-package com.anwen.mongo.conditions.aggregate.aggregate;
+package com.anwen.mongo.aggregate;
 
 import com.anwen.mongo.conditions.BuildCondition;
-import com.anwen.mongo.conditions.interfaces.aggregate.aggregate.Aggregate;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.project.Projection;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.constant.AggregationOperators;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.enums.AggregateEnum;
+import com.anwen.mongo.enums.AggregateOptionsEnum;
 import com.anwen.mongo.enums.OrderEnum;
 import com.anwen.mongo.enums.ProjectionEnum;
 import com.anwen.mongo.model.aggregate.Field;
@@ -15,10 +15,11 @@ import com.anwen.mongo.toolkit.AnnotationUtil;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoNamespace;
 import com.mongodb.client.model.*;
-import org.bson.BsonBoolean;
-import org.bson.BsonDocument;
-import org.bson.BsonInt32;
-import org.bson.BsonString;
+import com.mongodb.client.model.densify.DensifyOptions;
+import com.mongodb.client.model.densify.DensifyRange;
+import com.mongodb.client.model.fill.FillOptions;
+import com.mongodb.client.model.fill.FillOutputField;
+import org.bson.*;
 import org.bson.conversions.Bson;
 
 import java.util.*;
@@ -27,16 +28,26 @@ import java.util.stream.Collectors;
 import static com.mongodb.assertions.Assertions.notNull;
 
 @SuppressWarnings("unchecked")
-public class AggregateChainWrapper<Children> implements Aggregate<Children> {
+public class AggregateWrapper<Children> implements Aggregate<Children>,AggregateOptions<Children> {
 
     /**
      * 定义管道条件集合，需要通过调用顺序控制管道的顺序
      */
     private final List<Bson> aggregateConditionList = new ArrayList<>();
+    
+    /**
+     * 定义聚合管道选项
+     */
+    private final BasicDBObject aggregateOptions = new BasicDBObject();
 
     @Override
     public List<Bson> getAggregateConditionList() {
         return aggregateConditionList;
+    }
+
+    @Override
+    public BasicDBObject getAggregateOptions() {
+        return aggregateOptions;
     }
 
     /**
@@ -411,12 +422,12 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
 
     @Override
     @SuppressWarnings("rawtypes")
-    public <TExpression> Children lookup(String from, List<Variable<TExpression>> letList, AggregateChainWrapper<?> aggregate, String as) {
+    public <TExpression> Children lookup(String from, List<Variable<TExpression>> letList, Aggregate<?> aggregate, String as) {
         return custom(Aggregates.lookup(from,(List) letList,aggregate.getAggregateConditionList(),as));
     }
 
     @Override
-    public Children lookup(String from, AggregateChainWrapper<?> aggregate, String as) {
+    public Children lookup(String from, Aggregate<?> aggregate, String as) {
         return custom(Aggregates.lookup(from,aggregate.getAggregateConditionList(),as));
     }
 
@@ -691,6 +702,137 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
     }
 
     @Override
+    public Children densify(String field, DensifyRange range) {
+        return densify(Aggregates.densify(field,range));
+    }
+
+    @Override
+    public <T> Children densify(SFunction<T, ?> field, DensifyRange range) {
+        return densify(field.getFieldNameLine(),range);
+    }
+
+    @Override
+    public Children densify(String field, DensifyRange range, DensifyOptions options) {
+        return densify(Aggregates.densify(field,range,options));
+    }
+
+    @Override
+    public <T> Children densify(SFunction<T, ?> field, DensifyRange range, DensifyOptions options) {
+        return densify(field.getFieldNameLine(),range,options);
+    }
+
+    @Override
+    public Children densify(Bson bson) {
+        return custom(bson);
+    }
+
+    @Override
+    public Children fill(FillOptions options, FillOutputField output, FillOutputField... moreOutput) {
+        return fill(Aggregates.fill(options,output,moreOutput));
+    }
+
+    @Override
+    public Children fill(FillOptions options, Iterable<? extends FillOutputField> output) {
+        return fill(Aggregates.fill(options,output));
+    }
+
+    @Override
+    public Children fill(Bson bson) {
+        return custom(bson);
+    }
+
+    @Override
+    public Children unset(String... field) {
+        return unset(Aggregates.unset(field));
+    }
+
+    @Override
+    public <T> Children unset(SFunction<T, ?>... field) {
+        return unset(Arrays.stream(field).map(SFunction::getFieldNameLine).toArray(String[]::new));
+    }
+
+    @Override
+    public Children unset(List<String> fields) {
+        return unset(Aggregates.unset(fields));
+    }
+
+    @Override
+    public <T> Children unsetLambda(List<SFunction<T, ?>> fields) {
+        return unset(fields.stream().map(SFunction::getFieldNameLine).collect(Collectors.toList()));
+    }
+
+    @Override
+    public Children unset(Bson bson) {
+        return custom(bson);
+    }
+
+    @Override
+    public Children allowDiskUse(boolean allowDiskUse) {
+        this.aggregateOptions.append(AggregateOptionsEnum.ALLOW_DISK_USE.getOptions(), allowDiskUse);
+        return typedThis;
+    }
+
+    @Override
+    public Children batchSize(Integer size) {
+        this.aggregateOptions.append(AggregateOptionsEnum.BATCH_SIZE.getOptions(), size);
+        return typedThis;
+    }
+
+    @Override
+    public Children collation(CollationStrength collationStrength) {
+        this.aggregateOptions.append(AggregateOptionsEnum.COLLATION.getOptions(), Collation.builder().collationStrength(collationStrength).build().asDocument());
+        return typedThis;
+    }
+
+    @Override
+    public Children maxTimeMS(long time) {
+        this.aggregateOptions.append(AggregateOptionsEnum.MAX_TIME_MS.getOptions(), time);
+        return typedThis;
+    }
+
+    @Override
+    public Children maxAwaitTimeMS(long maxAwaitTime) {
+        this.aggregateOptions.append(AggregateOptionsEnum.MAX_AWAIT_TIME_MS.getOptions(), maxAwaitTime);
+        return typedThis;
+    }
+
+    @Override
+    public Children bypassDocumentValidation(boolean bypassDocumentValidation) {
+        this.aggregateOptions.append(AggregateOptionsEnum.BYPASS_DOCUMENT_VALIDATION.getOptions(), bypassDocumentValidation);
+        return typedThis;
+    }
+
+    @Override
+    public Children comment(BsonValue comment) {
+        this.aggregateOptions.append(AggregateOptionsEnum.COMMENT.getOptions(), comment);
+        return typedThis;
+    }
+
+    @Override
+    public Children comment(String comment) {
+        this.aggregateOptions.append(AggregateOptionsEnum.COMMENT_STR.getOptions(), comment);
+        return typedThis;
+    }
+
+    @Override
+    public Children hint(Bson hint) {
+        this.aggregateOptions.append(AggregateOptionsEnum.HINT.getOptions(), hint);
+        return typedThis;
+    }
+
+    @Override
+    public Children hint(String hint) {
+        this.aggregateOptions.append(AggregateOptionsEnum.HINT_STR.getOptions(), hint);
+        return typedThis;
+    }
+
+    @Override
+    public Children let(Bson variables) {
+        this.aggregateOptions.append(AggregateOptionsEnum.LET.getOptions(), variables);
+        return typedThis;
+    }
+    
+    @Override
     public Children custom(Bson bson) {
         this.aggregateConditionList.add(bson);
         return typedThis;
@@ -736,5 +878,4 @@ public class AggregateChainWrapper<Children> implements Aggregate<Children> {
         fieldNames.forEach(fieldName -> document.append(fieldName, new BsonInt32(value)));
         return document;
     }
-
 }

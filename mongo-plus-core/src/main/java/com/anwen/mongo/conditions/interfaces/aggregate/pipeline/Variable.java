@@ -2,8 +2,6 @@ package com.anwen.mongo.conditions.interfaces.aggregate.pipeline;
 
 import com.anwen.mongo.support.SFunction;
 
-import java.util.Objects;
-
 /**
  * $lookup阶段中的新变量,let
  * 对{@link com.mongodb.client.model.Variable<TExpression>}进行封装，支持lambda

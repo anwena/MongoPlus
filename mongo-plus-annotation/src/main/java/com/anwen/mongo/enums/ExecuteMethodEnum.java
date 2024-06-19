@@ -15,6 +15,8 @@ public enum ExecuteMethodEnum {
 
     QUERY("executeQuery"),
 
+    AGGREGATE_OLD("executeAggregateOld"),
+
     AGGREGATE("executeAggregate"),
 
     COUNT("executeCount"),

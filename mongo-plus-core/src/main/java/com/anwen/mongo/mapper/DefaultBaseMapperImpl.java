@@ -1,5 +1,6 @@
 package com.anwen.mongo.mapper;
 
+import com.anwen.mongo.aggregate.Aggregate;
 import com.anwen.mongo.cache.global.CollectionLogicDeleteCache;
 import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
@@ -155,8 +156,16 @@ public class DefaultBaseMapperImpl implements BaseMapper {
             addAll(basicDBObjectList);
         }};
         aggregateConditionList.sort(Comparator.comparingInt(AggregateBasicDBObject::getOrder));
-        AggregateIterable<Document> aggregateIterable = factory.getExecute().executeAggregate(aggregateConditionList, mongoPlusClient.getCollection(clazz),Document.class);
+        AggregateIterable<Document> aggregateIterable = factory.getExecute().executeAggregateOld(aggregateConditionList, mongoPlusClient.getCollection(clazz),Document.class);
         AggregateUtil.aggregateOptions(aggregateIterable,optionsBasicDBObject);
+        return mongoConverter.read(aggregateIterable,rClazz);
+    }
+
+    @Override
+    public <T, R> List<R> aggregateList(Aggregate<?> aggregate, Class<T> clazz, Class<R> rClazz) {
+        List<Bson> aggregateConditionList = aggregate.getAggregateConditionList();
+        AggregateIterable<Document> aggregateIterable = factory.getExecute().executeAggregate(aggregateConditionList, mongoPlusClient.getCollection(clazz), Document.class);
+        AggregateUtil.aggregateOptions(aggregateIterable,aggregate.getAggregateOptions());
         return mongoConverter.read(aggregateIterable,rClazz);
     }
 

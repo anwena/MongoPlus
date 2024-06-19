@@ -76,7 +76,18 @@ public interface Interceptor {
      * @author JiaChaoYang
      * @date 2024/3/19 19:18
      */
+    @Deprecated
     default List<AggregateBasicDBObject> executeAggregate(List<AggregateBasicDBObject> aggregateConditionList) {
+        return aggregateConditionList;
+    }
+
+    /**
+     * 管道拦截方法
+     *
+     * @author JiaChaoYang
+     * @date 2024/3/19 19:18
+     */
+    default List<Bson> executeAggregates(List<Bson> aggregateConditionList) {
         return aggregateConditionList;
     }
 
@@ -149,6 +160,16 @@ public interface Interceptor {
      * @date 2024/3/19 19:18
      */
     default List<AggregateBasicDBObject> executeAggregate(List<AggregateBasicDBObject> aggregateConditionList, MongoCollection<Document> collection) {
+        return aggregateConditionList;
+    }
+
+    /**
+     * 管道拦截方法
+     *
+     * @author JiaChaoYang
+     * @date 2024/3/19 19:18
+     */
+    default List<Bson> executeAggregates(List<Bson> aggregateConditionList, MongoCollection<Document> collection) {
         return aggregateConditionList;
     }
 

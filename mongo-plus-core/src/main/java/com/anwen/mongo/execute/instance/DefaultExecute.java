@@ -52,8 +52,13 @@ public class DefaultExecute implements Execute {
     }
 
     @Override
-    public <T> AggregateIterable<T> executeAggregate(List<AggregateBasicDBObject> aggregateConditionList, MongoCollection<Document> collection, Class<T> clazz) {
+    public <T> AggregateIterable<T> executeAggregateOld(List<AggregateBasicDBObject> aggregateConditionList, MongoCollection<Document> collection, Class<T> clazz) {
         return collection.aggregate(aggregateConditionList, clazz);
+    }
+
+    @Override
+    public <T> AggregateIterable<T> executeAggregate(List<? extends Bson> aggregateConditionList, MongoCollection<Document> collection, Class<T> clazz) {
+        return collection.aggregate(aggregateConditionList,clazz);
     }
 
     @Override

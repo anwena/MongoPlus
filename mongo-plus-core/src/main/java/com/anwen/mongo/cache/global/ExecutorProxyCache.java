@@ -22,6 +22,7 @@ public class ExecutorProxyCache {
         EXECUTOR_MAP.put(ExecuteMethodEnum.REMOVE.getMethod(), new RemoveExecutorStrategy());
         EXECUTOR_MAP.put(ExecuteMethodEnum.UPDATE.getMethod(), new UpdateExecutorStrategy());
         EXECUTOR_MAP.put(ExecuteMethodEnum.QUERY.getMethod(), new QueryExecutorStrategy());
+        EXECUTOR_MAP.put(ExecuteMethodEnum.AGGREGATE_OLD.getMethod(), new AggregateExecutorOldStrategy());
         EXECUTOR_MAP.put(ExecuteMethodEnum.AGGREGATE.getMethod(), new AggregateExecutorStrategy());
         EXECUTOR_MAP.put(ExecuteMethodEnum.COUNT.getMethod(), new CountExecutorStrategy());
         EXECUTOR_MAP.put(ExecuteMethodEnum.BULK_WRITE.getMethod(), new BulkWriteExecutorStrategy());

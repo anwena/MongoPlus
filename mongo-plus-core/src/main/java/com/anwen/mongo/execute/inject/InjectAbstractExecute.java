@@ -265,7 +265,7 @@ public class InjectAbstractExecute {
             addAll(basicDBObjectList);
         }};
         aggregateConditionList.sort(Comparator.comparingInt(AggregateBasicDBObject::getOrder));
-        AggregateIterable<Map> aggregateIterable = execute.executeAggregate(aggregateConditionList, collectionManager.getCollection(collectionName), Map.class);
+        AggregateIterable<Map> aggregateIterable = execute.executeAggregateOld(aggregateConditionList, collectionManager.getCollection(collectionName), Map.class);
         aggregateOptions(aggregateIterable,optionsBasicDBObject);
         return Converter.convertDocumentToMap(aggregateIterable.iterator());
     }
@@ -276,7 +276,7 @@ public class InjectAbstractExecute {
             addAll(basicDBObjectList);
         }};
         aggregateConditionList.sort(Comparator.comparingInt(AggregateBasicDBObject::getOrder));
-        AggregateIterable<Document> aggregateIterable = execute.executeAggregate(aggregateConditionList, collectionManager.getCollection(collectionName),Document.class);
+        AggregateIterable<Document> aggregateIterable = execute.executeAggregateOld(aggregateConditionList, collectionManager.getCollection(collectionName),Document.class);
         aggregateOptions(aggregateIterable,optionsBasicDBObject);
 //        return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),clazz);
         return mongoConverter.read(aggregateIterable,clazz);

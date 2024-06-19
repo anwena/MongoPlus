@@ -2,8 +2,6 @@ package com.anwen.mongo.conditions.interfaces.aggregate.pipeline.project;
 
 import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
-import com.anwen.mongo.model.BaseModelID;
-import com.anwen.mongo.model.BaseProperty;
 import com.anwen.mongo.support.SFunction;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
