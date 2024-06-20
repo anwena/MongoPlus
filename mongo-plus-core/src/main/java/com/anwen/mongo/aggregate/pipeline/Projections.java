@@ -1,4 +1,4 @@
-package com.anwen.mongo.conditions.interfaces.aggregate.pipeline.project;
+package com.anwen.mongo.aggregate.pipeline;
 
 import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
@@ -210,7 +210,7 @@ public class Projections {
      * @since mongodb.driver.manual reference/operator/projection/elemMatch elemMatch
      */
     public static Bson elemMatch(final String fieldName, final Bson filter) {
-        return new Projections.ElemMatchFilterProjection(fieldName, filter);
+        return new ElemMatchFilterProjection(fieldName, filter);
     }
 
     /**

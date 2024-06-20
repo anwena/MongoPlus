@@ -1,5 +1,7 @@
 package com.anwen.mongo.toolkit;
 
+import com.anwen.mongo.aggregate.Aggregate;
+import com.anwen.mongo.aggregate.LambdaAggregateWrapper;
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.aggregate.AggregateWrapper;
 import com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper;
@@ -29,6 +31,10 @@ public final class ChainWrappers {
 
     public static <T> LambdaAggregateChainWrapper<T> lambdaAggregateChain(BaseMapper baseMapper, Class<T> clazz){
         return new LambdaAggregateChainWrapper<>(baseMapper, clazz);
+    }
+
+    public static <T> LambdaAggregateWrapper<T> lambdaAggregatesChain(BaseMapper baseMapper,Class<T> clazz){
+        return new LambdaAggregateWrapper<>(baseMapper, clazz);
     }
 
     public static <T> LambdaUpdateChainWrapper<T> lambdaUpdateChain(BaseMapper baseMapper, Class<T> clazz){

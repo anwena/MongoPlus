@@ -1,6 +1,6 @@
-package com.anwen.mongo.conditions.interfaces.aggregate.pipeline;
+package com.anwen.mongo.aggregate.pipeline;
 
-import com.anwen.mongo.conditions.aggregate.aggregate.AggregateChainWrapper;
+import com.anwen.mongo.aggregate.Aggregate;
 import org.bson.conversions.Bson;
 
 import java.util.List;
@@ -41,7 +41,7 @@ public class Facet extends com.mongodb.client.model.Facet {
      * @author anwen
      * @date 2024/6/11 下午8:10
      */
-    public Facet(String name, AggregateChainWrapper<?> aggregateChainWrapper){
+    public Facet(String name, Aggregate<?> aggregateChainWrapper){
         super(name, aggregateChainWrapper.getAggregateConditionList());
     }
     

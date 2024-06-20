@@ -1,4 +1,4 @@
-package com.anwen.mongo.conditions.interfaces.aggregate.pipeline;
+package com.anwen.mongo.aggregate.pipeline;
 
 import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.support.SFunction;

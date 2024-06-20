@@ -2,7 +2,7 @@ package com.anwen.mongo.conditions.query;
 
 import com.anwen.mongo.conditions.AbstractChainWrapper;
 import com.anwen.mongo.conditions.interfaces.Query;
-import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.project.Projection;
+import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
 import com.anwen.mongo.enums.OrderEnum;
 import com.anwen.mongo.support.SFunction;
 

@@ -1,4 +1,4 @@
-package com.anwen.mongo.conditions.interfaces.aggregate.pipeline;
+package com.anwen.mongo.aggregate.pipeline;
 
 import com.anwen.mongo.support.SFunction;
 import com.mongodb.client.model.WindowOutputFields;

@@ -1,7 +1,8 @@
 package com.anwen.mongo.aggregate;
 
+import com.anwen.mongo.aggregate.pipeline.UnwindOption;
 import com.anwen.mongo.conditions.BuildCondition;
-import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.project.Projection;
+import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.constant.AggregationOperators;
 import com.anwen.mongo.constant.SqlOperationConstant;
@@ -562,14 +563,14 @@ public class AggregateWrapper<Children> implements Aggregate<Children>,Aggregate
     }
 
     @Override
-    public Children unwind(String fieldName, com.anwen.mongo.conditions.interfaces.aggregate.pipeline.UnwindOptions unwindOptions) {
-        notNull("unwindOptions", unwindOptions);
+    public Children unwind(String fieldName, UnwindOption unwindOption) {
+        notNull("unwindOptions", unwindOption);
         BsonDocument options = new BsonDocument("path", new BsonString(fieldName));
-        Boolean preserveNullAndEmptyArrays = unwindOptions.isPreserveNullAndEmptyArrays();
+        Boolean preserveNullAndEmptyArrays = unwindOption.isPreserveNullAndEmptyArrays();
         if (preserveNullAndEmptyArrays != null) {
             options.append("preserveNullAndEmptyArrays", BsonBoolean.valueOf(preserveNullAndEmptyArrays));
         }
-        String includeArrayIndex = unwindOptions.getIncludeArrayIndex();
+        String includeArrayIndex = unwindOption.getIncludeArrayIndex();
         if (includeArrayIndex != null) {
             options.append("includeArrayIndex", new BsonString(includeArrayIndex));
         }
@@ -577,8 +578,8 @@ public class AggregateWrapper<Children> implements Aggregate<Children>,Aggregate
     }
 
     @Override
-    public <T> Children unwind(SFunction<T, ?> fieldName, com.anwen.mongo.conditions.interfaces.aggregate.pipeline.UnwindOptions unwindOptions) {
-        return unwind(fieldName.getFieldNameLineOption(),unwindOptions);
+    public <T> Children unwind(SFunction<T, ?> fieldName, UnwindOption unwindOption) {
+        return unwind(fieldName.getFieldNameLineOption(), unwindOption);
     }
 
     @Override

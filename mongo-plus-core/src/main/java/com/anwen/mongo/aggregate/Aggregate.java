@@ -1,8 +1,7 @@
 package com.anwen.mongo.aggregate;
 
-import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Accumulators;
-import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Project;
-import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.project.Projections;
+import com.anwen.mongo.aggregate.pipeline.Project;
+import com.anwen.mongo.aggregate.pipeline.UnwindOption;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.model.aggregate.Field;
 import com.anwen.mongo.support.SFunction;
@@ -410,7 +409,7 @@ public interface Aggregate<Children> extends Project<Children> {
 
     /**
      * $project阶段，如果MongoPlus封装的条件未满足该阶段的需求，请自行构建Bson
-     * 如：使用{@link Projections}进行构建，基于MongoDB驱动提供，进行封装，支持lambda形式
+     * 如：使用{@link com.anwen.mongo.aggregate.pipeline.Projections}进行构建，基于MongoDB驱动提供，进行封装，支持lambda形式
      * @param bson bson
      * @return {@link Children}
      * @author anwen
@@ -776,7 +775,7 @@ public interface Aggregate<Children> extends Project<Children> {
 
     /**
      * $facet阶段
-     * @param facets facets，可以使用{@link com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Facet}进行构建
+     * @param facets facets，可以使用{@link com.anwen.mongo.aggregate.pipeline.Facet}进行构建
      * @return {@link Children}
      * @author anwen
      * @date 2024/6/11 下午8:16
@@ -785,7 +784,7 @@ public interface Aggregate<Children> extends Project<Children> {
 
     /**
      * $facet阶段
-     * @param facets facets，可以使用{@link com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Facet}进行构建
+     * @param facets facets，可以使用{@link com.anwen.mongo.aggregate.pipeline.Facet}进行构建
      * @return {@link Children}
      * @author anwen
      * @date 2024/6/11 下午8:16
@@ -945,7 +944,7 @@ public interface Aggregate<Children> extends Project<Children> {
     /**
      * $group阶段
      * @param id group的_id表达式，可以为null
-     * @param fieldAccumulators 零个或多个字段累加器对，使用{@link Accumulators}构建
+     * @param fieldAccumulators 零个或多个字段累加器对，使用{@link com.anwen.mongo.aggregate.pipeline.Accumulators}构建
      * @return {@link Bson}
      * @author anwen
      * @date 2024/6/11 下午9:06
@@ -955,7 +954,7 @@ public interface Aggregate<Children> extends Project<Children> {
     /**
      * $group阶段
      * @param id group的_id表达式，可以为null
-     * @param fieldAccumulators 零个或多个字段累加器对，使用{@link Accumulators}构建
+     * @param fieldAccumulators 零个或多个字段累加器对，使用{@link com.anwen.mongo.aggregate.pipeline.Accumulators}构建
      * @return {@link Bson}
      * @author anwen
      * @date 2024/6/11 下午9:07
@@ -1057,7 +1056,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/16 下午9:02
      */
-    Children unwind(final String fieldName, final com.anwen.mongo.conditions.interfaces.aggregate.pipeline.UnwindOptions unwindOptions);
+    Children unwind(final String fieldName, final UnwindOption unwindOption);
 
     /**
      * $unwind阶段
@@ -1066,7 +1065,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * @author anwen
      * @date 2024/6/16 下午9:02
      */
-    <T> Children unwind(final SFunction<T,?> fieldName,final com.anwen.mongo.conditions.interfaces.aggregate.pipeline.UnwindOptions unwindOptions);
+    <T> Children unwind(final SFunction<T,?> fieldName,final UnwindOption unwindOption);
 
     /**
      * $unwind阶段，如果MongoPlus封装的条件未满足该阶段的需求，请自行构建Bson
@@ -1306,7 +1305,7 @@ public interface Aggregate<Children> extends Project<Children> {
      *
      * @param partitionBy 可选的数据分区，如 {@link #group(Object, List)} 中的 {@code id} 指定.
      *                    如果{@code null}，则所有文档属于同一分区.
-     * @param sortBy 排序依据的字段。语法与 {@link #sort(Bson)} 中的 {@code sort} 相同（请参阅 {@link com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Sorts}）.
+     * @param sortBy 排序依据的字段。语法与 {@link #sort(Bson)} 中的 {@code sort} 相同（请参阅 {@link com.anwen.mongo.aggregate.pipeline.Sorts}）.
      *               某些函数需要排序，某些窗口可能需要排序（有关更多详细信息，请参阅{@link Windows}）.
      *               排序仅用于计算窗口函数，并不保证输出文档的排序.
      * @param output {@linkplain WindowOutputField 窗口计算}.
@@ -1327,7 +1326,7 @@ public interface Aggregate<Children> extends Project<Children> {
      * 并输出文档。与 {@code $group} 管道阶段的重要区别在于,属于同一分区或窗口的文档不会折叠成一个文档.
      *
      * @param partitionBy 数据的可选分区指定为 {@link #group(Object, List)} 中的 {@code id}。如果{@code null}，则所有文档属于同一个分区.
-     * @param sortBy 排序依据的字段。语法与 {@link #sort(Bson)} 中的 {@code sort} 相同（请参阅 {@link com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Sorts}）.
+     * @param sortBy 排序依据的字段。语法与 {@link #sort(Bson)} 中的 {@code sort} 相同（请参阅 {@link com.anwen.mongo.aggregate.pipeline.Sorts}）.
      *               某些函数需要排序，某些窗口可能需要排序（有关更多详细信息，请参阅{@link Windows}）.
      *               排序仅用于计算窗口函数，并不保证输出文档的排序.
      * @param output {@linkplain WindowOutputField 窗口计算}的列表.
@@ -1415,8 +1414,8 @@ public interface Aggregate<Children> extends Project<Children> {
     /**
      * $fill阶段
      * @param options 填充选项
-     * @param output {@link FillOutputField}，可以使用{@link com.anwen.mongo.conditions.interfaces.aggregate.pipeline.FillField}
-     * @param moreOutput {@link FillOutputField}，可以使用{@link com.anwen.mongo.conditions.interfaces.aggregate.pipeline.FillField}
+     * @param output {@link FillOutputField}，可以使用{@link com.anwen.mongo.aggregate.pipeline.FillField}
+     * @param moreOutput {@link FillOutputField}，可以使用{@link com.anwen.mongo.aggregate.pipeline.FillField}
      * @return {@link Children}
      * @author anwen
      * @date 2024/6/19 下午11:15
@@ -1426,7 +1425,7 @@ public interface Aggregate<Children> extends Project<Children> {
     /**
      * $fill阶段
      * @param options 填充选项
-     * @param output {@link FillOutputField}，可以使用{@link com.anwen.mongo.conditions.interfaces.aggregate.pipeline.FillField}
+     * @param output {@link FillOutputField}，可以使用{@link com.anwen.mongo.aggregate.pipeline.FillField}
      * @return {@link Children}
      * @author anwen
      * @date 2024/6/19 下午11:15

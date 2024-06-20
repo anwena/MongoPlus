@@ -1,7 +1,7 @@
 package com.anwen.mongo.conditions;
 
 import com.anwen.mongo.conditions.interfaces.Compare;
-import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.project.Projection;
+import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;

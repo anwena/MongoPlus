@@ -1,5 +1,6 @@
 package com.anwen.mongo.service;
 
+import com.anwen.mongo.aggregate.LambdaAggregateWrapper;
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper;
 import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
@@ -10,6 +11,7 @@ import com.anwen.mongo.mapping.TypeReference;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 import com.anwen.mongo.support.SFunction;
+import com.anwen.mongo.toolkit.ChainWrappers;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.CreateIndexOptions;
 import com.mongodb.client.model.DropIndexOptions;
@@ -562,7 +564,21 @@ public interface IService<T> {
 
     LambdaQueryChainWrapper<T> lambdaQuery();
 
+    @Deprecated
+    /**
+     * 获取管道构造器，请使用 {@link #lambdaAggregates()}
+     * @return {@link com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper<T>}
+     * @author anwen
+     * @date 2024/6/20 下午11:34
+     */
     LambdaAggregateChainWrapper<T> lambdaAggregate();
+
+    /**
+     * 获取管道构造器
+     * @author anwen
+     * @date 2024/6/20 下午11:34
+     */
+    LambdaAggregateWrapper<T> lambdaAggregates();
 
     LambdaUpdateChainWrapper<T> lambdaUpdate();
 

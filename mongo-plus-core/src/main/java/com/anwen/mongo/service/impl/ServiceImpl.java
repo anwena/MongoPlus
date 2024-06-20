@@ -1,5 +1,6 @@
 package com.anwen.mongo.service.impl;
 
+import com.anwen.mongo.aggregate.LambdaAggregateWrapper;
 import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.cache.global.DataSourceNameCache;
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
@@ -534,6 +535,11 @@ public class ServiceImpl<T> implements IService<T> {
     @Override
     public LambdaAggregateChainWrapper<T> lambdaAggregate() {
         return ChainWrappers.lambdaAggregateChain(baseMapper,clazz);
+    }
+
+    @Override
+    public LambdaAggregateWrapper<T> lambdaAggregates() {
+        return ChainWrappers.lambdaAggregatesChain(baseMapper,clazz);
     }
 
     @Override
