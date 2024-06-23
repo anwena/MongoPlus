@@ -75,7 +75,7 @@ public class LambdaUpdateChainInjectWrapper extends AbstractChainWrapper<String,
     }
 
     private LambdaUpdateChainInjectWrapper getBaseUpdateCompare(String column, Object value){
-        updateCompareList.add(CompareCondition.builder().condition(new Throwable().getStackTrace()[1].getMethodName()).column(column).value(value).type(CompareEnum.UPDATE.getKey()).logicType(LogicTypeEnum.AND.getKey()).build());
+        updateCompareList.add(CompareCondition.builder().condition(new Throwable().getStackTrace()[1].getMethodName()).column(column).value(value).build());
         return this;
     }
 

@@ -480,7 +480,7 @@ public interface Compare<T,Children> extends Serializable {
     Children nin(String column , Collection<?> valueList);
 
     /**
-     * 并且 在or中使用
+     * and
      * @param queryChainWrapper 链式查询
      * @return Children
      * @author JiaChaoYang
@@ -489,7 +489,7 @@ public interface Compare<T,Children> extends Serializable {
     Children and(QueryChainWrapper<?,?> queryChainWrapper);
 
     /**
-     * 并且 在or中使用
+     * and
      * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param queryChainWrapper 链式查询
      * @return Children
@@ -497,6 +497,26 @@ public interface Compare<T,Children> extends Serializable {
      * @date 2023/7/16 22:11
      */
     Children and(boolean condition,QueryChainWrapper<?,?> queryChainWrapper);
+
+    /**
+     * and
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
+     * @param function 链式查询函数
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/23 下午8:12
+     */
+    Children and(boolean condition, SFunction<QueryChainWrapper<T,?>,QueryChainWrapper<T,?>> function);
+
+
+    /**
+     * and
+     * @param function 链式查询函数
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/23 下午8:12
+     */
+    Children and(SFunction<QueryChainWrapper<T,?>,QueryChainWrapper<T,?>> function);
 
     /**
      * 或者
@@ -520,44 +540,22 @@ public interface Compare<T,Children> extends Serializable {
     /**
      * 或者
      * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
-     * @param column 列名、字段名
-     * @param value 值
-     * @return Children
-     * @author JiaChaoYang
-     * @date 2023/7/16 20:59
+     * @param function 链式查询函数
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/23 下午8:12
      */
-    Children or(boolean condition , SFunction<T,Object> column,Object value);
+    Children or(boolean condition, SFunction<QueryChainWrapper<T,?>,QueryChainWrapper<T,?>> function);
 
-    /**
-     * 或者 单个条件
-     * @param column 列名、字段名
-     * @param value 值
-     * @return Children
-     * @author JiaChaoYang
-     * @date 2023/7/16 20:48
-     */
-    Children or(SFunction<T,Object> column,Object value);
 
     /**
      * 或者
-     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
-     * @param column 列名、字段名
-     * @param value 值
-     * @return Children
-     * @author JiaChaoYang
-     * @date 2023/7/16 21:01
+     * @param function 链式查询函数
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/23 下午8:12
      */
-    Children or(boolean condition,String column,Object value);
-
-    /**
-     * 或者 单个条件
-     * @param column 列名、字段名
-     * @param value 值
-     * @return Children
-     * @author JiaChaoYang
-     * @date 2023/7/16 20:50
-     */
-    Children or(String column , Object value);
+    Children or(SFunction<QueryChainWrapper<T,?>,QueryChainWrapper<T,?>> function);
 
     /**
      * 查询的文档必须不符合所有条件
@@ -581,44 +579,22 @@ public interface Compare<T,Children> extends Serializable {
     /**
      * 查询的文档必须不符合所有条件
      * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
-     * @param column 列名、字段名
-     * @param value 值
-     * @return Children
-     * @author JiaChaoYang
-     * @date 2023/7/16 20:59
+     * @param function 链式查询函数
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/23 下午8:12
      */
-    Children nor(boolean condition , SFunction<T,Object> column,Object value);
+    Children nor(boolean condition, SFunction<QueryChainWrapper<T,?>,QueryChainWrapper<T,?>> function);
+
 
     /**
      * 查询的文档必须不符合所有条件
-     * @param column 列名、字段名
-     * @param value 值
-     * @return Children
-     * @author JiaChaoYang
-     * @date 2023/7/16 20:48
+     * @param function 链式查询函数
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/23 下午8:12
      */
-    Children nor(SFunction<T,Object> column,Object value);
-
-    /**
-     * 查询的文档必须不符合所有条件
-     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
-     * @param column 列名、字段名
-     * @param value 值
-     * @return Children
-     * @author JiaChaoYang
-     * @date 2023/7/16 21:01
-     */
-    Children nor(boolean condition,String column,Object value);
-
-    /**
-     * 查询的文档必须不符合所有条件
-     * @param column 列名、字段名
-     * @param value 值
-     * @return Children
-     * @author JiaChaoYang
-     * @date 2023/7/16 20:50
-     */
-    Children nor(String column , Object value);
+    Children nor(SFunction<QueryChainWrapper<T,?>,QueryChainWrapper<T,?>> function);
 
     /**
      * 指定查询的字段类型
@@ -745,7 +721,7 @@ public interface Compare<T,Children> extends Serializable {
      * 字段值符合余数
      * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
-     * @param divide 被除数
+     * @param divide 模数
      * @param remain 余数
      * @return Children
      * @author JiaChaoYang
@@ -756,7 +732,7 @@ public interface Compare<T,Children> extends Serializable {
     /**
      * 字段值符合余数
      * @param column 列名、字段名
-     * @param divide 被除数
+     * @param divide 模数
      * @param remain 余数
      * @return Children
      * @author JiaChaoYang
@@ -768,7 +744,7 @@ public interface Compare<T,Children> extends Serializable {
      * 字段值符合余数
      * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
-     * @param value 传入集合，第一个值为除数，第二个值为余数
+     * @param value 传入集合，第一个值为模数，第二个值为余数
      * @return Children
      * @author JiaChaoYang
      * @date 2023/7/19 23:13
@@ -778,7 +754,7 @@ public interface Compare<T,Children> extends Serializable {
     /**
      * 字段值符合余数
      * @param column 列名、字段名
-     * @param value 传入集合，第一个值为除数，第二个值为余数
+     * @param value 传入集合，第一个值为模数，第二个值为余数
      * @return Children
      * @author JiaChaoYang
      * @date 2023/7/19 23:14
@@ -789,7 +765,7 @@ public interface Compare<T,Children> extends Serializable {
      * 字段值符合余数
      * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
-     * @param divide 被除数
+     * @param divide 模数
      * @param remain 余数
      * @return Children
      * @author JiaChaoYang
@@ -800,7 +776,7 @@ public interface Compare<T,Children> extends Serializable {
     /**
      * 字段值符合余数
      * @param column 列名、字段名
-     * @param divide 被除数
+     * @param divide 模数
      * @param remain 余数
      * @return Children
      * @author JiaChaoYang
@@ -812,7 +788,7 @@ public interface Compare<T,Children> extends Serializable {
      * 字段值符合余数
      * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
-     * @param value 传入集合，第一个值为除数，第二个值为余数
+     * @param value 传入集合，第一个值为模数，第二个值为余数
      * @return Children
      * @author JiaChaoYang
      * @date 2023/7/19 23:15
@@ -822,7 +798,7 @@ public interface Compare<T,Children> extends Serializable {
     /**
      * 字段值符合余数
      * @param column 列名、字段名
-     * @param value 传入集合，第一个值为除数，第二个值为余数
+     * @param value 传入集合，第一个值为模数，第二个值为余数
      * @return Children
      * @author JiaChaoYang
      * @date 2023/7/19 23:15
@@ -1046,6 +1022,115 @@ public interface Compare<T,Children> extends Serializable {
      * @date 2023/11/14 11:02
      */
     Children between(String column,Object gte,Object lte,boolean convertGtOrLt);
+
+    /**
+     * 匹配给定表达式为 true 的所有文档
+     * @param javaScriptExpression JavaScript 表达式
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/23 下午10:51
+     */
+    Children where(String javaScriptExpression);
+
+    /**
+     * 匹配所有字段值为指定大小的数组的文档
+     * @param fieldName 字段名
+     * @param size 数组的大小
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/23 下午10:51
+     */
+    Children size(SFunction<T,?> fieldName, int size);
+
+    /**
+     * 匹配所有字段值为指定大小的数组的文档
+     * @param fieldName 字段名
+     * @param size 数组的大小
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/23 下午10:51
+     */
+    Children size(String fieldName, int size);
+
+    /**
+     * 匹配字段中所有位位置均清晰的所有文档
+     * @param fieldName 字段名
+     * @param bitmask 位掩码
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/23 下午10:57
+     */
+    Children bitsAllClear(SFunction<T,?> fieldName, long bitmask);
+
+    /**
+     * 匹配字段中所有位位置均清晰的所有文档
+     * @param fieldName 字段名
+     * @param bitmask 位掩码
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/23 下午10:57
+     */
+    Children bitsAllClear(String fieldName, long bitmask);
+
+    /**
+     * 匹配所有位位置均在字段中设置的所有文档。
+     * @param fieldName 字段名
+     * @param bitmask 位掩码
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/23 下午10:58
+     */
+    Children bitsAllSet(SFunction<T,?> fieldName, long bitmask);
+
+    /**
+     * 匹配所有位位置均在字段中设置的所有文档。
+     * @param fieldName 字段名
+     * @param bitmask 位掩码
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/23 下午10:58
+     */
+    Children bitsAllSet(String fieldName, long bitmask);
+
+    /**
+     * 匹配字段中任何位位置清晰的所有文档
+     * @param fieldName 字段名
+     * @param bitmask 位掩码
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/23 下午11:00
+     */
+    Children bitsAnyClear(SFunction<T,?> fieldName, long bitmask);
+
+    /**
+     * 匹配字段中任何位位置清晰的所有文档
+     * @param fieldName 字段名
+     * @param bitmask 位掩码
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/23 下午11:00
+     */
+    Children bitsAnyClear(String fieldName, long bitmask);
+
+    /**
+     * 匹配在字段中设置任何位位置的所有文档。
+     * @param fieldName 字段名
+     * @param bitmask 位掩码
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/23 下午10:58
+     */
+    Children bitsAnySet(SFunction<T,?> fieldName, long bitmask);
+
+    /**
+     * 匹配在字段中设置任何位位置的所有文档。
+     * @param fieldName 字段名
+     * @param bitmask 位掩码
+     * @return {@link Children}
+     * @author anwen
+     * @date 2024/6/23 下午10:58
+     */
+    Children bitsAnySet(String fieldName, long bitmask);
 
     Children custom(BasicDBObject basicDBObject);
 

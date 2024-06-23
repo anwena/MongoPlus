@@ -1,5 +1,6 @@
 package com.anwen.mongo.service.impl;
 
+import com.anwen.mongo.aggregate.Aggregate;
 import com.anwen.mongo.aggregate.LambdaAggregateWrapper;
 import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.cache.global.DataSourceNameCache;
@@ -38,10 +39,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * IService接口通用方法实现
  * @author JiaChaoYang
- * 接口实现
- * @since 2023-02-09 14:13
+ * @date 2023-02-09 14:13
  **/
+@SuppressWarnings("unchecked")
 public class ServiceImpl<T> implements IService<T> {
 
     private BaseMapper baseMapper;
@@ -231,6 +233,16 @@ public class ServiceImpl<T> implements IService<T> {
     @Override
     public <R> List<R> aggregateList(AggregateChainWrapper<T, ?> queryChainWrapper, Class<R> rClazz) {
         return baseMapper.aggregateList(queryChainWrapper,clazz,rClazz);
+    }
+
+    @Override
+    public List<T> list(Aggregate<?> aggregate) {
+        return list(aggregate,clazz);
+    }
+
+    @Override
+    public <R> List<R> list(Aggregate<?> aggregate, Class<R> rClass) {
+        return baseMapper.aggregateList(aggregate,clazz,rClass);
     }
 
     @Override

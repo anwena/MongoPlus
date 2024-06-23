@@ -3,8 +3,6 @@ package com.anwen.mongo.conditions.update;
 import com.anwen.mongo.conditions.AbstractChainWrapper;
 import com.anwen.mongo.conditions.interfaces.Update;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
-import com.anwen.mongo.enums.CompareEnum;
-import com.anwen.mongo.enums.LogicTypeEnum;
 import com.anwen.mongo.support.SFunction;
 
 import java.util.ArrayList;
@@ -17,6 +15,7 @@ import java.util.List;
 */
 public class UpdateChainWrapper<T,Children extends UpdateChainWrapper<T,Children>> extends AbstractChainWrapper<T, LambdaUpdateChainWrapper<T>> implements Update<UpdateChainWrapper<T,Children>,T> {
 
+    @SuppressWarnings("unchecked")
     protected final Children typedThis = (Children) this;
 
     private final List<CompareCondition> updateCompareList = new ArrayList<>();
@@ -118,12 +117,11 @@ public class UpdateChainWrapper<T,Children extends UpdateChainWrapper<T,Children
     }
 
     private Children getBaseUpdateCompare(SFunction<T, Object> column, Object value){
-        updateCompareList.add(CompareCondition.builder().condition(Thread.currentThread().getStackTrace()[2].getMethodName()).column(column.getFieldNameLine()).value(value).type(CompareEnum.UPDATE.getKey()).logicType(LogicTypeEnum.AND.getKey()).build());
-        return typedThis;
+        return getBaseUpdateCompare(column.getFieldNameLine(),value);
     }
 
     private Children getBaseUpdateCompare(String column, Object value){
-        updateCompareList.add(CompareCondition.builder().condition(Thread.currentThread().getStackTrace()[2].getMethodName()).column(column).value(value).type(CompareEnum.UPDATE.getKey()).logicType(LogicTypeEnum.AND.getKey()).build());
+        updateCompareList.add(new CompareCondition(Thread.currentThread().getStackTrace()[2].getMethodName(),column,value));
         return typedThis;
     }
 

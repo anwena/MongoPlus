@@ -1,6 +1,5 @@
 package com.anwen.mongo.toolkit;
 
-import com.anwen.mongo.aggregate.Aggregate;
 import com.anwen.mongo.aggregate.LambdaAggregateWrapper;
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.aggregate.AggregateWrapper;

@@ -1,8 +1,5 @@
 package com.anwen.mongo.aggregate;
 
-import com.anwen.mongo.model.PageParam;
-import com.anwen.mongo.model.PageResult;
-
 import java.util.List;
 
 public interface ChainAggregate<T> {

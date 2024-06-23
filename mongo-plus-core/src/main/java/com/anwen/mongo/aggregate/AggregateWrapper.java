@@ -228,7 +228,7 @@ public class AggregateWrapper<Children> implements Aggregate<Children>,Aggregate
 
     @Override
     public Children match(QueryChainWrapper<?, ?> queryChainWrapper) {
-        return custom(BuildCondition.buildQueryCondition(queryChainWrapper.getCompareList()));
+        return custom(Aggregates.match(BuildCondition.buildQueryCondition(queryChainWrapper.getCompareList())));
     }
 
     @Override

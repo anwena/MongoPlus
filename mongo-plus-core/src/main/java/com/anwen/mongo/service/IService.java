@@ -1,5 +1,6 @@
 package com.anwen.mongo.service;
 
+import com.anwen.mongo.aggregate.Aggregate;
 import com.anwen.mongo.aggregate.LambdaAggregateWrapper;
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper;
@@ -11,7 +12,6 @@ import com.anwen.mongo.mapping.TypeReference;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 import com.anwen.mongo.support.SFunction;
-import com.anwen.mongo.toolkit.ChainWrappers;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.CreateIndexOptions;
 import com.mongodb.client.model.DropIndexOptions;
@@ -95,6 +95,13 @@ public interface IService<T> {
     */
     Boolean updateById(T entity);
 
+    /**
+     * 根据id修改多个
+     * @param entityList 修改的对象，需要包含id
+     * @return {@link java.lang.Boolean}
+     * @author anwen
+     * @date 2024/6/23 下午5:13
+     */
     Boolean updateBatchByIds(Collection<T> entityList);
 
     /**
@@ -107,6 +114,14 @@ public interface IService<T> {
     */
     Boolean updateByColumn(T entity, SFunction<T, Object> column);
 
+    /**
+     * 通过列进行修改
+     * @param entity 修改的实体
+     * @param column 根据什么列修改
+     * @return {@link java.lang.Boolean}
+     * @author anwen
+     * @date 2024/6/23 下午5:13
+     */
     Boolean updateByColumn(T entity, String column);
 
     /**
@@ -189,24 +204,123 @@ public interface IService<T> {
     @Deprecated
     <R> List<R> list(TypeReference<R> typeReference);
 
+    /**
+     * 管道查询
+     * 请使用：{@link #list(Aggregate)}
+     * @param queryChainWrapper 管道
+     * @return {@link java.util.List<T>}
+     * @author anwen
+     * @date 2024/6/23 下午5:03
+     */
+    @Deprecated
     List<T> aggregateList(AggregateChainWrapper<T,?> queryChainWrapper);
 
+    /**
+     * 管道查询
+     * 请使用: {@link #list(Aggregate, Class)}
+     * @param queryChainWrapper 管道
+     * @param rClazz 返回值类型
+     * @return {@link java.util.List<R>}
+     * @author anwen
+     * @date 2024/6/23 下午5:03
+     */
+    @Deprecated
     <R> List<R> aggregateList(AggregateChainWrapper<T,?> queryChainWrapper,Class<R> rClazz);
 
+    /**
+     * 管道查询
+     * @param aggregate 管道
+     * @return {@link List<T>}
+     * @author anwen
+     * @date 2024/6/23 下午5:03
+     */
+    List<T> list(Aggregate<?> aggregate);
+
+    /**
+     * 管道查询
+     * @param aggregate 管道
+     * @param rClass 返回值类型
+     * @return {@link java.util.List<R>}
+     * @author anwen
+     * @date 2024/6/23 下午5:04
+     */
+    <R> List<R> list(Aggregate<?> aggregate, Class<R> rClass);
+
+    /**
+     * 查询单个
+     * @param queryChainWrapper 条件
+     * @return {@link T}
+     * @author anwen
+     * @date 2024/6/23 下午5:12
+     */
     T one(QueryChainWrapper<T,?> queryChainWrapper);
 
+    /**
+     * 查询单个
+     * @param queryChainWrapper 条件
+     * @param rClazz 返回值类型
+     * @return {@link R}
+     * @author anwen
+     * @date 2024/6/23 下午5:13
+     */
     <R> R one(QueryChainWrapper<T,?> queryChainWrapper,Class<R> rClazz);
 
+    /**
+     * 查询列表
+     * @param queryChainWrapper 条件
+     * @return {@link java.util.List<T>}
+     * @author anwen
+     * @date 2024/6/23 下午5:13
+     */
     List<T> list(QueryChainWrapper<T ,?> queryChainWrapper);
 
+    /**
+     * 查询列表
+     * @param queryChainWrapper 条件
+     * @param rClazz 返回值类型
+     * @return {@link java.util.List<R>}
+     * @author anwen
+     * @date 2024/6/23 下午5:13
+     */
     <R> List<R> list(QueryChainWrapper<T ,?> queryChainWrapper,Class<R> rClazz);
 
+    /**
+     * 管道查询
+     * 请使用：{@link #list(Aggregate)}
+     * @param queryChainWrapper 管道
+     * @return {@link java.util.List<T>}
+     * @author anwen
+     * @date 2024/6/23 下午5:03
+     */
+    @Deprecated
     List<T> list(AggregateChainWrapper<T,?> queryChainWrapper);
 
+    /**
+     * 管道查询
+     * 请使用: {@link #list(Aggregate, Class)}
+     * @param queryChainWrapper 管道
+     * @param rClazz 返回值类型
+     * @return {@link java.util.List<R>}
+     * @author anwen
+     * @date 2024/6/23 下午5:03
+     */
     <R> List<R> list(AggregateChainWrapper<T,?> queryChainWrapper,Class<R> rClazz);
 
+    /**
+     * 获取总数
+     * @return {@link long}
+     * @author anwen
+     * @date 2024/6/23 下午5:06
+     */
     long count();
 
+    /**
+     * 获取总数
+     * @param queryChainWrapper 条件
+     * @return {@link long}
+     * @author anwen
+     * @date 2024/6/23 下午5:06
+     */
     long count(QueryChainWrapper<T,?> queryChainWrapper);
 
     /**
@@ -218,6 +332,14 @@ public interface IService<T> {
     */
     PageResult<T> page(PageParam pageParam);
 
+    /**
+     * 分页查询
+     * @param pageParam 分页参数对象
+     * @param rClazz 返回值类型
+     * @return {@link com.anwen.mongo.model.PageResult<R>}
+     * @author anwen
+     * @date 2024/6/23 下午5:07
+     */
     <R> PageResult<R> page(PageParam pageParam,Class<R> rClazz);
 
     /**
@@ -230,6 +352,15 @@ public interface IService<T> {
     */
     PageResult<T> page(PageParam pageParam, Integer recentPageNum);
 
+    /**
+     * 分页查询
+     * @param pageParam 分页参数对象
+     * @param recentPageNum 查询最近n页的数据  {参数=null 表示仅查询当前页数据}  {参数取值[5-50] 表示查询最近[5-50]页的数据 建议recentPageNum等于10 参考 百度分页检索}
+     * @param rClazz 返回值类型
+     * @return {@link com.anwen.mongo.model.PageResult<R>}
+     * @author anwen
+     * @date 2024/6/23 下午5:07
+     */
     <R> PageResult<R> page(PageParam pageParam, Integer recentPageNum,Class<R> rClazz);
 
     /**
@@ -242,6 +373,15 @@ public interface IService<T> {
     */
     PageResult<T> page(Integer pageNum,Integer pageSize);
 
+    /**
+     * 分页查询
+     * @param pageNum 当前页
+     * @param pageSize 每页显示行数
+     * @param rClazz 返回值类型
+     * @return com.anwen.mongo.sql.model.PageResult<T>
+     * @author JiaChaoYang
+     * @date 2023/6/25/025
+     */
     <R> PageResult<R> page(Integer pageNum,Integer pageSize,Class<R> rClazz);
 
     /**
@@ -255,12 +395,48 @@ public interface IService<T> {
     */
     PageResult<T> page(Integer pageNum,Integer pageSize, Integer recentPageNum);
 
+    /**
+     * 分页查询
+     * @param pageNum 当前页
+     * @param pageSize 每页显示行数
+     * @param queryChainWrapper 条件
+     * @return com.anwen.mongo.sql.model.PageResult<T>
+     * @author JiaChaoYang
+     * @date 2023/6/25/025
+     */
     PageResult<T> page(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize);
 
+    /**
+     * 分页查询
+     * @param queryChainWrapper 条件
+     * @param pageParam 分页参数对象
+     * @return {@link com.anwen.mongo.model.PageResult<T>}
+     * @author anwen
+     * @date 2024/6/23 下午5:08
+     */
     PageResult<T> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam);
 
+    /**
+     * 分页查询
+     * @param queryChainWrapper 条件
+     * @param pageNum 当前页
+     * @param pageSize 每页显示行数
+     * @param recentPageNum 查询最近n页的数据  {参数=null 表示仅查询当前页数据}  {参数取值[5-50] 表示查询最近[5-50]页的数据 建议recentPageNum等于10 参考 百度分页检索}
+     * @return {@link com.anwen.mongo.model.PageResult<T>}
+     * @author anwen
+     * @date 2024/6/23 下午5:08
+     */
     PageResult<T> page(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize, Integer recentPageNum);
 
+    /**
+     * 分页查询
+     * @param queryChainWrapper 条件
+     * @param pageParam 分页参数对象
+     * @param recentPageNum 查询最近n页的数据  {参数=null 表示仅查询当前页数据}  {参数取值[5-50] 表示查询最近[5-50]页的数据 建议recentPageNum等于10 参考 百度分页检索}
+     * @return {@link com.anwen.mongo.model.PageResult<T>}
+     * @author anwen
+     * @date 2024/6/23 下午5:08
+     */
     PageResult<T> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam, Integer recentPageNum);
 
     /**
@@ -268,79 +444,142 @@ public interface IService<T> {
      * @param pageNum 当前页
      * @param pageSize 每页显示行数
      * @param recentPageNum 查询最近n页的数据  {参数=null 表示仅查询当前页数据}  {参数取值[5-50] 表示查询最近[5-50]页的数据 建议recentPageNum等于10 参考 百度分页检索}
+     * @param rClazz 返回值类型
      * @return com.anwen.mongo.sql.model.PageResult<T>
      * @author JiaChaoYang
      * @date 2023/6/25/025
      */
     <R> PageResult<R> page(Integer pageNum,Integer pageSize, Integer recentPageNum,Class<R> rClazz);
 
+    /**
+     * 分页查询
+     * @param pageNum 当前页
+     * @param pageSize 每页显示行数
+     * @param queryChainWrapper 条件
+     * @param rClazz 返回值类型
+     * @return com.anwen.mongo.sql.model.PageResult<T>
+     * @author JiaChaoYang
+     * @date 2023/6/25/025
+     */
     <R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize,Class<R> rClazz);
 
+    /**
+     * 分页查询
+     * @param queryChainWrapper 条件
+     * @param pageParam 分页参数对象
+     * @param rClazz 返回值类型
+     * @return {@link com.anwen.mongo.model.PageResult<T>}
+     * @author anwen
+     * @date 2024/6/23 下午5:08
+     */
     <R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam,Class<R> rClazz);
 
+    /**
+     * 分页查询
+     * @param queryChainWrapper 条件
+     * @param pageNum 当前页
+     * @param pageSize 每页显示行数
+     * @param recentPageNum 查询最近n页的数据  {参数=null 表示仅查询当前页数据}  {参数取值[5-50] 表示查询最近[5-50]页的数据 建议recentPageNum等于10 参考 百度分页检索}
+     * @param rClazz 返回值类型
+     * @return {@link com.anwen.mongo.model.PageResult<T>}
+     * @author anwen
+     * @date 2024/6/23 下午5:08
+     */
     <R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize, Integer recentPageNum,Class<R> rClazz);
 
+    /**
+     * 分页查询
+     * @param queryChainWrapper 条件
+     * @param pageParam 分页参数对象
+     * @param recentPageNum 查询最近n页的数据  {参数=null 表示仅查询当前页数据}  {参数取值[5-50] 表示查询最近[5-50]页的数据 建议recentPageNum等于10 参考 百度分页检索}
+     * @param rClazz 返回值类型
+     * @return {@link com.anwen.mongo.model.PageResult<T>}
+     * @author anwen
+     * @date 2024/6/23 下午5:08
+     */
     <R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam, Integer recentPageNum,Class<R> rClazz);
 
     /**
      * 返回List的page，无需进行count查询，速度会比较快
-     * @author JiaChaoYang
-     * @date 2024/3/16 23:56
-    */
+     * @param pageParam 分页参数对象
+     * @return {@link java.util.List<T>}
+     * @author anwen
+     * @date 2024/6/23 下午5:10
+     */
     List<T> pageList(PageParam pageParam);
 
     /**
      * 返回List的page，无需进行count查询，速度会比较快
-     * @author JiaChaoYang
-     * @date 2024/3/16 23:56
+     * @param pageParam 分页参数对象
+     * @param rClazz 返回值类型
+     * @return {@link java.util.List<T>}
+     * @author anwen
+     * @date 2024/6/23 下午5:10
      */
     <R> List<R> pageList(PageParam pageParam,Class<R> rClazz);
 
     /**
      * 返回List的page，无需进行count查询，速度会比较快
-     *
-     * @author JiaChaoYang
-     * @date 2024/3/16 23:56
+     * @param pageNum 当前页
+     * @param pageSize 每页显示行数
+     * @return {@link java.util.List<T>}
+     * @author anwen
+     * @date 2024/6/23 下午5:10
      */
     List<T> pageList(Integer pageNum,Integer pageSize);
 
     /**
      * 返回List的page，无需进行count查询，速度会比较快
-     *
-     * @author JiaChaoYang
-     * @date 2024/3/16 23:56
+     * @param pageNum 当前页
+     * @param pageSize 每页显示行数
+     * @param rClazz 返回值类型
+     * @return {@link java.util.List<T>}
+     * @author anwen
+     * @date 2024/6/23 下午5:10
      */
     <R> List<R> pageList(Integer pageNum,Integer pageSize,Class<R> rClazz);
 
     /**
      * 返回List的page，无需进行count查询，速度会比较快
-     *
-     * @author JiaChaoYang
-     * @date 2024/3/16 23:56
+     * @param queryChainWrapper 条件
+     * @param pageNum 当前页
+     * @param pageSize 每页显示行数
+     * @return {@link java.util.List<T>}
+     * @author anwen
+     * @date 2024/6/23 下午5:11
      */
     List<T> pageList(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize);
 
     /**
      * 返回List的page，无需进行count查询，速度会比较快
-     *
-     * @author JiaChaoYang
-     * @date 2024/3/16 23:56
+     * @param queryChainWrapper 条件
+     * @param pageNum 当前页
+     * @param pageSize 每页显示行数
+     * @param rClazz 返回值类型
+     * @return {@link java.util.List<T>}
+     * @author anwen
+     * @date 2024/6/23 下午5:11
      */
     <R> List<R> pageList(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize,Class<R> rClazz);
 
     /**
      * 返回List的page，无需进行count查询，速度会比较快
-     *
-     * @author JiaChaoYang
-     * @date 2024/3/16 23:56
+     * @param queryChainWrapper 条件
+     * @param pageParam 分页参数对象
+     * @return {@link java.util.List<T>}
+     * @author anwen
+     * @date 2024/6/23 下午5:11
      */
     List<T> pageList(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam);
 
     /**
      * 返回List的page，无需进行count查询，速度会比较快
-     *
-     * @author JiaChaoYang
-     * @date 2024/3/16 23:56
+     * @param queryChainWrapper 条件
+     * @param pageParam 分页参数对象
+     * @param rClazz 返回值类型
+     * @return {@link java.util.List<T>}
+     * @author anwen
+     * @date 2024/6/23 下午5:11
      */
     <R> List<R> pageList(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam,Class<R> rClazz);
 

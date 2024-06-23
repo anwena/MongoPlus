@@ -1,10 +1,5 @@
 package com.anwen.mongo.conditions.interfaces.condition;
 
-import com.anwen.mongo.enums.CompareEnum;
-import com.anwen.mongo.enums.LogicTypeEnum;
-import com.anwen.mongo.enums.QueryOperatorEnum;
-import com.anwen.mongo.support.SFunction;
-
 import java.util.List;
 
 /**
@@ -16,13 +11,13 @@ public class CompareCondition {
 
     /**
      * 条件
-     * @since 2023/2/10 10:16
+     * @date 2023/2/10 10:16
      */
     private String condition;
 
     /**
      * 字段
-     * @since 2023/2/10 10:16
+     * @date 2023/2/10 10:16
     */
     private String column;
 
@@ -31,43 +26,6 @@ public class CompareCondition {
      * @since 2023/2/10 10:16
     */
     private Object value;
-
-    /**
-     * 类型 0查询，1修改
-     * @author JiaChaoYang
-     * @date 2023/6/25/025 1:49
-    */
-    private Integer type;
-
-    /**
-     * 逻辑运算符类型 0 and 1 or
-     * @author JiaChaoYang
-     * @date 2023/7/16 19:07
-    */
-    private Integer logicType;
-
-    /**
-     * 子条件
-     * @author JiaChaoYang
-     * @date 2023/7/16 19:22
-    */
-    private List<CompareCondition> childCondition;
-
-    public static CompareCondition build(String condition, String column, Object value) {
-        return builder().condition(condition).column(column).value(value).type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.AND.getKey()).build();
-    }
-
-    public static <T> CompareCondition build(String condition, SFunction<T, Object> column, Object value) {
-        return builder().condition(condition).column(column.getFieldNameLine()).value(value).type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.AND.getKey()).build();
-    }
-
-    public static <T> CompareCondition build(QueryOperatorEnum condition, SFunction<T, Object> column, Object value) {
-        return builder().condition(condition.getValue()).column(column.getFieldNameLine()).value(value).type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.AND.getKey()).build();
-    }
-
-    public static CompareCondition buildOr(List<CompareCondition> compareConditionList) {
-        return builder().type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.OR.getKey()).childCondition(compareConditionList).build();
-    }
 
     public static CompareConditionBuilder builder() {
         return new CompareConditionBuilder();
@@ -85,18 +43,6 @@ public class CompareCondition {
         return this.value;
     }
 
-    public Integer getType() {
-        return this.type;
-    }
-
-    public Integer getLogicType() {
-        return this.logicType;
-    }
-
-    public List<CompareCondition> getChildCondition() {
-        return this.childCondition;
-    }
-
     public void setCondition(String condition) {
         this.condition = condition;
     }
@@ -109,18 +55,6 @@ public class CompareCondition {
         this.value = value;
     }
 
-    public void setType(Integer type) {
-        this.type = type;
-    }
-
-    public void setLogicType(Integer logicType) {
-        this.logicType = logicType;
-    }
-
-    public void setChildCondition(List<CompareCondition> childCondition) {
-        this.childCondition = childCondition;
-    }
-
     public boolean equals(Object o) {
         if (o == this) {
             return true;
@@ -131,26 +65,6 @@ public class CompareCondition {
             if (!other.canEqual(this)) {
                 return false;
             } else {
-                Object this$type = this.getType();
-                Object other$type = other.getType();
-                if (this$type == null) {
-                    if (other$type != null) {
-                        return false;
-                    }
-                } else if (!this$type.equals(other$type)) {
-                    return false;
-                }
-
-                Object this$logicType = this.getLogicType();
-                Object other$logicType = other.getLogicType();
-                if (this$logicType == null) {
-                    if (other$logicType != null) {
-                        return false;
-                    }
-                } else if (!this$logicType.equals(other$logicType)) {
-                    return false;
-                }
-
                 Object this$condition = this.getCondition();
                 Object other$condition = other.getCondition();
                 if (this$condition == null) {
@@ -189,16 +103,6 @@ public class CompareCondition {
                     return false;
                 }
 
-                Object this$childCondition = this.getChildCondition();
-                Object other$childCondition = other.getChildCondition();
-                if (this$childCondition == null) {
-                    if (other$childCondition != null) {
-                        return false;
-                    }
-                } else if (!this$childCondition.equals(other$childCondition)) {
-                    return false;
-                }
-
                 return true;
             }
         }
@@ -210,32 +114,33 @@ public class CompareCondition {
 
     public int hashCode() {
         int result = 1;
-        Object $type = this.getType();
-        result = result * 59 + ($type == null ? 43 : $type.hashCode());
-        Object $logicType = this.getLogicType();
-        result = result * 59 + ($logicType == null ? 43 : $logicType.hashCode());
         Object $condition = this.getCondition();
         result = result * 59 + ($condition == null ? 43 : $condition.hashCode());
         Object $column = this.getColumn();
         result = result * 59 + ($column == null ? 43 : $column.hashCode());
         Object $value = this.getValue();
         result = result * 59 + ($value == null ? 43 : $value.hashCode());
-        Object $childCondition = this.getChildCondition();
-        result = result * 59 + ($childCondition == null ? 43 : $childCondition.hashCode());
         return result;
     }
 
     public String toString() {
-        return "CompareCondition(condition=" + this.getCondition() + ", column=" + this.getColumn() + ", value=" + this.getValue() + ", type=" + this.getType() + ", logicType=" + this.getLogicType() + ", childCondition=" + this.getChildCondition() + ")";
+        return "CompareCondition(condition=" + this.getCondition() + ", column=" + this.getColumn() + ", value=" + this.getValue()+ ")";
     }
 
-    public CompareCondition(String condition, String column, Object value, Integer type, Integer logicType, List<CompareCondition> childCondition) {
+    public CompareCondition(String condition, String column, Object value) {
         this.condition = condition;
         this.column = column;
         this.value = value;
-        this.type = type;
-        this.logicType = logicType;
-        this.childCondition = childCondition;
+    }
+
+    public CompareCondition(String condition, String value){
+        this.condition = condition;
+        this.value = value;
+    }
+
+    public CompareCondition(String condition, List<CompareCondition> compareConditionList){
+        this.condition = condition;
+        this.value = compareConditionList;
     }
 
     public CompareCondition() {
@@ -245,10 +150,6 @@ public class CompareCondition {
         private String condition;
         private String column;
         private Object value;
-        private Integer type;
-        private Integer logicType;
-        private List<CompareCondition> childCondition;
-
         CompareConditionBuilder() {
         }
 
@@ -267,27 +168,13 @@ public class CompareCondition {
             return this;
         }
 
-        public CompareConditionBuilder type(Integer type) {
-            this.type = type;
-            return this;
-        }
-
-        public CompareConditionBuilder logicType(Integer logicType) {
-            this.logicType = logicType;
-            return this;
-        }
-
-        public CompareConditionBuilder childCondition(List<CompareCondition> childCondition) {
-            this.childCondition = childCondition;
-            return this;
-        }
 
         public CompareCondition build() {
-            return new CompareCondition(this.condition, this.column, this.value, this.type, this.logicType, this.childCondition);
+            return new CompareCondition(this.condition, this.column, this.value);
         }
 
         public String toString() {
-            return "CompareCondition.CompareConditionBuilder(condition=" + this.condition + ", column=" + this.column + ", value=" + this.value + ", type=" + this.type + ", logicType=" + this.logicType + ", childCondition=" + this.childCondition + ")";
+            return "CompareCondition.CompareConditionBuilder(condition=" + this.condition + ", column=" + this.column + ", value=" + this.value+ ")";
         }
     }
 

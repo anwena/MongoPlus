@@ -5,8 +5,10 @@ import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
+import com.anwen.mongo.conditions.query.QueryWrapper;
 import com.anwen.mongo.constant.SqlOperationConstant;
-import com.anwen.mongo.enums.*;
+import com.anwen.mongo.enums.ProjectionEnum;
+import com.anwen.mongo.enums.TypeEnum;
 import com.anwen.mongo.support.SFunction;
 import com.mongodb.BasicDBObject;
 import org.bson.conversions.Bson;
@@ -15,12 +17,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * 查询条件
  * @author JiaChaoYang
  * @date 2023/6/24/024 0:49
-*/
+ */
 public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrapper<T, Children>> implements Compare<T,Children> {
 
     protected final Children typedThis = (Children) this;
@@ -41,14 +44,14 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
      * 构建显示字段
      * @author JiaChaoYang
      * @date 2023/7/30 20:34
-    */
+     */
     List<Projection> projectionList = new ArrayList<>();
 
     /**
      * 自定义条件语句
      * @author JiaChaoYang
      * @date 2023/8/20 19:40
-    */
+     */
     List<BasicDBObject> basicDBObjectList = new ArrayList<>();
 
     public Children getTypedThis() {
@@ -78,7 +81,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children eq(SFunction<T, Object> column, Object value) {
-        return getBaseCondition(column,value);
+        return eq(column.getFieldNameLine(),value);
     }
 
     @Override
@@ -98,7 +101,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children ne(SFunction<T, Object> column, Object value) {
-        return getBaseCondition(column,value);
+        return ne(column.getFieldNameLine(),value);
     }
 
     @Override
@@ -118,7 +121,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children lt(SFunction<T, Object> column, Object value) {
-        return getBaseCondition(column,value);
+        return lt(column.getFieldNameLine(),value);
     }
 
     @Override
@@ -138,7 +141,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children lte(SFunction<T, Object> column, Object value) {
-        return getBaseCondition(column,value);
+        return lte(column.getFieldNameLine(),value);
     }
 
     @Override
@@ -158,7 +161,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children gt(SFunction<T, Object> column, Object value) {
-        return getBaseCondition(column,value);
+        return gt(column.getFieldNameLine(),value);
     }
 
     @Override
@@ -178,7 +181,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children gte(SFunction<T, Object> column, Object value) {
-        return getBaseCondition(column,value);
+        return gte(column.getFieldNameLine(),value);
     }
 
     @Override
@@ -198,7 +201,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children like(SFunction<T, Object> column, Object value) {
-        return getBaseCondition(column,value);
+        return like(column.getFieldNameLine(),value);
     }
 
     @Override
@@ -208,7 +211,10 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children like(String column, Object value) {
-        return getBaseCondition(column,value);
+        if (value instanceof Pattern){
+            value = ((Pattern) value).pattern();
+        }
+        return getBaseCondition(column,value.toString());
     }
 
     @Override
@@ -218,7 +224,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children likeLeft(SFunction<T, Object> column, Object value) {
-        return like(column,"^"+value);
+        return likeLeft(column.getFieldNameLine(),value);
     }
 
     @Override
@@ -238,7 +244,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children likeRight(SFunction<T, Object> column, Object value) {
-        return like(column,value+"$");
+        return likeRight(column.getFieldNameLine(),value);
     }
 
     @Override
@@ -258,7 +264,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children in(SFunction<T, Object> column, Collection<?> valueList) {
-        return getBaseCondition(column,valueList);
+        return in(column.getFieldNameLine(),valueList);
     }
 
     @Override
@@ -278,7 +284,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children nin(SFunction<T, Object> column, Collection<?> valueList) {
-        return getBaseCondition(column,valueList);
+        return nin(column.getFieldNameLine(),valueList);
     }
 
     @Override
@@ -298,7 +304,17 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children and(QueryChainWrapper<?,?> queryChainWrapper) {
-        return getBaseAndCondition(queryChainWrapper.getCompareList());
+        return getBaseCondition(queryChainWrapper.getCompareList());
+    }
+
+    @Override
+    public Children and(boolean condition, SFunction<QueryChainWrapper<T,?>,QueryChainWrapper<T,?>> function){
+        return condition ? and(function) : typedThis;
+    }
+
+    @Override
+    public Children and(SFunction<QueryChainWrapper<T,?>,QueryChainWrapper<T,?>> function){
+        return and(function.apply(new QueryWrapper<>()));
     }
 
     @Override
@@ -308,27 +324,17 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children or(QueryChainWrapper<?,?> queryChainWrapper) {
-        return getBaseOrCondition(queryChainWrapper.getCompareList());
+        return getBaseCondition(queryChainWrapper.getCompareList());
     }
 
     @Override
-    public Children or(boolean condition, SFunction<T, Object> column, Object value) {
-        return condition ? or(column,value) : typedThis;
+    public Children or(boolean condition, SFunction<QueryChainWrapper<T, ?>, QueryChainWrapper<T, ?>> function) {
+        return condition ? or(function) : typedThis;
     }
 
     @Override
-    public Children or(SFunction<T, Object> column, Object value) {
-        return getChildBaseCondition(column,value, LogicTypeEnum.OR.getKey());
-    }
-
-    @Override
-    public Children or(boolean condition, String column, Object value) {
-        return condition ? or(column,value) : typedThis;
-    }
-
-    @Override
-    public Children or(String column, Object value) {
-        return getChildBaseCondition(column,value,LogicTypeEnum.OR.getKey());
+    public Children or(SFunction<QueryChainWrapper<T, ?>, QueryChainWrapper<T, ?>> function) {
+        return or(function.apply(new QueryWrapper<>()));
     }
 
     @Override
@@ -338,27 +344,17 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children nor(QueryChainWrapper<?,?> queryChainWrapper) {
-        return getBaseOrCondition(queryChainWrapper.getCompareList());
+        return getBaseCondition(queryChainWrapper.getCompareList());
     }
 
     @Override
-    public Children nor(boolean condition, SFunction<T, Object> column, Object value) {
-        return condition ? nor(column,value) : typedThis;
+    public Children nor(boolean condition, SFunction<QueryChainWrapper<T, ?>, QueryChainWrapper<T, ?>> function) {
+        return condition ? nor(function) : typedThis;
     }
 
     @Override
-    public Children nor(SFunction<T, Object> column, Object value) {
-        return getChildBaseCondition(column,value, LogicTypeEnum.NOR.getKey());
-    }
-
-    @Override
-    public Children nor(boolean condition, String column, Object value) {
-        return condition ? nor(column,value) : typedThis;
-    }
-
-    @Override
-    public Children nor(String column, Object value) {
-        return getChildBaseCondition(column,value,LogicTypeEnum.NOR.getKey());
+    public Children nor(SFunction<QueryChainWrapper<T, ?>, QueryChainWrapper<T, ?>> function) {
+        return nor(function.apply(new QueryWrapper<>()));
     }
 
     @Override
@@ -479,7 +475,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children elemMatch(SFunction<T,Object> column, QueryChainWrapper<?,?> queryChainWrapper) {
-        return getChildBaseCondition(column,queryChainWrapper.getCompareList(),LogicTypeEnum.ELEMMATCH.getKey());
+        return elemMatch(column.getFieldNameLine(),queryChainWrapper);
     }
 
     @Override
@@ -489,7 +485,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children elemMatch(String column, QueryChainWrapper<?,?> queryChainWrapper) {
-        return getChildBaseCondition(column,queryChainWrapper.getCompareList(),LogicTypeEnum.ELEMMATCH.getKey());
+        return getBaseCondition(column,queryChainWrapper.getCompareList());
     }
 
     @Override
@@ -519,7 +515,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children regex(SFunction<T, Object> column, Object value) {
-        return getBaseCondition(column,value);
+        return regex(column.getFieldNameLine(),value);
     }
 
     @Override
@@ -529,6 +525,9 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children regex(String column, Object value) {
+        if (value instanceof Pattern){
+            value = ((Pattern) value).pattern();
+        }
         return getBaseCondition(column,value);
     }
 
@@ -573,6 +572,61 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
     }
 
     @Override
+    public Children where(String javaScriptExpression) {
+        return getBaseCondition(javaScriptExpression);
+    }
+
+    @Override
+    public Children size(SFunction<T, ?> fieldName, int size) {
+        return size(fieldName.getFieldNameLine(),size);
+    }
+
+    @Override
+    public Children size(String fieldName, int size) {
+        return getBaseCondition(fieldName,size);
+    }
+
+    @Override
+    public Children bitsAllClear(SFunction<T, ?> fieldName, long bitmask) {
+        return bitsAllClear(fieldName.getFieldNameLine(),bitmask);
+    }
+
+    @Override
+    public Children bitsAllClear(String fieldName, long bitmask) {
+        return getBaseCondition(fieldName,bitmask);
+    }
+
+    @Override
+    public Children bitsAllSet(SFunction<T, ?> fieldName, long bitmask) {
+        return bitsAllSet(fieldName.getFieldNameLine(),bitmask);
+    }
+
+    @Override
+    public Children bitsAllSet(String fieldName, long bitmask) {
+        return getBaseCondition(fieldName,bitmask);
+    }
+
+    @Override
+    public Children bitsAnyClear(SFunction<T, ?> fieldName, long bitmask) {
+        return bitsAnyClear(fieldName.getFieldNameLine(),bitmask);
+    }
+
+    @Override
+    public Children bitsAnyClear(String fieldName, long bitmask) {
+        return getBaseCondition(fieldName,bitmask);
+    }
+
+    @Override
+    public Children bitsAnySet(SFunction<T, ?> fieldName, long bitmask) {
+        return bitsAnySet(fieldName.getFieldNameLine(),bitmask);
+    }
+
+    @Override
+    public Children bitsAnySet(String fieldName, long bitmask) {
+        return getBaseCondition(fieldName,bitmask);
+    }
+
+    @Override
     public Children custom(BasicDBObject basicDBObject) {
         this.basicDBObjectList.add(basicDBObject);
         return typedThis;
@@ -591,68 +645,27 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
     }
 
     public Children getBaseConditionBetween(String column,Object gte,Object lte,boolean convertGtOrLt){
-        compareList.add(CompareCondition.builder().condition(!convertGtOrLt ? "gte" : "gt").column(column).value(gte).type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.AND.getKey()).build());
-        compareList.add(CompareCondition.builder().condition(!convertGtOrLt ? "lte" : "lt").column(column).value(lte).type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.AND.getKey()).build());
+        compareList.add(CompareCondition.builder().condition(!convertGtOrLt ? "gte" : "gt").column(column).value(gte).build());
+        compareList.add(CompareCondition.builder().condition(!convertGtOrLt ? "lte" : "lt").column(column).value(lte).build());
         return typedThis;
     }
 
     public Children getBaseCondition(String column, Object value){
-        compareList.add(CompareCondition.builder().condition(Thread.currentThread().getStackTrace()[2].getMethodName()).column(column).value(value).type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.AND.getKey()).build());
-        return typedThis;
-    }
-
-    public Children getChildBaseCondition(String column, Object value,Integer logic){
-        this.compareList.add(CompareCondition.builder().type(CompareEnum.QUERY.getKey()).logicType(logic).childCondition(new ArrayList<CompareCondition>(){{
-            add(CompareCondition.builder().condition(Thread.currentThread().getStackTrace()[2].getMethodName()).column(column).value(value).build());
-        }}).build());
-        return typedThis;
-    }
-
-    public Children getChildBaseCondition(String column, List<CompareCondition> value,Integer logic){
-        this.compareList.add(CompareCondition.builder().column(column).type(CompareEnum.QUERY.getKey()).logicType(logic).childCondition(value).build());
-        return typedThis;
-    }
-
-    public Children getBaseOrCondition(List<CompareCondition> compareConditionList){
-        this.compareList.add(CompareCondition.builder().condition(QueryOperatorEnum.OR.getValue()).type(CompareEnum.QUERY.getKey()).logicType(LogicTypeEnum.OR.getKey()).childCondition(compareConditionList).build());
-        return typedThis;
-    }
-
-    public Children getBaseAndCondition(List<CompareCondition> compareConditionList){
-        CompareCondition compareCondition = new CompareCondition();
-        compareCondition.setCondition(QueryOperatorEnum.AND.getValue());
-        compareCondition.setType(CompareEnum.QUERY.getKey());
-        compareCondition.setLogicType(LogicTypeEnum.AND.getKey());
-        compareCondition.setChildCondition(compareConditionList);
-        this.compareList.add(compareCondition);
+        this.compareList.add(new CompareCondition(Thread.currentThread().getStackTrace()[2].getMethodName(),column,value));
         return typedThis;
     }
 
     public Children getBaseCondition(SFunction<T, Object> column, Object value){
-        compareList.add(CompareCondition.builder()
-                .condition(Thread.currentThread().getStackTrace()[2].getMethodName())
-                .column(column.getFieldNameLine())
-                .value(value)
-                .type(CompareEnum.QUERY.getKey())
-                .logicType(LogicTypeEnum.AND.getKey())
-                .build());
+        return getBaseCondition(column.getFieldNameLine(),value);
+    }
+
+    public Children getBaseCondition(List<CompareCondition> compareConditionList){
+        this.compareList.add(new CompareCondition(Thread.currentThread().getStackTrace()[2].getMethodName(),compareConditionList));
         return typedThis;
     }
 
-    public Children getChildBaseCondition(SFunction<?,Object> column,List<CompareCondition> value,Integer logic){
-        this.compareList.add(CompareCondition.builder()
-                .column(column.getFieldNameLine())
-                .type(CompareEnum.QUERY.getKey())
-                .logicType(logic)
-                .childCondition(value)
-                .build());
-        return typedThis;
-    }
-
-    public Children getChildBaseCondition(SFunction<?,Object> column,Object value,Integer logic){
-        this.compareList.add(CompareCondition.builder().type(CompareEnum.QUERY.getKey()).logicType(logic).childCondition(new ArrayList<CompareCondition>(){{
-            add(CompareCondition.builder().condition(Thread.currentThread().getStackTrace()[2].getMethodName()).column(column.getFieldNameLine()).value(value).build());
-        }}).build());
+    public Children getBaseCondition(String value){
+        this.compareList.add(new CompareCondition(Thread.currentThread().getStackTrace()[2].getMethodName(),value));
         return typedThis;
     }
 
@@ -664,10 +677,6 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
     public Children getBaseOrder(Integer type , SFunction<T, Object> column){
         orderList.add(new Order(type,column.getFieldNameLine()));
         return typedThis;
-    }
-
-    public void getBaseProject(String column, Integer value){
-        projectionList.add(Projection.builder().column(column).value(value).build());
     }
 
     public Children getBaseProject(Projection... projections){
