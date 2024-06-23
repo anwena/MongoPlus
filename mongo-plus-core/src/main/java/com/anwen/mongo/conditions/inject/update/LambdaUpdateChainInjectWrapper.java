@@ -3,8 +3,6 @@ package com.anwen.mongo.conditions.inject.update;
 import com.anwen.mongo.conditions.AbstractChainWrapper;
 import com.anwen.mongo.conditions.interfaces.Inject.InjectUpdate;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
-import com.anwen.mongo.enums.CompareEnum;
-import com.anwen.mongo.enums.LogicTypeEnum;
 import com.anwen.mongo.execute.ExecutorFactory;
 
 import java.util.ArrayList;
