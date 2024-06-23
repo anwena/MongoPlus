@@ -8,6 +8,7 @@ import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.datasource.MongoDataSourceAspect;
 import com.anwen.mongo.factory.MongoClientFactory;
 import com.anwen.mongo.listener.BaseListener;
+import com.anwen.mongo.logic.MongoLogicIgnoreAspect;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.mapper.DefaultBaseMapperImpl;
@@ -245,6 +246,18 @@ public class MongoPlusConfiguration {
     @ConditionalOnMissingBean
     public MongoDataSourceAspect mongoDataSourceAspect() {
         return new MongoDataSourceAspect();
+    }
+
+    /**
+     * 忽略逻辑删除
+     *
+     * @return {@link MongoLogicIgnoreAspect}
+     * @author loser
+     */
+    @Bean("mongoLogicIgnoreAspect")
+    @ConditionalOnMissingBean
+    public MongoLogicIgnoreAspect mongoLogicIgnoreAspect() {
+        return new MongoLogicIgnoreAspect();
     }
 
 }

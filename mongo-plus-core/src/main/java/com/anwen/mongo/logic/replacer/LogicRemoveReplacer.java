@@ -28,6 +28,9 @@ public class LogicRemoveReplacer implements Replacer {
     @Override
     public Object invoke(Object proxy, Object target, Method method, Object[] args) throws Throwable {
 
+        if (CollectionLogicDeleteCache.getLogicIgnore()) {
+            return method.invoke(target, args);
+        }
         Class<?> clazz = LogicDeleteHandler.getBeanClass((MongoCollection<Document>) args[1]);
         if (Objects.isNull(clazz)) {
             return method.invoke(target, args);

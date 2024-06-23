@@ -1,5 +1,6 @@
 package com.anwen.mongo.logic.interceptor;
 
+import com.anwen.mongo.cache.global.CollectionLogicDeleteCache;
 import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.logic.LogicDeleteHandler;
 import com.anwen.mongo.model.LogicDeleteResult;
@@ -22,6 +23,9 @@ public class LogicAutoFillInterceptor implements Interceptor {
     @Override
     public List<Document> executeSave(List<Document> documentList, MongoCollection<Document> collection) {
 
+        if (CollectionLogicDeleteCache.getLogicIgnore()) {
+            return documentList;
+        }
         Class<?> clazz = LogicDeleteHandler.getBeanClass(collection);
         if (Objects.isNull(clazz)) {
             return documentList;
@@ -41,6 +45,9 @@ public class LogicAutoFillInterceptor implements Interceptor {
     @Override
     public List<WriteModel<Document>> executeBulkWrite(List<WriteModel<Document>> writeModelList, MongoCollection<Document> collection) {
 
+        if (CollectionLogicDeleteCache.getLogicIgnore()) {
+            return writeModelList;
+        }
         Class<?> clazz = LogicDeleteHandler.getBeanClass(collection);
         if (Objects.isNull(clazz)) {
             return writeModelList;
