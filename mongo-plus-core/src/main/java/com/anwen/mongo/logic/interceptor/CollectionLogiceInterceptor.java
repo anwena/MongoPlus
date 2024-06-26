@@ -1,5 +1,6 @@
 package com.anwen.mongo.logic.interceptor;
 
+import com.anwen.mongo.cache.global.CollectionLogicDeleteCache;
 import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.logic.LogicDeleteHandler;
 import com.anwen.mongo.model.MutablePair;
@@ -27,6 +28,9 @@ public class CollectionLogiceInterceptor implements Interceptor {
     @Override
     public Bson executeRemove(Bson filter, MongoCollection<Document> collection) {
 
+        if (CollectionLogicDeleteCache.getLogicIgnore()) {
+            return filter;
+        }
         Class<?> clazz = LogicDeleteHandler.getBeanClass(collection);
         if (LogicDeleteHandler.close() || Objects.isNull(clazz)) {
             return filter;
@@ -38,6 +42,9 @@ public class CollectionLogiceInterceptor implements Interceptor {
     @Override
     public MutablePair<Bson, Bson> executeUpdate(Bson queryBasic, Bson updateBasic, MongoCollection<Document> collection) {
 
+        if (CollectionLogicDeleteCache.getLogicIgnore()) {
+            return new MutablePair<>(queryBasic, updateBasic);
+        }
         Class<?> clazz = LogicDeleteHandler.getBeanClass(collection);
         if (LogicDeleteHandler.close() || Objects.isNull(clazz)) {
             return new MutablePair<>(queryBasic, updateBasic);
@@ -50,6 +57,9 @@ public class CollectionLogiceInterceptor implements Interceptor {
     @Override
     public QueryParam executeQuery(Bson queryBasic, BasicDBObject projectionList, BasicDBObject sortCond, MongoCollection<Document> collection) {
 
+        if (CollectionLogicDeleteCache.getLogicIgnore()) {
+            return new QueryParam(queryBasic, projectionList, sortCond);
+        }
         Class<?> clazz = LogicDeleteHandler.getBeanClass(collection);
         if (LogicDeleteHandler.close() || Objects.isNull(clazz)) {
             return new QueryParam(queryBasic, projectionList, sortCond);
@@ -62,6 +72,9 @@ public class CollectionLogiceInterceptor implements Interceptor {
     @Override
     public MutablePair<BasicDBObject, CountOptions> executeCount(BasicDBObject queryBasic, CountOptions countOptions, MongoCollection<Document> collection) {
 
+        if (CollectionLogicDeleteCache.getLogicIgnore()) {
+            return new MutablePair<>(queryBasic, countOptions);
+        }
         Class<?> clazz = LogicDeleteHandler.getBeanClass(collection);
         if (LogicDeleteHandler.close() || Objects.isNull(clazz)) {
             return new MutablePair<>(queryBasic, countOptions);
@@ -75,6 +88,9 @@ public class CollectionLogiceInterceptor implements Interceptor {
     @SuppressWarnings("all")
     public List<WriteModel<Document>> executeBulkWrite(List<WriteModel<Document>> writeModelList, MongoCollection<Document> collection) {
 
+        if (CollectionLogicDeleteCache.getLogicIgnore()) {
+            return writeModelList;
+        }
         Class<?> clazz = LogicDeleteHandler.getBeanClass(collection);
         if (LogicDeleteHandler.close() || Objects.isNull(clazz)) {
             return writeModelList;
