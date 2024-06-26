@@ -13,7 +13,7 @@ import java.util.List;
  * @author JiaChaoYang
  * @date 2023/6/24/024 12:45
 */
-public class UpdateChainWrapper<T,Children extends UpdateChainWrapper<T,Children>> extends AbstractChainWrapper<T, LambdaUpdateChainWrapper<T>> implements Update<UpdateChainWrapper<T,Children>,T> {
+public class UpdateChainWrapper<T,Children extends UpdateChainWrapper<T,Children>> extends AbstractChainWrapper<T, Children> implements Update<T,Children> {
 
     @SuppressWarnings("unchecked")
     protected final Children typedThis = (Children) this;

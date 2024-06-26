@@ -1,39 +1,22 @@
 package com.anwen.mongo.mapper;
 
 import com.anwen.mongo.aggregate.Aggregate;
-import com.anwen.mongo.cache.global.CollectionLogicDeleteCache;
-import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
-import com.anwen.mongo.constant.SqlOperationConstant;
-import com.anwen.mongo.enums.SpecialConditionEnum;
-import com.anwen.mongo.execute.Execute;
 import com.anwen.mongo.execute.ExecutorFactory;
-import com.anwen.mongo.logging.Log;
-import com.anwen.mongo.logging.LogFactory;
-import com.anwen.mongo.logic.LogicDeleteHandler;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapping.MongoConverter;
 import com.anwen.mongo.mapping.TypeReference;
-import com.anwen.mongo.model.*;
-import com.anwen.mongo.toolkit.Filters;
-import com.anwen.mongo.toolkit.*;
-import com.mongodb.BasicDBObject;
-import com.mongodb.bulk.BulkWriteResult;
-import com.mongodb.client.AggregateIterable;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
+import com.anwen.mongo.model.PageResult;
 import com.mongodb.client.model.*;
-import com.mongodb.client.result.InsertManyResult;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.bson.types.ObjectId;
 
 import java.io.Serializable;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * baseMapper默认实现
@@ -42,19 +25,20 @@ import java.util.stream.Collectors;
  * @project mongo-plus
  * @date 2024-02-05 11:47
  **/
-public class DefaultBaseMapperImpl implements BaseMapper {
-
-    private final Log log = LogFactory.getLog(DefaultBaseMapperImpl.class);
+public class DefaultBaseMapperImpl extends AbstractBaseMapper {
 
     private final MongoPlusClient mongoPlusClient;
-
-    private final LambdaOperate lambdaOperate = new LambdaOperate();
-
-    private final ExecutorFactory factory = new ExecutorFactory();
 
     private final MongoConverter mongoConverter;
 
     public DefaultBaseMapperImpl(MongoPlusClient mongoPlusClient,MongoConverter mongoConverter) {
+        super(mongoPlusClient,mongoConverter,new ExecutorFactory());
+        this.mongoPlusClient = mongoPlusClient;
+        this.mongoConverter = mongoConverter;
+    }
+
+    public DefaultBaseMapperImpl(MongoPlusClient mongoPlusClient,MongoConverter mongoConverter,ExecutorFactory factory) {
+        super(mongoPlusClient,mongoConverter,factory);
         this.mongoPlusClient = mongoPlusClient;
         this.mongoConverter = mongoConverter;
     }
@@ -71,52 +55,28 @@ public class DefaultBaseMapperImpl implements BaseMapper {
 
     @Override
     public <T> boolean save(T entity){
-        try {
-            Document document = new Document();
-            mongoConverter.writeBySave(entity, document);
-            InsertManyResult insertManyResult = factory.getExecute().executeSave(Collections.singletonList(document), mongoPlusClient.getCollection(ClassTypeUtil.getClass(entity)));
-            mongoConverter.reSetIdValue(entity, document);
-            return insertManyResult.wasAcknowledged();
-        } catch (Exception e) {
-            log.error("save fail , error info : {}", e.getMessage(), e);
-            return false;
-        }
+        return save(getDateBase(entity.getClass()),getCollectionName(entity.getClass()),entity);
     }
 
     @Override
     public <T> Boolean saveBatch(Collection<T> entityList) {
-        try {
-            List<Document> documentList = new ArrayList<>(entityList.size());
-            mongoConverter.writeBySaveBatch(entityList, documentList);
-            MongoCollection<Document> collection = mongoPlusClient.getCollection(entityList.iterator().next().getClass());
-            InsertManyResult insertManyResult = factory.getExecute().executeSave(documentList, collection);
-            mongoConverter.batchReSetIdValue(entityList, documentList);
-            return insertManyResult.getInsertedIds().size() == entityList.size();
-        } catch (Exception e) {
-            log.error("saveBatch fail , error info : {}", e.getMessage(), e);
-            return false;
-        }
+        Class<?> clazz = entityList.iterator().next().getClass();
+        return saveBatch(getDateBase(clazz),getCollectionName(clazz),entityList);
     }
 
     @Override
     public Long update(Bson queryBasic, Bson updateBasic, Class<?> clazz) {
-        return factory.getExecute().executeUpdate(
-                queryBasic,
-                updateBasic,
-                mongoPlusClient.getCollection(clazz)
-        ).getModifiedCount();
+        return update(getDateBase(clazz),getCollectionName(clazz),queryBasic,updateBasic);
     }
 
     @Override
     public Integer bulkWrite(List<WriteModel<Document>> writeModelList, Class<?> clazz) {
-        BulkWriteResult bulkWriteResult = factory.getExecute().executeBulkWrite(writeModelList,mongoPlusClient.getCollection(clazz));
-        return bulkWriteResult.getModifiedCount() + bulkWriteResult.getInsertedCount();
+        return bulkWrite(getDateBase(clazz),getCollectionName(clazz),writeModelList);
     }
 
     @Override
     public <T> Boolean update(T entity,QueryChainWrapper<T,?> queryChainWrapper){
-        MutablePair<BasicDBObject, BasicDBObject> updatePair = ConditionUtil.getUpdateCondition(queryChainWrapper.getCompareList(), entity,mongoConverter);
-        return factory.getExecute().executeUpdate(updatePair.getLeft(),updatePair.getRight(),mongoPlusClient.getCollection(ClassTypeUtil.getClass(entity))).getModifiedCount() > 0;
+        return update(getDateBase(entity.getClass()),getCollectionName(entity.getClass()),entity,queryChainWrapper);
     }
 
     /**
@@ -129,154 +89,132 @@ public class DefaultBaseMapperImpl implements BaseMapper {
      */
     @Override
     public <T,R> List<R> list(Class<T> clazz,Class<R> rClazz) {
-        FindIterable<Document> findIterable = factory.getExecute().executeQuery(null, null, null, mongoPlusClient.getCollection(clazz), Document.class);
-        return mongoConverter.read(findIterable, rClazz);
+        return list(getDateBase(clazz),getCollectionName(clazz),rClazz);
     }
 
     @Override
     public <T, R> List<R> list(Class<T> clazz, TypeReference<R> typeReference) {
-        FindIterable<Document> findIterable = factory.getExecute().executeQuery(null, null, null, mongoPlusClient.getCollection(clazz), Document.class);
-        return mongoConverter.read(findIterable, typeReference);
+        return list(getDateBase(clazz),getCollectionName(clazz),typeReference);
     }
 
     @Override
     public <T,R> List<R> list(QueryChainWrapper<T,?> queryChainWrapper, Class<T> clazz,Class<R> rClazz) {
-        BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
-        FindIterable<Document> documentFindIterable = factory.getExecute().executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), mongoPlusClient.getCollection(clazz), Document.class);
-        return mongoConverter.read(documentFindIterable, rClazz);
+        return list(getDateBase(clazz),getCollectionName(clazz),queryChainWrapper,rClazz);
+    }
+
+    @Override
+    public <T, R> List<R> list(QueryChainWrapper<T, ?> queryChainWrapper, Class<T> clazz, TypeReference<R> typeReference) {
+        return list(getDateBase(clazz),getCollectionName(clazz),queryChainWrapper,typeReference);
     }
 
     @Override
     public <T,R> List<R> aggregateList(AggregateChainWrapper<T, ?> queryChainWrapper, Class<T> clazz,Class<R> rClazz){
-        List<BaseAggregate> aggregateList = queryChainWrapper.getBaseAggregateList();
-        List<AggregateBasicDBObject> basicDBObjectList = queryChainWrapper.getBasicDBObjectList();
-        BasicDBObject optionsBasicDBObject = queryChainWrapper.getOptionsBasicDBObject();
-        List<AggregateBasicDBObject> aggregateConditionList = new ArrayList<AggregateBasicDBObject>() {{
-            aggregateList.forEach(aggregate -> add(new AggregateBasicDBObject("$" + aggregate.getType(), aggregate.getPipelineStrategy().buildAggregate(),aggregate.getOrder())));
-            addAll(basicDBObjectList);
-        }};
-        aggregateConditionList.sort(Comparator.comparingInt(AggregateBasicDBObject::getOrder));
-        AggregateIterable<Document> aggregateIterable = factory.getExecute().executeAggregateOld(aggregateConditionList, mongoPlusClient.getCollection(clazz),Document.class);
-        AggregateUtil.aggregateOptions(aggregateIterable,optionsBasicDBObject);
-        return mongoConverter.read(aggregateIterable,rClazz);
+        return aggregateList(getDateBase(clazz),getCollectionName(clazz),queryChainWrapper,rClazz);
+    }
+
+    @Override
+    public <T, R> List<R> aggregateList(AggregateChainWrapper<T, ?> queryChainWrapper, Class<T> clazz, TypeReference<R> typeReference) {
+        return aggregateList(getDateBase(clazz),getCollectionName(clazz),queryChainWrapper,typeReference);
     }
 
     @Override
     public <T, R> List<R> aggregateList(Aggregate<?> aggregate, Class<T> clazz, Class<R> rClazz) {
-        List<Bson> aggregateConditionList = aggregate.getAggregateConditionList();
-        AggregateIterable<Document> aggregateIterable = factory.getExecute().executeAggregate(aggregateConditionList, mongoPlusClient.getCollection(clazz), Document.class);
-        AggregateUtil.aggregateOptions(aggregateIterable,aggregate.getAggregateOptions());
-        return mongoConverter.read(aggregateIterable,rClazz);
+        return aggregateList(getDateBase(clazz),getCollectionName(clazz),aggregate,rClazz);
+    }
+
+    @Override
+    public <T, R> List<R> aggregateList(Aggregate<?> aggregate, Class<T> clazz, TypeReference<R> typeReference) {
+        return aggregateList(getDateBase(clazz),getCollectionName(clazz),aggregate,typeReference);
     }
 
     @Override
     public <T,R> R one(QueryChainWrapper<T,?> queryChainWrapper,Class<T> clazz,Class<R> rClazz) {
-            BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
-        return mongoConverter.readDocument(factory.getExecute().executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(),mongoPlusClient.getCollection(clazz),Document.class).limit(1),rClazz);
+        return one(getDateBase(clazz),getCollectionName(clazz),queryChainWrapper,rClazz);
+    }
+
+    @Override
+    public <T, R> R one(QueryChainWrapper<T, ?> queryChainWrapper, Class<T> clazz, TypeReference<R> typeReference) {
+        return one(getDateBase(clazz),getCollectionName(clazz),queryChainWrapper,typeReference);
     }
 
     @Override
     public <T,R> PageResult<R> page(QueryChainWrapper<T,?> queryChainWrapper, Integer pageNum, Integer pageSize,Class<T> clazz,Class<R> rClazz) {
-        BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
-        MongoCollection<Document> collection = mongoPlusClient.getCollection(clazz);
-        long count;
-        if (!(CollectionLogicDeleteCache.open && Objects.nonNull(LogicDeleteHandler.mapper().get(clazz))) && CollUtil.isEmpty(queryChainWrapper.getCompareList())){
-            count = factory.getExecute().estimatedDocumentCount(collection);
-        }else {
-            count = count(queryChainWrapper,clazz);
-        }
-        FindIterable<Document> iterable = factory.getExecute().executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), collection,Document.class);
-        return lambdaOperate.getLambdaQueryResultPage(iterable,count,new PageParam(pageNum,pageSize),rClazz,mongoConverter);
+        return page(getDateBase(clazz),getCollectionName(clazz),queryChainWrapper,pageNum,pageSize,rClazz);
+    }
+
+    @Override
+    public <T, R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize, Class<T> clazz, TypeReference<R> typeReference) {
+        return page(getDateBase(clazz),getCollectionName(clazz),queryChainWrapper,pageNum,pageSize,typeReference);
     }
 
     @Override
     public <T,R> List<R> pageList(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize, Class<T> clazz,Class<R> rClazz) {
-        BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
-        FindIterable<Document> iterable = factory.getExecute().executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), mongoPlusClient.getCollection(clazz),Document.class);
-        return mongoConverter.read(iterable.skip((pageNum - 1) * pageSize).limit(pageSize), rClazz);
+        return pageList(getDateBase(clazz),getCollectionName(clazz),queryChainWrapper,pageNum,pageSize,rClazz);
+    }
+
+    @Override
+    public <T, R> List<R> pageList(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize, Class<T> clazz, TypeReference<R> typeReference) {
+        return pageList(getDateBase(clazz),getCollectionName(clazz),queryChainWrapper,pageNum,pageSize,typeReference);
     }
 
     @Override
     public <T,R> PageResult<R> page(QueryChainWrapper<T,?> queryChainWrapper, Integer pageNum, Integer pageSize, Integer recentPageNum, Class<T> clazz,Class<R> rClazz) {
-        BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
-        MongoCollection<Document> collection = mongoPlusClient.getCollection(clazz);
-        long count;
-        if (!(CollectionLogicDeleteCache.open && Objects.nonNull(LogicDeleteHandler.mapper().get(clazz))) && CollUtil.isEmpty(queryChainWrapper.getCompareList())){
-            count = factory.getExecute().estimatedDocumentCount(collection);
-        }else {
-            count = recentPageCount(queryChainWrapper.getCompareList(),clazz, pageNum,  pageSize, recentPageNum);
-        }
-        FindIterable<Document> iterable = factory.getExecute().executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), collection,Document.class);
-        return lambdaOperate.getLambdaQueryResultPage(iterable, count,new PageParam(pageNum,pageSize),rClazz,mongoConverter);
+        return page(getDateBase(clazz),getCollectionName(clazz),queryChainWrapper,pageNum,pageSize,recentPageNum,rClazz);
+    }
+
+    @Override
+    public <T, R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize, Integer recentPageNum, Class<T> clazz, TypeReference<R> typeReference) {
+        return page(getDateBase(clazz),getCollectionName(clazz),queryChainWrapper,pageNum,pageSize,recentPageNum,typeReference);
     }
 
     @Override
     public <T,R> R getById(Serializable id,Class<T> clazz,Class<R> rClazz) {
-        BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id));
-        return mongoConverter.read(factory.getExecute().executeQuery(queryBasic,null,null,mongoPlusClient.getCollection(clazz),Document.class).first(),rClazz);
+        return getById(getDateBase(clazz),getCollectionName(clazz),id,rClazz);
+    }
+
+    @Override
+    public <T, R> R getById(Serializable id, Class<T> clazz, TypeReference<R> typeReference) {
+        return getById(getDateBase(clazz),getCollectionName(clazz),id,typeReference);
     }
 
     @Override
     public boolean isExist(Serializable id,Class<?> clazz){
-        BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id));
-        return factory.getExecute().executeCount(queryBasic,null, mongoPlusClient.getCollection(clazz)) >= 1;
+        return isExist(getDateBase(clazz),getCollectionName(clazz),id);
     }
 
     @Override
     public boolean isExist(QueryChainWrapper<?,?> queryChainWrapper,Class<?> clazz){
-        BasicDBObject basicDBObject = BuildCondition.buildQueryCondition(queryChainWrapper.getCompareList());
-        return factory.getExecute().executeCount(basicDBObject,null,mongoPlusClient.getCollection(clazz)) >= 1;
+        return isExist(getDateBase(clazz),getCollectionName(clazz),queryChainWrapper);
     }
 
     @Override
     public <T,R> List<R> getByIds(Collection<? extends Serializable> ids,Class<T> clazz,Class<R> rClazz) {
-        BasicDBObject basicDBObject = checkIdType(ids);
-        FindIterable<Document> iterable = factory.getExecute().executeQuery(basicDBObject,null,null, mongoPlusClient.getCollection(clazz),Document.class);
-        return mongoConverter.read(iterable, rClazz);
+        return getByIds(getDateBase(clazz),getCollectionName(clazz),ids,rClazz);
+    }
+
+    @Override
+    public <T, R> List<R> getByIds(Collection<? extends Serializable> ids, Class<T> clazz, TypeReference<R> typeReference) {
+        return getByIds(getDateBase(clazz),getCollectionName(clazz),ids,typeReference);
     }
 
     @Override
     public Boolean update(UpdateChainWrapper<?, ?> updateChainWrapper,Class<?> clazz) {
-        List<CompareCondition> compareConditionList = new ArrayList<>();
-        compareConditionList.addAll(updateChainWrapper.getCompareList());
-        compareConditionList.addAll(updateChainWrapper.getUpdateCompareList());
-        BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareConditionList);
-        List<CompareCondition> pushConditionList = compareConditionList.stream().filter(compareCondition -> Objects.equals(compareCondition.getCondition(), SpecialConditionEnum.PUSH.getSubCondition())).collect(Collectors.toList());
-        List<CompareCondition> setConditionList = compareConditionList.stream().filter(compareCondition -> Objects.equals(compareCondition.getCondition(), SpecialConditionEnum.SET.getSubCondition())).collect(Collectors.toList());
-        BasicDBObject basicDBObject = new BasicDBObject() {{
-            if (CollUtil.isNotEmpty(setConditionList)){
-                append(SpecialConditionEnum.SET.getCondition(), BuildCondition.buildUpdateValue(setConditionList));
-            }
-            if (CollUtil.isNotEmpty(pushConditionList)){
-                append(SpecialConditionEnum.PUSH.getCondition(), BuildCondition.buildPushUpdateValue(pushConditionList));
-            }
-        }};
-        BasicDBObject targetBasicDBObject = new BasicDBObject();
-        mongoConverter.write(basicDBObject,targetBasicDBObject);
-        return factory.getExecute().executeUpdate(queryBasic,targetBasicDBObject,mongoPlusClient.getCollection(clazz)).getModifiedCount() >= 1;
+        return update(getDateBase(clazz),getCollectionName(clazz),updateChainWrapper);
     }
 
     @Override
     public Boolean remove(UpdateChainWrapper<?, ?> updateChainWrapper, Class<?> clazz) {
-        return remove(BuildCondition.buildQueryCondition(updateChainWrapper.getCompareList()),clazz) >= 1;
+        return remove(getDateBase(clazz),getCollectionName(clazz),updateChainWrapper);
     }
 
     @Override
     public Long remove(Bson filter, Class<?> clazz) {
-        return factory.getExecute().executeRemove(filter,mongoPlusClient.getCollection(clazz)).getDeletedCount();
+        return remove(getDateBase(clazz),getCollectionName(clazz),filter);
     }
 
     @Override
     public long count(QueryChainWrapper<?, ?> queryChainWrapper,Class<?> clazz){
-        Execute execute = factory.getExecute();
-        MongoCollection<Document> collection = mongoPlusClient.getCollection(clazz);
-        long line;
-        if (!(CollectionLogicDeleteCache.open && Objects.nonNull(LogicDeleteHandler.mapper().get(clazz))) && CollUtil.isEmpty(queryChainWrapper.getCompareList())){
-            line = execute.estimatedDocumentCount(collection);
-        } else {
-            line = execute.executeCount(BuildCondition.buildQueryCondition(queryChainWrapper.getCompareList()),null,collection);
-        }
-        return line;
+        return count(getDateBase(clazz),getCollectionName(clazz),queryChainWrapper);
     }
 
     /**
@@ -290,110 +228,95 @@ public class DefaultBaseMapperImpl implements BaseMapper {
      */
     @Override
     public long recentPageCount(List<CompareCondition> compareConditionList,Class<?> clazz, Integer pageNum, Integer pageSize, Integer recentPageNum){
-        if (recentPageNum == null || !(recentPageNum <= 50 && recentPageNum >= 5)) {
-            // 返回-1 表示不查询总条数
-            return -1L;
-        }
-        //分页查询  不查询实际总条数  需要单独查询  是否有数据
-        //如果recentPageNum = 10  第1-6页  总页数=10  从第7页开始 需要往后 + 4 页
-        int limitParam = (pageNum < (recentPageNum / 2 + 1 + recentPageNum % 2) ? recentPageNum : (pageNum + (recentPageNum / 2 + recentPageNum % 2 - 1))) * pageSize;
-        CountOptions countOptions = new CountOptions();
-        countOptions.skip(limitParam).limit(1);
-        long isExists = factory.getExecute().executeCount(BuildCondition.buildQueryCondition(compareConditionList),countOptions, mongoPlusClient.getCollection(clazz));
-        //如果查询结果为空 则查询总条数，如果不为空则 limitParam为总条数
-        if (isExists == 0) {
-            // 查询真实总条数
-            CountOptions countOptionsReal = new CountOptions();
-            countOptionsReal.limit(limitParam);
-            return factory.getExecute().executeCount(BuildCondition.buildQueryCondition(compareConditionList),countOptions, mongoPlusClient.getCollection(clazz));
-        }
-        return limitParam;
+        return recentPageCount(getDateBase(clazz),getCollectionName(clazz),compareConditionList,pageNum,pageSize,recentPageNum);
     }
 
     @Override
     public long count(Class<?> clazz){
-        MongoCollection<Document> mongoCollection = mongoPlusClient.getCollection(clazz);
-        Execute execute = factory.getExecute();
-        long line;
-        if (!(CollectionLogicDeleteCache.open && Objects.nonNull(LogicDeleteHandler.mapper().get(clazz)))){
-            line = execute.estimatedDocumentCount(mongoCollection);
-        } else {
-            line = execute.executeCount(null,null,mongoCollection);
-        }
-        return line;
+        return count(getDateBase(clazz),getCollectionName(clazz));
     }
 
     @Override
     public <T,R> List<R> queryCommand(String command,Class<T> clazz,Class<R> rClazz){
-        FindIterable<Document> iterable = factory.getExecute().executeQuery(BasicDBObject.parse(command),null,null, mongoPlusClient.getCollection(clazz),Document.class);
-        return mongoConverter.read(iterable,rClazz);
+        return queryCommand(getDateBase(clazz),getCollectionName(clazz),command,rClazz);
+    }
+
+    @Override
+    public <T, R> List<R> queryCommand(String command, Class<T> clazz, TypeReference<R> typeReference) {
+        return queryCommand(getDateBase(clazz),getCollectionName(clazz),command,typeReference);
     }
 
     @Override
     public <T,R> List<R> getByColumn(String column,Object value,Class<T> clazz,Class<R> rClazz){
-        Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(value)) ? new ObjectId(String.valueOf(value)) : value);
-        return mongoConverter.read(factory.getExecute().executeQuery(filter,null,null,mongoPlusClient.getCollection(clazz),Document.class),rClazz);
+        return getByColumn(getDateBase(clazz),getCollectionName(clazz),column,value,rClazz);
+    }
+
+    @Override
+    public <T, R> List<R> getByColumn(String column, Object value, Class<T> clazz, TypeReference<R> typeReference) {
+        return getByColumn(getDateBase(clazz),getCollectionName(clazz),column,value,typeReference);
     }
 
     @Override
     public String createIndex(Bson bson,Class<?> clazz){
-        return factory.getExecute().doCreateIndex(bson,mongoPlusClient.getCollection(clazz));
+        return createIndex(getDateBase(clazz),getCollectionName(clazz),bson);
     }
 
     @Override
     public String createIndex(Bson bson, IndexOptions indexOptions, Class<?> clazz){
-        return factory.getExecute().doCreateIndex(bson,indexOptions,mongoPlusClient.getCollection(clazz));
+        return createIndex(getDateBase(clazz),getCollectionName(clazz),bson,indexOptions);
     }
 
     @Override
     public List<String> createIndexes(List<IndexModel> indexes,Class<?> clazz){
-        return factory.getExecute().doCreateIndexes(indexes,mongoPlusClient.getCollection(clazz));
+        return createIndexes(getDateBase(clazz),getCollectionName(clazz),indexes);
     }
 
     @Override
     public List<String> createIndexes(List<IndexModel> indexes, CreateIndexOptions createIndexOptions,Class<?> clazz){
-        return factory.getExecute().doCreateIndexes(indexes,createIndexOptions,mongoPlusClient.getCollection(clazz));
+        return createIndexes(getDateBase(clazz),getCollectionName(clazz),indexes,createIndexOptions);
     }
 
     @Override
     public List<Document> listIndexes(Class<?> clazz){
-        return factory.getExecute().doListIndexes(mongoPlusClient.getCollection(clazz));
+        return listIndexes(getDateBase(clazz),getCollectionName(clazz));
     }
 
     @Override
     public void dropIndex(String indexName,Class<?> clazz){
-        factory.getExecute().doDropIndex(indexName,mongoPlusClient.getCollection(clazz));
+        dropIndex(getDateBase(clazz),getCollectionName(clazz),indexName);
     }
 
     @Override
     public void dropIndex(String indexName,DropIndexOptions dropIndexOptions,Class<?> clazz){
-        factory.getExecute().doDropIndex(indexName,dropIndexOptions,mongoPlusClient.getCollection(clazz));
+        dropIndex(getDateBase(clazz),getCollectionName(clazz),indexName,dropIndexOptions);
     }
 
     @Override
     public void dropIndex(Bson keys,Class<?> clazz){
-        factory.getExecute().doDropIndex(keys,mongoPlusClient.getCollection(clazz));
+        dropIndex(getDateBase(clazz),getCollectionName(clazz),keys);
     }
 
     @Override
     public void dropIndex(Bson keys,DropIndexOptions dropIndexOptions,Class<?> clazz){
-        factory.getExecute().doDropIndex(keys,dropIndexOptions,mongoPlusClient.getCollection(clazz));
+        dropIndex(getDateBase(clazz),getCollectionName(clazz),keys,dropIndexOptions);
     }
 
     @Override
     public void dropIndexes(Class<?> clazz){
-        factory.getExecute().doDropIndexes(mongoPlusClient.getCollection(clazz));
+        dropIndexes(getDateBase(clazz),getCollectionName(clazz));
     }
 
     @Override
     public void dropIndexes(DropIndexOptions dropIndexOptions,Class<?> clazz){
-        factory.getExecute().doDropIndexes(dropIndexOptions,mongoPlusClient.getCollection(clazz));
+        dropIndexes(getDateBase(clazz),getCollectionName(clazz),dropIndexOptions);
     }
 
-    protected BasicDBObject checkIdType(Collection<? extends Serializable> ids) {
-        List<Serializable> convertedIds = ids.stream()
-                .map(id -> ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id)
-                .collect(Collectors.toList());
-        return new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.IN.getCondition(), convertedIds));
+    protected String getDateBase(Class<?> clazz){
+        return mongoPlusClient.getDatabase(clazz);
     }
+
+    protected String getCollectionName(Class<?> clazz){
+        return mongoPlusClient.getCollectionName(clazz);
+    }
+
 }

@@ -141,7 +141,8 @@ public class MappingMongoConverter extends AbstractMongoConverter {
      * @author anwen
      * @date 2024/5/1 下午11:46
      */
-    private Bson writeMapInternal(Map<?,?> obj,Bson bson){
+    @Override
+    public Bson writeMapInternal(Map<?,?> obj,Bson bson) {
         //循环map
         obj.forEach((k,v)->{
             //如果key是简单类型

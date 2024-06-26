@@ -55,6 +55,11 @@ public abstract class AbstractMongoConverter implements MongoConverter {
 
     @Override
     public void writeBySave(Object sourceObj, Document document) {
+        // Map类型不需要再做下边的操作 因为它们只针对实体类
+        if (Map.class.isAssignableFrom(sourceObj.getClass())){
+            write((Map<?,?>) sourceObj,document);
+            return;
+        }
         //封装class信息
         TypeInformation typeInformation = TypeInformation.of(sourceObj);
         //如果存在元对象处理器，且插入或更新字段为空，则获取自动填充字段
@@ -97,6 +102,11 @@ public abstract class AbstractMongoConverter implements MongoConverter {
 
     @Override
     public void writeByUpdate(Object sourceObj, Document document) {
+        // Map类型不需要再做下边的操作 因为它们只针对实体类
+        if (Map.class.isAssignableFrom(sourceObj.getClass())){
+            write((Map<?,?>) sourceObj,document);
+            return;
+        }
         //封装class信息
         TypeInformation typeInformation = TypeInformation.of(sourceObj);
         //如果存在元对象处理器，且插入或更新字段为空，则获取自动填充字段
@@ -150,7 +160,11 @@ public abstract class AbstractMongoConverter implements MongoConverter {
         }
         //如果为空，则创建一个
         bson = bson != null ? bson : new Document();
-        write(sourceObj,bson, TypeInformation.of(sourceObj));
+        if (Map.class.isAssignableFrom(sourceObj.getClass())){
+            write((Map<?,?>) sourceObj,bson);
+        } else {
+            write(sourceObj, bson, TypeInformation.of(sourceObj));
+        }
     }
 
     @Override
@@ -220,6 +234,16 @@ public abstract class AbstractMongoConverter implements MongoConverter {
      * @date 2024/5/1 下午6:40
      */
     public abstract void write(Object sourceObj, Bson bson, TypeInformation typeInformation);
+
+    /**
+     * 抽象的map写入方法
+     * @param obj map
+     * @param bson bson
+     * @return {@link org.bson.conversions.Bson}
+     * @author anwen
+     * @date 2024/6/26 下午2:23
+     */
+    public abstract Bson writeMapInternal(Map<?,?> obj,Bson bson);
 
     /**
      * 生成id，写在这里，方便自己自定义

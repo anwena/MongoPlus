@@ -1,9 +1,8 @@
 package com.anwen.mongo.toolkit;
 
-import com.anwen.mongo.aggregate.LambdaAggregateWrapper;
+import com.anwen.mongo.aggregate.LambdaAggregateChainWrapper;
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.aggregate.AggregateWrapper;
-import com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper;
 import com.anwen.mongo.conditions.inject.aggregate.InjectAggregateWrapper;
 import com.anwen.mongo.conditions.inject.query.InjectQueryWrapper;
 import com.anwen.mongo.conditions.inject.update.InjectUpdateWrapper;
@@ -28,12 +27,12 @@ public final class ChainWrappers {
         return new LambdaQueryChainWrapper<>(baseMapper, clazz);
     }
 
-    public static <T> LambdaAggregateChainWrapper<T> lambdaAggregateChain(BaseMapper baseMapper, Class<T> clazz){
-        return new LambdaAggregateChainWrapper<>(baseMapper, clazz);
+    public static <T> com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper<T> lambdaAggregateChain(BaseMapper baseMapper, Class<T> clazz){
+        return new com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper<>(baseMapper, clazz);
     }
 
-    public static <T> LambdaAggregateWrapper<T> lambdaAggregatesChain(BaseMapper baseMapper,Class<T> clazz){
-        return new LambdaAggregateWrapper<>(baseMapper, clazz);
+    public static <T> LambdaAggregateChainWrapper<T> lambdaAggregatesChain(BaseMapper baseMapper, Class<T> clazz){
+        return new LambdaAggregateChainWrapper<>(baseMapper, clazz);
     }
 
     public static <T> LambdaUpdateChainWrapper<T> lambdaUpdateChain(BaseMapper baseMapper, Class<T> clazz){

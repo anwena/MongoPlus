@@ -6,6 +6,7 @@ import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.interfaces.condition.Order;
 import com.anwen.mongo.convert.Converter;
 import com.anwen.mongo.mapping.MongoConverter;
+import com.anwen.mongo.mapping.TypeReference;
 import com.anwen.mongo.model.BaseLambdaQueryResult;
 import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
@@ -40,10 +41,14 @@ public class LambdaOperate {
     }
 
     public <T> PageResult<T> getLambdaQueryResultPage(FindIterable<Document> documentFindIterable, long totalSize, PageParam pageParams, Class<T> clazz, MongoConverter mongoConverter) {
+        return getLambdaQueryResultPage(documentFindIterable,totalSize,pageParams,new TypeReference<T>(clazz) {},mongoConverter);
+    }
+
+    public <T> PageResult<T> getLambdaQueryResultPage(FindIterable<Document> documentFindIterable, long totalSize, PageParam pageParams, TypeReference<T> typeReference, MongoConverter mongoConverter) {
         PageResult<T> pageResult = new PageResult<>();
         pageResult.setPageNum(pageParams.getPageNum());
         pageResult.setPageSize(pageParams.getPageSize());
-        pageResult.setContentData(mongoConverter.read(documentFindIterable.skip((pageParams.getPageNum() - 1) * pageParams.getPageSize()).limit(pageParams.getPageSize()), clazz));
+        pageResult.setContentData(mongoConverter.read(documentFindIterable.skip((pageParams.getPageNum() - 1) * pageParams.getPageSize()).limit(pageParams.getPageSize()), typeReference));
         // 不查询总条数，总条数=当前页的总数
         if (totalSize == -1) {
             totalSize = pageResult.getContentData().size();

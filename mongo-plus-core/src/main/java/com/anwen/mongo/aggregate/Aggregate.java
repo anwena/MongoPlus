@@ -22,7 +22,7 @@ public interface Aggregate<Children> extends Project<Children> {
 
     /**
      * 获取管道列表
-     * @return {@link List< Bson>}
+     * @return {@link List<Bson>}
      * @author anwen
      * @date 2024/6/11 下午8:18
      */

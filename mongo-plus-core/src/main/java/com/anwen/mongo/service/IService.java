@@ -1,9 +1,8 @@
 package com.anwen.mongo.service;
 
 import com.anwen.mongo.aggregate.Aggregate;
-import com.anwen.mongo.aggregate.LambdaAggregateWrapper;
+import com.anwen.mongo.aggregate.LambdaAggregateChainWrapper;
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
-import com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper;
 import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conditions.update.LambdaUpdateChainWrapper;
@@ -785,6 +784,12 @@ public interface IService<T> {
      */
     void dropIndexes(DropIndexOptions dropIndexOptions);
 
+    /**
+     * 获取当前service所对应的泛型类
+     * @return {@link Class<T>}
+     * @author JiaChaoYang
+     * @date 2024/1/19 16:22
+    */
     Class<T> getGenericityClass();
 
     /**
@@ -801,6 +806,11 @@ public interface IService<T> {
      */
     MongoCollection<Document> getCollection(String database);
 
+    /**
+     * 获取条件构造器
+     * @author anwen
+     * @date 2024/6/25 下午9:05
+     */
     LambdaQueryChainWrapper<T> lambdaQuery();
 
     @Deprecated
@@ -810,15 +820,20 @@ public interface IService<T> {
      * @author anwen
      * @date 2024/6/20 下午11:34
      */
-    LambdaAggregateChainWrapper<T> lambdaAggregate();
+    com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper<T> lambdaAggregate();
 
     /**
      * 获取管道构造器
      * @author anwen
      * @date 2024/6/20 下午11:34
      */
-    LambdaAggregateWrapper<T> lambdaAggregates();
+    LambdaAggregateChainWrapper<T> lambdaAggregates();
 
+    /**
+     * 获取修改条件构造器
+     * @author anwen
+     * @date 2024/6/25 下午9:05
+     */
     LambdaUpdateChainWrapper<T> lambdaUpdate();
 
 }

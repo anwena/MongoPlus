@@ -5,7 +5,7 @@ import com.anwen.mongo.support.SFunction;
 import java.io.Serializable;
 import java.util.List;
 
-public interface Update<Children, T> extends Serializable {
+public interface Update<T , Children> extends Serializable {
 
     Children set(boolean condition, SFunction<T,Object> column, Object value);
 
