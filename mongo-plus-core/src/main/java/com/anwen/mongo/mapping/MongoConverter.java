@@ -128,7 +128,21 @@ public interface MongoConverter extends MongoWriter,EntityRead {
         return documentList;
     }
 
-    <T> T readInternal(Document document, Class<T> clazz);
+    /**
+     * 写内部属性
+     * @author anwen
+     * @date 2024/6/28 上午12:46
+     */
+    default <T> T readInternal(Document document, Class<T> clazz){
+        return readInternal(document,new TypeReference<T>(clazz){});
+    }
+
+    /**
+     * 写内部属性
+     * @author anwen
+     * @date 2024/6/28 上午12:46
+     */
+    <T> T readInternal(Object sourceObj, TypeReference<T> typeReference);
 
     /**
      * 写为Class

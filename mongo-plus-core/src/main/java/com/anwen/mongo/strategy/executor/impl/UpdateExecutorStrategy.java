@@ -28,7 +28,7 @@ public class UpdateExecutorStrategy implements MethodExecutorStrategy {
     public void invoke(Interceptor interceptor, Object[] args) {
         List<MutablePair<Bson, Bson>> bsonBsonMutablePairList = interceptor.executeUpdate((List<MutablePair<Bson,Bson>>) args[0]);
         args[0] = bsonBsonMutablePairList;
-        bsonBsonMutablePairList = interceptor.executeUpdate((List<MutablePair<Bson,Bson>>) args[0], (MongoCollection<Document>) args[1]);
+        bsonBsonMutablePairList = interceptor.executeUpdate((List<MutablePair<Bson,Bson>>) args[0], (MongoCollection<Document>) args[args.length-1]);
         args[0] = bsonBsonMutablePairList;
     }
 

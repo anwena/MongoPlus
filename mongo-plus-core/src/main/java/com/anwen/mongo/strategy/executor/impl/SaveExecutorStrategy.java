@@ -25,7 +25,7 @@ public class SaveExecutorStrategy implements MethodExecutorStrategy {
     @Override
     public void invoke(Interceptor interceptor, Object[] args) {
         args[0] = interceptor.executeSave((List<Document>) args[0]);
-        args[0] = interceptor.executeSave((List<Document>) args[0], (MongoCollection<Document>) args[1]);
+        args[0] = interceptor.executeSave((List<Document>) args[0], (MongoCollection<Document>) args[args.length-1]);
     }
 
 }

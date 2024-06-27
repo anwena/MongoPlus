@@ -53,7 +53,7 @@ public class SessionExecute implements Execute {
     }
 
     @Override
-    public <T> FindIterable<T> executeQuery(Bson queryBasic, BasicDBObject projectionList, BasicDBObject sortCond, MongoCollection<Document> collection, Class<T> clazz) {
+    public <T> FindIterable<T> executeQuery(Bson queryBasic, BasicDBObject projectionList, BasicDBObject sortCond, Class<T> clazz, MongoCollection<Document> collection) {
         return Optional.ofNullable(queryBasic)
                 .map(qb -> collection.find(clientSession,qb,clazz))
                 .orElseGet(() -> collection.find(clientSession,clazz))
@@ -62,12 +62,12 @@ public class SessionExecute implements Execute {
     }
 
     @Override
-    public <T> AggregateIterable<T> executeAggregateOld(List<AggregateBasicDBObject> aggregateConditionList, MongoCollection<Document> collection, Class<T> clazz) {
+    public <T> AggregateIterable<T> executeAggregateOld(List<AggregateBasicDBObject> aggregateConditionList, Class<T> clazz, MongoCollection<Document> collection) {
         return collection.aggregate(clientSession,aggregateConditionList, clazz);
     }
 
     @Override
-    public <T> AggregateIterable<T> executeAggregate(List<? extends Bson> aggregateConditionList, MongoCollection<Document> collection, Class<T> clazz) {
+    public <T> AggregateIterable<T> executeAggregate(List<? extends Bson> aggregateConditionList, Class<T> clazz, MongoCollection<Document> collection) {
         return collection.aggregate(clientSession,aggregateConditionList,clazz);
     }
 

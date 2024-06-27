@@ -10,6 +10,8 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.joining;
 
@@ -394,6 +396,27 @@ public final class StringUtils {
         return Arrays.stream(str.split("_"))
                 .reduce((s1, s2) -> s1 + s2.substring(0, 1).toUpperCase() + s2.substring(1))
                 .orElse("");
+    }
+
+    /**
+     * 驼峰转下划线
+     * @author anwen
+     * @date 2024/6/27 下午11:47
+     */
+    public static String convertCamelToUnderscore(String camelCaseString) {
+        if (camelCaseString == null || camelCaseString.isEmpty()) {
+            return camelCaseString;
+        }
+        return IntStream.range(0, camelCaseString.length())
+                .mapToObj(i -> {
+                    char c = camelCaseString.charAt(i);
+                    if (Character.isUpperCase(c)) {
+                        return (i > 0 ? "_" : "") + Character.toLowerCase(c);
+                    } else {
+                        return String.valueOf(c);
+                    }
+                })
+                .collect(Collectors.joining());
     }
 
     /**

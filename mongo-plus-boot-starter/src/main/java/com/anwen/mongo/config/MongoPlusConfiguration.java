@@ -206,7 +206,7 @@ public class MongoPlusConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(BaseMapper.class)
-    public BaseMapper baseMapper(MongoPlusClient mongoPlusClient,MongoConverter mongoConverter){
+    public BaseMapper mongoBaseMapper(MongoPlusClient mongoPlusClient, MongoConverter mongoConverter){
         return new DefaultBaseMapperImpl(mongoPlusClient,mongoConverter);
     }
 

@@ -176,24 +176,24 @@ public class InjectAbstractExecute {
 
     public List<Map<String, Object>> list(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList, List<Projection> projectionList, List<BasicDBObject> basicDBObjectList) {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(compareConditionList, orderList, projectionList, basicDBObjectList);
-        FindIterable<Map> mapFindIterable = execute.executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), collectionManager.getCollection(collectionName), Map.class);
+        FindIterable<Map> mapFindIterable = execute.executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), Map.class, collectionManager.getCollection(collectionName));
         return Converter.convertDocumentToMap(mapFindIterable);
     }
 
     public PageResult<Map<String, Object>> page(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList, List<Projection> projectionList, List<BasicDBObject> basicDBObjectList, Integer pageNum, Integer pageSize) {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(compareConditionList, orderList, projectionList, basicDBObjectList);
-        FindIterable<Map> mapFindIterable = execute.executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), collectionManager.getCollection(collectionName), Map.class);
+        FindIterable<Map> mapFindIterable = execute.executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), Map.class, collectionManager.getCollection(collectionName));
         return lambdaOperate.getLambdaQueryResultPage(mapFindIterable,count(collectionName,compareConditionList),new PageParam(pageNum,pageSize));
     }
 
     public Map<String, Object> one(String collectionName, List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(compareConditionList, null, projectionList, basicDBObjectList);
-        return Converter.convertDocumentToMapOne(execute.executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(), collectionManager.getCollection(collectionName),Map.class).limit(1));
+        return Converter.convertDocumentToMapOne(execute.executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(), Map.class, collectionManager.getCollection(collectionName)).limit(1));
     }
 
     public Map<String, Object> limitOne(String collectionName, List<CompareCondition> compareConditionList,List<Projection> projectionList,List<BasicDBObject> basicDBObjectList) {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(compareConditionList, null, projectionList, basicDBObjectList);
-        return Converter.convertDocumentToMapOne(execute.executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(), collectionManager.getCollection(collectionName),Map.class).limit(1));
+        return Converter.convertDocumentToMapOne(execute.executeQuery(baseLambdaQuery.getCondition(),baseLambdaQuery.getProjection(),baseLambdaQuery.getSort(), Map.class, collectionManager.getCollection(collectionName)).limit(1));
     }
 
     public boolean isExist(String collectionName, Serializable id){
@@ -208,17 +208,17 @@ public class InjectAbstractExecute {
 
     public List<Map<String,Object>> getByColumn(String collectionName,String column,Object value){
         Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(value)) ? new ObjectId(String.valueOf(value)) : value);
-        return Converter.convertDocumentToMap(execute.executeQuery(filter,null,null,collectionManager.getCollection(collectionName),Map.class));
+        return Converter.convertDocumentToMap(execute.executeQuery(filter,null,null, Map.class, collectionManager.getCollection(collectionName)));
     }
 
     public Map<String, Object> getById(String collectionName,Serializable id) {
         BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id));
-        return execute.executeQuery(queryBasic,null,null,collectionManager.getCollection(collectionName),Map.class).first();
+        return execute.executeQuery(queryBasic,null,null, Map.class, collectionManager.getCollection(collectionName)).first();
     }
 
     public List<Map<String, Object>> getByIds(String collectionName,Collection<? extends Serializable> ids) {
         BasicDBObject basicDBObject = checkIdType(ids);
-        FindIterable<Map> iterable = execute.executeQuery(basicDBObject,null,null, collectionManager.getCollection(collectionName),Map.class);
+        FindIterable<Map> iterable = execute.executeQuery(basicDBObject,null,null, Map.class, collectionManager.getCollection(collectionName));
         return Converter.convertDocumentToMap(iterable);
     }
 
@@ -231,7 +231,7 @@ public class InjectAbstractExecute {
 
     public List<Map<String,Object>> queryCommand(String collectionName,String sql){
         BasicDBObject basicDBObject = BasicDBObject.parse(sql);
-        return Converter.convertDocumentToMap(execute.executeQuery(basicDBObject,null,null,collectionManager.getCollection(collectionName),Map.class));
+        return Converter.convertDocumentToMap(execute.executeQuery(basicDBObject,null,null, Map.class, collectionManager.getCollection(collectionName)));
     }
 
     public Boolean update(String collectionName,List<CompareCondition> compareConditionList){
@@ -265,7 +265,7 @@ public class InjectAbstractExecute {
             addAll(basicDBObjectList);
         }};
         aggregateConditionList.sort(Comparator.comparingInt(AggregateBasicDBObject::getOrder));
-        AggregateIterable<Map> aggregateIterable = execute.executeAggregateOld(aggregateConditionList, collectionManager.getCollection(collectionName), Map.class);
+        AggregateIterable<Map> aggregateIterable = execute.executeAggregateOld(aggregateConditionList, Map.class, collectionManager.getCollection(collectionName));
         aggregateOptions(aggregateIterable,optionsBasicDBObject);
         return Converter.convertDocumentToMap(aggregateIterable.iterator());
     }
@@ -276,7 +276,7 @@ public class InjectAbstractExecute {
             addAll(basicDBObjectList);
         }};
         aggregateConditionList.sort(Comparator.comparingInt(AggregateBasicDBObject::getOrder));
-        AggregateIterable<Document> aggregateIterable = execute.executeAggregateOld(aggregateConditionList, collectionManager.getCollection(collectionName),Document.class);
+        AggregateIterable<Document> aggregateIterable = execute.executeAggregateOld(aggregateConditionList, Document.class, collectionManager.getCollection(collectionName));
         aggregateOptions(aggregateIterable,optionsBasicDBObject);
 //        return DocumentMapperConvert.mapDocumentList(aggregateIterable.iterator(),clazz);
         return mongoConverter.read(aggregateIterable,clazz);

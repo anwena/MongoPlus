@@ -13,6 +13,7 @@ import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.strategy.conversion.ConversionStrategy;
 import com.anwen.mongo.strategy.mapping.MappingStrategy;
 import com.anwen.mongo.toolkit.BsonUtil;
+import com.anwen.mongo.toolkit.StringUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -75,11 +76,15 @@ public class MappingMongoConverter extends AbstractMongoConverter {
                             throw new MongoPlusWriteException("Failed to create TypeHandler, message: " + e.getMessage());
                         }
                     }
+                    String fieldName = fieldInformation.getName();
+                    if (collectionField == null && PropertyCache.camelToUnderline){
+                        fieldName = StringUtils.camelToUnderline(fieldName);
+                    }
                     //如果类型处理器返回null，则继续走默认处理
                     if (obj != null) {
-                        BsonUtil.addToMap(bson, fieldInformation.getName(), obj);
+                        BsonUtil.addToMap(bson, fieldName, obj);
                     } else {
-                        writeProperties(bson, fieldInformation.getName(), fieldInformation.getValue());
+                        writeProperties(bson, fieldName, fieldInformation.getValue());
                     }
                 });
     }
@@ -147,7 +152,11 @@ public class MappingMongoConverter extends AbstractMongoConverter {
         obj.forEach((k,v)->{
             //如果key是简单类型
             if (simpleTypeHolder.isSimpleType(k.getClass())){
-                writeProperties(bson,String.valueOf(k),v);
+                String key = String.valueOf(k);
+                if (PropertyCache.camelToUnderline){
+                    key = StringUtils.camelToUnderline(key);
+                }
+                writeProperties(bson,key,v);
             }else {
                 throw new MongoPlusWriteException("Cannot use a complex object as a key value");
             }
@@ -180,7 +189,7 @@ public class MappingMongoConverter extends AbstractMongoConverter {
     }
 
     @Override
-    public <T> T read(Object sourceObj, TypeReference<T> typeReference) {
+    public <T> T readInternal(Object sourceObj, TypeReference<T> typeReference){
         Class<?> clazz = typeReference.getClazz();
         ConversionStrategy<?> conversionStrategy = getConversionStrategy(clazz);
 

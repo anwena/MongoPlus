@@ -32,11 +32,11 @@ public interface Execute {
 
     UpdateResult executeUpdate(List<MutablePair<Bson,Bson>> bsonPairList,MongoCollection<Document> collection);
 
-    <T> FindIterable<T> executeQuery(Bson queryBasic, BasicDBObject projectionList, BasicDBObject sortCond, MongoCollection<Document> collection, Class<T> clazz);
+    <T> FindIterable<T> executeQuery(Bson queryBasic, BasicDBObject projectionList, BasicDBObject sortCond, Class<T> clazz, MongoCollection<Document> collection);
 
-    <T> AggregateIterable<T> executeAggregateOld(List<AggregateBasicDBObject> aggregateConditionList, MongoCollection<Document> collection, Class<T> clazz);
+    <T> AggregateIterable<T> executeAggregateOld(List<AggregateBasicDBObject> aggregateConditionList, Class<T> clazz, MongoCollection<Document> collection);
 
-    <T> AggregateIterable<T> executeAggregate(List<? extends Bson> aggregateConditionList, MongoCollection<Document> collection, Class<T> clazz);
+    <T> AggregateIterable<T> executeAggregate(List<? extends Bson> aggregateConditionList, Class<T> clazz, MongoCollection<Document> collection);
 
     long executeCount(BasicDBObject queryBasic,CountOptions countOptions,MongoCollection<Document> collection);
 

@@ -168,26 +168,18 @@ public abstract class AbstractMongoConverter implements MongoConverter {
     }
 
     @Override
-    public <T> T read(Document document, Class<T> clazz) {
-        return readInternal(document,clazz,true);
-    }
-
-    @Override
-    public <T> T readInternal(Document document, Class<T> clazz){
-        return readInternal(document,clazz,false);
-    }
-
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private <T> T readInternal(Document document, Class<T> clazz, boolean useIdAsFieldName) {
+    public <T> T readInternal(Document document, TypeReference<T> typeReference, boolean useIdAsFieldName) {
+        Class<?> clazz = typeReference.getClazz();
         if (document == null) {
             return null;
         }
         if (clazz.isAssignableFrom(Document.class)) {
             return (T) document;
         } else if (clazz.isAssignableFrom(Map.class)) {
-            return (T) read(document, new TypeReference<Map<String, Object>>() {});
+            return (T) readInternal(document, new TypeReference<Map<String, Object>>() {});
         } else if (clazz.isAssignableFrom(Collection.class)){
-            return (T) read(document, new TypeReference<Collection<Object>>() {});
+            return (T) readInternal(document, new TypeReference<Collection<Object>>() {});
         }
         // 拿到class封装类
         TypeInformation typeInformation = TypeInformation.of(clazz);
@@ -217,7 +209,7 @@ public abstract class AbstractMongoConverter implements MongoConverter {
                 }
             }
             if (resultObj == null) {
-                resultObj = read(obj, TypeReference.of(fieldInformation.getGenericType()));
+                resultObj = readInternal(obj, TypeReference.of(fieldInformation.getGenericType()));
             }
             fieldInformation.setValue(resultObj);
         });

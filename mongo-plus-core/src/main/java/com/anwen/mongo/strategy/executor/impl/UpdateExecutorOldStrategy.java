@@ -28,7 +28,7 @@ public class UpdateExecutorOldStrategy implements MethodExecutorStrategy {
         MutablePair<Bson, Bson> bsonBsonMutablePair = interceptor.executeUpdate((Bson) args[0], (Bson) args[1]);
         args[0] = bsonBsonMutablePair.getLeft();
         args[1] = bsonBsonMutablePair.getRight();
-        bsonBsonMutablePair = interceptor.executeUpdate((Bson) args[0], (Bson) args[1], (MongoCollection<Document>) args[2]);
+        bsonBsonMutablePair = interceptor.executeUpdate((Bson) args[0], (Bson) args[1], (MongoCollection<Document>) args[args.length-1]);
         args[0] = bsonBsonMutablePair.getLeft();
         args[1] = bsonBsonMutablePair.getRight();
     }

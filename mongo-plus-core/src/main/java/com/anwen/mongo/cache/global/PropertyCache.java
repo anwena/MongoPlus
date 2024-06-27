@@ -13,6 +13,13 @@ public class PropertyCache {
      * @date 2023/10/25 15:42
     */
     public static Boolean mapUnderscoreToCamelCase = false;
+    
+    /**
+     * 驼峰转下划线
+     * @author anwen
+     * @date 2024/6/27 下午11:56
+     */
+    public static Boolean camelToUnderline = false;
 
     /**
      * 是否忽略空值

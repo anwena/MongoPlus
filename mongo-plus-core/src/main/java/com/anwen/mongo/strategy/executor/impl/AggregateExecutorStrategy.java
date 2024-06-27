@@ -26,7 +26,7 @@ public class AggregateExecutorStrategy implements MethodExecutorStrategy {
     @Override
     public void invoke(Interceptor interceptor, Object[] args) {
         args[0] = interceptor.executeAggregates((List<Bson>) args[0]);
-        args[0] = interceptor.executeAggregates((List<Bson>) args[0], (MongoCollection<Document>) args[1]);
+        args[0] = interceptor.executeAggregates((List<Bson>) args[0], (MongoCollection<Document>) args[args.length-1]);
     }
 
 }

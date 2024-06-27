@@ -16,6 +16,7 @@ import java.util.List;
  * @date 2024/4/30
  */
 @SuppressWarnings("unchecked")
+@Deprecated
 public class AggregateExecutorOldStrategy implements MethodExecutorStrategy {
 
     @Override
@@ -26,7 +27,7 @@ public class AggregateExecutorOldStrategy implements MethodExecutorStrategy {
     @Override
     public void invoke(Interceptor interceptor, Object[] args) {
         args[0] = interceptor.executeAggregate((List<AggregateBasicDBObject>) args[0]);
-        args[0] = interceptor.executeAggregate((List<AggregateBasicDBObject>) args[0], (MongoCollection<Document>) args[1]);
+        args[0] = interceptor.executeAggregate((List<AggregateBasicDBObject>) args[0], (MongoCollection<Document>) args[args.length-1]);
     }
 
 }

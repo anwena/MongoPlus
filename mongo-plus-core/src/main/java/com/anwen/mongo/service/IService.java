@@ -208,7 +208,6 @@ public interface IService<T> {
      * @author anwen
      * @date 2024/5/28 下午9:03
      */
-    @Deprecated
     <R> List<R> list(TypeReference<R> typeReference);
 
     /**

@@ -26,7 +26,7 @@ public class BulkWriteExecutorStrategy implements MethodExecutorStrategy {
     @Override
     public void invoke(Interceptor interceptor, Object[] args) {
         args[0] = interceptor.executeBulkWrite((List<WriteModel<Document>>) args[0]);
-        args[0] = interceptor.executeBulkWrite((List<WriteModel<Document>>) args[0], (MongoCollection<Document>) args[1]);
+        args[0] = interceptor.executeBulkWrite((List<WriteModel<Document>>) args[0], (MongoCollection<Document>) args[args.length-1]);
     }
 
 }
