@@ -34,7 +34,7 @@ public class LambdaAggregateWrapper<Children> implements Aggregate<Children>,Agg
     /**
      * 定义管道条件集合，需要通过调用顺序控制管道的顺序
      */
-    private final List<Bson> aggregateConditionList = new ArrayList<>();
+    private final List<Bson> aggregateConditionList = new LinkedList<>();
     
     /**
      * 定义聚合管道选项

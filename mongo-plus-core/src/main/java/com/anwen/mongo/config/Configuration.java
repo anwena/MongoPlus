@@ -12,14 +12,16 @@ import com.anwen.mongo.enums.CollectionNameConvertEnum;
 import com.anwen.mongo.factory.MongoClientFactory;
 import com.anwen.mongo.handlers.DocumentHandler;
 import com.anwen.mongo.handlers.MetaObjectHandler;
+import com.anwen.mongo.handlers.TenantHandler;
 import com.anwen.mongo.interceptor.Interceptor;
+import com.anwen.mongo.interceptor.business.CollectionLogiceInterceptor;
+import com.anwen.mongo.interceptor.business.LogicAutoFillInterceptor;
+import com.anwen.mongo.interceptor.business.TenantInterceptor;
 import com.anwen.mongo.listener.BaseListener;
 import com.anwen.mongo.listener.Listener;
 import com.anwen.mongo.listener.business.BlockAttackInnerListener;
 import com.anwen.mongo.listener.business.LogListener;
 import com.anwen.mongo.logic.AnnotationHandler;
-import com.anwen.mongo.logic.interceptor.CollectionLogiceInterceptor;
-import com.anwen.mongo.logic.interceptor.LogicAutoFillInterceptor;
 import com.anwen.mongo.logic.replacer.LogicRemoveReplacer;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.BaseMapper;
@@ -274,6 +276,16 @@ public class Configuration {
             }
         }
         InterceptorCache.sorted();
+        return this;
+    }
+
+    /**
+     * 设置多租户处理器
+     * @author anwen
+     * @date 2024/6/27 下午12:47
+     */
+    public Configuration tenantHandler(TenantHandler tenantHandler){
+        InterceptorCache.interceptors.add(new TenantInterceptor(tenantHandler));
         return this;
     }
 

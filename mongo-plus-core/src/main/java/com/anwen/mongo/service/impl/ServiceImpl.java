@@ -235,6 +235,11 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
+    public <R> List<R> aggregateList(AggregateChainWrapper<T, ?> queryChainWrapper, TypeReference<R> typeReference) {
+        return baseMapper.aggregateList(queryChainWrapper,clazz,typeReference);
+    }
+
+    @Override
     public List<T> list(Aggregate<?> aggregate) {
         return list(aggregate,clazz);
     }
@@ -245,6 +250,11 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
+    public <R> List<R> list(Aggregate<?> aggregate, TypeReference<R> typeReference) {
+        return baseMapper.aggregateList(aggregate,clazz,typeReference);
+    }
+
+    @Override
     public T one(QueryChainWrapper<T,?> queryChainWrapper) {
         return one(queryChainWrapper,clazz);
     }
@@ -252,6 +262,11 @@ public class ServiceImpl<T> implements IService<T> {
     @Override
     public <R> R one(QueryChainWrapper<T, ?> queryChainWrapper, Class<R> rClazz) {
         return baseMapper.one(queryChainWrapper,clazz,rClazz);
+    }
+
+    @Override
+    public <R> R one(QueryChainWrapper<T, ?> queryChainWrapper, TypeReference<R> typeReference) {
+        return baseMapper.one(queryChainWrapper,clazz,typeReference);
     }
 
     @Override
@@ -280,6 +295,11 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
+    public <R> List<R> list(QueryChainWrapper<T, ?> queryChainWrapper, TypeReference<R> typeReference) {
+        return baseMapper.list(queryChainWrapper,clazz,typeReference);
+    }
+
+    @Override
     public List<T> list(AggregateChainWrapper<T,?> queryChainWrapper) {
         return aggregateList(queryChainWrapper,clazz);
     }
@@ -287,6 +307,11 @@ public class ServiceImpl<T> implements IService<T> {
     @Override
     public <R> List<R> list(AggregateChainWrapper<T, ?> queryChainWrapper, Class<R> rClazz) {
         return baseMapper.aggregateList(queryChainWrapper,clazz,rClazz);
+    }
+
+    @Override
+    public <R> List<R> list(AggregateChainWrapper<T, ?> queryChainWrapper, TypeReference<R> typeReference) {
+        return baseMapper.aggregateList(queryChainWrapper,clazz,typeReference);
     }
 
     @Override
@@ -325,8 +350,18 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
+    public <R> PageResult<R> page(Integer pageNum, Integer pageSize, Integer recentPageNum, TypeReference<R> typeReference) {
+        return baseMapper.page(new QueryWrapper<>(),pageNum,pageSize,recentPageNum,clazz,typeReference);
+    }
+
+    @Override
     public <R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize, Class<R> rClazz) {
         return baseMapper.page(queryChainWrapper,pageNum,pageSize,clazz,rClazz);
+    }
+
+    @Override
+    public <R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize, TypeReference<R> typeReference) {
+        return baseMapper.page(queryChainWrapper,pageNum,pageSize,clazz,typeReference);
     }
 
     @Override
@@ -335,13 +370,28 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
+    public <R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam, TypeReference<R> typeReference) {
+        return baseMapper.page(queryChainWrapper,pageParam.getPageNum(),pageParam.getPageSize(),clazz,typeReference);
+    }
+
+    @Override
     public <R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize, Integer recentPageNum, Class<R> rClazz) {
         return baseMapper.page(queryChainWrapper,pageNum,pageSize,recentPageNum,clazz,rClazz);
     }
 
     @Override
+    public <R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize, Integer recentPageNum, TypeReference<R> typeReference) {
+        return baseMapper.page(queryChainWrapper,pageNum,pageSize,recentPageNum,clazz,typeReference);
+    }
+
+    @Override
     public <R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam, Integer recentPageNum, Class<R> rClazz) {
         return baseMapper.page(queryChainWrapper,pageParam.getPageNum(),pageParam.getPageSize(),recentPageNum,clazz,rClazz);
+    }
+
+    @Override
+    public <R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam, Integer recentPageNum, TypeReference<R> typeReference) {
+        return baseMapper.page(queryChainWrapper,pageParam.getPageNum(),pageParam.getPageSize(),recentPageNum,clazz,typeReference);
     }
 
     @Override
@@ -355,6 +405,11 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
+    public <R> List<R> pageList(PageParam pageParam, TypeReference<R> typeReference) {
+        return pageList(pageParam.getPageNum(),pageParam.getPageSize(),typeReference);
+    }
+
+    @Override
     public List<T> pageList(Integer pageNum, Integer pageSize) {
         return pageList(new QueryWrapper<>(),pageNum,pageSize,clazz);
     }
@@ -362,6 +417,11 @@ public class ServiceImpl<T> implements IService<T> {
     @Override
     public <R> List<R> pageList(Integer pageNum, Integer pageSize, Class<R> rClazz) {
         return baseMapper.pageList(new QueryWrapper<>(),pageNum,pageSize,clazz,rClazz);
+    }
+
+    @Override
+    public <R> List<R> pageList(Integer pageNum, Integer pageSize, TypeReference<R> typeReference) {
+        return baseMapper.pageList(new QueryWrapper<>(),pageNum,pageSize,clazz,typeReference);
     }
 
     @Override
@@ -375,6 +435,11 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
+    public <R> List<R> pageList(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize, TypeReference<R> typeReference) {
+        return baseMapper.pageList(queryChainWrapper,pageNum,pageSize,clazz,typeReference);
+    }
+
+    @Override
     public List<T> pageList(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam) {
         return pageList(queryChainWrapper,pageParam.getPageNum(),pageParam.getPageSize(),clazz);
     }
@@ -382,6 +447,11 @@ public class ServiceImpl<T> implements IService<T> {
     @Override
     public <R> List<R> pageList(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam, Class<R> rClazz) {
         return baseMapper.pageList(queryChainWrapper,pageParam.getPageNum(),pageParam.getPageSize(),clazz,rClazz);
+    }
+
+    @Override
+    public <R> List<R> pageList(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam, TypeReference<R> typeReference) {
+        return baseMapper.pageList(queryChainWrapper,pageParam.getPageNum(),pageParam.getPageSize(),clazz,typeReference);
     }
 
     @Override
@@ -395,6 +465,11 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
+    public <R> PageResult<R> page(PageParam pageParam, TypeReference<R> typeReference) {
+        return page(pageParam.getPageNum(),pageParam.getPageSize(),typeReference);
+    }
+
+    @Override
     public PageResult<T> page(PageParam pageParam, Integer recentPageNum) {
         return page(pageParam.getPageNum(), pageParam.getPageSize(), recentPageNum);
     }
@@ -405,6 +480,11 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
+    public <R> PageResult<R> page(PageParam pageParam, Integer recentPageNum, TypeReference<R> typeReference) {
+        return page(pageParam.getPageNum(), pageParam.getPageSize(), recentPageNum, typeReference);
+    }
+
+    @Override
     public PageResult<T> page(Integer pageNum, Integer pageSize) {
         return page(new QueryWrapper<>(),pageNum,pageSize);
     }
@@ -412,6 +492,11 @@ public class ServiceImpl<T> implements IService<T> {
     @Override
     public <R> PageResult<R> page(Integer pageNum, Integer pageSize, Class<R> rClazz) {
         return baseMapper.page(new QueryWrapper<>(),pageNum,pageSize,clazz,rClazz);
+    }
+
+    @Override
+    public <R> PageResult<R> page(Integer pageNum, Integer pageSize, TypeReference<R> typeReference) {
+        return baseMapper.page(new QueryWrapper<>(),pageNum,pageSize,clazz,typeReference);
     }
 
     @Override
@@ -430,6 +515,11 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
+    public <R> R getById(Serializable id, TypeReference<R> typeReference) {
+        return baseMapper.getById(id,clazz,typeReference);
+    }
+
+    @Override
     public List<T> getByIds(Collection<? extends Serializable> ids) {
         return getByIds(ids,clazz);
     }
@@ -437,6 +527,11 @@ public class ServiceImpl<T> implements IService<T> {
     @Override
     public <R> List<R> getByIds(Collection<? extends Serializable> ids, Class<R> rClazz) {
         return baseMapper.getByIds(ids,clazz,rClazz);
+    }
+
+    @Override
+    public <R> List<R> getByIds(Collection<? extends Serializable> ids, TypeReference<R> typeReference) {
+        return baseMapper.getByIds(ids,clazz,typeReference);
     }
 
     @Override
@@ -450,6 +545,11 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
+    public <R> List<R> queryCommand(String command, TypeReference<R> typeReference) {
+        return baseMapper.queryCommand(command,clazz,typeReference);
+    }
+
+    @Override
     public List<T> getByColumn(SFunction<T, Object> field, Object fieldValue) {
         return getByColumn(field.getFieldNameLine(), fieldValue,clazz);
     }
@@ -460,6 +560,11 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
+    public <R> List<R> getByColumn(SFunction<T, Object> field, Object fieldValue, TypeReference<R> typeReference) {
+        return baseMapper.getByColumn(field.getFieldNameLine(), fieldValue,clazz,typeReference);
+    }
+
+    @Override
     public List<T> getByColumn(String field, Object fieldValue) {
         return getByColumn(field,fieldValue,clazz);
     }
@@ -467,6 +572,11 @@ public class ServiceImpl<T> implements IService<T> {
     @Override
     public <R> List<R> getByColumn(String field, Object fieldValue, Class<R> rClazz) {
         return baseMapper.getByColumn(field,fieldValue,clazz,rClazz);
+    }
+
+    @Override
+    public <R> List<R> getByColumn(String field, Object fieldValue, TypeReference<R> typeReference) {
+        return baseMapper.getByColumn(field,fieldValue,clazz,typeReference);
     }
 
     @Override

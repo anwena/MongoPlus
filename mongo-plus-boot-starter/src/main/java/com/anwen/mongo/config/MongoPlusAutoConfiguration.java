@@ -4,9 +4,11 @@ import com.anwen.mongo.cache.global.*;
 import com.anwen.mongo.domain.MongoPlusConvertException;
 import com.anwen.mongo.handlers.DocumentHandler;
 import com.anwen.mongo.handlers.MetaObjectHandler;
+import com.anwen.mongo.handlers.TenantHandler;
 import com.anwen.mongo.incrementer.IdentifierGenerator;
 import com.anwen.mongo.incrementer.id.IdWorker;
 import com.anwen.mongo.interceptor.Interceptor;
+import com.anwen.mongo.interceptor.business.TenantInterceptor;
 import com.anwen.mongo.listener.Listener;
 import com.anwen.mongo.listener.business.BlockAttackInnerListener;
 import com.anwen.mongo.listener.business.LogListener;
@@ -71,6 +73,7 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         setReplacer();
         setMapping();
         setIdGenerator();
+        setTenantHandler();
         this.baseMapper = baseMapper;
     }
 
@@ -232,6 +235,21 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         try {
             IdWorker.setIdentifierGenerator(applicationContext.getBean(IdentifierGenerator.class));
         } catch (Exception ignored){}
+    }
+
+    /**
+     * 多租户拦截器
+     * @author anwen
+     * @date 2024/6/27 下午12:44
+     */
+    private void setTenantHandler() {
+        TenantHandler tenantHandler = null;
+        try {
+            tenantHandler = applicationContext.getBean(TenantHandler.class);
+        } catch (Exception ignored){}
+        if (tenantHandler != null) {
+            InterceptorCache.interceptors.add(new TenantInterceptor(tenantHandler));
+        }
     }
 
 }

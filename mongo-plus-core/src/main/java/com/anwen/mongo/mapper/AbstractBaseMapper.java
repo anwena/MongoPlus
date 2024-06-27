@@ -2,6 +2,8 @@ package com.anwen.mongo.mapper;
 
 import com.anwen.mongo.aggregate.Aggregate;
 import com.anwen.mongo.cache.global.CollectionLogicDeleteCache;
+import com.anwen.mongo.cache.global.InterceptorCache;
+import com.anwen.mongo.cache.global.TenantCache;
 import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
@@ -158,8 +160,11 @@ public abstract class AbstractBaseMapper implements BaseMapper {
         Execute execute = factory.getExecute();
         MongoCollection<Document> collection = mongoPlusClient.getCollection(database, collectionName);
         long line;
-        // TODO 这里需要改
-        if (!(CollectionLogicDeleteCache.open && Objects.nonNull(LogicDeleteHandler.mapper().get(null))) && CollUtil.isEmpty(queryChainWrapper.getCompareList())){
+        if (!(CollectionLogicDeleteCache.open &&
+                Objects.nonNull(LogicDeleteHandler.mapper().get(LogicDeleteHandler.getBeanClass(collection)))) &&
+                CollUtil.isEmpty(queryChainWrapper.getCompareList()) &&
+                (TenantCache.getIgnoreTenant() != null ||
+                InterceptorCache.getTenant() == null)){
             line = execute.estimatedDocumentCount(collection);
         } else {
             line = execute.executeCount(BuildCondition.buildQueryCondition(queryChainWrapper.getCompareList()),null,collection);
@@ -267,8 +272,11 @@ public abstract class AbstractBaseMapper implements BaseMapper {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
         MongoCollection<Document> collection = mongoPlusClient.getCollection(database, collectionName);
         long count;
-        //TODO 这里需要处理
-        if (!(CollectionLogicDeleteCache.open && Objects.nonNull(LogicDeleteHandler.mapper().get(null))) && CollUtil.isEmpty(queryChainWrapper.getCompareList())){
+        if (!(CollectionLogicDeleteCache.open &&
+                Objects.nonNull(LogicDeleteHandler.mapper().get(LogicDeleteHandler.getBeanClass(collection)))) &&
+                CollUtil.isEmpty(queryChainWrapper.getCompareList()) &&
+                (TenantCache.getIgnoreTenant() != null ||
+                        InterceptorCache.getTenant() == null)){
             count = factory.getExecute().estimatedDocumentCount(collection);
         }else {
             count = count(database,collectionName,queryChainWrapper);
@@ -299,8 +307,11 @@ public abstract class AbstractBaseMapper implements BaseMapper {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
         MongoCollection<Document> collection = mongoPlusClient.getCollection(database, collectionName);
         long count;
-        //TODO 这里需要处理
-        if (!(CollectionLogicDeleteCache.open && Objects.nonNull(LogicDeleteHandler.mapper().get(null))) && CollUtil.isEmpty(queryChainWrapper.getCompareList())){
+        if (!(CollectionLogicDeleteCache.open &&
+                Objects.nonNull(LogicDeleteHandler.mapper().get(LogicDeleteHandler.getBeanClass(collection)))) &&
+                CollUtil.isEmpty(queryChainWrapper.getCompareList()) &&
+                (TenantCache.getIgnoreTenant() != null ||
+                        InterceptorCache.getTenant() == null)){
             count = factory.getExecute().estimatedDocumentCount(collection);
         }else {
             count = recentPageCount(database,collectionName,queryChainWrapper.getCompareList(), pageNum,  pageSize, recentPageNum);
@@ -357,14 +368,16 @@ public abstract class AbstractBaseMapper implements BaseMapper {
 
     @Override
     public long count(String database, String collectionName) {
-        MongoCollection<Document> mongoCollection = mongoPlusClient.getCollection(database, collectionName);
+        MongoCollection<Document> collection = mongoPlusClient.getCollection(database, collectionName);
         Execute execute = factory.getExecute();
         long line;
-        //TODO 这里需要处理
-        if (!(CollectionLogicDeleteCache.open && Objects.nonNull(LogicDeleteHandler.mapper().get(null)))){
-            line = execute.estimatedDocumentCount(mongoCollection);
+        if (!(CollectionLogicDeleteCache.open &&
+                Objects.nonNull(LogicDeleteHandler.mapper().get(LogicDeleteHandler.getBeanClass(collection)))) &&
+                (TenantCache.getIgnoreTenant() != null ||
+                        InterceptorCache.getTenant() == null)){
+            line = execute.estimatedDocumentCount(collection);
         } else {
-            line = execute.executeCount(null,null,mongoCollection);
+            line = execute.executeCount(null,null,collection);
         }
         return line;
     }

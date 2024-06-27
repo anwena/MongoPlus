@@ -20,6 +20,7 @@ import com.anwen.mongo.model.BaseProperty;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBConfigurationProperty;
 import com.anwen.mongo.property.MongoDBConnectProperty;
+import com.anwen.mongo.tenant.TenantAspect;
 import com.anwen.mongo.toolkit.CollUtil;
 import com.anwen.mongo.toolkit.MongoCollectionUtils;
 import com.anwen.mongo.toolkit.UrlJoint;
@@ -258,6 +259,17 @@ public class MongoPlusConfiguration {
     @ConditionalOnMissingBean
     public MongoLogicIgnoreAspect mongoLogicIgnoreAspect() {
         return new MongoLogicIgnoreAspect();
+    }
+
+    /**
+     * 忽略租户
+     * @author anwen
+     * @date 2024/6/27 下午1:30
+     */
+    @Bean("tenantAspect")
+    @ConditionalOnMissingBean
+    public TenantAspect tenantAspect(){
+        return new TenantAspect();
     }
 
 }

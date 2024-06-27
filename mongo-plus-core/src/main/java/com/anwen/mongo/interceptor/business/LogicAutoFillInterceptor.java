@@ -1,4 +1,4 @@
-package com.anwen.mongo.logic.interceptor;
+package com.anwen.mongo.interceptor.business;
 
 import com.anwen.mongo.cache.global.CollectionLogicDeleteCache;
 import com.anwen.mongo.interceptor.Interceptor;
