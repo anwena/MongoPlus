@@ -2,12 +2,15 @@ package com.anwen.mongo.config;
 
 import com.anwen.mongo.cache.global.*;
 import com.anwen.mongo.domain.MongoPlusConvertException;
+import com.anwen.mongo.handlers.CollectionNameHandler;
 import com.anwen.mongo.handlers.DocumentHandler;
 import com.anwen.mongo.handlers.MetaObjectHandler;
 import com.anwen.mongo.handlers.TenantHandler;
 import com.anwen.mongo.incrementer.IdentifierGenerator;
 import com.anwen.mongo.incrementer.id.IdWorker;
 import com.anwen.mongo.interceptor.Interceptor;
+import com.anwen.mongo.interceptor.business.DataChangeRecorderInnerInterceptor;
+import com.anwen.mongo.interceptor.business.DynamicCollectionNameInterceptor;
 import com.anwen.mongo.interceptor.business.TenantInterceptor;
 import com.anwen.mongo.listener.Listener;
 import com.anwen.mongo.listener.business.BlockAttackInnerListener;
@@ -65,6 +68,7 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         this.mongodbLogProperty = mongodbLogProperty;
         this.mongodbCollectionProperty = mongodbCollectionProperty;
         this.mongoLogicDelProperty = mongoLogicDelProperty;
+        this.baseMapper = baseMapper;
         setConversion();
         setMetaObjectHandler();
         setDocumentHandler();
@@ -74,7 +78,8 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         setMapping();
         setIdGenerator();
         setTenantHandler();
-        this.baseMapper = baseMapper;
+        setDynamicCollectionHandler();
+        setDataChangeRecorderInterceptor();
     }
 
     @Override
@@ -249,6 +254,36 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         } catch (Exception ignored){}
         if (tenantHandler != null) {
             InterceptorCache.interceptors.add(new TenantInterceptor(tenantHandler));
+        }
+    }
+
+    /**
+     * 动态集合名拦截器
+     * @author anwen
+     * @date 2024/6/27 下午3:47
+     */
+    private void setDynamicCollectionHandler(){
+        CollectionNameHandler collectionNameHandler = null;
+        try {
+            collectionNameHandler = applicationContext.getBean(CollectionNameHandler.class);
+        } catch (Exception ignored){}
+        if (collectionNameHandler != null) {
+            InterceptorCache.interceptors.add(new DynamicCollectionNameInterceptor(collectionNameHandler, baseMapper.getMongoPlusClient()));
+        }
+    }
+
+    /**
+     * 数据变动记录拦截器
+     * @author anwen
+     * @date 2024/6/27 下午8:04
+     */
+    private void setDataChangeRecorderInterceptor(){
+        DataChangeRecorderInnerInterceptor dataChangeRecorderInnerInterceptor = null;
+        try {
+            dataChangeRecorderInnerInterceptor = applicationContext.getBean(DataChangeRecorderInnerInterceptor.class);
+        } catch (Exception ignored){}
+        if (dataChangeRecorderInnerInterceptor != null) {
+            InterceptorCache.interceptors.add(dataChangeRecorderInnerInterceptor);
         }
     }
 

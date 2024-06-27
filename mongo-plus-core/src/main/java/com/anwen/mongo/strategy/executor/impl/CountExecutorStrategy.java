@@ -15,6 +15,7 @@ import org.bson.Document;
  * @author loser
  * @date 2024/4/30
  */
+@SuppressWarnings("unchecked")
 public class CountExecutorStrategy implements MethodExecutorStrategy {
 
     @Override

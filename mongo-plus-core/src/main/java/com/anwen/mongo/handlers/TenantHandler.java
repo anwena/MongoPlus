@@ -9,6 +9,7 @@ import java.util.List;
  *
  * @author anwen
  * @date 2024/6/27 上午10:37
+ * @since by mybatis-plus
  */
 public interface TenantHandler {
 

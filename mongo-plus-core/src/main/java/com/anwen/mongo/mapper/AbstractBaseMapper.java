@@ -94,8 +94,7 @@ public abstract class AbstractBaseMapper implements BaseMapper {
     @Override
     public Long update(String database, String collectionName, Bson queryBasic, Bson updateBasic) {
         return factory.getExecute().executeUpdate(
-                queryBasic,
-                updateBasic,
+                Collections.singletonList(new MutablePair<>(queryBasic, updateBasic)),
                 mongoPlusClient.getCollection(database,collectionName)
         ).getModifiedCount();
     }
@@ -109,7 +108,7 @@ public abstract class AbstractBaseMapper implements BaseMapper {
     @Override
     public <T> Boolean update(String database, String collectionName, T entity, QueryChainWrapper<T, ?> queryChainWrapper) {
         MutablePair<BasicDBObject, BasicDBObject> updatePair = ConditionUtil.getUpdateCondition(queryChainWrapper.getCompareList(), entity,mongoConverter);
-        return factory.getExecute().executeUpdate(updatePair.getLeft(),updatePair.getRight(),mongoPlusClient.getCollection(database,collectionName)).getModifiedCount() > 0;
+        return update(database,collectionName,updatePair.getLeft(),updatePair.getRight()) > 0;
     }
 
     @Override
@@ -142,7 +141,7 @@ public abstract class AbstractBaseMapper implements BaseMapper {
         }};
         BasicDBObject targetBasicDBObject = new BasicDBObject();
         mongoConverter.write(basicDBObject,targetBasicDBObject);
-        return factory.getExecute().executeUpdate(queryBasic,targetBasicDBObject,mongoPlusClient.getCollection(database,collectionName)).getModifiedCount() >= 1;
+        return update(database,collectionName,queryBasic,targetBasicDBObject) >= 1;
     }
 
     @Override

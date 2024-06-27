@@ -15,6 +15,7 @@ import java.util.List;
  * @author loser
  * @date 2024/4/30
  */
+@SuppressWarnings("unchecked")
 public class AggregateExecutorStrategy implements MethodExecutorStrategy {
 
     @Override

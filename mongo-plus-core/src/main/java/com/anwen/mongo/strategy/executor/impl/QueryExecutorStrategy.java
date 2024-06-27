@@ -15,6 +15,7 @@ import org.bson.conversions.Bson;
  * @author loser
  * @date 2024/4/30
  */
+@SuppressWarnings("unchecked")
 public class QueryExecutorStrategy implements MethodExecutorStrategy {
 
     @Override

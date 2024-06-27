@@ -87,6 +87,22 @@ public class TenantInterceptor implements Interceptor {
     }
 
     @Override
+    public List<MutablePair<Bson, Bson>> executeUpdate(List<MutablePair<Bson, Bson>> updatePairList, MongoCollection<Document> collection) {
+        if (!checkTenant(collection)){
+            updatePairList.forEach(mutablePair -> {
+                Bson queryBasic = mutablePair.getLeft();
+                if (queryBasic == null){
+                    queryBasic = Filters.eq(tenantHandler.getTenantIdColumn(),tenantHandler.getTenantId());
+                } else if (!queryBasic.toBsonDocument().containsKey(tenantHandler.getTenantIdColumn())) {
+                    BsonUtil.addToMap(queryBasic, tenantHandler.getTenantIdColumn(), tenantHandler.getTenantId());
+                }
+                mutablePair.setLeft(queryBasic);
+            });
+        }
+        return updatePairList;
+    }
+
+    @Override
     public QueryParam executeQuery(Bson queryBasic, BasicDBObject projectionList, BasicDBObject sortCond, MongoCollection<Document> collection) {
         if (!checkTenant(collection)){
             if (queryBasic == null){

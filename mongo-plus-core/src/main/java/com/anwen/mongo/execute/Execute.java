@@ -1,6 +1,7 @@
 package com.anwen.mongo.execute;
 
 import com.anwen.mongo.model.AggregateBasicDBObject;
+import com.anwen.mongo.model.MutablePair;
 import com.mongodb.BasicDBObject;
 import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.AggregateIterable;
@@ -26,7 +27,10 @@ public interface Execute {
 
     DeleteResult executeRemove(Bson filter, MongoCollection<Document> collection);
 
+    @Deprecated
     UpdateResult executeUpdate(Bson queryBasic,Bson updateBasic,MongoCollection<Document> collection);
+
+    UpdateResult executeUpdate(List<MutablePair<Bson,Bson>> bsonPairList,MongoCollection<Document> collection);
 
     <T> FindIterable<T> executeQuery(Bson queryBasic, BasicDBObject projectionList, BasicDBObject sortCond, MongoCollection<Document> collection, Class<T> clazz);
 
