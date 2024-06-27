@@ -12,7 +12,7 @@ import com.mongodb.MongoNamespace;
 public interface CollectionNameHandler {
 
     /**
-     * 生成动态表明
+     * 生成动态集合
      * @param executeMethodEnum 当前的操作
      * @param source 当前操作的参数
      * @param namespace 命名空间
