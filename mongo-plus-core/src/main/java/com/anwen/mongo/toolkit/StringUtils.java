@@ -4,7 +4,6 @@ import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.domain.MongoPlusConvertException;
 import com.anwen.mongo.logging.Log;
 import com.anwen.mongo.logging.LogFactory;
-import com.anwen.mongo.support.SFunction;
 
 import java.util.Arrays;
 import java.util.Collection;

@@ -46,6 +46,7 @@ public @interface Desensitization {
 
     /**
      * 脱敏处理器，{@link #type()}为{@link DesensitizationTypeEnum#CUSTOM}时，会走这里配置的处理器
+     * <p>脱敏处理器需实现{@link com.anwen.mongo.handlers.DesensitizationHandler}接口</p>
      * @return {@link Class<?>}
      * @author anwen
      * @date 2024/6/28 下午5:08
