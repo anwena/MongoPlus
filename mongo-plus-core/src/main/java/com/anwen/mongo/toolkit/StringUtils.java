@@ -4,10 +4,12 @@ import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.domain.MongoPlusConvertException;
 import com.anwen.mongo.logging.Log;
 import com.anwen.mongo.logging.LogFactory;
+import com.anwen.mongo.support.SFunction;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -23,6 +25,8 @@ public final class StringUtils {
      * 字符串 is
      */
     public static final String IS = "is";
+
+    public static final int INDEX_NOT_FOUND = -1;
     /**
      * 下划线字符
      */
@@ -194,6 +198,137 @@ public final class StringUtils {
         }
     }
 
+    /**
+     * 替换指定字符串的指定区间内字符为"*"
+     * 俗称：脱敏功能，后面其他功能，可以见：DesensitizedUtil(脱敏工具类)
+     *
+     * <pre>
+     * CharSequenceUtil.hide(null,*,*)=null
+     * CharSequenceUtil.hide("",0,*)=""
+     * CharSequenceUtil.hide("jackduan@163.com",-1,4)   ****duan@163.com
+     * CharSequenceUtil.hide("jackduan@163.com",2,3)    ja*kduan@163.com
+     * CharSequenceUtil.hide("jackduan@163.com",3,2)    jackduan@163.com
+     * CharSequenceUtil.hide("jackduan@163.com",16,16)  jackduan@163.com
+     * CharSequenceUtil.hide("jackduan@163.com",16,17)  jackduan@163.com
+     * </pre>
+     *
+     * @param str          字符串
+     * @param startInclude 开始位置（包含）
+     * @param endExclude   结束位置（不包含）
+     * @return 替换后的字符串
+     * @since 4.1.14
+     */
+    public static String hide(CharSequence str, int startInclude, int endExclude) {
+        return replace(str, startInclude, endExclude, '*');
+    }
+
+    /**
+     * 重复某个字符
+     *
+     * <pre>
+     * CharSequenceUtil.repeat('e', 0)  = ""
+     * CharSequenceUtil.repeat('e', 3)  = "eee"
+     * CharSequenceUtil.repeat('e', -2) = ""
+     * </pre>
+     *
+     * @param c     被重复的字符
+     * @param count 重复的数目，如果小于等于0则返回""
+     * @return 重复字符字符串
+     */
+    public static String repeat(char c, int count) {
+        if (count <= 0) {
+            return StringPool.EMPTY;
+        }
+
+        char[] result = new char[count];
+        Arrays.fill(result, c);
+        return new String(result);
+    }
+
+    /**
+     * 清理空白字符
+     *
+     * @param str 被清理的字符串
+     * @return 清理后的字符串
+     */
+    public static String cleanBlank(CharSequence str) {
+        return filter(str, c -> !isBlankChar((int) c));
+    }
+
+    public static boolean isBlankChar(int c) {
+        return Character.isWhitespace(c)
+                || Character.isSpaceChar(c)
+                || c == '\ufeff'
+                || c == '\u202a'
+                || c == '\u0000'
+                // issue#I5UGSQ，Hangul Filler
+                || c == '\u3164'
+                // Braille Pattern Blank
+                || c == '\u2800'
+                // MONGOLIAN VOWEL SEPARATOR
+                || c == '\u180e';
+    }
+
+    /**
+     * 过滤字符串
+     *
+     * @param str    字符串
+     * @param filter 过滤器
+     * @return 过滤后的字符串
+     * @since 5.4.0
+     */
+    public static String filter(CharSequence str, final Function<Character,Boolean> filter) {
+        if (str == null || filter == null) {
+            return str(str);
+        }
+
+        int len = str.length();
+        final StringBuilder sb = new StringBuilder(len);
+        char c;
+        for (int i = 0; i < len; i++) {
+            c = str.charAt(i);
+            if (filter.apply(c)) {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 截取分隔字符串之前的字符串，不包括分隔字符串<br>
+     * 如果给定的字符串为空串（null或""）或者分隔字符串为null，返回原字符串<br>
+     * 如果分隔字符串未找到，返回原字符串，举例如下：
+     *
+     * <pre>
+     * CharSequenceUtil.subBefore(null, *, false)      = null
+     * CharSequenceUtil.subBefore("", *, false)        = ""
+     * CharSequenceUtil.subBefore("abc", 'a', false)   = ""
+     * CharSequenceUtil.subBefore("abcba", 'b', false) = "a"
+     * CharSequenceUtil.subBefore("abc", 'c', false)   = "ab"
+     * CharSequenceUtil.subBefore("abc", 'd', false)   = "abc"
+     * </pre>
+     *
+     * @param string          被查找的字符串
+     * @param separator       分隔字符串（不包括）
+     * @param isLastSeparator 是否查找最后一个分隔字符串（多次出现分隔字符串时选取最后一个），true为选取最后一个
+     * @return 切割后的字符串
+     * @since 4.1.15
+     */
+    public static String subBefore(CharSequence string, char separator, boolean isLastSeparator) {
+        if (isEmpty(string)) {
+            return null == string ? null : StringPool.EMPTY;
+        }
+
+        final String str = string.toString();
+        final int pos = isLastSeparator ? str.lastIndexOf(separator) : str.indexOf(separator);
+        if (INDEX_NOT_FOUND == pos) {
+            return str;
+        }
+        if (0 == pos) {
+            return StringPool.EMPTY;
+        }
+        return str.substring(0, pos);
+    }
 
     /**
      * 查找 src 里包含几个 target
@@ -282,6 +417,54 @@ public final class StringUtils {
 
     public static boolean isSqlColumnChar(char c) {
         return 'A' <= c && c <= 'Z' || 'a' <= c && c <= 'z' || '0' <= c && c <= '9' || c == '_';
+    }
+
+    /**
+     * 指定范围内查找字符串
+     *
+     * @return 位置
+     * @since 3.2.1
+     */
+    public static int indexOf(final CharSequence seq, final CharSequence searchSeq) {
+        if (seq == null || searchSeq == null) {
+            return INDEX_NOT_FOUND;
+        }
+        return indexOf(seq, searchSeq, 0);
+    }
+
+    public static int indexOf(final CharSequence cs, final CharSequence searchChar, final int start) {
+        return cs.toString().indexOf(searchChar.toString(), start);
+    }
+
+    /**
+     * 比较两个字符串是否相等，规则如下
+     * <ul>
+     *     <li>str1和str2都为{@code null}</li>
+     *     <li>忽略大小写使用{@link String#equalsIgnoreCase(String)}判断相等</li>
+     *     <li>不忽略大小写使用{@link String#contentEquals(CharSequence)}判断相等</li>
+     * </ul>
+     *
+     * @param str1       要比较的字符串1
+     * @param str2       要比较的字符串2
+     * @param ignoreCase 是否忽略大小写
+     * @return 如果两个字符串相同，或者都是{@code null}，则返回{@code true}
+     * @since 3.2.0
+     */
+    public static boolean equals(CharSequence str1, CharSequence str2, boolean ignoreCase) {
+        if (null == str1) {
+            // 只有两个都为null才判断相等
+            return str2 == null;
+        }
+        if (null == str2) {
+            // 字符串2空，字符串1非空，直接false
+            return false;
+        }
+
+        if (ignoreCase) {
+            return str1.toString().equalsIgnoreCase(str2.toString());
+        } else {
+            return str1.toString().contentEquals(str2);
+        }
     }
 
     public static int countOf(String str, char target) {
@@ -479,6 +662,56 @@ public final class StringUtils {
         }
 
         return sb;
+    }
+
+    /**
+     * 替换指定字符串的指定区间内字符为固定字符<br>
+     * 此方法使用{@link String#codePoints()}完成拆分替换
+     *
+     * @param str          字符串
+     * @param startInclude 开始位置（包含）
+     * @param endExclude   结束位置（不包含）
+     * @param replacedChar 被替换的字符
+     * @return 替换后的字符串
+     * @since 3.2.1
+     */
+    public static String replace(CharSequence str, int startInclude, int endExclude, char replacedChar) {
+        if (isEmpty(str)) {
+            return str(str);
+        }
+        final String originalStr = str(str);
+        int[] strCodePoints = originalStr.codePoints().toArray();
+        final int strLength = strCodePoints.length;
+        if (startInclude > strLength) {
+            return originalStr;
+        }
+        if (endExclude > strLength) {
+            endExclude = strLength;
+        }
+        if (startInclude > endExclude) {
+            // 如果起始位置大于结束位置，不替换
+            return originalStr;
+        }
+
+        final StringBuilder stringBuilder = new StringBuilder();
+        for (int i = 0; i < strLength; i++) {
+            if (i >= startInclude && i < endExclude) {
+                stringBuilder.append(replacedChar);
+            } else {
+                stringBuilder.append(new String(strCodePoints, i, 1));
+            }
+        }
+        return stringBuilder.toString();
+    }
+
+    /**
+     * {@link CharSequence} 转为字符串，null安全
+     *
+     * @param cs {@link CharSequence}
+     * @return 字符串
+     */
+    public static String str(CharSequence cs) {
+        return null == cs ? null : cs.toString();
     }
 
     /**

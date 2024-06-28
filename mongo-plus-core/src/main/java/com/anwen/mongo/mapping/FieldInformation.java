@@ -3,6 +3,7 @@ package com.anwen.mongo.mapping;
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -53,6 +54,8 @@ public interface FieldInformation {
     void setValue(Object value);
 
     CollectionField getCollectionField();
+
+    Annotation getAnnotation(Class<? extends Annotation> annotationClass);
 
     Type getGenericType();
 

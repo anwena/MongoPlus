@@ -63,6 +63,21 @@ public abstract class AbstractBaseMapper implements BaseMapper {
     }
 
     @Override
+    public MongoPlusClient getMongoPlusClient() {
+        return mongoPlusClient;
+    }
+
+    @Override
+    public MongoConverter getMongoConverter() {
+        return this.mongoConverter;
+    }
+
+    @Override
+    public Execute getExecute(){
+        return factory.getExecute();
+    }
+
+    @Override
     public <T> boolean save(String database, String collectionName, T entity) {
         try {
             Document document = new Document();

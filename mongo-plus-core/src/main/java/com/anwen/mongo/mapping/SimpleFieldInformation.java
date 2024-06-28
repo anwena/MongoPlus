@@ -2,12 +2,15 @@ package com.anwen.mongo.mapping;
 
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
+import com.anwen.mongo.annotation.comm.Desensitization;
 import com.anwen.mongo.cache.global.PropertyCache;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.domain.MongoPlusFieldException;
+import com.anwen.mongo.model.BaseModelID;
 import com.anwen.mongo.toolkit.ArrayUtils;
 import com.anwen.mongo.toolkit.StringUtils;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -223,6 +226,11 @@ public class SimpleFieldInformation<T> implements FieldInformation {
             }
         }
         return this.collectionField;
+    }
+
+    @Override
+    public Annotation getAnnotation(Class<? extends Annotation> annotationClass){
+        return getField().getAnnotation(annotationClass);
     }
 
     @Override

@@ -29,28 +29,14 @@ public class DefaultBaseMapperImpl extends AbstractBaseMapper {
 
     private final MongoPlusClient mongoPlusClient;
 
-    private final MongoConverter mongoConverter;
-
     public DefaultBaseMapperImpl(MongoPlusClient mongoPlusClient,MongoConverter mongoConverter) {
         super(mongoPlusClient,mongoConverter,new ExecutorFactory());
         this.mongoPlusClient = mongoPlusClient;
-        this.mongoConverter = mongoConverter;
     }
 
     public DefaultBaseMapperImpl(MongoPlusClient mongoPlusClient,MongoConverter mongoConverter,ExecutorFactory factory) {
         super(mongoPlusClient,mongoConverter,factory);
         this.mongoPlusClient = mongoPlusClient;
-        this.mongoConverter = mongoConverter;
-    }
-
-    @Override
-    public MongoPlusClient getMongoPlusClient() {
-        return mongoPlusClient;
-    }
-
-    @Override
-    public MongoConverter getMongoConverter() {
-        return this.mongoConverter;
     }
 
     @Override
