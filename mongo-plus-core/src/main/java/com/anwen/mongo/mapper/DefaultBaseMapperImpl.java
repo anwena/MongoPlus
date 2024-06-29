@@ -9,6 +9,7 @@ import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapping.MongoConverter;
 import com.anwen.mongo.mapping.TypeReference;
+import com.anwen.mongo.model.MutablePair;
 import com.anwen.mongo.model.PageResult;
 import com.mongodb.client.model.*;
 import org.bson.Document;
@@ -295,6 +296,12 @@ public class DefaultBaseMapperImpl extends AbstractBaseMapper {
     @Override
     public void dropIndexes(DropIndexOptions dropIndexOptions,Class<?> clazz){
         dropIndexes(getDateBase(clazz),getCollectionName(clazz),dropIndexOptions);
+    }
+
+    protected MutablePair<String,String> getNamespace(Class<?> clazz){
+        String database = mongoPlusClient.getDatabase(clazz);
+        String collectionName = getCollectionName(clazz);
+        return new MutablePair<>(database,collectionName);
     }
 
     protected String getDateBase(Class<?> clazz){
