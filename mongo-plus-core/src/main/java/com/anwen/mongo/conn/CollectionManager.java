@@ -3,6 +3,7 @@ package com.anwen.mongo.conn;
 import com.anwen.mongo.cache.global.CollectionLogicDeleteCache;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.factory.MongoClientFactory;
+import com.anwen.mongo.logic.UnClassCollection;
 import com.anwen.mongo.toolkit.codec.RegisterCodecUtil;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
@@ -60,6 +61,7 @@ public class CollectionManager {
         if (!this.collectionMap.containsKey(collectionName)) {
             mongoCollection = new ConnectMongoDB(MongoClientFactory.getInstance().getMongoClient(), database, collectionName).open();
             this.collectionMap.put(collectionName, mongoCollection);
+            CollectionLogicDeleteCache.mapperClassByCollection(mongoCollection.getNamespace().getFullName(), UnClassCollection.class);
         } else {
             mongoCollection = this.collectionMap.get(collectionName);
         }
