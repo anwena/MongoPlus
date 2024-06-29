@@ -50,9 +50,7 @@ public class CollectionManager {
 
     public MongoCollection<Document> getCollection(Class<?> clazz) {
         String collectionName = this.collectionNameConvert.convert(clazz);
-        MongoCollection<Document> collection = getCollection(collectionName);
-        CollectionLogicDeleteCache.mapperClassByCollection(collection.getNamespace().getFullName(), clazz);
-        return collection;
+        return getCollection(collectionName);
     }
 
     public MongoCollection<Document> getCollection(String collectionName) {
