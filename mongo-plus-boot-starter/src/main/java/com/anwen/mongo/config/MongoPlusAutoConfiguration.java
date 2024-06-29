@@ -1,5 +1,6 @@
 package com.anwen.mongo.config;
 
+import com.anwen.mongo.aware.Aware;
 import com.anwen.mongo.cache.global.*;
 import com.anwen.mongo.domain.MongoPlusConvertException;
 import com.anwen.mongo.handlers.CollectionNameHandler;
@@ -17,6 +18,7 @@ import com.anwen.mongo.listener.business.BlockAttackInnerListener;
 import com.anwen.mongo.listener.business.LogListener;
 import com.anwen.mongo.logging.Log;
 import com.anwen.mongo.logging.LogFactory;
+import com.anwen.mongo.logic.LogicNamespaceAware;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBLogProperty;
@@ -80,6 +82,7 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         setTenantHandler();
         setDynamicCollectionHandler();
         setDataChangeRecorderInterceptor();
+        setAware(applicationContext);
     }
 
     @Override
@@ -87,6 +90,21 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         Collection<IService> values = applicationContext.getBeansOfType(IService.class).values();
         values.forEach(s -> setExecute((ServiceImpl<?>) s, s.getGenericityClass()));
         setLogicFiled(values.stream().map(IService::getGenericityClass).toArray(Class[]::new));
+    }
+
+    /**
+     * 设置感知类
+     *
+     * @author loser
+     */
+    public void setAware(ApplicationContext applicationContext) {
+
+        Configuration builder = Configuration.builder();
+        builder.aware(new LogicNamespaceAware());
+        for (Aware aware : applicationContext.getBeansOfType(Aware.class).values()) {
+            builder.aware(aware);
+        }
+
     }
 
     /**

@@ -29,6 +29,13 @@ import java.util.Objects;
 public interface LogicDeleteHandler {
 
     /**
+     * 判断这个链接对象是否可以忽略逻辑删除功能
+     */
+    static boolean close(MongoCollection<Document> collection) {
+        return close() || Objects.isNull(mapper().get(getBeanClass(collection)));
+    }
+
+    /**
      * 是否关闭逻辑删除功能
      */
     static boolean close() {

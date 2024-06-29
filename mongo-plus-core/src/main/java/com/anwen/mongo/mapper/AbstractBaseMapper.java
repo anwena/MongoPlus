@@ -1,7 +1,6 @@
 package com.anwen.mongo.mapper;
 
 import com.anwen.mongo.aggregate.Aggregate;
-import com.anwen.mongo.cache.global.CollectionLogicDeleteCache;
 import com.anwen.mongo.cache.global.InterceptorCache;
 import com.anwen.mongo.cache.global.TenantCache;
 import com.anwen.mongo.conditions.BuildCondition;
@@ -20,22 +19,41 @@ import com.anwen.mongo.logic.LogicDeleteHandler;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapping.MongoConverter;
 import com.anwen.mongo.mapping.TypeReference;
-import com.anwen.mongo.model.*;
+import com.anwen.mongo.model.AggregateBasicDBObject;
+import com.anwen.mongo.model.BaseAggregate;
+import com.anwen.mongo.model.BaseLambdaQueryResult;
+import com.anwen.mongo.model.MutablePair;
+import com.anwen.mongo.model.PageParam;
+import com.anwen.mongo.model.PageResult;
+import com.anwen.mongo.toolkit.AggregateUtil;
+import com.anwen.mongo.toolkit.CollUtil;
+import com.anwen.mongo.toolkit.ConditionUtil;
 import com.anwen.mongo.toolkit.Filters;
-import com.anwen.mongo.toolkit.*;
+import com.anwen.mongo.toolkit.LambdaOperate;
+import com.anwen.mongo.toolkit.Wrappers;
 import com.mongodb.BasicDBObject;
 import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.*;
+import com.mongodb.client.model.CountOptions;
+import com.mongodb.client.model.CreateIndexOptions;
+import com.mongodb.client.model.DropIndexOptions;
+import com.mongodb.client.model.IndexModel;
+import com.mongodb.client.model.IndexOptions;
+import com.mongodb.client.model.WriteModel;
 import com.mongodb.client.result.InsertManyResult;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -174,16 +192,24 @@ public abstract class AbstractBaseMapper implements BaseMapper {
         Execute execute = factory.getExecute();
         MongoCollection<Document> collection = mongoPlusClient.getCollection(database, collectionName);
         long line;
-        if (!(CollectionLogicDeleteCache.open &&
-                Objects.nonNull(LogicDeleteHandler.mapper().get(LogicDeleteHandler.getBeanClass(collection)))) &&
-                CollUtil.isEmpty(queryChainWrapper.getCompareList()) &&
-                (TenantCache.getIgnoreTenant() != null ||
-                InterceptorCache.getTenant() == null)){
+        if (canEstimatedDocumentCount(collection, queryChainWrapper)) {
             line = execute.estimatedDocumentCount(collection);
         } else {
-            line = execute.executeCount(BuildCondition.buildQueryCondition(queryChainWrapper.getCompareList()),null,collection);
+            line = execute.executeCount(BuildCondition.buildQueryCondition(queryChainWrapper.getCompareList()), null, collection);
         }
         return line;
+    }
+
+    /**
+     * 判断是否可以使用 mongo  快速估计文档数量
+     */
+    private boolean canEstimatedDocumentCount(MongoCollection<Document> collection, QueryChainWrapper<?, ?> queryChainWrapper) {
+
+        // 忽略逻辑删除 + 条件为空 + 忽略多租户
+        return LogicDeleteHandler.close(collection)
+                && (Objects.isNull(queryChainWrapper) || CollUtil.isEmpty(queryChainWrapper.getCompareList()))
+                && (TenantCache.getIgnoreTenant() != null || InterceptorCache.getTenant() == null);
+
     }
 
     @Override
@@ -286,14 +312,10 @@ public abstract class AbstractBaseMapper implements BaseMapper {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
         MongoCollection<Document> collection = mongoPlusClient.getCollection(database, collectionName);
         long count;
-        if (!(CollectionLogicDeleteCache.open &&
-                Objects.nonNull(LogicDeleteHandler.mapper().get(LogicDeleteHandler.getBeanClass(collection)))) &&
-                CollUtil.isEmpty(queryChainWrapper.getCompareList()) &&
-                (TenantCache.getIgnoreTenant() != null ||
-                        InterceptorCache.getTenant() == null)){
+        if (canEstimatedDocumentCount(collection, queryChainWrapper)) {
             count = factory.getExecute().estimatedDocumentCount(collection);
-        }else {
-            count = count(database,collectionName,queryChainWrapper);
+        } else {
+            count = count(database, collectionName, queryChainWrapper);
         }
         FindIterable<Document> iterable = factory.getExecute().executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), Document.class, collection);
         return lambdaOperate.getLambdaQueryResultPage(iterable, count, new PageParam(pageNum, pageSize), typeReference, mongoConverter);
@@ -321,14 +343,10 @@ public abstract class AbstractBaseMapper implements BaseMapper {
         BaseLambdaQueryResult baseLambdaQuery = lambdaOperate.baseLambdaQuery(queryChainWrapper.getCompareList(),queryChainWrapper.getOrderList(),queryChainWrapper.getProjectionList(),queryChainWrapper.getBasicDBObjectList());
         MongoCollection<Document> collection = mongoPlusClient.getCollection(database, collectionName);
         long count;
-        if (!(CollectionLogicDeleteCache.open &&
-                Objects.nonNull(LogicDeleteHandler.mapper().get(LogicDeleteHandler.getBeanClass(collection)))) &&
-                CollUtil.isEmpty(queryChainWrapper.getCompareList()) &&
-                (TenantCache.getIgnoreTenant() != null ||
-                        InterceptorCache.getTenant() == null)){
+        if (canEstimatedDocumentCount(collection, queryChainWrapper)) {
             count = factory.getExecute().estimatedDocumentCount(collection);
-        }else {
-            count = recentPageCount(database,collectionName,queryChainWrapper.getCompareList(), pageNum,  pageSize, recentPageNum);
+        } else {
+            count = recentPageCount(database, collectionName, queryChainWrapper.getCompareList(), pageNum, pageSize, recentPageNum);
         }
         FindIterable<Document> iterable = factory.getExecute().executeQuery(baseLambdaQuery.getCondition(), baseLambdaQuery.getProjection(), baseLambdaQuery.getSort(), Document.class, collection);
         return lambdaOperate.getLambdaQueryResultPage(iterable, count,new PageParam(pageNum,pageSize),typeReference,mongoConverter);
@@ -385,10 +403,7 @@ public abstract class AbstractBaseMapper implements BaseMapper {
         MongoCollection<Document> collection = mongoPlusClient.getCollection(database, collectionName);
         Execute execute = factory.getExecute();
         long line;
-        if (!(CollectionLogicDeleteCache.open &&
-                Objects.nonNull(LogicDeleteHandler.mapper().get(LogicDeleteHandler.getBeanClass(collection)))) &&
-                (TenantCache.getIgnoreTenant() != null ||
-                        InterceptorCache.getTenant() == null)){
+        if (canEstimatedDocumentCount(collection, null)){
             line = execute.estimatedDocumentCount(collection);
         } else {
             line = execute.executeCount(null,null,collection);
