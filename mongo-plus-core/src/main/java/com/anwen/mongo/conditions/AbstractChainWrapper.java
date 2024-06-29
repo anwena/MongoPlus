@@ -12,12 +12,11 @@ import com.anwen.mongo.enums.TypeEnum;
 import com.anwen.mongo.support.SFunction;
 import com.mongodb.BasicDBObject;
 import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * 查询条件
@@ -651,7 +650,18 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
     }
 
     public Children getBaseCondition(String column, Object value){
-        this.compareList.add(new CompareCondition(Thread.currentThread().getStackTrace()[2].getMethodName(),column,value));
+        if (Objects.equals(column, SqlOperationConstant._ID)) {
+            if (value instanceof List<?>) {
+                value = ((List<?>) value).stream()
+                        .map(val -> ObjectId.isValid(String.valueOf(val)) ? new ObjectId(String.valueOf(val)) : val)
+                        .collect(Collectors.toList());
+            } else {
+                if (ObjectId.isValid(String.valueOf(value))) {
+                    value = new ObjectId(String.valueOf(value));
+                }
+            }
+        }
+        this.compareList.add(new CompareCondition(Thread.currentThread().getStackTrace()[2].getMethodName(), column, value));
         return typedThis;
     }
 

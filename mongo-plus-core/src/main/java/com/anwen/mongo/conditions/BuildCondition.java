@@ -6,6 +6,7 @@ import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.AddFields;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.ReplaceRoot;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
+import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.domain.MongoPlusException;
 import com.anwen.mongo.enums.QueryOperatorEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
