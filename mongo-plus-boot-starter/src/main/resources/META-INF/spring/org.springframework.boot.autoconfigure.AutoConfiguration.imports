@@ -6,3 +6,4 @@ com.anwen.mongo.property.MongoDBFieldProperty
 com.anwen.mongo.transactional.MongoTransactionManagerAutoConfiguration
 com.anwen.mongo.config.MongoPropertyConfiguration
 com.anwen.mongo.property.MongoLogicDelProperty
+com.anwen.mongo.config.MongoPlusAwareConfiguration

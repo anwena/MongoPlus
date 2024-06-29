@@ -82,7 +82,6 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         setTenantHandler();
         setDynamicCollectionHandler();
         setDataChangeRecorderInterceptor();
-        setAware(applicationContext);
     }
 
     @Override
@@ -90,21 +89,6 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         Collection<IService> values = applicationContext.getBeansOfType(IService.class).values();
         values.forEach(s -> setExecute((ServiceImpl<?>) s, s.getGenericityClass()));
         setLogicFiled(values.stream().map(IService::getGenericityClass).toArray(Class[]::new));
-    }
-
-    /**
-     * 设置感知类
-     *
-     * @author loser
-     */
-    public void setAware(ApplicationContext applicationContext) {
-
-        Configuration builder = Configuration.builder();
-        builder.aware(new LogicNamespaceAware());
-        for (Aware aware : applicationContext.getBeansOfType(Aware.class).values()) {
-            builder.aware(aware);
-        }
-
     }
 
     /**

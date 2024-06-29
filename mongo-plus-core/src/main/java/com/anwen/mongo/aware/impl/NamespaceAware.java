@@ -1,9 +1,11 @@
 package com.anwen.mongo.aware.impl;
 
+import com.anwen.mongo.annotation.aware.AwareInvoke;
 import com.anwen.mongo.aware.Aware;
 
 public interface NamespaceAware extends Aware {
 
+    @AwareInvoke
     void nameSpaceAware(Namespace namespace);
 
     class NamespaceBuild {

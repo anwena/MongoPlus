@@ -361,12 +361,8 @@ public class DefaultBaseMapperImpl extends AbstractBaseMapper {
 
         // 发布感知事件
         NamespaceAware.Namespace namespace = NamespaceAware.NamespaceBuild.builder()
-                .dataBase(database).collectionName(collectionName).entityClass(clazz)
-                .build();
-        List<NamespaceAware> handlers = MongoAwareUtils.listHandlers(NamespaceAware.class);
-        for (NamespaceAware aware : handlers) {
-            aware.nameSpaceAware(namespace);
-        }
+                .dataBase(database).collectionName(collectionName).entityClass(clazz).build();
+        MongoAwareUtils.doInvoke(NamespaceAware.class, namespace);
 
         return new MutablePair<>(database, collectionName);
 
