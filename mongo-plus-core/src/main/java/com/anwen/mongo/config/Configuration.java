@@ -2,7 +2,15 @@ package com.anwen.mongo.config;
 
 import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.annotation.collection.CollectionLogic;
-import com.anwen.mongo.cache.global.*;
+import com.anwen.mongo.aware.Aware;
+import com.anwen.mongo.cache.global.AwareHandlerCache;
+import com.anwen.mongo.cache.global.CollectionLogicDeleteCache;
+import com.anwen.mongo.cache.global.ConversionCache;
+import com.anwen.mongo.cache.global.ExecutorReplacerCache;
+import com.anwen.mongo.cache.global.HandlerCache;
+import com.anwen.mongo.cache.global.InterceptorCache;
+import com.anwen.mongo.cache.global.ListenerCache;
+import com.anwen.mongo.cache.global.MongoPlusClientCache;
 import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.constant.DataSourceConstant;
 import com.anwen.mongo.convert.CollectionNameConvert;
@@ -49,7 +57,13 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -281,10 +295,11 @@ public class Configuration {
 
     /**
      * 设置多租户处理器
+     *
      * @author anwen
      * @date 2024/6/27 下午12:47
      */
-    public Configuration tenantHandler(TenantHandler tenantHandler){
+    public Configuration tenantHandler(TenantHandler tenantHandler) {
         InterceptorCache.interceptors.add(new TenantInterceptor(tenantHandler));
         return this;
     }
@@ -383,7 +398,7 @@ public class Configuration {
      * @date 2024/3/19 18:39
      */
     public BaseMapper getBaseMapper() {
-        return new DefaultBaseMapperImpl(getMongoPlusClient(), new MappingMongoConverter(getMongoPlusClient(),new SimpleTypeHolder()));
+        return new DefaultBaseMapperImpl(getMongoPlusClient(), new MappingMongoConverter(getMongoPlusClient(), new SimpleTypeHolder()));
     }
 
     public BaseMapper getBaseMapper(MongoConverter mongoConverter) {
@@ -391,7 +406,7 @@ public class Configuration {
     }
 
     public MongoPlusMapMapper getMongoPlusMapMapper() {
-        return new MongoPlusMapMapper(getMongoPlusClient(), new MappingMongoConverter(getMongoPlusClient(),new SimpleTypeHolder()));
+        return new MongoPlusMapMapper(getMongoPlusClient(), new MappingMongoConverter(getMongoPlusClient(), new SimpleTypeHolder()));
     }
 
     public MongoPlusMapMapper getMongoPlusMapMapper(MongoConverter mongoConverter) {
@@ -489,6 +504,14 @@ public class Configuration {
         }
         return this;
 
+    }
+
+    /**
+     * 设置感知类
+     */
+    public Configuration aware(Aware aware) {
+        AwareHandlerCache.putAware(aware);
+        return this;
     }
 
 }
