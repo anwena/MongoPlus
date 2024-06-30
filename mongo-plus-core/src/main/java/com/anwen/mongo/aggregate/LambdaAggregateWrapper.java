@@ -1,7 +1,6 @@
 package com.anwen.mongo.aggregate;
 
 import com.anwen.mongo.aggregate.pipeline.UnwindOption;
-import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.constant.AggregationOperators;
@@ -10,6 +9,8 @@ import com.anwen.mongo.enums.AggregateEnum;
 import com.anwen.mongo.enums.AggregateOptionsEnum;
 import com.anwen.mongo.enums.OrderEnum;
 import com.anwen.mongo.enums.ProjectionEnum;
+import com.anwen.mongo.handlers.condition.AbstractConditionHandler;
+import com.anwen.mongo.handlers.condition.BuildCondition;
 import com.anwen.mongo.model.aggregate.Field;
 import com.anwen.mongo.support.SFunction;
 import com.anwen.mongo.toolkit.AnnotationUtil;
@@ -24,6 +25,7 @@ import org.bson.*;
 import org.bson.conversions.Bson;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 import static com.mongodb.assertions.Assertions.notNull;
@@ -34,12 +36,18 @@ public class LambdaAggregateWrapper<Children> implements Aggregate<Children>,Agg
     /**
      * 定义管道条件集合，需要通过调用顺序控制管道的顺序
      */
-    private final List<Bson> aggregateConditionList = new LinkedList<>();
+    private final List<Bson> aggregateConditionList = new CopyOnWriteArrayList<>();
     
     /**
      * 定义聚合管道选项
      */
     private final BasicDBObject aggregateOptions = new BasicDBObject();
+
+    private final AbstractConditionHandler conditionHandler;
+
+    public AbstractConditionHandler getConditionHandler() {
+        return conditionHandler;
+    }
 
     @Override
     public List<Bson> getAggregateConditionList() {
@@ -49,6 +57,14 @@ public class LambdaAggregateWrapper<Children> implements Aggregate<Children>,Agg
     @Override
     public BasicDBObject getAggregateOptions() {
         return aggregateOptions;
+    }
+
+    public LambdaAggregateWrapper(AbstractConditionHandler conditionHandler) {
+        this.conditionHandler = conditionHandler;
+    }
+
+    public LambdaAggregateWrapper() {
+        this.conditionHandler = new BuildCondition();
     }
 
     /**
@@ -228,7 +244,7 @@ public class LambdaAggregateWrapper<Children> implements Aggregate<Children>,Agg
 
     @Override
     public Children match(QueryChainWrapper<?, ?> queryChainWrapper) {
-        return custom(Aggregates.match(BuildCondition.buildQueryCondition(queryChainWrapper.getCompareList())));
+        return custom(Aggregates.match(conditionHandler.queryCondition(queryChainWrapper.getCompareList())));
     }
 
     @Override
@@ -867,7 +883,7 @@ public class LambdaAggregateWrapper<Children> implements Aggregate<Children>,Agg
     }
 
     private Children buildProject(List<Projection> projectionList){
-        return project(Aggregates.project(BuildCondition.buildProjection(projectionList)));
+        return project(Aggregates.project(conditionHandler.projectionCondition(projectionList)));
     }
 
     private Bson orderBy(final String fieldName, final Integer value){

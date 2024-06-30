@@ -1,5 +1,6 @@
 package com.anwen.mongo.conditions;
 
+import com.anwen.mongo.annotation.comm.FieldEncrypt;
 import com.anwen.mongo.bson.MongoPlusBasicDBObject;
 import com.anwen.mongo.conditions.accumulator.Accumulator;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.AddFields;
@@ -11,12 +12,14 @@ import com.anwen.mongo.enums.QueryOperatorEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.enums.TypeEnum;
 import com.anwen.mongo.toolkit.CollUtil;
+import com.anwen.mongo.toolkit.EncryptorUtil;
 import com.anwen.mongo.toolkit.Filters;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.BasicDBObject;
 import org.bson.BsonType;
 import org.bson.conversions.Bson;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -65,6 +68,10 @@ public class BuildCondition {
     @SuppressWarnings("unchecked")
     public static BasicDBObject buildQueryCondition(CompareCondition compareCondition,MongoPlusBasicDBObject mongoPlusBasicDBObject){
         QueryOperatorEnum query = QueryOperatorEnum.getQueryOperator(compareCondition.getCondition());
+        Field originalField = compareCondition.getOriginalField();
+        if (originalField != null && originalField.isAnnotationPresent(FieldEncrypt.class)){
+            compareCondition.setValue(EncryptorUtil.encrypt(originalField.getAnnotation(FieldEncrypt.class),compareCondition.getValue()));
+        }
         switch (Objects.requireNonNull(query)){
             case EQ:
                 mongoPlusBasicDBObject.put(Filters.eq(compareCondition.getColumn(), compareCondition.getValue()));
@@ -175,18 +182,27 @@ public class BuildCondition {
      */
     public static BasicDBObject buildUpdateValue(List<CompareCondition> compareConditionList) {
         return new BasicDBObject() {{
-            compareConditionList.stream().filter(compareCondition -> !isQueryOperator(compareCondition.getCondition())).collect(Collectors.toList()).forEach(compare -> put(compare.getColumn(), compare.getValue()));
+            compareConditionList.stream().filter(compareCondition -> !isQueryOperator(compareCondition.getCondition())).collect(Collectors.toList()).forEach(compare -> {
+                Field originalField = compare.getOriginalField();
+                if (originalField != null && originalField.isAnnotationPresent(FieldEncrypt.class)){
+                    compare.setValue(EncryptorUtil.encrypt(originalField.getAnnotation(FieldEncrypt.class),compare.getValue()));
+                }
+                put(compare.getColumn(), compare.getValue());
+            });
         }};
     }
 
     public static BasicDBObject buildPushUpdateValue(List<CompareCondition> compareConditionList) {
-        List<CompareCondition> conditionList = compareConditionList.stream().filter(compareCondition -> !isQueryOperator(compareCondition.getCondition())).collect(Collectors.toList());
-        List<String> columnList = conditionList.stream().map(CompareCondition::getColumn).distinct().collect(Collectors.toList());
+        List<CompareCondition> conditionList = compareConditionList.stream().filter(compareCondition -> !isQueryOperator(compareCondition.getCondition())).distinct().collect(Collectors.toList());
         //必须得这样做，为了兼容追加参数只追加一个、而且不是数组的情况
         return new BasicDBObject(){{
-            columnList.forEach(column -> {
-                List<Object> valueList = conditionList.stream().filter(condition -> Objects.equals(condition.getColumn(), column)).map(CompareCondition::getValue).collect(Collectors.toList());
-                put(column,new BasicDBObject(SpecialConditionEnum.EACH.getCondition(),valueList));
+            conditionList.forEach(compare -> {
+                Field originalField = compare.getOriginalField();
+                if (originalField != null && originalField.isAnnotationPresent(FieldEncrypt.class)){
+                    compare.setValue(EncryptorUtil.encrypt(originalField.getAnnotation(FieldEncrypt.class),compare.getValue()));
+                }
+                List<Object> valueList = conditionList.stream().filter(condition -> Objects.equals(condition.getColumn(), compare.getColumn())).map(CompareCondition::getValue).collect(Collectors.toList());
+                put(compare.getColumn(),new BasicDBObject(SpecialConditionEnum.EACH.getCondition(),valueList));
             });
         }};
     }

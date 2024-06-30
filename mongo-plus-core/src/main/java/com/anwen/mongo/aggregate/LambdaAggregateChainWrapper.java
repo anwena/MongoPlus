@@ -1,5 +1,6 @@
 package com.anwen.mongo.aggregate;
 
+import com.anwen.mongo.handlers.condition.AbstractConditionHandler;
 import com.anwen.mongo.mapper.BaseMapper;
 
 import java.util.List;
@@ -13,6 +14,12 @@ public class LambdaAggregateChainWrapper<T> extends LambdaAggregateWrapper<Lambd
     private final BaseMapper baseMapper;
 
     private final Class<T> clazz;
+
+    public LambdaAggregateChainWrapper(AbstractConditionHandler conditionHandler, BaseMapper baseMapper, Class<T> clazz) {
+        super(conditionHandler);
+        this.baseMapper = baseMapper;
+        this.clazz = clazz;
+    }
 
     public LambdaAggregateChainWrapper(BaseMapper baseMapper, Class<T> clazz) {
         this.baseMapper = baseMapper;

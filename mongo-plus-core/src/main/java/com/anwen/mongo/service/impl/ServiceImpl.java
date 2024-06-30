@@ -2,6 +2,7 @@ package com.anwen.mongo.service.impl;
 
 import com.anwen.mongo.aggregate.Aggregate;
 import com.anwen.mongo.aggregate.LambdaAggregateChainWrapper;
+import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.cache.global.DataSourceNameCache;
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
@@ -11,8 +12,8 @@ import com.anwen.mongo.conditions.query.QueryWrapper;
 import com.anwen.mongo.conditions.update.LambdaUpdateChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.constant.SqlOperationConstant;
-import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.mapper.BaseMapper;
+import com.anwen.mongo.mapping.TypeInformation;
 import com.anwen.mongo.mapping.TypeReference;
 import com.anwen.mongo.model.MutablePair;
 import com.anwen.mongo.model.PageParam;
@@ -153,8 +154,11 @@ public class ServiceImpl<T> implements IService<T> {
 
     @Override
     public Boolean updateById(T entity) {
-        MutablePair<BasicDBObject,BasicDBObject> basicDBObjectPair = ConditionUtil.getUpdate(entity,baseMapper.getMongoConverter());
-        return baseMapper.update(basicDBObjectPair.getLeft(),basicDBObjectPair.getRight(),ClassTypeUtil.getClass(entity)) >= 1;
+//        MutablePair<BasicDBObject,BasicDBObject> basicDBObjectPair = ConditionUtil.getUpdate(entity,baseMapper.getMongoConverter());
+//        return baseMapper.update(basicDBObjectPair.getLeft(),basicDBObjectPair.getRight(),ClassTypeUtil.getClass(entity)) >= 1;
+        QueryWrapper wrapper = new QueryWrapper<>();
+        wrapper.eq(SqlOperationConstant._ID, TypeInformation.of(entity).getAnnotationField(ID.class,"@ID is not found").getValue());
+        return update(entity,wrapper);
     }
 
     @Override
@@ -175,12 +179,9 @@ public class ServiceImpl<T> implements IService<T> {
     @Override
     public Boolean updateByColumn(T entity, String column) {
         Object filterValue = ClassTypeUtil.getClassFieldValue(entity,column);
-        String valueOf = String.valueOf(filterValue);
-        Bson filter = Filters.eq(column, ObjectId.isValid(valueOf) ? new ObjectId(valueOf) : filterValue);
-        Document document = baseMapper.getMongoConverter().writeByUpdate(entity);
-        document.remove(column);
-        BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
-        return baseMapper.update(filter,update,ClassTypeUtil.getClass(entity)) >= 1;
+        QueryWrapper wrapper = new QueryWrapper<>();
+        wrapper.eq(column,filterValue);
+        return update(entity,wrapper);
     }
 
     @Override

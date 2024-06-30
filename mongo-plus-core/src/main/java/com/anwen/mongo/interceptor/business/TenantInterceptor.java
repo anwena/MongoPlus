@@ -89,15 +89,15 @@ public class TenantInterceptor implements Interceptor {
     @Override
     public List<MutablePair<Bson, Bson>> executeUpdate(List<MutablePair<Bson, Bson>> updatePairList, MongoCollection<Document> collection) {
         if (!checkTenant(collection)){
-            updatePairList.forEach(mutablePair -> {
+            for (MutablePair<Bson, Bson> mutablePair : updatePairList) {
                 Bson queryBasic = mutablePair.getLeft();
-                if (queryBasic == null){
-                    queryBasic = Filters.eq(tenantHandler.getTenantIdColumn(),tenantHandler.getTenantId());
+                if (queryBasic == null) {
+                    queryBasic = Filters.eq(tenantHandler.getTenantIdColumn(), tenantHandler.getTenantId());
                 } else if (!queryBasic.toBsonDocument().containsKey(tenantHandler.getTenantIdColumn())) {
                     BsonUtil.addToMap(queryBasic, tenantHandler.getTenantIdColumn(), tenantHandler.getTenantId());
                 }
                 mutablePair.setLeft(queryBasic);
-            });
+            }
         }
         return updatePairList;
     }
@@ -141,7 +141,7 @@ public class TenantInterceptor implements Interceptor {
         if (!checkTenant(collection)) {
             Bson matchBson = new AggregateWrapper().match(new QueryWrapper<>().eq(tenantHandler.getTenantIdColumn(), tenantHandler.getTenantId())).getAggregateConditionList().get(0);
             if (CollUtil.isNotEmpty(aggregateConditionList)) {
-                aggregateConditionList.forEach(bson -> {
+                for (Bson bson : aggregateConditionList) {
                     BsonDocument bsonDocument = bson.toBsonDocument();
                     if (bsonDocument.containsKey(AggregateEnum.MATCH.getValue())) {
                         if (!bsonDocument.get(AggregateEnum.MATCH.getValue()).asDocument().containsKey(tenantHandler.getTenantIdColumn())) {
@@ -150,7 +150,7 @@ public class TenantInterceptor implements Interceptor {
                     } else {
                         aggregateConditionList.add(0, matchBson);
                     }
-                });
+                }
             } else {
                 aggregateConditionList.add(matchBson);
             }

@@ -56,6 +56,7 @@ public class DefaultBaseMapperImpl extends AbstractBaseMapper {
     }
 
     @Override
+    @Deprecated
     public Long update(Bson queryBasic, Bson updateBasic, Class<?> clazz) {
         MutablePair<String, String> namespace = getNamespace(clazz);
         return update(namespace.left, namespace.right, queryBasic, updateBasic);

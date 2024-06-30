@@ -16,6 +16,7 @@ import org.bson.types.ObjectId;
 
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -28,13 +29,11 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     protected final Children typedThis = (Children) this;
 
-    protected final T entityThis = (T) this;
-
     /**
      * 构建条件对象
      * @since 2023/2/10 12:00
      */
-    private final List<CompareCondition> compareList = new ArrayList<>();
+    private final List<CompareCondition> compareList = new CopyOnWriteArrayList<>();
 
     /**
      * 构建排序对象
@@ -662,10 +661,10 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
     }
 
     public Children getBaseCondition(String column, Object value){
-        return getBaseCondition(column,value,Object.class,null);
+        return getBaseCondition(Thread.currentThread().getStackTrace()[2].getMethodName(),column,value,Object.class,null);
     }
 
-    public Children getBaseCondition(String column, Object value, Class<?> clazz, Field field){
+    public Children getBaseCondition(String condition,String column, Object value, Class<?> clazz, Field field){
         if (Objects.equals(column, SqlOperationConstant._ID)) {
             if (value instanceof List<?>) {
                 value = ((List<?>) value).stream()
@@ -677,12 +676,12 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
                 }
             }
         }
-        this.compareList.add(new CompareCondition(Thread.currentThread().getStackTrace()[2].getMethodName(), column, value,clazz,field));
+        this.compareList.add(new CompareCondition(condition, column, value,clazz,field));
         return typedThis;
     }
 
     public Children getBaseCondition(SFunction<T, ?> column, Object value){
-        return getBaseCondition(column.getFieldNameLine(),value,column.getImplClass(),column.getField());
+        return getBaseCondition(Thread.currentThread().getStackTrace()[2].getMethodName(),column.getFieldNameLine(),value,column.getImplClass(),column.getField());
     }
 
     public Children getBaseCondition(List<CompareCondition> compareConditionList){

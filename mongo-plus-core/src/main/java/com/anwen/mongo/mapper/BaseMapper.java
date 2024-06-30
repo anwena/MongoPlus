@@ -43,6 +43,7 @@ public interface BaseMapper extends Mapper {
      * @author anwen
      * @date 2024/5/4 下午1:21
      */
+    @Deprecated
     Long update(Bson queryBasic,Bson updateBasic,Class<?> clazz);
 
     /**

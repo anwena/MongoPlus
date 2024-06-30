@@ -5,8 +5,8 @@ import com.anwen.mongo.conditions.interfaces.Update;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.support.SFunction;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * update接口实现
@@ -18,7 +18,7 @@ public class UpdateChainWrapper<T,Children extends UpdateChainWrapper<T,Children
     @SuppressWarnings("unchecked")
     protected final Children typedThis = (Children) this;
 
-    private final List<CompareCondition> updateCompareList = new ArrayList<>();
+    private final List<CompareCondition> updateCompareList = new CopyOnWriteArrayList<>();
 
     public List<CompareCondition> getUpdateCompareList() {
         return updateCompareList;
