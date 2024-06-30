@@ -1,6 +1,7 @@
 package com.anwen.mongo.mapping;
 
 import com.anwen.mongo.annotation.collection.CollectionField;
+import com.anwen.mongo.annotation.comm.FieldEncrypt;
 import com.anwen.mongo.cache.global.ConversionCache;
 import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.cache.global.PropertyCache;
@@ -13,6 +14,7 @@ import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.strategy.conversion.ConversionStrategy;
 import com.anwen.mongo.strategy.mapping.MappingStrategy;
 import com.anwen.mongo.toolkit.BsonUtil;
+import com.anwen.mongo.toolkit.EncryptorUtil;
 import com.anwen.mongo.toolkit.StringUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -79,6 +81,9 @@ public class MappingMongoConverter extends AbstractMongoConverter {
                     String fieldName = fieldInformation.getName();
                     if (collectionField == null && PropertyCache.camelToUnderline){
                         fieldName = StringUtils.camelToUnderline(fieldName);
+                    }
+                    if (fieldInformation.isAnnotation(FieldEncrypt.class)){
+                        obj = EncryptorUtil.encrypt((FieldEncrypt) fieldInformation.getAnnotation(FieldEncrypt.class),fieldInformation.getValue());
                     }
                     //如果类型处理器返回null，则继续走默认处理
                     if (obj != null) {

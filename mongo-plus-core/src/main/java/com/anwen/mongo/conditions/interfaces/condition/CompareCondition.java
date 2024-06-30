@@ -1,6 +1,8 @@
 package com.anwen.mongo.conditions.interfaces.condition;
 
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 构建条件对象
@@ -26,6 +28,18 @@ public class CompareCondition {
      * @since 2023/2/10 10:16
     */
     private Object value;
+
+    /**
+     * 原始class
+     * @date 2024/6/30 下午3:42
+     */
+    private Class<?> originalClass;
+
+    /**
+     * 原始Field
+     * @date 2024/6/30 下午4:14
+     */
+    private Field originalField;
 
     public static CompareConditionBuilder builder() {
         return new CompareConditionBuilder();
@@ -55,87 +69,59 @@ public class CompareCondition {
         this.value = value;
     }
 
-    public boolean equals(Object o) {
-        if (o == this) {
-            return true;
-        } else if (!(o instanceof CompareCondition)) {
-            return false;
-        } else {
-            CompareCondition other = (CompareCondition)o;
-            if (!other.canEqual(this)) {
-                return false;
-            } else {
-                Object this$condition = this.getCondition();
-                Object other$condition = other.getCondition();
-                if (this$condition == null) {
-                    if (other$condition != null) {
-                        return false;
-                    }
-                } else if (!this$condition.equals(other$condition)) {
-                    return false;
-                }
-
-                label62: {
-                    Object this$column = this.getColumn();
-                    Object other$column = other.getColumn();
-                    if (this$column == null) {
-                        if (other$column == null) {
-                            break label62;
-                        }
-                    } else if (this$column.equals(other$column)) {
-                        break label62;
-                    }
-
-                    return false;
-                }
-
-                label55: {
-                    Object this$value = this.getValue();
-                    Object other$value = other.getValue();
-                    if (this$value == null) {
-                        if (other$value == null) {
-                            break label55;
-                        }
-                    } else if (this$value.equals(other$value)) {
-                        break label55;
-                    }
-
-                    return false;
-                }
-
-                return true;
-            }
-        }
+    public Class<?> getOriginalClass() {
+        return originalClass;
     }
 
-    protected boolean canEqual(Object other) {
-        return other instanceof CompareCondition;
+    public void setOriginalClass(Class<?> originalClass) {
+        this.originalClass = originalClass;
     }
 
+    public Field getOriginalField() {
+        return originalField;
+    }
+
+    public void setOriginalField(Field originalField) {
+        this.originalField = originalField;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) return true;
+        if (object == null || getClass() != object.getClass()) return false;
+        CompareCondition that = (CompareCondition) object;
+        return Objects.equals(condition, that.condition) && Objects.equals(column, that.column) && Objects.equals(value, that.value) && Objects.equals(originalClass, that.originalClass) && Objects.equals(originalField, that.originalField);
+    }
+
+    @Override
     public int hashCode() {
-        int result = 1;
-        Object $condition = this.getCondition();
-        result = result * 59 + ($condition == null ? 43 : $condition.hashCode());
-        Object $column = this.getColumn();
-        result = result * 59 + ($column == null ? 43 : $column.hashCode());
-        Object $value = this.getValue();
-        result = result * 59 + ($value == null ? 43 : $value.hashCode());
-        return result;
+        return Objects.hash(condition, column, value, originalClass, originalField);
     }
 
+    @Override
     public String toString() {
-        return "CompareCondition(condition=" + this.getCondition() + ", column=" + this.getColumn() + ", value=" + this.getValue()+ ")";
+        return "{" +
+                "condition='" + condition + '\'' +
+                "column='" + column + '\'' +
+                "value=" + value +
+                "originalClass=" + originalClass +
+                "originalField=" + originalField +
+                '}';
     }
 
-    public CompareCondition(String condition, String column, Object value) {
+    public CompareCondition(String condition, String column, Object value, Class<?> originalClass, Field originalField) {
         this.condition = condition;
         this.column = column;
         this.value = value;
+        this.originalClass = originalClass;
+        this.originalField = originalField;
     }
 
-    public CompareCondition(String condition, String value){
+    public CompareCondition(String condition, String value,Class<?> originalClass, Field originalField){
         this.condition = condition;
         this.value = value;
+        this.originalClass = originalClass;
+        this.originalField = originalField;
     }
 
     public CompareCondition(String condition, List<CompareCondition> compareConditionList){
@@ -150,6 +136,8 @@ public class CompareCondition {
         private String condition;
         private String column;
         private Object value;
+        private Class<?> originalClass;
+        private Field originalField;
         CompareConditionBuilder() {
         }
 
@@ -168,13 +156,29 @@ public class CompareCondition {
             return this;
         }
 
-
-        public CompareCondition build() {
-            return new CompareCondition(this.condition, this.column, this.value);
+        public CompareConditionBuilder originalClass(Class<?> originalClass) {
+            this.originalClass = originalClass;
+            return this;
         }
 
+        public CompareConditionBuilder originalField(Field originalField) {
+            this.originalField = originalField;
+            return this;
+        }
+
+        public CompareCondition build() {
+            return new CompareCondition(this.condition, this.column, this.value,this.originalClass, this.originalField);
+        }
+
+        @Override
         public String toString() {
-            return "CompareCondition.CompareConditionBuilder(condition=" + this.condition + ", column=" + this.column + ", value=" + this.value+ ")";
+            return "{" +
+                    "condition='" + condition + '\'' +
+                    "column='" + column + '\'' +
+                    "value=" + value +
+                    "originalClass=" + originalClass +
+                    "originalField=" + originalField +
+                    '}';
         }
     }
 

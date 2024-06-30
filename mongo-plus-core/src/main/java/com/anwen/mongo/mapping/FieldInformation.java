@@ -57,6 +57,8 @@ public interface FieldInformation {
 
     Annotation getAnnotation(Class<? extends Annotation> annotationClass);
 
+    boolean isAnnotation(Class<? extends Annotation> annotationClass);
+
     Type getGenericType();
 
     void setGenericType(Type type);

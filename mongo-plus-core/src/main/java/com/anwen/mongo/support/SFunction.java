@@ -59,18 +59,8 @@ public interface SFunction<T,R> extends Function<T,R>, Serializable {
      * @param toType 转换方式，多个字母以大小写方式返回 0.不做转换 1.大写 2.小写
      */
     default String getFieldName(SFunction<T, ?> fn, String split, Integer toType) {
-        SerializedLambda serializedLambda = getSerializedLambdaOne(fn);
-
-        // 从lambda信息取出method、field、class等
-        String fieldName = serializedLambda.getImplMethodName().substring("get".length());
-        fieldName = fieldName.replaceFirst(fieldName.charAt(0) + "", (fieldName.charAt(0) + "").toLowerCase());
-        Field field;
-        try {
-            field = Class.forName(serializedLambda.getImplClass().replace("/", ".")).getDeclaredField(fieldName);
-        } catch (ClassNotFoundException | NoSuchFieldException e) {
-            throw new RuntimeException(e);
-        }
-
+        Field field = getField(fn);
+        String fieldName = getFieldName(fn);
         // 从field取出字段名
         CollectionField collectionField = field.getAnnotation(CollectionField.class);
         ID id = field.getAnnotation(ID.class);
@@ -90,9 +80,21 @@ public interface SFunction<T,R> extends Function<T,R>, Serializable {
             }
 
         }
-
     }
 
+    /**
+     * 获取实体类型
+     * @author anwen
+     * @date 2024/6/30 下午3:29
+     */
+    default Class<?> getImplClass() {
+        SerializedLambda serializedLambda = getSerializedLambda();
+        try {
+            return Class.forName(serializedLambda.getImplClass().replace("/", "."));
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     default String getMethodName() {
         return getSerializedLambda().getImplMethodName();
@@ -154,6 +156,31 @@ public interface SFunction<T,R> extends Function<T,R>, Serializable {
             throw new RuntimeException(e);
         }
         return method.getReturnType();
+    }
+
+    default Field getField() {
+        return getField(this);
+    }
+
+    default Field getField(SFunction<T,?> fn) {
+        SerializedLambda serializedLambda = getSerializedLambdaOne(this);
+
+        try {
+            return Class.forName(serializedLambda.getImplClass().replace("/", ".")).getDeclaredField(getFieldName(fn));
+        } catch (ClassNotFoundException | NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    default String getFieldName(SFunction<T,?> fn){
+        SerializedLambda serializedLambda = getSerializedLambdaOne(fn);
+
+        // 从lambda信息取出method、field、class等
+        String fieldName = serializedLambda.getImplMethodName().substring("get".length());
+        if (!fieldName.equals(fieldName.toUpperCase())){
+            fieldName = fieldName.replaceFirst(fieldName.charAt(0) + "", (fieldName.charAt(0) + "").toLowerCase());
+        }
+        return fieldName;
     }
 
 }

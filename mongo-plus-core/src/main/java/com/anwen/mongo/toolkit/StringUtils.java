@@ -1025,4 +1025,41 @@ public final class StringUtils {
         }
         return true;
     }
+
+    /**
+     * 字符串转字节数组
+     * @param hex 字符串
+     * @return {@link byte[]}
+     * @author anwen
+     * @date 2024/6/30 上午12:21
+     */
+    public static byte[] hexToBytes(String hex) {
+        int len = hex.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
+                    + Character.digit(hex.charAt(i+1), 16));
+        }
+        return data;
+    }
+
+    /**
+     * 将字节数组转为十六进制字符串
+     * @param hashBytes 字节
+     * @return {@link java.lang.String}
+     * @author anwen
+     * @date 2024/6/30 上午12:23
+     */
+    public static String bytesToHex(byte[] hashBytes){
+        StringBuilder hexString = new StringBuilder();
+        for (byte hashByte : hashBytes) {
+            String hex = Integer.toHexString(0xff & hashByte);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+        return hexString.toString();
+    }
+
 }

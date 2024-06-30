@@ -61,6 +61,7 @@
         <solon-api.version>2.5.11</solon-api.version>
         <aspectjweaver.version>1.9.7</aspectjweaver.version>
         <spring-tx.version>5.3.27</spring-tx.version>
+        <bcprov-jdk18on.version>1.78.1</bcprov-jdk18on.version>
     </properties>
 
     <dependencyManagement>
@@ -124,6 +125,11 @@
                 <groupId>org.apache.logging.log4j</groupId>
                 <artifactId>log4j-core</artifactId>
                 <version>${log4j-core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>${bcprov-jdk18on.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

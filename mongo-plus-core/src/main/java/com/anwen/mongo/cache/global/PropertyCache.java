@@ -56,4 +56,22 @@ public class PropertyCache {
      */
     public static Boolean ikun = false;
 
+    /**
+     * 私钥，非对称加密
+     * @date 2024/6/30 下午1:28
+     */
+    public static String privateKey = "";
+
+    /**
+     * 公钥，非对称加密
+     * @date 2024/6/30 下午1:28
+     */
+    public static String publicKey = "";
+
+    /**
+     * 秘钥，对称加密
+     * @date 2024/6/30 下午1:28
+     */
+    public static String key = "";
+
 }

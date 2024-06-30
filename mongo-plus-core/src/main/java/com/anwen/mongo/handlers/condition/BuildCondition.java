@@ -1,70 +1,38 @@
-package com.anwen.mongo.conditions;
+package com.anwen.mongo.handlers.condition;
 
+import com.anwen.mongo.annotation.comm.FieldEncrypt;
 import com.anwen.mongo.bson.MongoPlusBasicDBObject;
-import com.anwen.mongo.conditions.accumulator.Accumulator;
-import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.AddFields;
-import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
-import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.ReplaceRoot;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.domain.MongoPlusException;
 import com.anwen.mongo.enums.QueryOperatorEnum;
-import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.enums.TypeEnum;
-import com.anwen.mongo.toolkit.CollUtil;
+import com.anwen.mongo.toolkit.EncryptorUtil;
 import com.anwen.mongo.toolkit.Filters;
-import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.BasicDBObject;
 import org.bson.BsonType;
 import org.bson.conversions.Bson;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
-
-import static com.anwen.mongo.enums.QueryOperatorEnum.isQueryOperator;
 
 /**
- * 条件构建
+ * 构建条件
  *
- * @author JiaChaoYang
- **/
-public class BuildCondition {
+ * @author anwen
+ * @date 2024/6/30 下午4:07
+ */
+public class BuildCondition extends AbstractConditionHandler {
 
-    /**
-     * 构建projection条件
-     * @author JiaChaoYang
-     * @date 2023/8/19 0:11
-     */
-    public static BasicDBObject buildProjection(List<Projection> projectionList){
-        return new BasicDBObject(){{
-            if (CollUtil.isNotEmpty(projectionList)) {
-                projectionList.forEach(projection -> put(projection.getColumn(), projection.getValue()));
-            }
-        }};
-    }
-
-    /**
-     * 构建查询条件
-     *
-     * @author JiaChaoYang
-     * @date 2023/6/25/025 1:48
-     */
-    public static BasicDBObject buildQueryCondition(List<CompareCondition> compareConditionList){
-        MongoPlusBasicDBObject mongoPlusBasicDBObject = new MongoPlusBasicDBObject();
-        if (CollUtil.isNotEmpty(compareConditionList)) {
-            compareConditionList.stream().filter(compareCondition -> isQueryOperator(compareCondition.getCondition())).forEach(compareCondition -> buildQueryCondition(compareCondition,mongoPlusBasicDBObject));
-        }
-        return mongoPlusBasicDBObject;
-    }
-
-    public static BasicDBObject buildQueryCondition(CompareCondition compareCondition){
-        return buildQueryCondition(compareCondition,new MongoPlusBasicDBObject());
-    }
-
+    @Override
     @SuppressWarnings("unchecked")
-    public static BasicDBObject buildQueryCondition(CompareCondition compareCondition,MongoPlusBasicDBObject mongoPlusBasicDBObject){
+    public BasicDBObject queryCondition(CompareCondition compareCondition, MongoPlusBasicDBObject mongoPlusBasicDBObject) {
         QueryOperatorEnum query = QueryOperatorEnum.getQueryOperator(compareCondition.getCondition());
+        Field originalField = compareCondition.getOriginalField();
+        if (originalField != null && originalField.isAnnotationPresent(FieldEncrypt.class)){
+            compareCondition.setValue(EncryptorUtil.encrypt(originalField.getAnnotation(FieldEncrypt.class),compareCondition.getValue()));
+        }
         switch (Objects.requireNonNull(query)){
             case EQ:
                 mongoPlusBasicDBObject.put(Filters.eq(compareCondition.getColumn(), compareCondition.getValue()));
@@ -137,7 +105,7 @@ public class BuildCondition {
                 mongoPlusBasicDBObject.put(Filters.mod(compareCondition.getColumn(), modList.get(0),modList.get(1)));
                 break;
             case ELEM_MATCH:
-                mongoPlusBasicDBObject.put(Filters.elemMatch(compareCondition.getColumn(),buildQueryCondition((List<CompareCondition>) compareCondition.getValue())));
+                mongoPlusBasicDBObject.put(Filters.elemMatch(compareCondition.getColumn(),queryCondition((List<CompareCondition>) compareCondition.getValue())));
                 break;
             case ALL:
                 mongoPlusBasicDBObject.put(Filters.all(compareCondition.getColumn(), compareCondition.getValue()));
@@ -167,107 +135,8 @@ public class BuildCondition {
         return mongoPlusBasicDBObject;
     }
 
-    /**
-     * 构建更新值
-     *
-     * @author JiaChaoYang
-     * @date 2023/7/9 22:16
-     */
-    public static BasicDBObject buildUpdateValue(List<CompareCondition> compareConditionList) {
-        return new BasicDBObject() {{
-            compareConditionList.stream().filter(compareCondition -> !isQueryOperator(compareCondition.getCondition())).collect(Collectors.toList()).forEach(compare -> put(compare.getColumn(), compare.getValue()));
-        }};
-    }
-
-    public static BasicDBObject buildPushUpdateValue(List<CompareCondition> compareConditionList) {
-        List<CompareCondition> conditionList = compareConditionList.stream().filter(compareCondition -> !isQueryOperator(compareCondition.getCondition())).collect(Collectors.toList());
-        List<String> columnList = conditionList.stream().map(CompareCondition::getColumn).distinct().collect(Collectors.toList());
-        //必须得这样做，为了兼容追加参数只追加一个、而且不是数组的情况
-        return new BasicDBObject(){{
-            columnList.forEach(column -> {
-                List<Object> valueList = conditionList.stream().filter(condition -> Objects.equals(condition.getColumn(), column)).map(CompareCondition::getValue).collect(Collectors.toList());
-                put(column,new BasicDBObject(SpecialConditionEnum.EACH.getCondition(),valueList));
-            });
-        }};
-    }
-
-    public static BasicDBObject buildReplaceRoot(Boolean reserveOriginalDocument,List<ReplaceRoot> replaceRootList){
-        return new BasicDBObject(){{
-            if (replaceRootList.size() == 1 && !reserveOriginalDocument){
-                put("newRoot","$"+replaceRootList.get(0).getField());
-            }else {
-                put("newRoot",new BasicDBObject(){{
-                    put("$mergeObjects",new ArrayList<Object>(){{
-                        if (reserveOriginalDocument){
-                            add("$$ROOT");
-                        }
-                        for (ReplaceRoot replaceRoot : replaceRootList) {
-                            add(new BasicDBObject(){{
-                                put(replaceRoot.getResultMappingField(),"$"+replaceRoot.getField());
-                            }});
-                        }
-                    }});
-                }});
-            }
-        }};
-    }
-
-    /**
-     * 构建group条件
-     * @author JiaChaoYang
-     * @date 2023/8/19 0:11
-     */
-    public static MongoPlusBasicDBObject buildGroup(List<Accumulator> accumulatorList){
-        return new MongoPlusBasicDBObject(){{
-            accumulatorList.forEach(accumulator -> put(accumulator.getResultMappingField(),new BasicDBObject(){{
-                put("$"+accumulator.getCondition(),accumulator.getField());
-            }}));
-        }};
-    }
-
-    /**
-     * 构建addFields
-     * @author JiaChaoYang
-     * @date 2023/8/20 1:08
-    */
-    public static BasicDBObject buildAddFields(List<AddFields> addFieldsList){
-        return new BasicDBObject(){{
-           addFieldsList.forEach(addFields -> {
-               put(addFields.getResultMappingField(),addFields.getField());
-           });
-        }};
-    }
-
-    /**
-     * 构建unwind
-     * @author JiaChaoYang
-     * @date 2023/8/20 1:11
-    */
-    public static BasicDBObject buildUnwind(Boolean preserveNullAndEmptyArrays,String field){
-        return new BasicDBObject(){{
-           put("path","$"+field);
-           put("preserveNullAndEmptyArrays",preserveNullAndEmptyArrays);
-        }};
-    }
-
-    public static BasicDBObject buildSample(long size){
-        return new BasicDBObject(){{
-            put("size",size);
-        }};
-    }
-
-    /**
-     * 构建out
-     * @author JiaChaoYang
-     * @date 2023/8/20 1:38
-    */
-    public static BasicDBObject buildOut(String db,String coll){
-        return new BasicDBObject(){{
-           if (StringUtils.isNotBlank(db)){
-               put("db",db);
-               put("coll",coll);
-           }
-        }};
+    public BasicDBObject buildQueryCondition(CompareCondition compareCondition){
+        return queryCondition(compareCondition,new MongoPlusBasicDBObject());
     }
 
 }

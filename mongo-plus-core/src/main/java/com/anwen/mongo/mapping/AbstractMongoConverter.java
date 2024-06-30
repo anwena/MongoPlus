@@ -2,7 +2,6 @@ package com.anwen.mongo.mapping;
 
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
-import com.anwen.mongo.annotation.comm.Desensitization;
 import com.anwen.mongo.bson.MongoPlusDocument;
 import com.anwen.mongo.cache.global.ConversionCache;
 import com.anwen.mongo.cache.global.HandlerCache;
@@ -11,11 +10,10 @@ import com.anwen.mongo.cache.global.PropertyCache;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.context.MongoTransactionContext;
 import com.anwen.mongo.convert.CollectionNameConvert;
-import com.anwen.mongo.domain.MongoPlusConvertException;
 import com.anwen.mongo.domain.MongoPlusWriteException;
 import com.anwen.mongo.enums.FieldFill;
 import com.anwen.mongo.enums.IdTypeEnum;
-import com.anwen.mongo.handlers.DesensitizationHandler;
+import com.anwen.mongo.handlers.ReadHandler;
 import com.anwen.mongo.handlers.TypeHandler;
 import com.anwen.mongo.incrementer.id.IdWorker;
 import com.anwen.mongo.logging.Log;
@@ -26,7 +24,6 @@ import com.anwen.mongo.strategy.conversion.ConversionStrategy;
 import com.anwen.mongo.strategy.mapping.MappingStrategy;
 import com.anwen.mongo.toolkit.BsonUtil;
 import com.anwen.mongo.toolkit.CollUtil;
-import com.anwen.mongo.toolkit.DesensitizedUtil;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
@@ -37,6 +34,7 @@ import org.bson.types.ObjectId;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 抽象的映射处理器
@@ -201,29 +199,6 @@ public abstract class AbstractMongoConverter implements MongoConverter {
             if (useIdAsFieldName && fieldInformation.isId()) {
                 obj = String.valueOf(obj);
             }
-            Desensitization desensitization = (Desensitization) fieldInformation.getAnnotation(Desensitization.class);
-            if (desensitization != null){
-                Class<?> desensitizationClass = desensitization.desensitizationHandler();
-                if (desensitizationClass != Void.class && DesensitizationHandler.class.isAssignableFrom(desensitizationClass)){
-                    DesensitizationHandler desensitizationHandler;
-                    try {
-                        desensitizationHandler = (DesensitizationHandler) desensitization.desensitizationHandler().getDeclaredConstructor().newInstance();
-                    } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                             NoSuchMethodException e) {
-                        throw new MongoPlusConvertException("Failed to create a desensitizationHandler instance");
-                    }
-                    obj = desensitizationHandler.desensitized(fieldInformation.getField(),
-                            obj, desensitization.startInclude(), desensitization.endExclude(), desensitization.type());
-                } else {
-                    String desensitizationValue;
-                    try {
-                        desensitizationValue = String.valueOf(obj);
-                    } catch (Exception e) {
-                        throw new MongoPlusConvertException("Fields that require desensitization cannot be converted to strings");
-                    }
-                    obj = DesensitizedUtil.desensitized(desensitizationValue, desensitization.startInclude(), desensitization.endExclude(), desensitization.type());
-                }
-            }
             CollectionField collectionField = fieldInformation.getCollectionField();
             Object resultObj = null;
             if (collectionField != null && TypeHandler.class.isAssignableFrom(collectionField.typeHandler())){
@@ -234,6 +209,10 @@ public abstract class AbstractMongoConverter implements MongoConverter {
                     log.error("Failed to create TypeHandler, message: {}", e.getMessage(), e);
                     throw new MongoPlusWriteException("Failed to create TypeHandler, message: " + e.getMessage());
                 }
+            }
+            List<ReadHandler> readHandlerList = HandlerCache.readHandlerList.stream().sorted(Comparator.comparingInt(ReadHandler::order)).collect(Collectors.toList());
+            for (ReadHandler readHandler : readHandlerList) {
+                obj = readHandler.read(fieldInformation, obj);
             }
             if (resultObj == null) {
                 resultObj = readInternal(obj, TypeReference.of(fieldInformation.getGenericType()));

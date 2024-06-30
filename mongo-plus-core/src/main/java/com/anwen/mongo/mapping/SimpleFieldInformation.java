@@ -232,6 +232,11 @@ public class SimpleFieldInformation<T> implements FieldInformation {
     }
 
     @Override
+    public boolean isAnnotation(Class<? extends Annotation> annotationClass) {
+        return getField().isAnnotationPresent(annotationClass);
+    }
+
+    @Override
     public Type getGenericType() {
         if (genericType == null) {
             genericType = field.getGenericType();

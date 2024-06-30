@@ -45,6 +45,26 @@ public class UpdateChainWrapper<T,Children extends UpdateChainWrapper<T,Children
     }
 
     @Override
+    public Children setOnInsert(boolean condition, SFunction<T, Object> column, Object value) {
+        return condition ? set(column,value) : typedThis;
+    }
+
+    @Override
+    public Children setOnInsert(SFunction<T, Object> column, Object value) {
+        return getBaseUpdateCompare(column,value);
+    }
+
+    @Override
+    public Children setOnInsert(boolean condition, String column, Object value) {
+        return condition ? set(column,value) : typedThis;
+    }
+
+    @Override
+    public Children setOnInsert(String column, Object value) {
+        return getBaseUpdateCompare(column,value);
+    }
+
+    @Override
     public Children push(boolean condition, SFunction<T, Object> column, Object value) {
         return condition ? push(column,value) : typedThis;
     }
@@ -117,11 +137,12 @@ public class UpdateChainWrapper<T,Children extends UpdateChainWrapper<T,Children
     }
 
     private Children getBaseUpdateCompare(SFunction<T, Object> column, Object value){
-        return getBaseUpdateCompare(column.getFieldNameLine(),value);
+        updateCompareList.add(new CompareCondition(Thread.currentThread().getStackTrace()[2].getMethodName(),column.getFieldNameLine(),value,column.getImplClass(),column.getField()));
+        return typedThis;
     }
 
     private Children getBaseUpdateCompare(String column, Object value){
-        updateCompareList.add(new CompareCondition(Thread.currentThread().getStackTrace()[2].getMethodName(),column,value));
+        updateCompareList.add(new CompareCondition(Thread.currentThread().getStackTrace()[2].getMethodName(),column,value,Object.class,null));
         return typedThis;
     }
 

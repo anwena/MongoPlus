@@ -13,11 +13,7 @@ import com.anwen.mongo.mapping.MongoConverter;
 import com.anwen.mongo.mapping.TypeReference;
 import com.anwen.mongo.model.MutablePair;
 import com.anwen.mongo.model.PageResult;
-import com.mongodb.client.model.CreateIndexOptions;
-import com.mongodb.client.model.DropIndexOptions;
-import com.mongodb.client.model.IndexModel;
-import com.mongodb.client.model.IndexOptions;
-import com.mongodb.client.model.WriteModel;
+import com.mongodb.client.model.*;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 

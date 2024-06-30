@@ -2,11 +2,7 @@ package com.anwen.mongo.cache.global;
 
 import com.anwen.mongo.aware.Aware;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**

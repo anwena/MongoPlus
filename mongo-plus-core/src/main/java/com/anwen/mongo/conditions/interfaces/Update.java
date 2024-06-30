@@ -15,6 +15,14 @@ public interface Update<T , Children> extends Serializable {
 
     Children set(String column, Object value);
 
+    Children setOnInsert(boolean condition, SFunction<T,Object> column, Object value);
+
+    Children setOnInsert(SFunction<T,Object> column, Object value);
+
+    Children setOnInsert(boolean condition, String column, Object value);
+
+    Children setOnInsert(String column, Object value);
+
     Children push(boolean condition,SFunction<T,Object> column,Object value);
 
     Children push(SFunction<T,Object> column,Object value);
