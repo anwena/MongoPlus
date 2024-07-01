@@ -68,7 +68,7 @@ public class TenantInterceptor implements Interceptor {
             if (filter == null){
                 filter = Filters.eq(tenantHandler.getTenantIdColumn(),tenantHandler.getTenantId());
             } else if (!filter.toBsonDocument().containsKey(tenantHandler.getTenantIdColumn())){
-                BsonUtil.addToMap(filter,tenantHandler.getTenantIdColumn(),tenantHandler.getTenantId());
+                filter = BsonUtil.addToMap(filter,tenantHandler.getTenantIdColumn(),tenantHandler.getTenantId());
             }
         }
         return filter;
@@ -80,7 +80,7 @@ public class TenantInterceptor implements Interceptor {
             if (queryBasic == null){
                 queryBasic = Filters.eq(tenantHandler.getTenantIdColumn(),tenantHandler.getTenantId());
             } else if (!queryBasic.toBsonDocument().containsKey(tenantHandler.getTenantIdColumn())) {
-                BsonUtil.addToMap(queryBasic, tenantHandler.getTenantIdColumn(), tenantHandler.getTenantId());
+                queryBasic = BsonUtil.addToMap(queryBasic, tenantHandler.getTenantIdColumn(), tenantHandler.getTenantId());
             }
         }
         return new MutablePair<>(queryBasic,updateBasic);
@@ -94,7 +94,7 @@ public class TenantInterceptor implements Interceptor {
                 if (queryBasic == null) {
                     queryBasic = Filters.eq(tenantHandler.getTenantIdColumn(), tenantHandler.getTenantId());
                 } else if (!queryBasic.toBsonDocument().containsKey(tenantHandler.getTenantIdColumn())) {
-                    BsonUtil.addToMap(queryBasic, tenantHandler.getTenantIdColumn(), tenantHandler.getTenantId());
+                    queryBasic = BsonUtil.addToMap(queryBasic, tenantHandler.getTenantIdColumn(), tenantHandler.getTenantId());
                 }
                 mutablePair.setLeft(queryBasic);
             }
@@ -108,7 +108,7 @@ public class TenantInterceptor implements Interceptor {
             if (queryBasic == null){
                 queryBasic = Filters.eq(tenantHandler.getTenantIdColumn(),tenantHandler.getTenantId());
             } else if (!queryBasic.toBsonDocument().containsKey(tenantHandler.getTenantIdColumn())) {
-                BsonUtil.addToMap(queryBasic, tenantHandler.getTenantIdColumn(), tenantHandler.getTenantId());
+                queryBasic = BsonUtil.addToMap(queryBasic, tenantHandler.getTenantIdColumn(), tenantHandler.getTenantId());
             }
         }
         return new QueryParam(queryBasic,projectionList,sortCond);
@@ -174,12 +174,16 @@ public class TenantInterceptor implements Interceptor {
     public List<WriteModel<Document>> executeBulkWrite(List<WriteModel<Document>> writeModelList, MongoCollection<Document> collection) {
         if (!checkTenant(collection) && CollUtil.isNotEmpty(writeModelList)){
             List<Document> insertDocumentList = writeModelList.stream().filter(writeModel -> writeModel instanceof InsertOneModel).collect(Collectors.toList()).stream().map(writeModel -> ((InsertOneModel<Document>) writeModel).getDocument()).collect(Collectors.toList());
-            executeSave(insertDocumentList,collection);
+            if (CollUtil.isNotEmpty(insertDocumentList)) {
+                executeSave(insertDocumentList, collection);
+            }
             List<WriteModel<Document>> updateDocumentList = writeModelList.stream().filter(writeModel -> writeModel instanceof UpdateManyModel).collect(Collectors.toList());
-            updateDocumentList.forEach(writeModel -> {
-                UpdateManyModel<Document> updateManyModel = (UpdateManyModel<Document>) writeModel;
-                executeUpdate(updateManyModel.getFilter(),updateManyModel.getUpdate(),collection);
-            });
+            if (CollUtil.isNotEmpty(updateDocumentList)) {
+                updateDocumentList.forEach(writeModel -> {
+                    UpdateManyModel<Document> updateManyModel = (UpdateManyModel<Document>) writeModel;
+                    executeUpdate(updateManyModel.getFilter(), updateManyModel.getUpdate(), collection);
+                });
+            }
         }
         return writeModelList;
     }

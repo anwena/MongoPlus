@@ -106,7 +106,7 @@ public class BsonUtil {
         return new Document(map);
     }
 
-    public static void addToMap(Bson bson, String key, Object value) {
+/*    public static void addToMap(Bson bson, String key, Object value) {
 
         if (bson instanceof Document) {
 
@@ -121,6 +121,20 @@ public class BsonUtil {
 
         throw new IllegalArgumentException(String.format(
                 "Cannot add key/value pair to %s; as map given Bson must be a Document or BSONObject", bson.getClass()));
+    }*/
+
+    public static Bson addToMap(Bson bson, String key, Object value) {
+
+        if (bson instanceof Document) {
+
+            ((Document) bson).put(key, value);
+            return bson;
+        }
+        if (!(bson instanceof BSONObject)){
+            bson = new BasicDBObject(bson.toBsonDocument());
+        }
+        ((BSONObject) bson).put(key, value);
+        return bson;
     }
 
     /**

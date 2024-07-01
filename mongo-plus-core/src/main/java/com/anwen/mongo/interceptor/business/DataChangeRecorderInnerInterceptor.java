@@ -11,12 +11,15 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.InsertOneModel;
 import com.mongodb.client.model.UpdateManyModel;
 import com.mongodb.client.model.WriteModel;
+import jdk.nashorn.internal.parser.JSONParser;
 import org.bson.BsonArray;
 import org.bson.BsonDocument;
 import org.bson.BsonValue;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.bson.json.JsonObject;
 
+import javax.print.Doc;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -127,7 +130,7 @@ public class DataChangeRecorderInnerInterceptor implements Interceptor {
                 }
             }
         });
-        operationResult.setOperation(ExecuteMethodEnum.UPDATE.name());
+        operationResult.setOperation(ExecuteMethodEnum.REMOVE.name());
         operationResult.setChangedData(displayCompleteData ? bsonDocument.toString() : String.valueOf(bsonDocument.size()));
         return operationResult;
     }
@@ -142,7 +145,25 @@ public class DataChangeRecorderInnerInterceptor implements Interceptor {
             throw new DataUpdateLimitationException(exceptionMessage);
         }
         operationResult.setOperation(ExecuteMethodEnum.BULK_WRITE.name());
-        operationResult.setChangedData(displayCompleteData ? writeModelList.toString() : String.valueOf(writeModelList.size()));
+        String changedData = String.valueOf(writeModelList.size());
+        if (displayCompleteData) {
+            List<String> dataList = new ArrayList<>();
+            for (WriteModel<Document> writeModel : writeModelList) {
+                if (writeModel instanceof InsertOneModel) {
+                    dataList.add(((InsertOneModel<Document>) writeModel).toString());
+                } else if (writeModel instanceof UpdateManyModel) {
+                    UpdateManyModel<Document> updateManyModel = (UpdateManyModel<Document>) writeModel;
+                    String updateManyModelString = "UpdateManyModel{"
+                            + "filter=" + updateManyModel.getFilter()
+                            + ", update=" + (updateManyModel.getUpdate() != null ? updateManyModel.getUpdate().toBsonDocument().toString() : updateManyModel.getUpdatePipeline())
+                            + ", options=" + updateManyModel.getUpdatePipeline()
+                            + '}';
+                    dataList.add(updateManyModelString);
+                }
+            }
+            changedData = dataList.toString();
+        }
+        operationResult.setChangedData(changedData);
         return operationResult;
     }
 
