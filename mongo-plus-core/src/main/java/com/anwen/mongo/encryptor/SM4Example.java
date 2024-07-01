@@ -6,8 +6,6 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Hex;
 
 import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.Security;
 
@@ -47,14 +45,6 @@ public class SM4Example implements Encryptor {
         cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
         byte[] encryptedBytes = Hex.decode(data);
         return new String(cipher.doFinal(encryptedBytes));
-    }
-
-    // 生成SM4密钥
-    public static String generateSM4Key() throws Exception {
-        KeyGenerator kg = KeyGenerator.getInstance("SM4", BouncyCastleProvider.PROVIDER_NAME);
-        kg.init(128); // SM4使用128位密钥
-        SecretKey secretKey = kg.generateKey();
-        return Hex.toHexString(secretKey.getEncoded());
     }
 
 }

@@ -10,7 +10,6 @@ import com.anwen.mongo.handlers.TenantHandler;
 import com.anwen.mongo.incrementer.IdentifierGenerator;
 import com.anwen.mongo.incrementer.id.IdWorker;
 import com.anwen.mongo.interceptor.Interceptor;
-import com.anwen.mongo.interceptor.business.DataChangeRecorderInnerInterceptor;
 import com.anwen.mongo.interceptor.business.DynamicCollectionNameInterceptor;
 import com.anwen.mongo.interceptor.business.TenantInterceptor;
 import com.anwen.mongo.listener.Listener;
@@ -81,7 +80,6 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         setIdGenerator();
         setTenantHandler();
         setDynamicCollectionHandler();
-        setDataChangeRecorderInterceptor();
         setAware(applicationContext);
     }
 
@@ -289,20 +287,4 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
             InterceptorCache.interceptors.add(new DynamicCollectionNameInterceptor(collectionNameHandler, baseMapper.getMongoPlusClient()));
         }
     }
-
-    /**
-     * 数据变动记录拦截器
-     * @author anwen
-     * @date 2024/6/27 下午8:04
-     */
-    private void setDataChangeRecorderInterceptor(){
-        DataChangeRecorderInnerInterceptor dataChangeRecorderInnerInterceptor = null;
-        try {
-            dataChangeRecorderInnerInterceptor = applicationContext.getBean(DataChangeRecorderInnerInterceptor.class);
-        } catch (Exception ignored){}
-        if (dataChangeRecorderInnerInterceptor != null) {
-            InterceptorCache.interceptors.add(dataChangeRecorderInnerInterceptor);
-        }
-    }
-
 }

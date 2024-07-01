@@ -58,10 +58,13 @@ public class DataChangeRecorderInnerInterceptor implements Interceptor {
      * 默认不开启，只显示数量
      * @date 2024/6/27 下午8:14
      */
-    private Boolean displayCompleteData = false;
+    private Boolean displayCompleteData = true;
 
     @Override
     public Object[] beforeExecute(ExecuteMethodEnum executeMethodEnum, Object[] source, MongoCollection<Document> collection) {
+        if (ignoredColumnList.contains(collection.getNamespace().getCollectionName())){
+            return source;
+        }
         long startTs = System.currentTimeMillis();
         OperationResult operationResult = null;
         if (executeMethodEnum == ExecuteMethodEnum.SAVE) {
@@ -257,8 +260,8 @@ public class DataChangeRecorderInnerInterceptor implements Interceptor {
                     "\"collectionName\":\"" + collectionName + "\"," +
                     "\"operation\":\"" + operation + "\"," +
                     "\"recordStatus\":\"" + recordStatus + "\"," +
-                    "\"changedData\":" + changedData + "," +
-                    "\"cost(ms)\":" + cost + "}";
+                    "\"cost(ms)\":" + cost + "," +
+                    "\"changedData\":" + changedData + "}";
         }
     }
 

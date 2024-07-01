@@ -30,23 +30,11 @@ public class SM2Example implements Encryptor {
      * @author anwen
      * @date 2024/6/30 上午1:23
      */
-    public static KeyPair generateKeyPair() throws Exception {
+    public KeyPair generateKeyPair() throws Exception {
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC", "BC");
         keyPairGenerator.initialize(new ECGenParameterSpec("sm2p256v1"));
         return keyPairGenerator.generateKeyPair();
     }
-
-/*    public static void main(String[] args) {
-        try {
-            KeyPair keyPair = generateKeyPair();
-            String privateKey = Hex.toHexString(keyPair.getPrivate().getEncoded());
-            String publicKey = Hex.toHexString(keyPair.getPublic().getEncoded());
-            System.out.println("privateKey:" + privateKey);
-            System.out.println("publicKey:" + publicKey);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }*/
 
     /**
      * 使用SM2公钥加密
