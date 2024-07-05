@@ -45,7 +45,7 @@ public class AESExample implements Encryptor {
      *
      * @param encryptedData 密文
      * @param password      密码
-     * @param privateKey
+     * @param privateKey 私钥
      * @return {@link java.lang.String}
      * @author anwen
      * @date 2024/6/29 下午1:27

@@ -136,6 +136,26 @@ public class UpdateChainWrapper<T,Children extends UpdateChainWrapper<T,Children
         return typedThis;
     }
 
+    @Override
+    public Children inc(boolean condition, SFunction<T, Object> column, Integer value) {
+        return condition ? inc(column,value) : typedThis;
+    }
+
+    @Override
+    public Children inc(SFunction<T, Object> column, Integer value) {
+        return getBaseUpdateCompare(column,value);
+    }
+
+    @Override
+    public Children inc(boolean condition, String column, Integer value) {
+        return condition ? inc(column,value) : typedThis;
+    }
+
+    @Override
+    public Children inc(String column, Integer value) {
+        return getBaseUpdateCompare(column,value);
+    }
+
     private Children getBaseUpdateCompare(SFunction<T, Object> column, Object value){
         updateCompareList.add(new CompareCondition(Thread.currentThread().getStackTrace()[2].getMethodName(),column.getFieldNameLine(),value,column.getImplClass(),column.getField()));
         return typedThis;

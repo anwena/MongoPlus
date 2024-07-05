@@ -18,6 +18,8 @@ import com.anwen.mongo.toolkit.EncryptorUtil;
 import com.anwen.mongo.toolkit.StringUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.bson.types.Binary;
+import org.bson.types.ObjectId;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
@@ -35,9 +37,19 @@ public class MappingMongoConverter extends AbstractMongoConverter {
 
     private final SimpleTypeHolder simpleTypeHolder;
 
+    private List<Class<?>> ignoreType = new ArrayList<>();
+
     public MappingMongoConverter(MongoPlusClient mongoPlusClient,SimpleTypeHolder simpleTypeHolder) {
         super(mongoPlusClient);
         this.simpleTypeHolder = simpleTypeHolder;
+        ignoreType.add(ObjectId.class);
+        ignoreType.add(Binary.class);
+    }
+
+    public MappingMongoConverter(MongoPlusClient mongoPlusClient, SimpleTypeHolder simpleTypeHolder,List<Class<?>> ignoreType){
+        super(mongoPlusClient);
+        this.simpleTypeHolder = simpleTypeHolder;
+        this.ignoreType = ignoreType;
     }
 
     @Override
@@ -84,6 +96,9 @@ public class MappingMongoConverter extends AbstractMongoConverter {
                     }
                     if (fieldInformation.isAnnotation(FieldEncrypt.class)){
                         obj = EncryptorUtil.encrypt((FieldEncrypt) fieldInformation.getAnnotation(FieldEncrypt.class),fieldInformation.getValue());
+                    }
+                    if (ignoreType.contains(fieldInformation.getTypeClass())){
+                        obj = fieldInformation.getValue();
                     }
                     //如果类型处理器返回null，则继续走默认处理
                     if (obj != null) {

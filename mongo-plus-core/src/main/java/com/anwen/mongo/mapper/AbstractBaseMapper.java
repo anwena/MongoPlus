@@ -93,6 +93,7 @@ public abstract class AbstractBaseMapper implements BaseMapper {
     @Override
     public <T> Boolean saveBatch(String database, String collectionName, Collection<T> entityList) {
         try {
+            Assert.notEmpty(entityList, "entityList can not be empty");
             List<Document> documentList = new ArrayList<>(entityList.size());
             mongoConverter.writeBySaveBatch(entityList, documentList);
             MongoCollection<Document> collection = mongoPlusClient.getCollection(database,collectionName);
@@ -115,6 +116,7 @@ public abstract class AbstractBaseMapper implements BaseMapper {
 
     @Override
     public Integer bulkWrite(String database, String collectionName, List<WriteModel<Document>> writeModelList) {
+        Assert.notEmpty(writeModelList, "writeModelList can not be empty");
         BulkWriteResult bulkWriteResult = factory.getExecute().executeBulkWrite(writeModelList,mongoPlusClient.getCollection(database,collectionName));
         return bulkWriteResult.getModifiedCount() + bulkWriteResult.getInsertedCount();
     }
@@ -139,23 +141,10 @@ public abstract class AbstractBaseMapper implements BaseMapper {
 
     @Override
     public Boolean update(String database, String collectionName, UpdateChainWrapper<?, ?> updateChainWrapper) {
-        List<CompareCondition> compareConditionList = new ArrayList<>();
-        compareConditionList.addAll(updateChainWrapper.getCompareList());
-        compareConditionList.addAll(updateChainWrapper.getUpdateCompareList());
-        BasicDBObject queryBasic = BuildCondition.buildQueryCondition(compareConditionList);
-        List<CompareCondition> pushConditionList = compareConditionList.stream().filter(compareCondition -> Objects.equals(compareCondition.getCondition(), SpecialConditionEnum.PUSH.getSubCondition())).collect(Collectors.toList());
-        List<CompareCondition> setConditionList = compareConditionList.stream().filter(compareCondition -> Objects.equals(compareCondition.getCondition(), SpecialConditionEnum.SET.getSubCondition())).collect(Collectors.toList());
-        BasicDBObject basicDBObject = new BasicDBObject() {{
-            if (CollUtil.isNotEmpty(setConditionList)){
-                append(SpecialConditionEnum.SET.getCondition(), BuildCondition.buildUpdateValue(setConditionList));
-            }
-            if (CollUtil.isNotEmpty(pushConditionList)){
-                append(SpecialConditionEnum.PUSH.getCondition(), BuildCondition.buildPushUpdateValue(pushConditionList));
-            }
-        }};
+        MutablePair<BasicDBObject, BasicDBObject> pair = BuildCondition.buildUpdateCondition(updateChainWrapper);
         BasicDBObject targetBasicDBObject = new BasicDBObject();
-        mongoConverter.write(basicDBObject,targetBasicDBObject);
-        return update(database,collectionName,queryBasic,targetBasicDBObject) >= 1;
+        mongoConverter.write(pair.getRight(),targetBasicDBObject);
+        return update(database,collectionName,pair.getLeft(),targetBasicDBObject) >= 1;
     }
 
     @Override

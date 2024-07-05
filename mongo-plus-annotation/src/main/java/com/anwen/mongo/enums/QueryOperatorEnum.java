@@ -51,6 +51,8 @@ public enum QueryOperatorEnum {
 
     SET("set"),
 
+    INC("inc"),
+
     PUSH("push"),
 
     WHERE("where"),
@@ -79,7 +81,7 @@ public enum QueryOperatorEnum {
 
     public static boolean isQueryOperator(String value){
         QueryOperatorEnum queryOperator = getQueryOperator(value);
-        return queryOperator != SET && queryOperator != PUSH;
+        return queryOperator != SET && queryOperator != PUSH && queryOperator != INC;
     }
 
     public static QueryOperatorEnum getQueryOperator(String value){

@@ -11,15 +11,12 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.InsertOneModel;
 import com.mongodb.client.model.UpdateManyModel;
 import com.mongodb.client.model.WriteModel;
-import jdk.nashorn.internal.parser.JSONParser;
 import org.bson.BsonArray;
 import org.bson.BsonDocument;
 import org.bson.BsonValue;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.bson.json.JsonObject;
 
-import javax.print.Doc;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -84,7 +81,7 @@ public class DataChangeRecorderInnerInterceptor implements Interceptor {
             operationResult.setRecordStatus(true);
             long costThis = System.currentTimeMillis() - startTs;
             operationResult.setCost(costThis);
-            log.info(operationResult.toString());
+            log.info(String.format("%s DataChangeRecord: %s",executeMethodEnum.name(), operationResult));
         }
         return source;
     }

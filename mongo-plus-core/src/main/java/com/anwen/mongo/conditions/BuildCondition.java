@@ -7,10 +7,12 @@ import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.AddFields;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.ReplaceRoot;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
+import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.domain.MongoPlusException;
 import com.anwen.mongo.enums.QueryOperatorEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.enums.TypeEnum;
+import com.anwen.mongo.model.MutablePair;
 import com.anwen.mongo.toolkit.CollUtil;
 import com.anwen.mongo.toolkit.EncryptorUtil;
 import com.anwen.mongo.toolkit.Filters;
@@ -172,6 +174,26 @@ public class BuildCondition {
                 break;
         }
         return mongoPlusBasicDBObject;
+    }
+
+    public static MutablePair<BasicDBObject,BasicDBObject> buildUpdateCondition(UpdateChainWrapper<?, ?> updateChainWrapper){
+        List<CompareCondition> updateCompareList = updateChainWrapper.getUpdateCompareList();
+        BasicDBObject queryBasic = BuildCondition.buildQueryCondition(updateChainWrapper.getCompareList());
+        List<CompareCondition> pushConditionList = updateCompareList.stream().filter(compareCondition -> Objects.equals(compareCondition.getCondition(), SpecialConditionEnum.PUSH.getSubCondition())).collect(Collectors.toList());
+        List<CompareCondition> setConditionList = updateCompareList.stream().filter(compareCondition -> Objects.equals(compareCondition.getCondition(), SpecialConditionEnum.SET.getSubCondition())).collect(Collectors.toList());
+        List<CompareCondition> incConditionList = updateCompareList.stream().filter(compareCondition -> Objects.equals(compareCondition.getCondition(), SpecialConditionEnum.INC.getSubCondition())).collect(Collectors.toList());
+        BasicDBObject updateBatis = new BasicDBObject() {{
+            if (CollUtil.isNotEmpty(setConditionList)){
+                append(SpecialConditionEnum.SET.getCondition(), BuildCondition.buildUpdateValue(setConditionList));
+            }
+            if (CollUtil.isNotEmpty(pushConditionList)){
+                append(SpecialConditionEnum.PUSH.getCondition(), BuildCondition.buildPushUpdateValue(pushConditionList));
+            }
+            if (CollUtil.isNotEmpty(incConditionList)){
+                append(SpecialConditionEnum.INC.getCondition(), BuildCondition.buildUpdateValue(incConditionList));
+            }
+        }};
+        return new MutablePair<>(queryBasic,updateBatis);
     }
 
     /**
