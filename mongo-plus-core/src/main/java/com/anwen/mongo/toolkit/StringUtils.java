@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.function.Function;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -613,54 +612,6 @@ public final class StringUtils {
             return false;
         }
         return Pattern.matches(regex, input);
-    }
-
-    /**
-     * 替换 SQL 语句中的占位符，例如输入 SELECT * FROM test WHERE id = {0} AND name = {1} 会被替换为
-     * SELECT * FROM test WHERE id = 1 AND name = 'MP'
-     * <p>
-     * 当数组中参数不足时，该方法会抛出错误：数组下标越界{@link ArrayIndexOutOfBoundsException}
-     * </p>
-     *
-     * @param content 填充内容
-     * @param args    填充参数
-     */
-    public static String sqlArgsFill(String content, Object... args) {
-        if (StringUtils.isNotBlank(content) && ArrayUtils.isNotEmpty(args)) {
-            // 索引不能使用，因为 SQL 中的占位符数字与索引不相同
-            BiIntFunction<Matcher, CharSequence> handler = (m, i) -> sqlParam(args[Integer.parseInt(m.group("idx"))]);
-            return replace(content, MP_SQL_PLACE_HOLDER, handler).toString();
-        }
-        return content;
-    }
-
-    /**
-     * 根据指定的表达式替换字符串中指定格式的部分
-     * <p>
-     * BiIntFunction 中的 第二个 参数将传递 参数在字符串中的索引
-     * </p>
-     *
-     * @param src      源字符串
-     * @param ptn      需要替换部分的正则表达式
-     * @param replacer 替换处理器
-     * @return 返回字符串构建起
-     */
-    public static StringBuilder replace(CharSequence src, Pattern ptn, BiIntFunction<Matcher, CharSequence> replacer) {
-        int idx = 0, last = 0, len = src.length();
-        Matcher m = ptn.matcher(src);
-        StringBuilder sb = new StringBuilder();
-
-        // 扫描一次字符串
-        while (m.find()) {
-            sb.append(src, last, m.start()).append(replacer.apply(m, idx++));
-            last = m.end();
-        }
-        // 如果表达式没有匹配或者匹配未到末尾，该判断保证字符串完整性
-        if (last < len) {
-            sb.append(src, last, len);
-        }
-
-        return sb;
     }
 
     /**
