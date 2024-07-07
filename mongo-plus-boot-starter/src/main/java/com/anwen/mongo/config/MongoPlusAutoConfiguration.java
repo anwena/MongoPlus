@@ -1,17 +1,23 @@
 package com.anwen.mongo.config;
 
+import com.anwen.mongo.aware.Aware;
 import com.anwen.mongo.cache.global.*;
 import com.anwen.mongo.domain.MongoPlusConvertException;
+import com.anwen.mongo.handlers.CollectionNameHandler;
 import com.anwen.mongo.handlers.DocumentHandler;
 import com.anwen.mongo.handlers.MetaObjectHandler;
+import com.anwen.mongo.handlers.TenantHandler;
 import com.anwen.mongo.incrementer.IdentifierGenerator;
 import com.anwen.mongo.incrementer.id.IdWorker;
 import com.anwen.mongo.interceptor.Interceptor;
+import com.anwen.mongo.interceptor.business.DynamicCollectionNameInterceptor;
+import com.anwen.mongo.interceptor.business.TenantInterceptor;
 import com.anwen.mongo.listener.Listener;
 import com.anwen.mongo.listener.business.BlockAttackInnerListener;
 import com.anwen.mongo.listener.business.LogListener;
 import com.anwen.mongo.logging.Log;
 import com.anwen.mongo.logging.LogFactory;
+import com.anwen.mongo.logic.LogicNamespaceAware;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBLogProperty;
@@ -63,6 +69,7 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         this.mongodbLogProperty = mongodbLogProperty;
         this.mongodbCollectionProperty = mongodbCollectionProperty;
         this.mongoLogicDelProperty = mongoLogicDelProperty;
+        this.baseMapper = baseMapper;
         setConversion();
         setMetaObjectHandler();
         setDocumentHandler();
@@ -71,7 +78,9 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         setReplacer();
         setMapping();
         setIdGenerator();
-        this.baseMapper = baseMapper;
+        setTenantHandler();
+        setDynamicCollectionHandler();
+        setAware(applicationContext);
     }
 
     @Override
@@ -79,6 +88,21 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         Collection<IService> values = applicationContext.getBeansOfType(IService.class).values();
         values.forEach(s -> setExecute((ServiceImpl<?>) s, s.getGenericityClass()));
         setLogicFiled(values.stream().map(IService::getGenericityClass).toArray(Class[]::new));
+    }
+
+    /**
+     * 设置感知类
+     *
+     * @author loser
+     */
+    public void setAware(ApplicationContext applicationContext) {
+
+        Configuration builder = Configuration.builder();
+        builder.aware(new LogicNamespaceAware());
+        for (Aware aware : applicationContext.getBeansOfType(Aware.class).values()) {
+            builder.aware(aware);
+        }
+
     }
 
     /**
@@ -234,4 +258,33 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         } catch (Exception ignored){}
     }
 
+    /**
+     * 多租户拦截器
+     * @author anwen
+     * @date 2024/6/27 下午12:44
+     */
+    private void setTenantHandler() {
+        TenantHandler tenantHandler = null;
+        try {
+            tenantHandler = applicationContext.getBean(TenantHandler.class);
+        } catch (Exception ignored){}
+        if (tenantHandler != null) {
+            InterceptorCache.interceptors.add(new TenantInterceptor(tenantHandler));
+        }
+    }
+
+    /**
+     * 动态集合名拦截器
+     * @author anwen
+     * @date 2024/6/27 下午3:47
+     */
+    private void setDynamicCollectionHandler(){
+        CollectionNameHandler collectionNameHandler = null;
+        try {
+            collectionNameHandler = applicationContext.getBean(CollectionNameHandler.class);
+        } catch (Exception ignored){}
+        if (collectionNameHandler != null) {
+            InterceptorCache.interceptors.add(new DynamicCollectionNameInterceptor(collectionNameHandler, baseMapper.getMongoPlusClient()));
+        }
+    }
 }

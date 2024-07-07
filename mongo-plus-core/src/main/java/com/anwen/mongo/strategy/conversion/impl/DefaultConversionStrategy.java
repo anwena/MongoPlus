@@ -15,7 +15,7 @@ public class DefaultConversionStrategy implements ConversionStrategy<Object> {
     @Override
     public Object convertValue(Object fieldValue, Class<?> fieldType, MongoConverter mongoConverter) throws IllegalAccessException {
         if (!new SimpleTypeHolder().isSimpleType(fieldType) && fieldValue.getClass().equals(Document.class)){
-            return mongoConverter.readInternal((Document) fieldValue,fieldType);
+            return mongoConverter.readInternal((Document) fieldValue,fieldType,false);
         }
 
         return fieldValue;

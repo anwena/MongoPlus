@@ -2,6 +2,7 @@ package com.anwen.mongo.model;
 
 import com.anwen.mongo.bson.MongoPlusDocument;
 import com.anwen.mongo.support.SFunction;
+import org.bson.Document;
 
 /**
  * 自动填充元对象
@@ -10,10 +11,31 @@ import com.anwen.mongo.support.SFunction;
  */
 public class AutoFillMetaObject {
 
+    /**
+     * 需要自动填充的字段
+     * @date 2024/6/4 下午9:43
+     */
     private final MongoPlusDocument document;
+
+    /**
+     * 自动填充最终的值
+     * @date 2024/6/4 下午9:43
+     */
+    private final MongoPlusDocument autoFillDocument;
+
+    public AutoFillMetaObject() {
+        this.document = new MongoPlusDocument();
+        this.autoFillDocument = new MongoPlusDocument();
+    }
 
     public AutoFillMetaObject(MongoPlusDocument document) {
         this.document = document;
+        this.autoFillDocument = new MongoPlusDocument();
+    }
+
+    public AutoFillMetaObject(MongoPlusDocument document,MongoPlusDocument autoFillDocument) {
+        this.document = document;
+        this.autoFillDocument = autoFillDocument;
     }
 
     /**
@@ -23,9 +45,24 @@ public class AutoFillMetaObject {
      * @date 2024/5/1 下午10:14
      */
     public MongoPlusDocument getAllFillField() {
+        return autoFillDocument;
+    }
+
+    public MongoPlusDocument getDocument() {
         return document;
     }
 
+    public void getAllFillFieldAndClear(Document document){
+        document.putAll(autoFillDocument);
+        autoFillDocument.clear();
+    }
+
+    /**
+     * 是否存在自动填充的字段
+     * @return {@link boolean}
+     * @author anwen
+     * @date 2024/5/1 下午10:14
+     */
     public boolean isEmpty() {
         return document.isEmpty();
     }
@@ -39,7 +76,7 @@ public class AutoFillMetaObject {
      */
     public <T,R> void fillValue(SFunction<T,R> column,Object value){
         if (metaObjectExist(column)) {
-            document.put(column, value);
+            autoFillDocument.put(column, value);
         }
     }
 
@@ -62,7 +99,7 @@ public class AutoFillMetaObject {
      * @date 2024/5/1 下午10:15
      */
     public <T,R> Object getMetaObjectValue(SFunction<T,R> column){
-        return document.get(column);
+        return autoFillDocument.get(column);
     }
 
 }

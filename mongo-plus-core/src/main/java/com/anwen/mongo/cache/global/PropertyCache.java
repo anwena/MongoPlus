@@ -13,6 +13,13 @@ public class PropertyCache {
      * @date 2023/10/25 15:42
     */
     public static Boolean mapUnderscoreToCamelCase = false;
+    
+    /**
+     * 驼峰转下划线
+     * @author anwen
+     * @date 2024/6/27 下午11:56
+     */
+    public static Boolean camelToUnderline = false;
 
     /**
      * 是否忽略空值
@@ -48,5 +55,23 @@ public class PropertyCache {
      * @date 2024/5/2 上午2:24
      */
     public static Boolean ikun = false;
+
+    /**
+     * 私钥，非对称加密
+     * @date 2024/6/30 下午1:28
+     */
+    public static String privateKey = "";
+
+    /**
+     * 公钥，非对称加密
+     * @date 2024/6/30 下午1:28
+     */
+    public static String publicKey = "";
+
+    /**
+     * 秘钥，对称加密
+     * @date 2024/6/30 下午1:28
+     */
+    public static String key = "";
 
 }

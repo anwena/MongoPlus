@@ -1,24 +1,33 @@
 package com.anwen.mongo.conditions;
 
+import com.anwen.mongo.annotation.comm.FieldEncrypt;
 import com.anwen.mongo.bson.MongoPlusBasicDBObject;
 import com.anwen.mongo.conditions.accumulator.Accumulator;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.AddFields;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.ReplaceRoot;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
-import com.anwen.mongo.constant.IndexConstant;
-import com.anwen.mongo.constant.SqlOperationConstant;
-import com.anwen.mongo.enums.CompareEnum;
-import com.anwen.mongo.enums.LogicTypeEnum;
+import com.anwen.mongo.conditions.update.UpdateChainWrapper;
+import com.anwen.mongo.domain.MongoPlusException;
 import com.anwen.mongo.enums.QueryOperatorEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
+import com.anwen.mongo.enums.TypeEnum;
+import com.anwen.mongo.model.MutablePair;
 import com.anwen.mongo.toolkit.CollUtil;
-import com.anwen.mongo.toolkit.ObjectIdUtil;
+import com.anwen.mongo.toolkit.EncryptorUtil;
+import com.anwen.mongo.toolkit.Filters;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.BasicDBObject;
+import org.bson.BsonType;
+import org.bson.conversions.Bson;
 
-import java.util.*;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static com.anwen.mongo.enums.QueryOperatorEnum.isQueryOperator;
 
 /**
  * 条件构建
@@ -46,82 +55,145 @@ public class BuildCondition {
      * @author JiaChaoYang
      * @date 2023/6/25/025 1:48
      */
-    public static BasicDBObject buildQueryCondition(List<CompareCondition> compareConditionList) {
-        return new MongoPlusBasicDBObject(){{
-            if (CollUtil.isNotEmpty(compareConditionList)) {
-                compareConditionList.stream().filter(compareCondition -> compareCondition.getType() == CompareEnum.QUERY.getKey()).collect(Collectors.toList()).forEach(compare -> {
-                    if (Objects.equals(compare.getCondition(), QueryOperatorEnum.LIKE.getValue()) && StringUtils.isNotBlank(String.valueOf(compare.getValue()))) {
-                        put(compare.getColumn(), new BasicDBObject(SpecialConditionEnum.REGEX.getCondition(), compare.getValue()));
-                    } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.OR.getKey())) {
-                        if (null == compare.getChildCondition() || compare.getChildCondition().isEmpty()) {
-                            compare.setChildCondition(Collections.singletonList(compare));
-                        }
-                        put(SpecialConditionEnum.OR.getCondition(), buildOrQueryCondition(compare.getChildCondition()));
-                    } else if (Objects.equals(compare.getCondition(), QueryOperatorEnum.AND.getValue())) {
-                        if (null == compare.getChildCondition() || compare.getChildCondition().isEmpty()) {
-                            compare.setChildCondition(Collections.singletonList(compare));
-                        }
-                        put(SpecialConditionEnum.AND.getCondition(), buildOrQueryCondition(compare.getChildCondition()));
-                    } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.NOR.getKey())) {
-                        put(SpecialConditionEnum.NOR.getCondition(), buildQueryCondition(compare.getChildCondition()));
-                    } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.ELEMMATCH.getKey())) {
-                        put(compare.getColumn(),new BasicDBObject(SpecialConditionEnum.ELEM_MATCH.getCondition(),buildQueryCondition(compare.getChildCondition())));
-                    } else if (Objects.equals(compare.getCondition(), QueryOperatorEnum.TEXT.getValue())) {
-                        put(SpecialConditionEnum.TEXT.getCondition(), new BasicDBObject(SpecialConditionEnum.SEARCH.getCondition(), compare.getValue()));
-                        IndexConstant.createIndex = compare.getColumn();
-                    } else if (Objects.equals(compare.getColumn(), SqlOperationConstant._ID)) {
-                        if (SpecialConditionEnum.IN.getCondition().equals("$" + compare.getCondition())) {
-                            put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), ObjectIdUtil.convertObjectId((Collection<?>)compare.getValue())));
-                        } else {
-                            put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), ObjectIdUtil.convertObjectId(compare.getValue())));
-                        }
-                    } else {
-                        put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), compare.getValue()));
-                    }
-                });
-            }
-        }};
+    public static BasicDBObject buildQueryCondition(List<CompareCondition> compareConditionList){
+        MongoPlusBasicDBObject mongoPlusBasicDBObject = new MongoPlusBasicDBObject();
+        if (CollUtil.isNotEmpty(compareConditionList)) {
+            compareConditionList.stream().filter(compareCondition -> isQueryOperator(compareCondition.getCondition())).forEach(compareCondition -> buildQueryCondition(compareCondition,mongoPlusBasicDBObject));
+        }
+        return mongoPlusBasicDBObject;
     }
 
-    /**
-     * 构建子条件
-     *
-     * @author JiaChaoYang
-     * @date 2023/7/16 19:59
-     */
-    public static List<BasicDBObject> buildOrQueryCondition(List<CompareCondition> compareConditionList) {
-        return new ArrayList<BasicDBObject>(){{
-            compareConditionList.forEach(compare -> add(new MongoPlusBasicDBObject(){{
-                if (compare.getCondition().contains(QueryOperatorEnum.LIKE.getValue()) && StringUtils.isNotBlank(String.valueOf(compare.getValue()))) {
-                    put(compare.getColumn(), new BasicDBObject(SpecialConditionEnum.REGEX.getCondition(), compare.getValue()));
-                } else if (Objects.equals(compare.getCondition(), QueryOperatorEnum.OR.getValue())) {
-                    if (null == compare.getChildCondition() || compare.getChildCondition().isEmpty()) {
-                        compare.setChildCondition(Collections.singletonList(compare));
-                    }
-                    put(SpecialConditionEnum.OR.getCondition(), buildOrQueryCondition(compare.getChildCondition()));
-                } else if (Objects.equals(compare.getCondition(), QueryOperatorEnum.AND.getValue())) {
-                    if (null == compare.getChildCondition() || compare.getChildCondition().isEmpty()) {
-                        compare.setChildCondition(Collections.singletonList(compare));
-                    }
-                    put(SpecialConditionEnum.AND.getCondition(), buildOrQueryCondition(compare.getChildCondition()));
-                } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.NOR.getKey())) {
-                    put(SpecialConditionEnum.NOR.getCondition(), buildQueryCondition(compare.getChildCondition()));
-                } else if (Objects.equals(compare.getLogicType(), LogicTypeEnum.ELEMMATCH.getKey())) {
-                    put(compare.getColumn(),new BasicDBObject(SpecialConditionEnum.ELEM_MATCH.getCondition(),buildQueryCondition(compare.getChildCondition())));
-                } else if (Objects.equals(compare.getCondition(), QueryOperatorEnum.TEXT.getValue())) {
-                    put(SpecialConditionEnum.TEXT.getCondition(), new BasicDBObject(SpecialConditionEnum.SEARCH.getCondition(), compare.getValue()));
-                    IndexConstant.createIndex = compare.getColumn();
-                } else if (Objects.equals(compare.getColumn(), SqlOperationConstant._ID)) {
-                    if (SpecialConditionEnum.IN.getCondition().equals("$" + compare.getCondition())) {
-                        put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), ObjectIdUtil.convertObjectId((Collection<?>)compare.getValue())));
-                    } else {
-                        put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), ObjectIdUtil.convertObjectId(compare.getValue())));
-                    }
-                } else {
-                    put(compare.getColumn(), new BasicDBObject("$" + compare.getCondition(), compare.getValue()));
+    public static BasicDBObject buildQueryCondition(CompareCondition compareCondition){
+        return buildQueryCondition(compareCondition,new MongoPlusBasicDBObject());
+    }
+
+    @SuppressWarnings("unchecked")
+    public static BasicDBObject buildQueryCondition(CompareCondition compareCondition,MongoPlusBasicDBObject mongoPlusBasicDBObject){
+        QueryOperatorEnum query = QueryOperatorEnum.getQueryOperator(compareCondition.getCondition());
+        Field originalField = compareCondition.getOriginalField();
+        if (originalField != null && originalField.isAnnotationPresent(FieldEncrypt.class)){
+            compareCondition.setValue(EncryptorUtil.encrypt(originalField.getAnnotation(FieldEncrypt.class),compareCondition.getValue()));
+        }
+        switch (Objects.requireNonNull(query)){
+            case EQ:
+                mongoPlusBasicDBObject.put(Filters.eq(compareCondition.getColumn(), compareCondition.getValue()));
+                break;
+            case NE:
+                mongoPlusBasicDBObject.put(Filters.ne(compareCondition.getColumn(), compareCondition.getValue()));
+                break;
+            case GT:
+                mongoPlusBasicDBObject.put(Filters.gt(compareCondition.getColumn(), compareCondition.getValue()));
+                break;
+            case LT:
+                mongoPlusBasicDBObject.put(Filters.lt(compareCondition.getColumn(), compareCondition.getValue()));
+                break;
+            case GTE:
+                mongoPlusBasicDBObject.put(Filters.gte(compareCondition.getColumn(), compareCondition.getValue()));
+                break;
+            case LTE:
+                mongoPlusBasicDBObject.put(Filters.lte(compareCondition.getColumn(), compareCondition.getValue()));
+                break;
+            case REGEX:
+            case LIKE:
+                mongoPlusBasicDBObject.put(Filters.regex(compareCondition.getColumn(), (String) compareCondition.getValue()));
+                break;
+            case IN:
+                mongoPlusBasicDBObject.put(Filters.in(compareCondition.getColumn(), compareCondition.getValue()));
+                break;
+            case NIN:
+                mongoPlusBasicDBObject.put(Filters.nin(compareCondition.getColumn(), compareCondition.getValue()));
+                break;
+            case AND:
+                List<Bson> andBsonList = new ArrayList<>();
+                ((List<CompareCondition>) compareCondition.getValue()).forEach(andCompareCondition -> andBsonList.add(buildQueryCondition(andCompareCondition)));
+                mongoPlusBasicDBObject.put(Filters.and(andBsonList));
+                break;
+            case OR:
+                List<Bson> orBsonList = new ArrayList<>();
+                ((List<CompareCondition>) compareCondition.getValue()).forEach(andCompareCondition -> orBsonList.add(buildQueryCondition(andCompareCondition)));
+                mongoPlusBasicDBObject.put(Filters.or(orBsonList));
+                break;
+            case NOR:
+                List<Bson> norBsonList = new ArrayList<>();
+                ((List<CompareCondition>) compareCondition.getValue()).forEach(andCompareCondition -> norBsonList.add(buildQueryCondition(andCompareCondition)));
+                mongoPlusBasicDBObject.put(Filters.nor(norBsonList));
+                break;
+            case TYPE:
+                Object typeValue = compareCondition.getValue();
+                if (typeValue instanceof String){
+                    mongoPlusBasicDBObject.put(Filters.type(compareCondition.getColumn(), (String) typeValue));
+                    break;
                 }
-            }}));
+                if (typeValue instanceof TypeEnum){
+                    typeValue = ((TypeEnum) typeValue).getTypeCode();
+                }
+                mongoPlusBasicDBObject.put(Filters.type(compareCondition.getColumn(), BsonType.findByValue((Integer) typeValue)));
+                break;
+            case EXISTS:
+                mongoPlusBasicDBObject.put(Filters.exists(compareCondition.getColumn(), (Boolean) compareCondition.getValue()));
+                break;
+            case NOT:
+                mongoPlusBasicDBObject.put(Filters.not(buildQueryCondition((CompareCondition) compareCondition.getValue())));
+                break;
+            case EXPR:
+                mongoPlusBasicDBObject.put(Filters.expr(buildQueryCondition((CompareCondition) compareCondition.getValue())));
+                break;
+            case MOD:
+                List<Long> modList = (List<Long>) compareCondition.getValue();
+                if (modList.size() < 2){
+                    throw new MongoPlusException("Mod requires modulus and remainder");
+                }
+                mongoPlusBasicDBObject.put(Filters.mod(compareCondition.getColumn(), modList.get(0),modList.get(1)));
+                break;
+            case ELEM_MATCH:
+                mongoPlusBasicDBObject.put(Filters.elemMatch(compareCondition.getColumn(),buildQueryCondition((List<CompareCondition>) compareCondition.getValue())));
+                break;
+            case ALL:
+                mongoPlusBasicDBObject.put(Filters.all(compareCondition.getColumn(), compareCondition.getValue()));
+                break;
+            case TEXT:
+                mongoPlusBasicDBObject.put(Filters.text(compareCondition.getValue().toString()));
+                break;
+            case WHERE:
+                mongoPlusBasicDBObject.put(Filters.where((String) compareCondition.getValue()));
+                break;
+            case SIZE:
+                mongoPlusBasicDBObject.put(Filters.size(compareCondition.getColumn(), (Integer) compareCondition.getValue()));
+                break;
+            case BITS_ALL_CLEAR:
+                mongoPlusBasicDBObject.put(Filters.bitsAllClear(compareCondition.getColumn(), (Integer) compareCondition.getValue()));
+                break;
+            case BITS_ALL_SET:
+                mongoPlusBasicDBObject.put(Filters.bitsAllSet(compareCondition.getColumn(), (Integer) compareCondition.getValue()));
+                break;
+            case BITS_ANY_CLEAR:
+                mongoPlusBasicDBObject.put(Filters.bitsAnyClear(compareCondition.getColumn(), (Integer) compareCondition.getValue()));
+                break;
+            case BITS_ANY_SET:
+                mongoPlusBasicDBObject.put(Filters.bitsAnySet(compareCondition.getColumn(), (Integer) compareCondition.getValue()));
+                break;
+        }
+        return mongoPlusBasicDBObject;
+    }
+
+    public static MutablePair<BasicDBObject,BasicDBObject> buildUpdateCondition(UpdateChainWrapper<?, ?> updateChainWrapper){
+        List<CompareCondition> updateCompareList = updateChainWrapper.getUpdateCompareList();
+        BasicDBObject queryBasic = BuildCondition.buildQueryCondition(updateChainWrapper.getCompareList());
+        List<CompareCondition> pushConditionList = updateCompareList.stream().filter(compareCondition -> Objects.equals(compareCondition.getCondition(), SpecialConditionEnum.PUSH.getSubCondition())).collect(Collectors.toList());
+        List<CompareCondition> setConditionList = updateCompareList.stream().filter(compareCondition -> Objects.equals(compareCondition.getCondition(), SpecialConditionEnum.SET.getSubCondition())).collect(Collectors.toList());
+        List<CompareCondition> incConditionList = updateCompareList.stream().filter(compareCondition -> Objects.equals(compareCondition.getCondition(), SpecialConditionEnum.INC.getSubCondition())).collect(Collectors.toList());
+        BasicDBObject updateBatis = new BasicDBObject() {{
+            if (CollUtil.isNotEmpty(setConditionList)){
+                append(SpecialConditionEnum.SET.getCondition(), BuildCondition.buildUpdateValue(setConditionList));
+            }
+            if (CollUtil.isNotEmpty(pushConditionList)){
+                append(SpecialConditionEnum.PUSH.getCondition(), BuildCondition.buildPushUpdateValue(pushConditionList));
+            }
+            if (CollUtil.isNotEmpty(incConditionList)){
+                append(SpecialConditionEnum.INC.getCondition(), BuildCondition.buildUpdateValue(incConditionList));
+            }
         }};
+        return new MutablePair<>(queryBasic,updateBatis);
     }
 
     /**
@@ -132,20 +204,27 @@ public class BuildCondition {
      */
     public static BasicDBObject buildUpdateValue(List<CompareCondition> compareConditionList) {
         return new BasicDBObject() {{
-            compareConditionList.stream().filter(compareCondition -> compareCondition.getType() == CompareEnum.UPDATE.getKey()).collect(Collectors.toList()).forEach(compare -> {
+            compareConditionList.stream().filter(compareCondition -> !isQueryOperator(compareCondition.getCondition())).collect(Collectors.toList()).forEach(compare -> {
+                Field originalField = compare.getOriginalField();
+                if (originalField != null && originalField.isAnnotationPresent(FieldEncrypt.class)){
+                    compare.setValue(EncryptorUtil.encrypt(originalField.getAnnotation(FieldEncrypt.class),compare.getValue()));
+                }
                 put(compare.getColumn(), compare.getValue());
             });
         }};
     }
 
     public static BasicDBObject buildPushUpdateValue(List<CompareCondition> compareConditionList) {
-        List<CompareCondition> conditionList = compareConditionList.stream().filter(compareCondition -> compareCondition.getType() == CompareEnum.UPDATE.getKey()).collect(Collectors.toList());
-        List<String> columnList = conditionList.stream().map(CompareCondition::getColumn).distinct().collect(Collectors.toList());
+        List<CompareCondition> conditionList = compareConditionList.stream().filter(compareCondition -> !isQueryOperator(compareCondition.getCondition())).distinct().collect(Collectors.toList());
         //必须得这样做，为了兼容追加参数只追加一个、而且不是数组的情况
         return new BasicDBObject(){{
-            columnList.forEach(column -> {
-                List<Object> valueList = conditionList.stream().filter(condition -> Objects.equals(condition.getColumn(), column)).map(CompareCondition::getValue).collect(Collectors.toList());
-                put(column,new BasicDBObject(SpecialConditionEnum.EACH.getCondition(),valueList));
+            conditionList.forEach(compare -> {
+                Field originalField = compare.getOriginalField();
+                if (originalField != null && originalField.isAnnotationPresent(FieldEncrypt.class)){
+                    compare.setValue(EncryptorUtil.encrypt(originalField.getAnnotation(FieldEncrypt.class),compare.getValue()));
+                }
+                List<Object> valueList = conditionList.stream().filter(condition -> Objects.equals(condition.getColumn(), compare.getColumn())).map(CompareCondition::getValue).collect(Collectors.toList());
+                put(compare.getColumn(),new BasicDBObject(SpecialConditionEnum.EACH.getCondition(),valueList));
             });
         }};
     }

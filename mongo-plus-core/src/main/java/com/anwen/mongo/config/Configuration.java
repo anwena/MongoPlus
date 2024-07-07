@@ -2,6 +2,7 @@ package com.anwen.mongo.config;
 
 import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.annotation.collection.CollectionLogic;
+import com.anwen.mongo.aware.Aware;
 import com.anwen.mongo.cache.global.*;
 import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.constant.DataSourceConstant;
@@ -12,14 +13,16 @@ import com.anwen.mongo.enums.CollectionNameConvertEnum;
 import com.anwen.mongo.factory.MongoClientFactory;
 import com.anwen.mongo.handlers.DocumentHandler;
 import com.anwen.mongo.handlers.MetaObjectHandler;
+import com.anwen.mongo.handlers.TenantHandler;
 import com.anwen.mongo.interceptor.Interceptor;
+import com.anwen.mongo.interceptor.business.CollectionLogiceInterceptor;
+import com.anwen.mongo.interceptor.business.LogicAutoFillInterceptor;
+import com.anwen.mongo.interceptor.business.TenantInterceptor;
 import com.anwen.mongo.listener.BaseListener;
 import com.anwen.mongo.listener.Listener;
 import com.anwen.mongo.listener.business.BlockAttackInnerListener;
 import com.anwen.mongo.listener.business.LogListener;
 import com.anwen.mongo.logic.AnnotationHandler;
-import com.anwen.mongo.logic.interceptor.CollectionLogiceInterceptor;
-import com.anwen.mongo.logic.interceptor.LogicAutoFillInterceptor;
 import com.anwen.mongo.logic.replacer.LogicRemoveReplacer;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.BaseMapper;
@@ -278,6 +281,17 @@ public class Configuration {
     }
 
     /**
+     * 设置多租户处理器
+     *
+     * @author anwen
+     * @date 2024/6/27 下午12:47
+     */
+    public Configuration tenantHandler(TenantHandler tenantHandler) {
+        InterceptorCache.interceptors.add(new TenantInterceptor(tenantHandler));
+        return this;
+    }
+
+    /**
      * 设置 替换器
      *
      * @param replacers 替换器
@@ -371,7 +385,7 @@ public class Configuration {
      * @date 2024/3/19 18:39
      */
     public BaseMapper getBaseMapper() {
-        return new DefaultBaseMapperImpl(getMongoPlusClient(), new MappingMongoConverter(getMongoPlusClient(),new SimpleTypeHolder()));
+        return new DefaultBaseMapperImpl(getMongoPlusClient(), new MappingMongoConverter(getMongoPlusClient(), new SimpleTypeHolder()));
     }
 
     public BaseMapper getBaseMapper(MongoConverter mongoConverter) {
@@ -379,7 +393,7 @@ public class Configuration {
     }
 
     public MongoPlusMapMapper getMongoPlusMapMapper() {
-        return new MongoPlusMapMapper(getMongoPlusClient(), new MappingMongoConverter(getMongoPlusClient(),new SimpleTypeHolder()));
+        return new MongoPlusMapMapper(getMongoPlusClient(), new MappingMongoConverter(getMongoPlusClient(), new SimpleTypeHolder()));
     }
 
     public MongoPlusMapMapper getMongoPlusMapMapper(MongoConverter mongoConverter) {
@@ -477,6 +491,14 @@ public class Configuration {
         }
         return this;
 
+    }
+
+    /**
+     * 设置感知类
+     */
+    public Configuration aware(Aware aware) {
+        AwareHandlerCache.putAware(aware);
+        return this;
     }
 
 }

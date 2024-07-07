@@ -1,6 +1,7 @@
 package com.anwen.mongo.cache.global;
 
 import com.anwen.mongo.interceptor.Interceptor;
+import com.anwen.mongo.interceptor.business.TenantInterceptor;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -18,6 +19,10 @@ public class InterceptorCache {
 
     public static void sorted() {
         interceptors = interceptors.stream().sorted(Comparator.comparing(Interceptor::order)).collect(Collectors.toList());
+    }
+
+    public static Interceptor getTenant(){
+        return interceptors.stream().filter(interceptor -> interceptor instanceof TenantInterceptor).findFirst().orElse(null);
     }
 
 }

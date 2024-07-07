@@ -13,6 +13,7 @@ import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.domain.MongoPlusWriteException;
 import com.anwen.mongo.enums.FieldFill;
 import com.anwen.mongo.enums.IdTypeEnum;
+import com.anwen.mongo.handlers.ReadHandler;
 import com.anwen.mongo.handlers.TypeHandler;
 import com.anwen.mongo.incrementer.id.IdWorker;
 import com.anwen.mongo.logging.Log;
@@ -22,7 +23,6 @@ import com.anwen.mongo.model.AutoFillMetaObject;
 import com.anwen.mongo.strategy.conversion.ConversionStrategy;
 import com.anwen.mongo.strategy.mapping.MappingStrategy;
 import com.anwen.mongo.toolkit.BsonUtil;
-import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.anwen.mongo.toolkit.CollUtil;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
@@ -34,6 +34,7 @@ import org.bson.types.ObjectId;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 抽象的映射处理器
@@ -42,7 +43,7 @@ import java.util.*;
  */
 public abstract class AbstractMongoConverter implements MongoConverter {
 
-    private Log log = LogFactory.getLog(AbstractMongoConverter.class);
+    private final Log log = LogFactory.getLog(AbstractMongoConverter.class);
 
     private final MongoPlusClient mongoPlusClient;
 
@@ -51,11 +52,16 @@ public abstract class AbstractMongoConverter implements MongoConverter {
     }
 
     //定义添加自动填充字段
-    private final AutoFillMetaObject insertFillAutoFillMetaObject = new AutoFillMetaObject(new MongoPlusDocument());
-    private final AutoFillMetaObject updateFillAutoFillMetaObject = new AutoFillMetaObject(new MongoPlusDocument());
+    private final AutoFillMetaObject insertFillAutoFillMetaObject = new AutoFillMetaObject();
+    private final AutoFillMetaObject updateFillAutoFillMetaObject = new AutoFillMetaObject();
 
     @Override
     public void writeBySave(Object sourceObj, Document document) {
+        // Map类型不需要再做下边的操作 因为它们只针对实体类
+        if (Map.class.isAssignableFrom(sourceObj.getClass())){
+            write((Map<?,?>) sourceObj,document);
+            return;
+        }
         //封装class信息
         TypeInformation typeInformation = TypeInformation.of(sourceObj);
         //如果存在元对象处理器，且插入或更新字段为空，则获取自动填充字段
@@ -89,7 +95,7 @@ public abstract class AbstractMongoConverter implements MongoConverter {
         //映射到Document
         write(sourceObj,document);
         //添加自动填充字段
-        document.putAll(insertFillAutoFillMetaObject.getAllFillField());
+        insertFillAutoFillMetaObject.getAllFillFieldAndClear(document);
         //经过一下Document处理器
         if (HandlerCache.documentHandler != null){
             HandlerCache.documentHandler.insertInvoke(Collections.singletonList(document));
@@ -98,6 +104,11 @@ public abstract class AbstractMongoConverter implements MongoConverter {
 
     @Override
     public void writeByUpdate(Object sourceObj, Document document) {
+        // Map类型不需要再做下边的操作 因为它们只针对实体类
+        if (Map.class.isAssignableFrom(sourceObj.getClass())){
+            write((Map<?,?>) sourceObj,document);
+            return;
+        }
         //封装class信息
         TypeInformation typeInformation = TypeInformation.of(sourceObj);
         //如果存在元对象处理器，且插入或更新字段为空，则获取自动填充字段
@@ -115,13 +126,33 @@ public abstract class AbstractMongoConverter implements MongoConverter {
             HandlerCache.metaObjectHandler.updateFill(updateFillAutoFillMetaObject);
         }
         //添加自动填充字段
-        document.putAll(updateFillAutoFillMetaObject.getAllFillField());
+        updateFillAutoFillMetaObject.getAllFillFieldAndClear(document);
         //映射到Document
         write(sourceObj,document);
         //经过一下Document处理器
         if (HandlerCache.documentHandler != null){
             HandlerCache.documentHandler.updateInvoke(Collections.singletonList(document));
         }
+    }
+
+    public void getFillInsertAndUpdateField(TypeInformation typeInformation, AutoFillMetaObject insertFillAutoFillMetaObject, AutoFillMetaObject updateFillAutoFillMetaObject){
+        typeInformation.getFields().forEach(field -> {
+            CollectionField collectionField = field.getCollectionField();
+            if (collectionField != null && collectionField.fill() != FieldFill.DEFAULT){
+                MongoPlusDocument insertFillAutoField = insertFillAutoFillMetaObject.getDocument();
+                MongoPlusDocument updateFillAutoField = updateFillAutoFillMetaObject.getDocument();
+                if (collectionField.fill() == FieldFill.INSERT){
+                    insertFillAutoField.put(field.getName(),field.getValue());
+                }
+                if (collectionField.fill() == FieldFill.UPDATE){
+                    updateFillAutoField.put(field.getName(),field.getValue());
+                }
+                if (collectionField.fill() == FieldFill.INSERT_UPDATE){
+                    insertFillAutoField.put(field.getName(),field.getValue());
+                    updateFillAutoField.put(field.getName(),field.getValue());
+                }
+            }
+        });
     }
 
     @Override
@@ -131,30 +162,26 @@ public abstract class AbstractMongoConverter implements MongoConverter {
         }
         //如果为空，则创建一个
         bson = bson != null ? bson : new Document();
-        write(sourceObj,bson, TypeInformation.of(sourceObj));
+        if (Map.class.isAssignableFrom(sourceObj.getClass())){
+            write((Map<?,?>) sourceObj,bson);
+        } else {
+            write(sourceObj, bson, TypeInformation.of(sourceObj));
+        }
     }
 
     @Override
-    public <T> T read(Document document, Class<T> clazz) {
-        return readInternal(document,clazz,true);
-    }
-
-    @Override
-    public <T> T readInternal(Document document, Class<T> clazz){
-        return readInternal(document,clazz,false);
-    }
-
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private <T> T readInternal(Document document, Class<T> clazz, boolean useIdAsFieldName) {
+    public <T> T readInternal(Document document, TypeReference<T> typeReference, boolean useIdAsFieldName) {
+        Class<?> clazz = typeReference.getClazz();
         if (document == null) {
             return null;
         }
         if (clazz.isAssignableFrom(Document.class)) {
             return (T) document;
         } else if (clazz.isAssignableFrom(Map.class)) {
-            return (T) read(document, new TypeReference<Map<String, Object>>() {});
+            return (T) readInternal(document, new TypeReference<Map<String, Object>>() {});
         } else if (clazz.isAssignableFrom(Collection.class)){
-            return (T) read(document, new TypeReference<Collection<Object>>() {});
+            return (T) readInternal(document, new TypeReference<Collection<Object>>() {});
         }
         // 拿到class封装类
         TypeInformation typeInformation = TypeInformation.of(clazz);
@@ -183,8 +210,12 @@ public abstract class AbstractMongoConverter implements MongoConverter {
                     throw new MongoPlusWriteException("Failed to create TypeHandler, message: " + e.getMessage());
                 }
             }
+            List<ReadHandler> readHandlerList = HandlerCache.readHandlerList.stream().sorted(Comparator.comparingInt(ReadHandler::order)).collect(Collectors.toList());
+            for (ReadHandler readHandler : readHandlerList) {
+                obj = readHandler.read(fieldInformation, obj);
+            }
             if (resultObj == null) {
-                resultObj = read(obj, TypeReference.of(fieldInformation.getGenericType()));
+                resultObj = readInternal(obj, TypeReference.of(fieldInformation.getGenericType()));
             }
             fieldInformation.setValue(resultObj);
         });
@@ -201,6 +232,16 @@ public abstract class AbstractMongoConverter implements MongoConverter {
      * @date 2024/5/1 下午6:40
      */
     public abstract void write(Object sourceObj, Bson bson, TypeInformation typeInformation);
+
+    /**
+     * 抽象的map写入方法
+     * @param obj map
+     * @param bson bson
+     * @return {@link org.bson.conversions.Bson}
+     * @author anwen
+     * @date 2024/6/26 下午2:23
+     */
+    public abstract Bson writeMapInternal(Map<?,?> obj,Bson bson);
 
     /**
      * 生成id，写在这里，方便自己自定义
@@ -279,26 +320,6 @@ public abstract class AbstractMongoConverter implements MongoConverter {
         }
 
         return Enum.class.isAssignableFrom(value.getClass()) ? ((Enum<?>) value).name() : value;
-    }
-
-    public void getFillInsertAndUpdateField(TypeInformation typeInformation, AutoFillMetaObject insertFillAutoFillMetaObject, AutoFillMetaObject updateFillAutoFillMetaObject){
-        typeInformation.getFields().forEach(field -> {
-            CollectionField collectionField = field.getCollectionField();
-            if (collectionField != null && collectionField.fill() != FieldFill.DEFAULT){
-                MongoPlusDocument insertFillAutoField = insertFillAutoFillMetaObject.getAllFillField();
-                MongoPlusDocument updateFillAutoField = updateFillAutoFillMetaObject.getAllFillField();
-                if (collectionField.fill() == FieldFill.INSERT){
-                    insertFillAutoField.put(field.getName(),field.getValue());
-                }
-                if (collectionField.fill() == FieldFill.UPDATE){
-                    updateFillAutoField.put(field.getName(),field.getValue());
-                }
-                if (collectionField.fill() == FieldFill.INSERT_UPDATE){
-                    insertFillAutoField.put(field.getName(),field.getValue());
-                    updateFillAutoField.put(field.getName(),field.getValue());
-                }
-            }
-        });
     }
 
     /**

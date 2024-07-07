@@ -30,9 +30,10 @@ import java.util.Map;
 import static com.anwen.mongo.toolkit.StringPool.EMPTY;
 
 /**
- * 以后不想再维护这个类了
+ * 无实体类请使用BaseMapper，Class传入Map即可
  * @author JiaChaoYang
  **/
+@Deprecated
 public class MongoPlusMapMapper implements InjectQuery {
     private final ExecutorFactory factory;
 

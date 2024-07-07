@@ -25,6 +25,10 @@ public abstract class TypeReference<T> implements Type {
         this.type = type;
     }
 
+    public TypeReference(Class<?> clazz) {
+        this.clazz = clazz;
+    }
+
     public static TypeReference<Object> of(Type type) {
         return new TypeReference<Object>(type) {};
     }

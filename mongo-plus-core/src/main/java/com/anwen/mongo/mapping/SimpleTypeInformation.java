@@ -145,6 +145,10 @@ public class SimpleTypeInformation<T> implements TypeInformation {
     private void getSupperFields(Class<?> clazz){
         if (clazz != null && !clazz.equals(Object.class)){
             Arrays.asList(clazz.getDeclaredFields()).forEach(field -> {
+                field.setAccessible(true);
+                if (Modifier.isStatic(field.getModifiers())){
+                    return;
+                }
                 fieldList.add(new SimpleFieldInformation<>(instance,field));
             });
             getSupperFields(clazz.getSuperclass());

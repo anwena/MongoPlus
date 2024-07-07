@@ -19,6 +19,7 @@ public interface DocumentHandler {
      * @author JiaChaoYang
      * @date 2023/11/23 12:59
     */
+    @Deprecated
     List<Document> insertInvoke(List<Document> document);
 
     /**
@@ -27,6 +28,7 @@ public interface DocumentHandler {
      * @author JiaChaoYang
      * @date 2023/11/23 12:59
      */
+    @Deprecated
     List<Document> updateInvoke(List<Document> document);
 
 }

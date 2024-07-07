@@ -3,23 +3,22 @@ package com.anwen.mongo.conditions.update;
 import com.anwen.mongo.conditions.AbstractChainWrapper;
 import com.anwen.mongo.conditions.interfaces.Update;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
-import com.anwen.mongo.enums.CompareEnum;
-import com.anwen.mongo.enums.LogicTypeEnum;
 import com.anwen.mongo.support.SFunction;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * update接口实现
  * @author JiaChaoYang
  * @date 2023/6/24/024 12:45
 */
-public class UpdateChainWrapper<T,Children extends UpdateChainWrapper<T,Children>> extends AbstractChainWrapper<T, LambdaUpdateChainWrapper<T>> implements Update<UpdateChainWrapper<T,Children>,T> {
+public class UpdateChainWrapper<T,Children extends UpdateChainWrapper<T,Children>> extends AbstractChainWrapper<T, Children> implements Update<T,Children> {
 
+    @SuppressWarnings("unchecked")
     protected final Children typedThis = (Children) this;
 
-    private final List<CompareCondition> updateCompareList = new ArrayList<>();
+    private final List<CompareCondition> updateCompareList = new CopyOnWriteArrayList<>();
 
     public List<CompareCondition> getUpdateCompareList() {
         return updateCompareList;
@@ -42,6 +41,26 @@ public class UpdateChainWrapper<T,Children extends UpdateChainWrapper<T,Children
 
     @Override
     public Children set(String column, Object value) {
+        return getBaseUpdateCompare(column,value);
+    }
+
+    @Override
+    public Children setOnInsert(boolean condition, SFunction<T, Object> column, Object value) {
+        return condition ? set(column,value) : typedThis;
+    }
+
+    @Override
+    public Children setOnInsert(SFunction<T, Object> column, Object value) {
+        return getBaseUpdateCompare(column,value);
+    }
+
+    @Override
+    public Children setOnInsert(boolean condition, String column, Object value) {
+        return condition ? set(column,value) : typedThis;
+    }
+
+    @Override
+    public Children setOnInsert(String column, Object value) {
         return getBaseUpdateCompare(column,value);
     }
 
@@ -117,13 +136,33 @@ public class UpdateChainWrapper<T,Children extends UpdateChainWrapper<T,Children
         return typedThis;
     }
 
+    @Override
+    public Children inc(boolean condition, SFunction<T, Object> column, Integer value) {
+        return condition ? inc(column,value) : typedThis;
+    }
+
+    @Override
+    public Children inc(SFunction<T, Object> column, Integer value) {
+        return getBaseUpdateCompare(column,value);
+    }
+
+    @Override
+    public Children inc(boolean condition, String column, Integer value) {
+        return condition ? inc(column,value) : typedThis;
+    }
+
+    @Override
+    public Children inc(String column, Integer value) {
+        return getBaseUpdateCompare(column,value);
+    }
+
     private Children getBaseUpdateCompare(SFunction<T, Object> column, Object value){
-        updateCompareList.add(CompareCondition.builder().condition(Thread.currentThread().getStackTrace()[2].getMethodName()).column(column.getFieldNameLine()).value(value).type(CompareEnum.UPDATE.getKey()).logicType(LogicTypeEnum.AND.getKey()).build());
+        updateCompareList.add(new CompareCondition(Thread.currentThread().getStackTrace()[2].getMethodName(),column.getFieldNameLine(),value,column.getImplClass(),column.getField()));
         return typedThis;
     }
 
     private Children getBaseUpdateCompare(String column, Object value){
-        updateCompareList.add(CompareCondition.builder().condition(Thread.currentThread().getStackTrace()[2].getMethodName()).column(column).value(value).type(CompareEnum.UPDATE.getKey()).logicType(LogicTypeEnum.AND.getKey()).build());
+        updateCompareList.add(new CompareCondition(Thread.currentThread().getStackTrace()[2].getMethodName(),column,value,Object.class,null));
         return typedThis;
     }
 

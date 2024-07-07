@@ -3,6 +3,7 @@ package com.anwen.mongo.execute.instance;
 import com.anwen.mongo.convert.DocumentMapperConvert;
 import com.anwen.mongo.execute.Execute;
 import com.anwen.mongo.model.AggregateBasicDBObject;
+import com.anwen.mongo.model.MutablePair;
 import com.mongodb.BasicDBObject;
 import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.AggregateIterable;
@@ -12,11 +13,13 @@ import com.mongodb.client.model.*;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.InsertManyResult;
 import com.mongodb.client.result.UpdateResult;
+import org.bson.BsonValue;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 默认执行器实例
@@ -43,7 +46,7 @@ public class DefaultExecute implements Execute {
     }
 
     @Override
-    public <T> FindIterable<T> executeQuery(Bson queryBasic, BasicDBObject projectionList, BasicDBObject sortCond, MongoCollection<Document> collection, Class<T> clazz) {
+    public <T> FindIterable<T> executeQuery(Bson queryBasic, BasicDBObject projectionList, BasicDBObject sortCond, Class<T> clazz, MongoCollection<Document> collection) {
         return Optional.ofNullable(queryBasic)
                 .map(qb -> collection.find(qb,clazz))
                 .orElseGet(() -> collection.find(clazz))
@@ -52,8 +55,13 @@ public class DefaultExecute implements Execute {
     }
 
     @Override
-    public <T> AggregateIterable<T> executeAggregate(List<AggregateBasicDBObject> aggregateConditionList, MongoCollection<Document> collection, Class<T> clazz) {
+    public <T> AggregateIterable<T> executeAggregateOld(List<AggregateBasicDBObject> aggregateConditionList, Class<T> clazz, MongoCollection<Document> collection) {
         return collection.aggregate(aggregateConditionList, clazz);
+    }
+
+    @Override
+    public <T> AggregateIterable<T> executeAggregate(List<? extends Bson> aggregateConditionList, Class<T> clazz, MongoCollection<Document> collection) {
+        return collection.aggregate(aggregateConditionList,clazz);
     }
 
     @Override
@@ -69,6 +77,20 @@ public class DefaultExecute implements Execute {
     @Override
     public UpdateResult executeUpdate(Bson queryBasic, Bson updateBasic, MongoCollection<Document> collection) {
         return collection.updateMany(queryBasic,updateBasic);
+    }
+
+    @Override
+    public UpdateResult executeUpdate(List<MutablePair<Bson, Bson>> bsonPairList, MongoCollection<Document> collection) {
+        AtomicReference<Long> matchedCount = new AtomicReference<>(0L);
+        AtomicReference<Long> modifiedCount = new AtomicReference<>(0L);
+        AtomicReference<BsonValue> upstartedId = new AtomicReference<>();
+        bsonPairList.forEach(bsonPair -> {
+            UpdateResult updateResult = collection.updateMany(bsonPair.getLeft(), bsonPair.getRight());
+            matchedCount.updateAndGet(v -> v + updateResult.getMatchedCount());
+            modifiedCount.updateAndGet(v -> v + updateResult.getModifiedCount());
+            upstartedId.set(updateResult.getUpsertedId());
+        });
+        return UpdateResult.acknowledged(matchedCount.get(), modifiedCount.get(), upstartedId.get());
     }
 
     @Override

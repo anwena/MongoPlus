@@ -104,7 +104,35 @@ public class BaseProperty {
      * @author: JiaChaoYang
      * @date: 2023/2/26 21:11
      **/
-    private Boolean ssl;
+    private Boolean ssl = false;
+
+    /**
+     * 秘钥存储库，绝对路径
+     * @author anwen
+     * @date 2024/7/7 下午2:27
+     */
+    private String clientKeyStore;
+
+    /**
+     * jks，绝对路径
+     * @author anwen
+     * @date 2024/7/7 下午2:29
+     */
+    private String jks;
+
+    /**
+     * 密钥文件密码
+     * @author anwen
+     * @date 2024/7/7 下午2:54
+     */
+    private String keyPassword;
+
+    /**
+     * 是否允许无效的主机名
+     * @author anwen
+     * @date 2024/7/7 下午2:54
+     */
+    private boolean invalidHostNameAllowed = false;
 
     /**
      * 指定与MongoDB实例的所有通信都应使用TLS。取代ssl选项 默认false
@@ -336,6 +364,38 @@ public class BaseProperty {
 
     public Boolean getSsl() {
         return this.ssl;
+    }
+
+    public String getClientKeyStore() {
+        return clientKeyStore;
+    }
+
+    public void setClientKeyStore(String clientKeyStore) {
+        this.clientKeyStore = clientKeyStore;
+    }
+
+    public String getJks() {
+        return jks;
+    }
+
+    public void setJks(String jks) {
+        this.jks = jks;
+    }
+
+    public String getKeyPassword() {
+        return keyPassword;
+    }
+
+    public void setKeyPassword(String keyPassword) {
+        this.keyPassword = keyPassword;
+    }
+
+    public boolean isInvalidHostNameAllowed() {
+        return invalidHostNameAllowed;
+    }
+
+    public void setInvalidHostNameAllowed(boolean invalidHostNameAllowed) {
+        this.invalidHostNameAllowed = invalidHostNameAllowed;
     }
 
     public Boolean getTls() {

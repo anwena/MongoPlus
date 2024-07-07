@@ -3,7 +3,7 @@ package com.anwen.mongo.conn;
 import com.anwen.mongo.cache.global.CollectionLogicDeleteCache;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.factory.MongoClientFactory;
-import com.anwen.mongo.toolkit.ClassTypeUtil;
+import com.anwen.mongo.logic.UnClassCollection;
 import com.anwen.mongo.toolkit.codec.RegisterCodecUtil;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
@@ -48,19 +48,9 @@ public class CollectionManager {
         collectionMap.put(key, value);
     }
 
-    private <T> MongoCollection<Document> getCollection(T entity) {
-        return getCollection(ClassTypeUtil.getClass(entity)).withCodecRegistry(RegisterCodecUtil.registerCodec(entity));
-    }
-
-    private MongoCollection<Document> getCollection(String collectionName, Map<?, ?> map) {
-        return getCollection(collectionName).withCodecRegistry(RegisterCodecUtil.registerCodec(map));
-    }
-
     public MongoCollection<Document> getCollection(Class<?> clazz) {
         String collectionName = this.collectionNameConvert.convert(clazz);
-        MongoCollection<Document> collection = getCollection(collectionName);
-        CollectionLogicDeleteCache.mapperClassByCollection(collection.getNamespace().getFullName(), clazz);
-        return collection;
+        return getCollection(collectionName);
     }
 
     public MongoCollection<Document> getCollection(String collectionName) {
@@ -69,6 +59,7 @@ public class CollectionManager {
         if (!this.collectionMap.containsKey(collectionName)) {
             mongoCollection = new ConnectMongoDB(MongoClientFactory.getInstance().getMongoClient(), database, collectionName).open();
             this.collectionMap.put(collectionName, mongoCollection);
+            CollectionLogicDeleteCache.mapperClassByCollection(mongoCollection.getNamespace().getFullName(), UnClassCollection.class);
         } else {
             mongoCollection = this.collectionMap.get(collectionName);
         }

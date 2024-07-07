@@ -6,6 +6,7 @@ import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.factory.MongoClientFactory;
 import com.anwen.mongo.model.BaseProperty;
+import com.anwen.mongo.model.MutablePair;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
@@ -67,15 +68,7 @@ public class MongoPlusClient {
     }
 
     public CollectionManager getCollectionManager(Class<?> clazz){
-        String database = DataSourceNameCache.getDatabase();
-        if (database.contains(",")){
-            database = Arrays.stream(database.split(",")).collect(Collectors.toList()).get(0);
-        }
-        CollectionName collectionName = clazz.getAnnotation(CollectionName.class);
-        if (collectionName != null && StringUtils.isNotBlank(collectionName.database())){
-            database = collectionName.database();
-        }
-        return getCollectionManager(database);
+        return getCollectionManager(getDatabase(clazz));
     }
 
     public CollectionManager getCollectionManager(String database){
@@ -92,6 +85,30 @@ public class MongoPlusClient {
             }});
         }
         return getCollectionManagerMap().get(DataSourceNameCache.getDataSource()).get(database);
+    }
+
+    public MutablePair<String,String> getDatabaseAndCollectionName(Class<?> clazz){
+        return new MutablePair<>(getDatabase(clazz),collectionNameConvert.convert(clazz));
+    }
+
+    public String getDatabase(Class<?> clazz){
+        String database = DataSourceNameCache.getDatabase();
+        if (database.contains(",")){
+            database = Arrays.stream(database.split(",")).collect(Collectors.toList()).get(0);
+        }
+        CollectionName collectionName = clazz.getAnnotation(CollectionName.class);
+        if (collectionName != null && StringUtils.isNotBlank(collectionName.database())){
+            database = collectionName.database();
+        }
+        Map<String, CollectionManager> managerMap = getCollectionManagerMap().get(DataSourceNameCache.getDataSource());
+        if (StringUtils.isBlank(database)){
+            database = managerMap.keySet().stream().findFirst().get();
+        }
+        return database;
+    }
+
+    public String getCollectionName(Class<?> clazz){
+        return collectionNameConvert.convert(clazz);
     }
 
     public void setCollectionManagerMap(String database) {

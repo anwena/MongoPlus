@@ -57,7 +57,7 @@ public class Converter {
     }
 
     private static String convertToCamelCaseIfNeeded(String key) {
-        return PropertyCache.mapUnderscoreToCamelCase ? StringUtils.convertToCamelCase(key) : key;
+        return PropertyCache.mapUnderscoreToCamelCase || PropertyCache.camelToUnderline ? StringUtils.convertToCamelCase(key) : key;
     }
 
     private static Object convertValue(Object value) {

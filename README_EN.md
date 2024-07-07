@@ -47,19 +47,6 @@ MyBatisPlus does not need to write too many SQL statements like MyBatis, and Mon
 ##### Click to view the detection report
 [![Security Status](https://www.murphysec.com/platform3/v31/badge/1775074551634931712.svg)](https://www.murphysec.com/console/report/1775074551597182976/1775074551634931712)
 
-### Update log
-* v1.0 Basic usage</br>
-* v2.0 Fix 1.0BUG</br>
-* v2.0.1 Optimize query efficiency, add ID generation strategy, optimize the use with MongoTemplate, and reconstruct the chain call structure</br>
-* v2.0.2 Fix the decoder problem when adding, deleting and modifying, and add missing conditions</br>
-* v2.0.3 Add sql log printing, add missing conditions, add operations without entity classes (MongoPlusOperate) </br>
-* v2.0.4 Fix the total number of rows displayed in paging, add count() function operations</br>
-* v2.0.4.1 Fix the total number of rows displayed in paging as all, add projection operations, modify log configuration, modify MongoPlusOperate add, delete and modify operations
-* v2.0.4.2 Add auto-increment id, modify the connection opened twice, modify the connection string splicing problem when cluster configuration is modified
-* v2.0.5 Add pipeline function implementation, add auto-increment id strategy, modify entity class mapping relationship
-* v2.0.6 Fix known issues, add physical operations, add support for spring3, add support for solon framework, add pipeline function options, modify structure
-* v2.0.6.1 Fix dependency introduction problem
-* No longer update here Update log
 ### Document
 Document address: https://www.mongoplus.com/
 

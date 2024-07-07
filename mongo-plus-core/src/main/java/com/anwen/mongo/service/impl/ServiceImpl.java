@@ -1,17 +1,19 @@
 package com.anwen.mongo.service.impl;
 
+import com.anwen.mongo.aggregate.Aggregate;
+import com.anwen.mongo.aggregate.LambdaAggregateChainWrapper;
+import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.cache.global.DataSourceNameCache;
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
-import com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper;
 import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conditions.query.QueryWrapper;
 import com.anwen.mongo.conditions.update.LambdaUpdateChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.constant.SqlOperationConstant;
-import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.mapper.BaseMapper;
+import com.anwen.mongo.mapping.TypeInformation;
 import com.anwen.mongo.mapping.TypeReference;
 import com.anwen.mongo.model.MutablePair;
 import com.anwen.mongo.model.PageParam;
@@ -37,10 +39,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * IService接口通用方法实现
  * @author JiaChaoYang
- * 接口实现
- * @since 2023-02-09 14:13
+ * @date 2023-02-09 14:13
  **/
+@SuppressWarnings("unchecked")
 public class ServiceImpl<T> implements IService<T> {
 
     private BaseMapper baseMapper;
@@ -151,8 +154,11 @@ public class ServiceImpl<T> implements IService<T> {
 
     @Override
     public Boolean updateById(T entity) {
-        MutablePair<BasicDBObject,BasicDBObject> basicDBObjectPair = ConditionUtil.getUpdate(entity,baseMapper.getMongoConverter());
-        return baseMapper.update(basicDBObjectPair.getLeft(),basicDBObjectPair.getRight(),ClassTypeUtil.getClass(entity)) >= 1;
+//        MutablePair<BasicDBObject,BasicDBObject> basicDBObjectPair = ConditionUtil.getUpdate(entity,baseMapper.getMongoConverter());
+//        return baseMapper.update(basicDBObjectPair.getLeft(),basicDBObjectPair.getRight(),ClassTypeUtil.getClass(entity)) >= 1;
+        QueryWrapper wrapper = new QueryWrapper<>();
+        wrapper.eq(SqlOperationConstant._ID, TypeInformation.of(entity).getAnnotationField(ID.class,"@ID is not found").getValue());
+        return update(entity,wrapper);
     }
 
     @Override
@@ -173,12 +179,9 @@ public class ServiceImpl<T> implements IService<T> {
     @Override
     public Boolean updateByColumn(T entity, String column) {
         Object filterValue = ClassTypeUtil.getClassFieldValue(entity,column);
-        String valueOf = String.valueOf(filterValue);
-        Bson filter = Filters.eq(column, ObjectId.isValid(valueOf) ? new ObjectId(valueOf) : filterValue);
-        Document document = baseMapper.getMongoConverter().writeByUpdate(entity);
-        document.remove(column);
-        BasicDBObject update = new BasicDBObject(SpecialConditionEnum.SET.getCondition(), document);
-        return baseMapper.update(filter,update,ClassTypeUtil.getClass(entity)) >= 1;
+        QueryWrapper wrapper = new QueryWrapper<>();
+        wrapper.eq(column,filterValue);
+        return update(entity,wrapper);
     }
 
     @Override
@@ -233,6 +236,26 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
+    public <R> List<R> aggregateList(AggregateChainWrapper<T, ?> queryChainWrapper, TypeReference<R> typeReference) {
+        return baseMapper.aggregateList(queryChainWrapper,clazz,typeReference);
+    }
+
+    @Override
+    public List<T> list(Aggregate<?> aggregate) {
+        return list(aggregate,clazz);
+    }
+
+    @Override
+    public <R> List<R> list(Aggregate<?> aggregate, Class<R> rClass) {
+        return baseMapper.aggregateList(aggregate,clazz,rClass);
+    }
+
+    @Override
+    public <R> List<R> list(Aggregate<?> aggregate, TypeReference<R> typeReference) {
+        return baseMapper.aggregateList(aggregate,clazz,typeReference);
+    }
+
+    @Override
     public T one(QueryChainWrapper<T,?> queryChainWrapper) {
         return one(queryChainWrapper,clazz);
     }
@@ -240,6 +263,11 @@ public class ServiceImpl<T> implements IService<T> {
     @Override
     public <R> R one(QueryChainWrapper<T, ?> queryChainWrapper, Class<R> rClazz) {
         return baseMapper.one(queryChainWrapper,clazz,rClazz);
+    }
+
+    @Override
+    public <R> R one(QueryChainWrapper<T, ?> queryChainWrapper, TypeReference<R> typeReference) {
+        return baseMapper.one(queryChainWrapper,clazz,typeReference);
     }
 
     @Override
@@ -268,6 +296,11 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
+    public <R> List<R> list(QueryChainWrapper<T, ?> queryChainWrapper, TypeReference<R> typeReference) {
+        return baseMapper.list(queryChainWrapper,clazz,typeReference);
+    }
+
+    @Override
     public List<T> list(AggregateChainWrapper<T,?> queryChainWrapper) {
         return aggregateList(queryChainWrapper,clazz);
     }
@@ -275,6 +308,11 @@ public class ServiceImpl<T> implements IService<T> {
     @Override
     public <R> List<R> list(AggregateChainWrapper<T, ?> queryChainWrapper, Class<R> rClazz) {
         return baseMapper.aggregateList(queryChainWrapper,clazz,rClazz);
+    }
+
+    @Override
+    public <R> List<R> list(AggregateChainWrapper<T, ?> queryChainWrapper, TypeReference<R> typeReference) {
+        return baseMapper.aggregateList(queryChainWrapper,clazz,typeReference);
     }
 
     @Override
@@ -313,8 +351,18 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
+    public <R> PageResult<R> page(Integer pageNum, Integer pageSize, Integer recentPageNum, TypeReference<R> typeReference) {
+        return baseMapper.page(new QueryWrapper<>(),pageNum,pageSize,recentPageNum,clazz,typeReference);
+    }
+
+    @Override
     public <R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize, Class<R> rClazz) {
         return baseMapper.page(queryChainWrapper,pageNum,pageSize,clazz,rClazz);
+    }
+
+    @Override
+    public <R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize, TypeReference<R> typeReference) {
+        return baseMapper.page(queryChainWrapper,pageNum,pageSize,clazz,typeReference);
     }
 
     @Override
@@ -323,13 +371,28 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
+    public <R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam, TypeReference<R> typeReference) {
+        return baseMapper.page(queryChainWrapper,pageParam.getPageNum(),pageParam.getPageSize(),clazz,typeReference);
+    }
+
+    @Override
     public <R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize, Integer recentPageNum, Class<R> rClazz) {
         return baseMapper.page(queryChainWrapper,pageNum,pageSize,recentPageNum,clazz,rClazz);
     }
 
     @Override
+    public <R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize, Integer recentPageNum, TypeReference<R> typeReference) {
+        return baseMapper.page(queryChainWrapper,pageNum,pageSize,recentPageNum,clazz,typeReference);
+    }
+
+    @Override
     public <R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam, Integer recentPageNum, Class<R> rClazz) {
         return baseMapper.page(queryChainWrapper,pageParam.getPageNum(),pageParam.getPageSize(),recentPageNum,clazz,rClazz);
+    }
+
+    @Override
+    public <R> PageResult<R> page(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam, Integer recentPageNum, TypeReference<R> typeReference) {
+        return baseMapper.page(queryChainWrapper,pageParam.getPageNum(),pageParam.getPageSize(),recentPageNum,clazz,typeReference);
     }
 
     @Override
@@ -343,6 +406,11 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
+    public <R> List<R> pageList(PageParam pageParam, TypeReference<R> typeReference) {
+        return pageList(pageParam.getPageNum(),pageParam.getPageSize(),typeReference);
+    }
+
+    @Override
     public List<T> pageList(Integer pageNum, Integer pageSize) {
         return pageList(new QueryWrapper<>(),pageNum,pageSize,clazz);
     }
@@ -350,6 +418,11 @@ public class ServiceImpl<T> implements IService<T> {
     @Override
     public <R> List<R> pageList(Integer pageNum, Integer pageSize, Class<R> rClazz) {
         return baseMapper.pageList(new QueryWrapper<>(),pageNum,pageSize,clazz,rClazz);
+    }
+
+    @Override
+    public <R> List<R> pageList(Integer pageNum, Integer pageSize, TypeReference<R> typeReference) {
+        return baseMapper.pageList(new QueryWrapper<>(),pageNum,pageSize,clazz,typeReference);
     }
 
     @Override
@@ -363,6 +436,11 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
+    public <R> List<R> pageList(QueryChainWrapper<T, ?> queryChainWrapper, Integer pageNum, Integer pageSize, TypeReference<R> typeReference) {
+        return baseMapper.pageList(queryChainWrapper,pageNum,pageSize,clazz,typeReference);
+    }
+
+    @Override
     public List<T> pageList(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam) {
         return pageList(queryChainWrapper,pageParam.getPageNum(),pageParam.getPageSize(),clazz);
     }
@@ -370,6 +448,11 @@ public class ServiceImpl<T> implements IService<T> {
     @Override
     public <R> List<R> pageList(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam, Class<R> rClazz) {
         return baseMapper.pageList(queryChainWrapper,pageParam.getPageNum(),pageParam.getPageSize(),clazz,rClazz);
+    }
+
+    @Override
+    public <R> List<R> pageList(QueryChainWrapper<T, ?> queryChainWrapper, PageParam pageParam, TypeReference<R> typeReference) {
+        return baseMapper.pageList(queryChainWrapper,pageParam.getPageNum(),pageParam.getPageSize(),clazz,typeReference);
     }
 
     @Override
@@ -383,6 +466,11 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
+    public <R> PageResult<R> page(PageParam pageParam, TypeReference<R> typeReference) {
+        return page(pageParam.getPageNum(),pageParam.getPageSize(),typeReference);
+    }
+
+    @Override
     public PageResult<T> page(PageParam pageParam, Integer recentPageNum) {
         return page(pageParam.getPageNum(), pageParam.getPageSize(), recentPageNum);
     }
@@ -393,6 +481,11 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
+    public <R> PageResult<R> page(PageParam pageParam, Integer recentPageNum, TypeReference<R> typeReference) {
+        return page(pageParam.getPageNum(), pageParam.getPageSize(), recentPageNum, typeReference);
+    }
+
+    @Override
     public PageResult<T> page(Integer pageNum, Integer pageSize) {
         return page(new QueryWrapper<>(),pageNum,pageSize);
     }
@@ -400,6 +493,11 @@ public class ServiceImpl<T> implements IService<T> {
     @Override
     public <R> PageResult<R> page(Integer pageNum, Integer pageSize, Class<R> rClazz) {
         return baseMapper.page(new QueryWrapper<>(),pageNum,pageSize,clazz,rClazz);
+    }
+
+    @Override
+    public <R> PageResult<R> page(Integer pageNum, Integer pageSize, TypeReference<R> typeReference) {
+        return baseMapper.page(new QueryWrapper<>(),pageNum,pageSize,clazz,typeReference);
     }
 
     @Override
@@ -418,6 +516,11 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
+    public <R> R getById(Serializable id, TypeReference<R> typeReference) {
+        return baseMapper.getById(id,clazz,typeReference);
+    }
+
+    @Override
     public List<T> getByIds(Collection<? extends Serializable> ids) {
         return getByIds(ids,clazz);
     }
@@ -425,6 +528,11 @@ public class ServiceImpl<T> implements IService<T> {
     @Override
     public <R> List<R> getByIds(Collection<? extends Serializable> ids, Class<R> rClazz) {
         return baseMapper.getByIds(ids,clazz,rClazz);
+    }
+
+    @Override
+    public <R> List<R> getByIds(Collection<? extends Serializable> ids, TypeReference<R> typeReference) {
+        return baseMapper.getByIds(ids,clazz,typeReference);
     }
 
     @Override
@@ -438,6 +546,11 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
+    public <R> List<R> queryCommand(String command, TypeReference<R> typeReference) {
+        return baseMapper.queryCommand(command,clazz,typeReference);
+    }
+
+    @Override
     public List<T> getByColumn(SFunction<T, Object> field, Object fieldValue) {
         return getByColumn(field.getFieldNameLine(), fieldValue,clazz);
     }
@@ -448,6 +561,11 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
+    public <R> List<R> getByColumn(SFunction<T, Object> field, Object fieldValue, TypeReference<R> typeReference) {
+        return baseMapper.getByColumn(field.getFieldNameLine(), fieldValue,clazz,typeReference);
+    }
+
+    @Override
     public List<T> getByColumn(String field, Object fieldValue) {
         return getByColumn(field,fieldValue,clazz);
     }
@@ -455,6 +573,11 @@ public class ServiceImpl<T> implements IService<T> {
     @Override
     public <R> List<R> getByColumn(String field, Object fieldValue, Class<R> rClazz) {
         return baseMapper.getByColumn(field,fieldValue,clazz,rClazz);
+    }
+
+    @Override
+    public <R> List<R> getByColumn(String field, Object fieldValue, TypeReference<R> typeReference) {
+        return baseMapper.getByColumn(field,fieldValue,clazz,typeReference);
     }
 
     @Override
@@ -532,8 +655,13 @@ public class ServiceImpl<T> implements IService<T> {
     }
 
     @Override
-    public LambdaAggregateChainWrapper<T> lambdaAggregate() {
+    public com.anwen.mongo.conditions.aggregate.LambdaAggregateChainWrapper<T> lambdaAggregate() {
         return ChainWrappers.lambdaAggregateChain(baseMapper,clazz);
+    }
+
+    @Override
+    public LambdaAggregateChainWrapper<T> lambdaAggregates() {
+        return ChainWrappers.lambdaAggregatesChain(baseMapper,clazz);
     }
 
     @Override

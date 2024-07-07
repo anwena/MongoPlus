@@ -1,11 +1,11 @@
 package com.anwen.mongo.transactional;
 
 import com.anwen.mongo.context.MongoTransactionSpring;
+import com.anwen.mongo.factory.MongoClientFactory;
 import com.anwen.mongo.logging.Log;
 import com.anwen.mongo.logging.LogFactory;
 import com.mongodb.ClientSessionOptions;
 import com.mongodb.client.ClientSession;
-import com.mongodb.client.MongoClient;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
 import org.springframework.transaction.support.AbstractPlatformTransactionManager;
@@ -23,15 +23,9 @@ public class MongoPlusTransactionalManager extends AbstractPlatformTransactionMa
 
     Log log = LogFactory.getLog(MongoPlusTransactionalManager.class);
 
-    private final MongoClient mongo;
-
-    public MongoPlusTransactionalManager(MongoClient mongo) {
-        this.mongo = mongo;
-    }
-
     @Override
     protected Object doGetTransaction() throws TransactionException {
-        return mongo.startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
+        return MongoClientFactory.getInstance().getMongoClient().startSession(ClientSessionOptions.builder().causallyConsistent(true).build());
     }
 
     @Override

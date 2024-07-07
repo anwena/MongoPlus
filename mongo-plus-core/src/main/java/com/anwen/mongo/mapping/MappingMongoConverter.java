@@ -1,6 +1,7 @@
 package com.anwen.mongo.mapping;
 
 import com.anwen.mongo.annotation.collection.CollectionField;
+import com.anwen.mongo.annotation.comm.FieldEncrypt;
 import com.anwen.mongo.cache.global.ConversionCache;
 import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.cache.global.PropertyCache;
@@ -13,8 +14,12 @@ import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.strategy.conversion.ConversionStrategy;
 import com.anwen.mongo.strategy.mapping.MappingStrategy;
 import com.anwen.mongo.toolkit.BsonUtil;
+import com.anwen.mongo.toolkit.EncryptorUtil;
+import com.anwen.mongo.toolkit.StringUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.bson.types.Binary;
+import org.bson.types.ObjectId;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
@@ -32,9 +37,19 @@ public class MappingMongoConverter extends AbstractMongoConverter {
 
     private final SimpleTypeHolder simpleTypeHolder;
 
+    private List<Class<?>> ignoreType = new ArrayList<>();
+
     public MappingMongoConverter(MongoPlusClient mongoPlusClient,SimpleTypeHolder simpleTypeHolder) {
         super(mongoPlusClient);
         this.simpleTypeHolder = simpleTypeHolder;
+        ignoreType.add(ObjectId.class);
+        ignoreType.add(Binary.class);
+    }
+
+    public MappingMongoConverter(MongoPlusClient mongoPlusClient, SimpleTypeHolder simpleTypeHolder,List<Class<?>> ignoreType){
+        super(mongoPlusClient);
+        this.simpleTypeHolder = simpleTypeHolder;
+        this.ignoreType = ignoreType;
     }
 
     @Override
@@ -75,11 +90,21 @@ public class MappingMongoConverter extends AbstractMongoConverter {
                             throw new MongoPlusWriteException("Failed to create TypeHandler, message: " + e.getMessage());
                         }
                     }
+                    String fieldName = fieldInformation.getName();
+                    if (collectionField == null && PropertyCache.camelToUnderline){
+                        fieldName = StringUtils.camelToUnderline(fieldName);
+                    }
+                    if (fieldInformation.isAnnotation(FieldEncrypt.class)){
+                        obj = EncryptorUtil.encrypt((FieldEncrypt) fieldInformation.getAnnotation(FieldEncrypt.class),fieldInformation.getValue());
+                    }
+                    if (ignoreType.contains(fieldInformation.getTypeClass())){
+                        obj = fieldInformation.getValue();
+                    }
                     //如果类型处理器返回null，则继续走默认处理
                     if (obj != null) {
-                        BsonUtil.addToMap(bson, fieldInformation.getName(), obj);
+                        BsonUtil.addToMap(bson, fieldName, obj);
                     } else {
-                        writeProperties(bson, fieldInformation.getName(), fieldInformation.getValue());
+                        writeProperties(bson, fieldName, fieldInformation.getValue());
                     }
                 });
     }
@@ -141,12 +166,17 @@ public class MappingMongoConverter extends AbstractMongoConverter {
      * @author anwen
      * @date 2024/5/1 下午11:46
      */
-    private Bson writeMapInternal(Map<?,?> obj,Bson bson){
+    @Override
+    public Bson writeMapInternal(Map<?,?> obj,Bson bson) {
         //循环map
         obj.forEach((k,v)->{
             //如果key是简单类型
             if (simpleTypeHolder.isSimpleType(k.getClass())){
-                writeProperties(bson,String.valueOf(k),v);
+                String key = String.valueOf(k);
+                if (PropertyCache.camelToUnderline){
+                    key = StringUtils.camelToUnderline(key);
+                }
+                writeProperties(bson,key,v);
             }else {
                 throw new MongoPlusWriteException("Cannot use a complex object as a key value");
             }
@@ -179,7 +209,7 @@ public class MappingMongoConverter extends AbstractMongoConverter {
     }
 
     @Override
-    public <T> T read(Object sourceObj, TypeReference<T> typeReference) {
+    public <T> T readInternal(Object sourceObj, TypeReference<T> typeReference){
         Class<?> clazz = typeReference.getClazz();
         ConversionStrategy<?> conversionStrategy = getConversionStrategy(clazz);
 

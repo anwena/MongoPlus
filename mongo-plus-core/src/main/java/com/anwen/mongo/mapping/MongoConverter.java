@@ -128,7 +128,21 @@ public interface MongoConverter extends MongoWriter,EntityRead {
         return documentList;
     }
 
-    <T> T readInternal(Document document, Class<T> clazz);
+    /**
+     * 写内部属性
+     * @author anwen
+     * @date 2024/6/28 上午12:46
+     */
+    default <T> T readInternal(Document document, Class<T> clazz){
+        return readInternal(document,new TypeReference<T>(clazz){});
+    }
+
+    /**
+     * 写内部属性
+     * @author anwen
+     * @date 2024/6/28 上午12:46
+     */
+    <T> T readInternal(Object sourceObj, TypeReference<T> typeReference);
 
     /**
      * 写为Class
@@ -179,6 +193,20 @@ public interface MongoConverter extends MongoWriter,EntityRead {
         return null;
     }
 
+    /**
+     * 写为class
+     * @author anwen
+     * @date 2024/5/28 下午8:37
+     */
+    default <T> T readDocument(MongoIterable<Document> findIterable,TypeReference<T> typeReference){
+        try (MongoCursor<Document> mongoCursor = findIterable.iterator()) {
+            if (mongoCursor.hasNext()){
+                return read(mongoCursor.next(), typeReference);
+            }
+        }
+        return null;
+    }
+
     @SuppressWarnings("unchecked")
     default  <T> T convertDocument(Document document, Class<T> clazz) {
         if (clazz.isAssignableFrom(Map.class)) {
@@ -188,8 +216,17 @@ public interface MongoConverter extends MongoWriter,EntityRead {
         }
     }
 
+    @SuppressWarnings({"unchecked","rawtypes"})
     default void reSetIdValue(Object sourceObj, Document document) {
         if (Objects.isNull(sourceObj) || Objects.isNull(document) || !document.containsKey(SqlOperationConstant._ID)) {
+            return;
+        }
+        // Map类型不需要再做下边的操作 因为它们只针对实体类
+        if (Map.class.isAssignableFrom(sourceObj.getClass())){
+            Map map = (Map) sourceObj;
+            if (!map.containsKey(SqlOperationConstant._ID)){
+                map.put(SqlOperationConstant._ID, document.get(SqlOperationConstant._ID));
+            }
             return;
         }
         TypeInformation typeInformation = TypeInformation.of(sourceObj);

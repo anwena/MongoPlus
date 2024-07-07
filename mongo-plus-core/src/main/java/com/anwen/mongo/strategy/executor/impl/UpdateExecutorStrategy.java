@@ -8,12 +8,15 @@ import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
+import java.util.List;
+
 /**
  * UPDATE 策略执行器
  *
  * @author loser
  * @date 2024/4/30
  */
+@SuppressWarnings("unchecked")
 public class UpdateExecutorStrategy implements MethodExecutorStrategy {
 
     @Override
@@ -23,12 +26,10 @@ public class UpdateExecutorStrategy implements MethodExecutorStrategy {
 
     @Override
     public void invoke(Interceptor interceptor, Object[] args) {
-        MutablePair<Bson, Bson> bsonBsonMutablePair = interceptor.executeUpdate((Bson) args[0], (Bson) args[1]);
-        args[0] = bsonBsonMutablePair.getLeft();
-        args[1] = bsonBsonMutablePair.getRight();
-        bsonBsonMutablePair = interceptor.executeUpdate((Bson) args[0], (Bson) args[1], (MongoCollection<Document>) args[2]);
-        args[0] = bsonBsonMutablePair.getLeft();
-        args[1] = bsonBsonMutablePair.getRight();
+        List<MutablePair<Bson, Bson>> bsonBsonMutablePairList = interceptor.executeUpdate((List<MutablePair<Bson,Bson>>) args[0]);
+        args[0] = bsonBsonMutablePairList;
+        bsonBsonMutablePairList = interceptor.executeUpdate((List<MutablePair<Bson,Bson>>) args[0], (MongoCollection<Document>) args[args.length-1]);
+        args[0] = bsonBsonMutablePairList;
     }
 
 }

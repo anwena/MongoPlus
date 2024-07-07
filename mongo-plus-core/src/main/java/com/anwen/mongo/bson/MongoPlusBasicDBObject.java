@@ -2,6 +2,8 @@ package com.anwen.mongo.bson;
 
 import com.anwen.mongo.support.SFunction;
 import com.mongodb.BasicDBObject;
+import org.bson.BsonDocument;
+import org.bson.conversions.Bson;
 
 /**
  * 支持lambda的BasicDBObject
@@ -34,4 +36,14 @@ public class MongoPlusBasicDBObject extends BasicDBObject {
         }
     }
 
+    public void put(Bson bson){
+        BsonDocument bsonDocument = bson.toBsonDocument();
+        bsonDocument.forEach((k,v) -> {
+            if (super.containsKey(k)){
+                ((BsonDocument) get(k)).putAll(v.asDocument());
+            }else {
+                super.putAll(bsonDocument);
+            }
+        });
+    }
 }

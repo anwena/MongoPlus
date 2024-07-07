@@ -15,6 +15,7 @@ import org.bson.Document;
  * @author loser
  * @date 2024/4/30
  */
+@SuppressWarnings("unchecked")
 public class CountExecutorStrategy implements MethodExecutorStrategy {
 
     @Override
@@ -27,7 +28,7 @@ public class CountExecutorStrategy implements MethodExecutorStrategy {
         MutablePair<BasicDBObject, CountOptions> basicDBObjectCountOptionsMutablePair = interceptor.executeCount((BasicDBObject) args[0], (CountOptions) args[1]);
         args[0] = basicDBObjectCountOptionsMutablePair.getLeft();
         args[1] = basicDBObjectCountOptionsMutablePair.getRight();
-        basicDBObjectCountOptionsMutablePair = interceptor.executeCount((BasicDBObject) args[0], (CountOptions) args[1], (MongoCollection<Document>) args[2]);
+        basicDBObjectCountOptionsMutablePair = interceptor.executeCount((BasicDBObject) args[0], (CountOptions) args[1], (MongoCollection<Document>) args[args.length-1]);
         args[0] = basicDBObjectCountOptionsMutablePair.getLeft();
         args[1] = basicDBObjectCountOptionsMutablePair.getRight();
     }

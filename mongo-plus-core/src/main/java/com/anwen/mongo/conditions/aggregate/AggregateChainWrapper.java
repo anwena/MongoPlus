@@ -225,7 +225,7 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
                 new SortConcretePipeline(
                         new ArrayList<Order>() {{
                             for (SFunction<T, Object> sFunction : field) {
-                                add(new Order(OrderEnum.ORDER_BY.getFlag(), sFunction.getFieldNameLine()));
+                                add(new Order(OrderEnum.ASC.getValue(), sFunction.getFieldNameLine()));
                             }
                         }}
                 ),
@@ -239,7 +239,7 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.SORT.getType(), new SortConcretePipeline(
             new ArrayList<Order>(){{
                 for (String col : field) {
-                    add(new Order(OrderEnum.ORDER_BY.getFlag(), col));
+                    add(new Order(OrderEnum.ASC.getValue(), col));
                 }
             }}
         ),getNextAggregateOrder()));
@@ -252,7 +252,7 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.SORT.getType(), new SortConcretePipeline(
                 new ArrayList<Order>(){{
                     for (SFunction<T, Object> sFunction : field) {
-                        add(new Order(OrderEnum.ORDER_BY_DESC.getFlag(),sFunction.getFieldNameLine()));
+                        add(new Order(OrderEnum.DESC.getValue(),sFunction.getFieldNameLine()));
                     }
                 }}
         ),getNextAggregateOrder()));
@@ -264,7 +264,7 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
         this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.SORT.getType(), new SortConcretePipeline(
             new ArrayList<Order>(){{
                 for (String col : field) {
-                    add(new Order(OrderEnum.ORDER_BY_DESC.getFlag(), col));
+                    add(new Order(OrderEnum.DESC.getValue(), col));
                 }
             }}
         ),getNextAggregateOrder()));

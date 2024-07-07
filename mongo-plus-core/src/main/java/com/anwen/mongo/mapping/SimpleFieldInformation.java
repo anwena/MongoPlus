@@ -8,6 +8,7 @@ import com.anwen.mongo.domain.MongoPlusFieldException;
 import com.anwen.mongo.toolkit.ArrayUtils;
 import com.anwen.mongo.toolkit.StringUtils;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -105,7 +106,7 @@ public class SimpleFieldInformation<T> implements FieldInformation {
 
     @Override
     public String getCamelCaseName() {
-        return PropertyCache.mapUnderscoreToCamelCase ? StringUtils.convertToCamelCase(getName()) : getName();
+        return PropertyCache.camelToUnderline || PropertyCache.mapUnderscoreToCamelCase ? StringUtils.camelToUnderline(getName()) : getName();
     }
 
     @Override
@@ -223,6 +224,16 @@ public class SimpleFieldInformation<T> implements FieldInformation {
             }
         }
         return this.collectionField;
+    }
+
+    @Override
+    public Annotation getAnnotation(Class<? extends Annotation> annotationClass){
+        return getField().getAnnotation(annotationClass);
+    }
+
+    @Override
+    public boolean isAnnotation(Class<? extends Annotation> annotationClass) {
+        return getField().isAnnotationPresent(annotationClass);
     }
 
     @Override

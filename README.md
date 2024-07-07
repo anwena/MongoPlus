@@ -47,19 +47,6 @@ MyBatisPlus就是可以不用像MyBatis一样写过多的sql语句，Mongo-Plus�
 ##### 点击查看检测报告
 [![Security Status](https://www.murphysec.com/platform3/v31/badge/1775074551634931712.svg)](https://www.murphysec.com/console/report/1775074551597182976/1775074551634931712)
 
-###   更新日志
-* v1.0      基础用法</br>
-* v2.0      修复1.0BUG</br>
-* v2.0.1    优化查询效率，增加ID生成策略，优化和MongoTemplate一起使用问题，重构链式调用结构</br>
-* v2.0.2    修复增删改时的解码器问题，增加遗漏条件</br>
-* v2.0.3    增加sql日志打印，增加遗漏条件，增加无实体类情况下的操作（MongoPlusOperate）</br>
-* v2.0.4    修复分页的总行数显示数量问题，增加count()函数的操作</br>
-* v2.0.4.1  修复分页总行数显示为所有，增加projection操作，修改日志配置，修改MongoPlusOperate增删改操作
-* v2.0.4.2  增加自增id，修改打开两次连接，修改集群配置时，连接字符串拼接问题
-* v2.0.5    增加管道函数实现，增加自增id策略，修改实体类映射关系
-* v2.0.6    修复已知问题，增加实物操作，增加对spring3的支持，增加对solon框架的支持，增加管道函数的options，修改结构
-* v2.0.6.1  修复依赖引入问题
-* 不再此处更新 更新日志
 ### 文档
 文档地址： https://www.mongoplus.com/
 
