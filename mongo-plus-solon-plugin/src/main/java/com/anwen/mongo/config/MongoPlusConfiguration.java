@@ -184,7 +184,7 @@ public class MongoPlusConfiguration {
                         "                     __/ |                        \n" +
                         "                    |___/                         ");
             }
-            System.out.println(":: MongoPlus ::                        (v2.1.0)");
+            System.out.println(":: MongoPlus ::                        (v2.1.1)");
         }
         return mongoPlusClient;
     }
