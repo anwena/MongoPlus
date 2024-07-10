@@ -1,5 +1,6 @@
 package com.anwen.mongo.interceptor.business;
 
+import com.anwen.mongo.cache.global.DataSourceNameCache;
 import com.anwen.mongo.domain.MongoPlusException;
 import com.anwen.mongo.enums.ExecuteMethodEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
@@ -7,6 +8,7 @@ import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.logging.Log;
 import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.model.MutablePair;
+import com.mongodb.MongoNamespace;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.InsertOneModel;
 import com.mongodb.client.model.UpdateManyModel;
@@ -77,7 +79,10 @@ public class DataChangeRecorderInnerInterceptor implements Interceptor {
             operationResult = processBulkWrite(source);
         }
         if (operationResult != null) {
-            operationResult.setCollectionName(collection.getNamespace().getCollectionName());
+            MongoNamespace namespace = collection.getNamespace();
+            operationResult.setDatasourceName(DataSourceNameCache.getDataSource());
+            operationResult.setDatabaseName(namespace.getDatabaseName());
+            operationResult.setCollectionName(namespace.getCollectionName());
             operationResult.setRecordStatus(true);
             long costThis = System.currentTimeMillis() - startTs;
             operationResult.setCost(costThis);
