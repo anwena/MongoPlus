@@ -23,6 +23,7 @@ import org.bson.conversions.Bson;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -98,10 +99,10 @@ public class BuildCondition {
                 mongoPlusBasicDBObject.put(Filters.regex(compareCondition.getColumn(), (String) compareCondition.getValue()));
                 break;
             case IN:
-                mongoPlusBasicDBObject.put(Filters.in(compareCondition.getColumn(), compareCondition.getValue()));
+                mongoPlusBasicDBObject.put(Filters.in(compareCondition.getColumn(), (Collection<?>)compareCondition.getValue()));
                 break;
             case NIN:
-                mongoPlusBasicDBObject.put(Filters.nin(compareCondition.getColumn(), compareCondition.getValue()));
+                mongoPlusBasicDBObject.put(Filters.nin(compareCondition.getColumn(), (Collection<?>)compareCondition.getValue()));
                 break;
             case AND:
                 List<Bson> andBsonList = new ArrayList<>();
@@ -149,7 +150,7 @@ public class BuildCondition {
                 mongoPlusBasicDBObject.put(Filters.elemMatch(compareCondition.getColumn(),buildQueryCondition((List<CompareCondition>) compareCondition.getValue())));
                 break;
             case ALL:
-                mongoPlusBasicDBObject.put(Filters.all(compareCondition.getColumn(), compareCondition.getValue()));
+                mongoPlusBasicDBObject.put(Filters.all(compareCondition.getColumn(), (Collection<?>)compareCondition.getValue()));
                 break;
             case TEXT:
                 mongoPlusBasicDBObject.put(Filters.text(compareCondition.getValue().toString()));

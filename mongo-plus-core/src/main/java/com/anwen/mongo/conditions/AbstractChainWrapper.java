@@ -278,6 +278,54 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
         return getBaseCondition(column,valueList);
     }
 
+    @SafeVarargs
+    @Override
+    public final <TItem> Children in(boolean condition, SFunction<T, Object> column, TItem... values) {
+        return condition ? in(column,values) : typedThis;
+    }
+
+    @SafeVarargs
+    @Override
+    public final <TItem> Children in(SFunction<T, Object> column, TItem... values) {
+        return getBaseCondition(column,new ArrayList<>(Arrays.asList(values)));
+    }
+
+    @SafeVarargs
+    @Override
+    public final <TItem> Children in(boolean condition, String column, TItem... values) {
+        return condition ? in(column,values) : typedThis;
+    }
+
+    @SafeVarargs
+    @Override
+    public final <TItem> Children in(String column, TItem... values) {
+        return getBaseCondition(column,new ArrayList<>(Arrays.asList(values)));
+    }
+
+    @SafeVarargs
+    @Override
+    public final <TItem> Children nin(boolean condition, SFunction<T, Object> column, TItem... values) {
+        return condition ? nin(column,values) : typedThis;
+    }
+
+    @SafeVarargs
+    @Override
+    public final <TItem> Children nin(SFunction<T, Object> column, TItem... values) {
+        return getBaseCondition(column,new ArrayList<>(Arrays.asList(values)));
+    }
+
+    @SafeVarargs
+    @Override
+    public final <TItem> Children nin(boolean condition, String column, TItem... values) {
+        return condition ? nin(column,values) : typedThis;
+    }
+
+    @SafeVarargs
+    @Override
+    public final <TItem> Children nin(String column, TItem... values) {
+        return getBaseCondition(column,new ArrayList<>(Arrays.asList(values)));
+    }
+
     @Override
     public Children nin(boolean condition, SFunction<T, Object> column, Collection<?> valueList) {
         return condition ? nin(column,valueList) : typedThis;

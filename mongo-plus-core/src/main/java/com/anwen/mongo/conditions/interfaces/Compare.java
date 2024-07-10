@@ -419,6 +419,28 @@ public interface Compare<T,Children> extends Serializable {
     /**
      * 多值查询
      * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
+     * @param column 列名、字段名，lambda方式
+     * @param values 值的集合
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/6/20/020
+     */
+    <TItem> Children in(boolean condition, SFunction<T,Object> column, TItem... values);
+
+    /**
+     * 多值查询
+     *
+     * @param column 列名、字段名，lambda方式
+     * @param values 值的集合
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/6/20/020
+     */
+    <TItem> Children in(SFunction<T,Object> column, TItem... values);
+
+    /**
+     * 多值查询
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
      * @param valueList 值的集合
      * @return Children
@@ -436,6 +458,27 @@ public interface Compare<T,Children> extends Serializable {
      * @date 2023/6/20/020
      */
     Children in(String column, Collection<?> valueList);
+
+    /**
+     * 多值查询
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
+     * @param column 列名、字段名
+     * @param values 值的集合
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/6/20/020
+     */
+    <TItem> Children in(boolean condition,String column,TItem... values);
+
+    /**
+     * 多值查询
+     * @param column 列名、字段名
+     * @param values 值的集合
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/6/20/020
+     */
+    <TItem> Children in(String column,TItem... values);
 
     /**
      * 不包含
@@ -460,6 +503,26 @@ public interface Compare<T,Children> extends Serializable {
 
     /**
      * 不包含
+     * @param column 列名、字段名
+     * @param values 值的集合
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/7/15 15:57
+     */
+    <TItem> Children nin(boolean condition , SFunction<T,Object> column , TItem... values);
+
+    /**
+     * 不包含
+     * @param column 列名、字段名
+     * @param values 值的集合
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/7/15 15:57
+     */
+    <TItem> Children nin(SFunction<T,Object> column , TItem... values);
+
+    /**
+     * 不包含
      * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
      * @param column 列名、字段名
      * @param valueList 值的集合
@@ -468,6 +531,27 @@ public interface Compare<T,Children> extends Serializable {
      * @date 2023/7/15 15:58
     */
     Children nin(boolean condition , String column , Collection<?> valueList);
+
+    /**
+     * 不包含
+     * @param condition 判断如果为true，则加入此条件，可做判空，即不为空就加入这个条件
+     * @param column 列名、字段名
+     * @param values 值的集合
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/7/15 15:58
+     */
+    <TItem> Children nin(boolean condition , String column , TItem... values);
+
+    /**
+     * 不包含
+     * @param column 列名、字段名
+     * @param values 值的集合
+     * @return Children
+     * @author JiaChaoYang
+     * @date 2023/7/15 15:58
+     */
+    <TItem> Children nin(String column , TItem... values);
 
     /**
      * 不包含

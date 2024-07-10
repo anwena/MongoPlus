@@ -1,6 +1,5 @@
 package com.anwen.mongo.config;
 
-import com.anwen.mongo.annotation.collection.CollectionField;
 import com.anwen.mongo.annotation.collection.CollectionLogic;
 import com.anwen.mongo.aware.Aware;
 import com.anwen.mongo.cache.global.*;
@@ -22,17 +21,13 @@ import com.anwen.mongo.listener.BaseListener;
 import com.anwen.mongo.listener.Listener;
 import com.anwen.mongo.listener.business.BlockAttackInnerListener;
 import com.anwen.mongo.listener.business.LogListener;
-import com.anwen.mongo.logic.AnnotationHandler;
 import com.anwen.mongo.logic.replacer.LogicRemoveReplacer;
 import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.mapper.DefaultBaseMapperImpl;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
-import com.anwen.mongo.mapping.MappingMongoConverter;
-import com.anwen.mongo.mapping.MongoConverter;
-import com.anwen.mongo.mapping.SimpleTypeHolder;
+import com.anwen.mongo.mapping.*;
 import com.anwen.mongo.model.BaseProperty;
-import com.anwen.mongo.model.ClassAnnotationFiled;
 import com.anwen.mongo.model.LogicDeleteResult;
 import com.anwen.mongo.model.LogicProperty;
 import com.anwen.mongo.replacer.Replacer;
@@ -46,7 +41,6 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -457,17 +451,16 @@ public class Configuration {
             if (logicDeleteResultHashMap.containsKey(clazz)) {
                 continue;
             }
-            ClassAnnotationFiled<CollectionLogic> targetInfo = AnnotationHandler.getAnnotationOnFiled(clazz, CollectionLogic.class);
+            TypeInformation typeInformation = TypeInformation.of(clazz);
+            FieldInformation annotationField = typeInformation.getAnnotationField(CollectionLogic.class);
             // 优先使用每个对象自定义规则
-            if (Objects.nonNull(targetInfo)) {
-                CollectionLogic annotation = targetInfo.getTargetAnnotation();
+            if (Objects.nonNull(annotationField)) {
+                CollectionLogic annotation = (CollectionLogic) annotationField.getAnnotation(CollectionLogic.class);
                 if (annotation.close()) {
                     continue;
                 }
                 LogicDeleteResult result = new LogicDeleteResult();
-                Field field = targetInfo.getField();
-                CollectionField collectionField = field.getAnnotation(CollectionField.class);
-                String column = Objects.nonNull(collectionField) && StringUtils.isNotEmpty(collectionField.value()) ? collectionField.value() : field.getName();
+                String column = annotationField.getName();
                 result.setColumn(column);
                 result.setLogicDeleteValue(StringUtils.isNotBlank(annotation.delval()) ? annotation.delval() : logicProperty.getLogicDeleteValue());
                 result.setLogicNotDeleteValue(StringUtils.isNotBlank(annotation.value()) ? annotation.value() : logicProperty.getLogicNotDeleteValue());

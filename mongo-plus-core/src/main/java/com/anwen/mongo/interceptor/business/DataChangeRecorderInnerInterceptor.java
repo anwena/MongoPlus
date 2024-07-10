@@ -212,6 +212,20 @@ public class DataChangeRecorderInnerInterceptor implements Interceptor {
         private boolean recordStatus;
 
         /**
+         * 数据源名称
+         *
+         * @date 2024/7/9 下午5:05
+         */
+        private String datasourceName;
+
+        /**
+         * 数据库名
+         *
+         * @date 2024/6/27 下午5:37
+         */
+        private String databaseName;
+
+        /**
          * 集合名
          *
          * @date 2024/6/27 下午5:37
@@ -248,6 +262,22 @@ public class DataChangeRecorderInnerInterceptor implements Interceptor {
             this.recordStatus = recordStatus;
         }
 
+        public String getDatasourceName() {
+            return datasourceName;
+        }
+
+        public void setDatasourceName(String datasourceName) {
+            this.datasourceName = datasourceName;
+        }
+
+        public String getDatabaseName() {
+            return databaseName;
+        }
+
+        public void setDatabaseName(String databaseName) {
+            this.databaseName = databaseName;
+        }
+
         public String getCollectionName() {
             return collectionName;
         }
@@ -271,10 +301,11 @@ public class DataChangeRecorderInnerInterceptor implements Interceptor {
         public void setCost(long cost) {
             this.cost = cost;
         }
-
         @Override
         public String toString() {
             return "{" +
+                    "\"datasourceName\":\"" + datasourceName + "\"," +
+                    "\"databaseName\":\"" + databaseName + "\"," +
                     "\"collectionName\":\"" + collectionName + "\"," +
                     "\"operation\":\"" + operation + "\"," +
                     "\"recordStatus\":\"" + recordStatus + "\"," +

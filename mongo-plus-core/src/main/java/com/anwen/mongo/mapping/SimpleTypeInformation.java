@@ -33,6 +33,8 @@ public class SimpleTypeInformation<T> implements TypeInformation {
 
     private Type[] types;
 
+    private final Map<String,FieldInformation> fieldMap = new HashMap<>();
+
     /**
      * 实例的所有Field
      * @author JiaChaoYang
@@ -121,6 +123,18 @@ public class SimpleTypeInformation<T> implements TypeInformation {
     }
 
     @Override
+    public FieldInformation getField(String fieldName) {
+        if (!fieldMap.containsKey(fieldName)) {
+            try {
+                fieldMap.put(fieldName, new SimpleFieldInformation<>(instance, clazz.getField(fieldName)));
+            } catch (NoSuchFieldException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return fieldMap.get(fieldName);
+    }
+
+    @Override
     public List<FieldInformation> getAnnotationFields(Class<? extends Annotation> annotationClass){
         if (!annotationFieldMap.containsKey(annotationClass)){
             annotationFieldMap.put(annotationClass,getFields().stream().filter(field -> field.getField().getAnnotation(annotationClass) != null).collect(Collectors.toList()));
@@ -133,6 +147,15 @@ public class SimpleTypeInformation<T> implements TypeInformation {
         List<FieldInformation> fieldList = getAnnotationFields(annotationClass);
         if (CollUtil.isEmpty(fieldList)){
             throw new MongoPlusFieldException(nullMessage);
+        }
+        return fieldList.get(0);
+    }
+
+    @Override
+    public FieldInformation getAnnotationField(Class<? extends Annotation> annotationClass) {
+        List<FieldInformation> fieldList = getAnnotationFields(annotationClass);
+        if (CollUtil.isEmpty(fieldList)){
+            return null;
         }
         return fieldList.get(0);
     }

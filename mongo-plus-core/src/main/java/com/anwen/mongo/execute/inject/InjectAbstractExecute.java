@@ -11,6 +11,7 @@ import com.anwen.mongo.convert.Converter;
 import com.anwen.mongo.domain.MongoPlusFieldException;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.execute.Execute;
+import com.anwen.mongo.handlers.TypeHandler;
 import com.anwen.mongo.logging.Log;
 import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.mapping.MongoConverter;
@@ -166,12 +167,8 @@ public class InjectAbstractExecute {
     }
 
     public List<Map<String, Object>> list(String collectionName) {
-        return list(collectionName,Map.class);
-    }
-
-    public <R> List<R> list(String collectionName, Type type) {
-//        return mongoConverter.read(execute.executeQuery(null,null,null,collectionManager.getCollection(collectionName), Document.class),type);
-        return null;
+        FindIterable<Map> mapFindIterable = execute.executeQuery(null, null, null, Map.class, collectionManager.getCollection(collectionName));
+        return Converter.convertDocumentToMap(mapFindIterable);
     }
 
     public List<Map<String, Object>> list(String collectionName, List<CompareCondition> compareConditionList, List<Order> orderList, List<Projection> projectionList, List<BasicDBObject> basicDBObjectList) {

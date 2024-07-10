@@ -68,6 +68,10 @@ public class MongoClientFactory implements AutoCloseable {
         return mongoClientMap.get(ds);
     }
 
+    public Boolean containsMongoClient(String ds){
+        return mongoClientMap.containsKey(ds);
+    }
+
     public MongoClient getMongoClient(){
         return getMongoClient(DataSourceNameCache.getDataSource());
     }

@@ -4,13 +4,11 @@ import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.model.BaseModelID;
+import com.anwen.mongo.model.ClassAnnotationFiled;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author JiaChaoYang
@@ -18,6 +16,39 @@ import java.util.Set;
  * @since 2023-02-13 13:59
  **/
 public class AnnotationUtil {
+
+    /**
+     * 从类的所有字段上获取注解
+     *
+     * @param beanClass       类的class
+     * @param annotationClass 要获取的注解class
+     * @return 逻辑删除的字段信息
+     */
+    public static <T extends Annotation> ClassAnnotationFiled<T> getAnnotationOnFiled(Class<?> beanClass, Class<T> annotationClass) {
+        for (Field field : beanClass.getDeclaredFields()) {
+            T annotation = getAnnotation(field, annotationClass);
+            if (Objects.nonNull(annotation)) {
+                return new ClassAnnotationFiled<>(beanClass, field, annotation);
+            }
+        }
+        Class<?> superclass = beanClass.getSuperclass();
+        if (!Objects.equals(superclass, Object.class)) {
+            return getAnnotationOnFiled(superclass, annotationClass);
+        }
+        return null;
+    }
+
+    /**
+     * 从字段上获取注解
+     *
+     * @param field           字段
+     * @param annotationClass 要获取的注解class
+     * @param <T>             具体注解
+     * @return 注解
+     */
+    public static <T extends Annotation> T getAnnotation(Field field, Class<T> annotationClass) {
+        return findFirstAnnotation(annotationClass, field);
+    }
 
     public static Map<String, Object> getFieldAnnotation(Object object) {
         Field[] fields = object.getClass().getDeclaredFields();

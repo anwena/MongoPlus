@@ -1,6 +1,7 @@
 package com.anwen.mongo.cache.global;
 
 import com.anwen.mongo.constant.DataSourceConstant;
+import com.anwen.mongo.domain.MongoPlusDsException;
 import com.anwen.mongo.model.BaseProperty;
 import com.anwen.mongo.toolkit.StringUtils;
 
@@ -37,7 +38,12 @@ public class DataSourceNameCache {
     }
 
     public static String getDatabase(){
-        return basePropertyMap.get(getDataSource()).getDatabase();
+        String currentDataSource = getDataSource();
+        BaseProperty baseProperty = basePropertyMap.get(currentDataSource);
+        if (baseProperty == null){
+            throw new MongoPlusDsException("The " + currentDataSource+" data source does not exist");
+        }
+        return baseProperty.getDatabase();
     }
 
     public static String getDataSource(){

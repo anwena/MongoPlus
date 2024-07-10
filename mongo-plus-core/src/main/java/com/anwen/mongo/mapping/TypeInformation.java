@@ -23,9 +23,13 @@ public interface TypeInformation {
 
     List<FieldInformation> getFields();
 
+    FieldInformation getField(String fieldName);
+
     List<FieldInformation> getAnnotationFields(Class<? extends Annotation> annotationClass);
 
     FieldInformation getAnnotationField(Class<? extends Annotation> annotationClass,String nullMessage);
+
+    FieldInformation getAnnotationField(Class<? extends Annotation> annotationClass);
 
     Object getAnnotationFieldValue(Class<? extends Annotation> annotationClass,String nullMessage);
 
