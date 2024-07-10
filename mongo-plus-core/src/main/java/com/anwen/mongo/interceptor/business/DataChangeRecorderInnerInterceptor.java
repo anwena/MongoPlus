@@ -106,7 +106,13 @@ public class DataChangeRecorderInnerInterceptor implements Interceptor {
             throw new DataUpdateLimitationException(exceptionMessage);
         }
         operationResult.setOperation(ExecuteMethodEnum.UPDATE.name());
-        operationResult.setChangedData(displayCompleteData ? documentList.toString() : String.valueOf(documentList.size()));
+        List<String> dataList = new ArrayList<>();
+        documentList.forEach(mutablePair -> {
+            String left = mutablePair.getRight().toBsonDocument().toString();
+            String right = mutablePair.getRight().toBsonDocument().toString();
+            dataList.add("(left="+left+",right="+right+")");
+        });
+        operationResult.setChangedData(displayCompleteData ? dataList.toString() : String.valueOf(documentList.size()));
         return operationResult;
     }
 
