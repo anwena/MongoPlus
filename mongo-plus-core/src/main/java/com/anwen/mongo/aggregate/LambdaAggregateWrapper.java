@@ -9,11 +9,11 @@ import com.anwen.mongo.enums.AggregateEnum;
 import com.anwen.mongo.enums.AggregateOptionsEnum;
 import com.anwen.mongo.enums.OrderEnum;
 import com.anwen.mongo.enums.ProjectionEnum;
+import com.anwen.mongo.handlers.collection.AnnotationOperate;
 import com.anwen.mongo.handlers.condition.AbstractConditionHandler;
 import com.anwen.mongo.handlers.condition.BuildCondition;
 import com.anwen.mongo.model.aggregate.Field;
 import com.anwen.mongo.support.SFunction;
-import com.anwen.mongo.toolkit.AnnotationUtil;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoNamespace;
 import com.mongodb.client.model.*;
@@ -555,12 +555,12 @@ public class LambdaAggregateWrapper<Children> implements Aggregate<Children>,Agg
 
     @Override
     public Children unionWith(Class<?> collection, Aggregate<?> aggregate) {
-        return unionWith(AnnotationUtil.collectionName(collection),aggregate);
+        return unionWith(AnnotationOperate.getCollectionName(collection),aggregate);
     }
 
     @Override
     public Children unionWith(Class<?> collection, List<? extends Bson> aggregate) {
-        return unionWith(AnnotationUtil.collectionName(collection),aggregate);
+        return unionWith(AnnotationOperate.getCollectionName(collection),aggregate);
     }
 
     @Override
@@ -610,7 +610,7 @@ public class LambdaAggregateWrapper<Children> implements Aggregate<Children>,Agg
 
     @Override
     public Children out(Class<?> collection) {
-        return out(AnnotationUtil.collectionName(collection));
+        return out(AnnotationOperate.getCollectionName(collection));
     }
 
     @Override
@@ -630,7 +630,7 @@ public class LambdaAggregateWrapper<Children> implements Aggregate<Children>,Agg
 
     @Override
     public Children merge(Class<?> collection) {
-        return merge(AnnotationUtil.collectionName(collection));
+        return merge(AnnotationOperate.getCollectionName(collection));
     }
 
     @Override
@@ -645,7 +645,7 @@ public class LambdaAggregateWrapper<Children> implements Aggregate<Children>,Agg
 
     @Override
     public Children merge(Class<?> collection, MergeOptions options) {
-        return merge(AnnotationUtil.collectionName(collection),options);
+        return merge(AnnotationOperate.getCollectionName(collection),options);
     }
 
     @Override

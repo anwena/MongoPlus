@@ -4,7 +4,6 @@ import com.anwen.mongo.cache.global.DataSourceNameCache;
 import com.anwen.mongo.cache.global.MongoPlusClientCache;
 import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.constant.DataSourceConstant;
-import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.factory.MongoClientFactory;
 import com.anwen.mongo.listener.BaseListener;
 import com.anwen.mongo.manager.DataSourceManager;
@@ -17,7 +16,6 @@ import com.anwen.mongo.mapping.MongoConverter;
 import com.anwen.mongo.mapping.SimpleTypeHolder;
 import com.anwen.mongo.property.*;
 import com.anwen.mongo.toolkit.CollUtil;
-import com.anwen.mongo.toolkit.MongoCollectionUtils;
 import com.anwen.mongo.toolkit.UrlJoint;
 import com.anwen.mongo.transactional.MongoTransactionalAspect;
 import com.mongodb.ConnectionString;
@@ -76,22 +74,15 @@ public class MongoPlusConfiguration {
         return mongoClientFactory;
     }
 
-    @Bean
-    @Condition(onMissingBean = CollectionNameConvert.class)
-    public CollectionNameConvert collectionNameConvert(){
-        mongoDBCollectionProperty = Optional.ofNullable(mongoDBCollectionProperty).orElseGet(MongoDBCollectionProperty::new);
-        return MongoCollectionUtils.build(mongoDBCollectionProperty.getMappingStrategy());
-    }
-
 
     @Bean
     @Condition(onMissingBean = MongoPlusClient.class)
-    public MongoPlusClient mongoPlusClient(MongoClient mongo,CollectionNameConvert collectionNameConvert,MongoClientFactory mongoClientFactory){
+    public MongoPlusClient mongoPlusClient(MongoClient mongo,MongoClientFactory mongoClientFactory){
         mongoDBConfigurationProperty = Optional.ofNullable(mongoDBConfigurationProperty).orElseGet(MongoDBConfigurationProperty::new);
-        MongoPlusClient mongoPlusClient = com.anwen.mongo.config.Configuration.builder().initMongoPlusClient(mongo, collectionNameConvert, mongoDBConnectProperty);
+        MongoPlusClient mongoPlusClient = com.anwen.mongo.config.Configuration.builder().initMongoPlusClient(mongoDBConnectProperty);
         mongoClientFactory.getMongoClientMap().forEach((ds,mongoClient) -> mongoPlusClient.getCollectionManagerMap().put(ds,new LinkedHashMap<String, CollectionManager>(){{
             String database = DataSourceNameCache.getBaseProperty(ds).getDatabase();
-            Arrays.stream(database.split(",")).collect(Collectors.toList()).forEach(db -> put(db,new CollectionManager(mongoClient,collectionNameConvert,db)));
+            Arrays.stream(database.split(",")).collect(Collectors.toList()).forEach(db -> put(db,new CollectionManager(db)));
         }}));
         MongoPlusClientCache.mongoPlusClient = mongoPlusClient;
         if (mongoDBConfigurationProperty.getBanner()){
@@ -176,7 +167,6 @@ public class MongoPlusConfiguration {
     /**
      * 数据源管理器
      * @param mongoPlusClient mongoPlus客户端
-     * @param collectionNameConvert 集合名转换器
      * @param mongoClientFactory mongoClient工厂
      * @return {@link DataSourceManager}
      * @author anwen
@@ -185,9 +175,8 @@ public class MongoPlusConfiguration {
     @Bean
     @Condition(onMissingBean = DataSourceManager.class)
     public DataSourceManager dataSourceManager(MongoPlusClient mongoPlusClient,
-                                               CollectionNameConvert collectionNameConvert,
                                                MongoClientFactory mongoClientFactory){
-        return new DataSourceManager(mongoPlusClient,collectionNameConvert,mongoClientFactory);
+        return new DataSourceManager(mongoPlusClient,mongoClientFactory);
     }
 
 }

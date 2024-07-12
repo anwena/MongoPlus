@@ -2,7 +2,6 @@ package com.anwen.mongo.manager;
 
 import com.anwen.mongo.cache.global.DataSourceNameCache;
 import com.anwen.mongo.conn.CollectionManager;
-import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.factory.MongoClientFactory;
 import com.anwen.mongo.model.BaseProperty;
 import com.anwen.mongo.toolkit.MongoUtil;
@@ -21,15 +20,12 @@ public class DataSourceManager {
 
     private final MongoPlusClient mongoPlusClient;
 
-    private final CollectionNameConvert collectionNameConvert;
 
     private final MongoClientFactory mongoClientFactory;
 
     public DataSourceManager(MongoPlusClient mongoPlusClient,
-                             CollectionNameConvert collectionNameConvert,
                              MongoClientFactory mongoClientFactory){
         this.mongoPlusClient = mongoPlusClient;
-        this.collectionNameConvert = collectionNameConvert;
         this.mongoClientFactory = mongoClientFactory;
     }
 
@@ -46,7 +42,7 @@ public class DataSourceManager {
         if (!containsMongoClient || isOverride) {
             mongoClientFactory.addMongoClient(dsName, mongoClient);
             mongoPlusClient.getCollectionManagerMap().put(dsName,new LinkedHashMap<String, CollectionManager>(){{
-                Arrays.stream(baseProperty.getDatabase().split(",")).collect(Collectors.toList()).forEach(db -> put(db,new CollectionManager(mongoClient,collectionNameConvert,db)));
+                Arrays.stream(baseProperty.getDatabase().split(",")).collect(Collectors.toList()).forEach(db -> put(db,new CollectionManager(db)));
             }});
         }
     }

@@ -9,12 +9,12 @@ import com.anwen.mongo.cache.global.MappingCache;
 import com.anwen.mongo.cache.global.PropertyCache;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.context.MongoTransactionContext;
-import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.domain.MongoPlusWriteException;
 import com.anwen.mongo.enums.FieldFill;
 import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.handlers.ReadHandler;
 import com.anwen.mongo.handlers.TypeHandler;
+import com.anwen.mongo.handlers.collection.AnnotationOperate;
 import com.anwen.mongo.incrementer.id.IdWorker;
 import com.anwen.mongo.logging.Log;
 import com.anwen.mongo.logging.LogFactory;
@@ -275,8 +275,7 @@ public abstract class AbstractMongoConverter implements MongoConverter {
      * @date 2024/5/1 下午9:26
      */
     public Integer generateAutoId(TypeInformation typeInformation){
-        CollectionNameConvert collectionNameConvert = mongoPlusClient.getCollectionNameConvert();
-        String collectionName = collectionNameConvert.convert(typeInformation.getClazz());
+        String collectionName = AnnotationOperate.getCollectionName(typeInformation.getClazz());
         // 每个Collection单独加锁
         synchronized (collectionName.intern()) {
             MongoCollection<Document> collection = mongoPlusClient.getCollection(typeInformation.getClazz(), PropertyCache.autoIdCollectionName);

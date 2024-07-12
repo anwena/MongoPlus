@@ -7,6 +7,7 @@ import com.anwen.mongo.handlers.CollectionNameHandler;
 import com.anwen.mongo.handlers.DocumentHandler;
 import com.anwen.mongo.handlers.MetaObjectHandler;
 import com.anwen.mongo.handlers.TenantHandler;
+import com.anwen.mongo.handlers.collection.AnnotationOperate;
 import com.anwen.mongo.incrementer.IdentifierGenerator;
 import com.anwen.mongo.incrementer.id.IdWorker;
 import com.anwen.mongo.interceptor.Interceptor;
@@ -81,6 +82,7 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
         setTenantHandler();
         setDynamicCollectionHandler();
         setAware(applicationContext);
+        collectionNameConvert();
     }
 
     @Override
@@ -287,4 +289,14 @@ public class MongoPlusAutoConfiguration implements InitializingBean {
             InterceptorCache.interceptors.add(new DynamicCollectionNameInterceptor(collectionNameHandler, baseMapper.getMongoPlusClient()));
         }
     }
+
+    /**
+     * 注册集合名转换器
+     * @author anwen
+     * @date 2024/5/27 下午11:20
+     */
+    public void collectionNameConvert(){
+        AnnotationOperate.setCollectionNameConvertEnum(mongodbCollectionProperty.getMappingStrategy());
+    }
+
 }

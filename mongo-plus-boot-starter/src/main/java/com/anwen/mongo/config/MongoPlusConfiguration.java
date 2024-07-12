@@ -4,7 +4,6 @@ import com.anwen.mongo.cache.global.DataSourceNameCache;
 import com.anwen.mongo.cache.global.MongoPlusClientCache;
 import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.constant.DataSourceConstant;
-import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.datasource.MongoDataSourceAspect;
 import com.anwen.mongo.factory.MongoClientFactory;
 import com.anwen.mongo.logic.MongoLogicIgnoreAspect;
@@ -21,7 +20,6 @@ import com.anwen.mongo.property.MongoDBConfigurationProperty;
 import com.anwen.mongo.property.MongoDBConnectProperty;
 import com.anwen.mongo.tenant.TenantAspect;
 import com.anwen.mongo.toolkit.CollUtil;
-import com.anwen.mongo.toolkit.MongoCollectionUtils;
 import com.anwen.mongo.transactional.MongoTransactionalAspect;
 import com.mongodb.client.MongoClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -44,13 +42,10 @@ public class MongoPlusConfiguration {
 
     private final MongoDBConnectProperty mongoDBConnectProperty;
 
-    private final MongoDBCollectionProperty mongoDBCollectionProperty;
-
     private final MongoDBConfigurationProperty mongoDBConfigurationProperty;
 
-    public MongoPlusConfiguration(MongoDBConnectProperty mongodbConnectProperty, MongoDBCollectionProperty mongodbCollectionProperty, MongoDBConfigurationProperty mongodbConfigurationProperty) {
+    public MongoPlusConfiguration(MongoDBConnectProperty mongodbConnectProperty, MongoDBConfigurationProperty mongodbConfigurationProperty) {
         this.mongoDBConnectProperty = mongodbConnectProperty;
-        this.mongoDBCollectionProperty = mongodbCollectionProperty;
         this.mongoDBConfigurationProperty = mongodbConfigurationProperty;
     }
 
@@ -82,21 +77,8 @@ public class MongoPlusConfiguration {
     }
 
     /**
-     * 注册集合名转换器
-     * @return {@link CollectionNameConvert}
-     * @author anwen
-     * @date 2024/5/27 下午11:20
-     */
-    @Bean
-    @ConditionalOnMissingBean(CollectionNameConvert.class)
-    public CollectionNameConvert collectionNameConvert(){
-        return MongoCollectionUtils.build(mongoDBCollectionProperty.getMappingStrategy());
-    }
-
-    /**
      * MongoPlusClient注册
      * @param mongo MongoClient
-     * @param collectionNameConvert 集合名转换器
      * @param mongoClientFactory MongoClient工厂
      * @return {@link com.anwen.mongo.manager.MongoPlusClient}
      * @author anwen
@@ -104,11 +86,11 @@ public class MongoPlusConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(MongoPlusClient.class)
-    public MongoPlusClient mongoPlusClient(MongoClient mongo,CollectionNameConvert collectionNameConvert,MongoClientFactory mongoClientFactory){
-        MongoPlusClient mongoPlusClient = Configuration.builder().initMongoPlusClient(mongo,collectionNameConvert,mongoDBConnectProperty);
+    public MongoPlusClient mongoPlusClient(MongoClient mongo,MongoClientFactory mongoClientFactory){
+        MongoPlusClient mongoPlusClient = Configuration.builder().initMongoPlusClient(mongo,mongoDBConnectProperty);
         mongoClientFactory.getMongoClientMap().forEach((ds,mongoClient) -> mongoPlusClient.getCollectionManagerMap().put(ds,new LinkedHashMap<String, CollectionManager>(){{
             String database = DataSourceNameCache.getBaseProperty(ds).getDatabase();
-            Arrays.stream(database.split(",")).collect(Collectors.toList()).forEach(db -> put(db,new CollectionManager(mongoClient,collectionNameConvert,db)));
+            Arrays.stream(database.split(",")).collect(Collectors.toList()).forEach(db -> put(db,new CollectionManager(db)));
         }}));
         MongoPlusClientCache.mongoPlusClient = mongoPlusClient;
         if (mongoDBConfigurationProperty.getBanner()){
@@ -257,7 +239,6 @@ public class MongoPlusConfiguration {
     /**
      * 数据源管理器
      * @param mongoPlusClient mongoPlus客户端
-     * @param collectionNameConvert 集合名转换器
      * @param mongoClientFactory mongoClient工厂
      * @return {@link DataSourceManager}
      * @author anwen
@@ -266,9 +247,8 @@ public class MongoPlusConfiguration {
     @Bean("dataSourceManager")
     @ConditionalOnMissingBean
     public DataSourceManager dataSourceManager(MongoPlusClient mongoPlusClient,
-                                               CollectionNameConvert collectionNameConvert,
                                                MongoClientFactory mongoClientFactory){
-        return new DataSourceManager(mongoPlusClient,collectionNameConvert,mongoClientFactory);
+        return new DataSourceManager(mongoPlusClient,mongoClientFactory);
     }
 
 }

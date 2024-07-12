@@ -5,7 +5,6 @@ import com.anwen.mongo.aware.Aware;
 import com.anwen.mongo.cache.global.*;
 import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.constant.DataSourceConstant;
-import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.domain.InitMongoLogicException;
 import com.anwen.mongo.domain.InitMongoPlusException;
 import com.anwen.mongo.enums.CollectionNameConvertEnum;
@@ -13,6 +12,7 @@ import com.anwen.mongo.factory.MongoClientFactory;
 import com.anwen.mongo.handlers.DocumentHandler;
 import com.anwen.mongo.handlers.MetaObjectHandler;
 import com.anwen.mongo.handlers.TenantHandler;
+import com.anwen.mongo.handlers.collection.AnnotationOperate;
 import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.interceptor.business.CollectionLogiceInterceptor;
 import com.anwen.mongo.interceptor.business.LogicAutoFillInterceptor;
@@ -32,7 +32,6 @@ import com.anwen.mongo.model.LogicDeleteResult;
 import com.anwen.mongo.model.LogicProperty;
 import com.anwen.mongo.replacer.Replacer;
 import com.anwen.mongo.strategy.conversion.ConversionStrategy;
-import com.anwen.mongo.toolkit.MongoCollectionUtils;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.anwen.mongo.toolkit.UrlJoint;
 import com.mongodb.ConnectionString;
@@ -78,13 +77,6 @@ public class Configuration {
      */
     private LogicProperty logicProperty = new LogicProperty();
 
-    /**
-     * 集合名称获取策略
-     *
-     * @author JiaChaoYang
-     * @date 2024/3/19 18:25
-     */
-    private CollectionNameConvert collectionNameConvert = MongoCollectionUtils.build(CollectionNameConvertEnum.ALL_CHAR_LOWERCASE);
 
     /**
      * 获取一个空的Configuration
@@ -139,7 +131,7 @@ public class Configuration {
      * @date 2024/3/19 18:27
      */
     public Configuration collectionNameConvert(CollectionNameConvertEnum collectionNameConvertEnum) {
-        this.collectionNameConvert = MongoCollectionUtils.build(collectionNameConvertEnum);
+        AnnotationOperate.setCollectionNameConvertEnum(collectionNameConvertEnum);
         return this;
     }
 
@@ -324,33 +316,27 @@ public class Configuration {
 
     public MongoPlusClient initMongoPlusClient() {
         return initMongoPlusClient(MongoClients.create(MongoClientSettings.builder()
-                .applyConnectionString(new ConnectionString(this.url)).commandListenerList(Collections.singletonList(new BaseListener())).build()), collectionNameConvert, baseProperty);
+                .applyConnectionString(new ConnectionString(this.url)).commandListenerList(Collections.singletonList(new BaseListener())).build()), baseProperty);
     }
 
-    public MongoPlusClient initMongoPlusClient(CollectionNameConvert collectionNameConvert) {
+    public MongoPlusClient initMongoPlusClient(BaseProperty baseProperty) {
         return initMongoPlusClient(MongoClients.create(MongoClientSettings.builder()
-                .applyConnectionString(new ConnectionString(this.url)).commandListenerList(Collections.singletonList(new BaseListener())).build()), collectionNameConvert, baseProperty);
+                .applyConnectionString(new ConnectionString(this.url)).commandListenerList(Collections.singletonList(new BaseListener())).build()), baseProperty);
     }
 
-    public MongoPlusClient initMongoPlusClient(CollectionNameConvert collectionNameConvert, BaseProperty baseProperty) {
-        return initMongoPlusClient(MongoClients.create(MongoClientSettings.builder()
-                .applyConnectionString(new ConnectionString(this.url)).commandListenerList(Collections.singletonList(new BaseListener())).build()), collectionNameConvert, baseProperty);
-    }
-
-    public MongoPlusClient initMongoPlusClient(MongoClient mongoClient, CollectionNameConvert collectionNameConvert, BaseProperty baseProperty) {
+    public MongoPlusClient initMongoPlusClient(MongoClient mongoClient, BaseProperty baseProperty) {
         if (StringUtils.isBlank(baseProperty.getDatabase())) {
             throw new InitMongoPlusException("Connection database not configured");
         }
         MongoClientFactory.getInstance(mongoClient);
         MongoPlusClient mongoPlusClient = new MongoPlusClient();
         mongoPlusClient.setBaseProperty(baseProperty);
-        mongoPlusClient.setCollectionNameConvert(collectionNameConvert);
         List<MongoDatabase> mongoDatabaseList = new ArrayList<>();
         mongoPlusClient.setCollectionManagerMap(new ConcurrentHashMap<String, Map<String, CollectionManager>>() {{
             put(DataSourceConstant.DEFAULT_DATASOURCE, new LinkedHashMap<String, CollectionManager>() {{
                 String database = mongoPlusClient.getBaseProperty().getDatabase();
                 Arrays.stream(database.split(",")).collect(Collectors.toList()).forEach(db -> {
-                    CollectionManager collectionManager = new CollectionManager(mongoPlusClient.getMongoClient(), collectionNameConvert, db);
+                    CollectionManager collectionManager = new CollectionManager(db);
                     MongoDatabase mongoDatabase = mongoPlusClient.getMongoClient().getDatabase(db);
                     mongoDatabaseList.add(mongoDatabase);
                     put(db, collectionManager);

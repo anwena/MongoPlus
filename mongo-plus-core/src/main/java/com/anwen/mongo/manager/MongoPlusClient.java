@@ -1,12 +1,10 @@
 package com.anwen.mongo.manager;
 
-import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.cache.global.DataSourceNameCache;
 import com.anwen.mongo.conn.CollectionManager;
-import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.factory.MongoClientFactory;
+import com.anwen.mongo.handlers.collection.AnnotationOperate;
 import com.anwen.mongo.model.BaseProperty;
-import com.anwen.mongo.model.MutablePair;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
@@ -36,16 +34,6 @@ public class MongoPlusClient {
      * @date 2024/1/6 2:12
     */
     private Map<String,Map<String,CollectionManager>> collectionManagerMap;
-
-    private CollectionNameConvert collectionNameConvert;
-
-    public CollectionNameConvert getCollectionNameConvert() {
-        return collectionNameConvert;
-    }
-
-    public void setCollectionNameConvert(CollectionNameConvert collectionNameConvert) {
-        this.collectionNameConvert = collectionNameConvert;
-    }
 
     public Map<String,Map<String,CollectionManager>> getCollectionManagerMap() {
         return collectionManagerMap;
@@ -77,7 +65,7 @@ public class MongoPlusClient {
             database = managerMap.keySet().stream().findFirst().get();
         }
         if (null == managerMap || null == managerMap.get(database)){
-            CollectionManager collectionManager = new CollectionManager(getMongoClient(), collectionNameConvert, database);
+            CollectionManager collectionManager = new CollectionManager(database);
             getMongoDatabase().add(getMongoClient().getDatabase(database));
             String finalDatabase = database;
             getCollectionManagerMap().put(DataSourceNameCache.getDataSource(),new ConcurrentHashMap<String,CollectionManager>(){{
@@ -87,18 +75,14 @@ public class MongoPlusClient {
         return getCollectionManagerMap().get(DataSourceNameCache.getDataSource()).get(database);
     }
 
-    public MutablePair<String,String> getDatabaseAndCollectionName(Class<?> clazz){
-        return new MutablePair<>(getDatabase(clazz),collectionNameConvert.convert(clazz));
-    }
-
     public String getDatabase(Class<?> clazz){
         String database = DataSourceNameCache.getDatabase();
         if (database.contains(",")){
             database = Arrays.stream(database.split(",")).collect(Collectors.toList()).get(0);
         }
-        CollectionName collectionName = clazz.getAnnotation(CollectionName.class);
-        if (collectionName != null && StringUtils.isNotBlank(collectionName.database())){
-            database = collectionName.database();
+        String annotationDatabase = AnnotationOperate.getDatabase(clazz);
+        if (StringUtils.isNotBlank(annotationDatabase)){
+            database = annotationDatabase;
         }
         Map<String, CollectionManager> managerMap = getCollectionManagerMap().get(DataSourceNameCache.getDataSource());
         if (StringUtils.isBlank(database)){
@@ -108,11 +92,11 @@ public class MongoPlusClient {
     }
 
     public String getCollectionName(Class<?> clazz){
-        return collectionNameConvert.convert(clazz);
+        return AnnotationOperate.getCollectionName(clazz);
     }
 
     public void setCollectionManagerMap(String database) {
-        CollectionManager collectionManager = new CollectionManager(getMongoClient(), collectionNameConvert, database);
+        CollectionManager collectionManager = new CollectionManager(database);
         getMongoDatabase().add(getMongoClient().getDatabase(database));
         getCollectionManagerMap().put(DataSourceNameCache.getDataSource(),new ConcurrentHashMap<String,CollectionManager>(){{
             put(database, collectionManager);

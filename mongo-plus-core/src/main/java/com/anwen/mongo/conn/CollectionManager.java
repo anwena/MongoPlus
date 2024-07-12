@@ -1,11 +1,10 @@
 package com.anwen.mongo.conn;
 
 import com.anwen.mongo.cache.global.CollectionLogicDeleteCache;
-import com.anwen.mongo.convert.CollectionNameConvert;
 import com.anwen.mongo.factory.MongoClientFactory;
+import com.anwen.mongo.handlers.collection.AnnotationOperate;
 import com.anwen.mongo.logic.UnClassCollection;
 import com.anwen.mongo.toolkit.codec.RegisterCodecUtil;
-import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 
@@ -29,12 +28,10 @@ public class CollectionManager {
      */
     private final Map<String, MongoCollection<Document>> collectionMap = new ConcurrentHashMap<>();
 
-    private final CollectionNameConvert collectionNameConvert;
 
     private final String database;
 
-    public CollectionManager(MongoClient mongoClient, CollectionNameConvert collectionNameConvert, String database) {
-        this.collectionNameConvert = collectionNameConvert;
+    public CollectionManager(String database) {
         this.database = database;
     }
 
@@ -49,8 +46,7 @@ public class CollectionManager {
     }
 
     public MongoCollection<Document> getCollection(Class<?> clazz) {
-        String collectionName = this.collectionNameConvert.convert(clazz);
-        return getCollection(collectionName);
+        return getCollection(AnnotationOperate.getCollectionName(clazz));
     }
 
     public MongoCollection<Document> getCollection(String collectionName) {

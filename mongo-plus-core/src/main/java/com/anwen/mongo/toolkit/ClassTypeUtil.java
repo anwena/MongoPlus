@@ -1,14 +1,11 @@
 package com.anwen.mongo.toolkit;
 
 import com.anwen.mongo.annotation.ID;
-import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.cache.codec.MapCodecCache;
-import com.anwen.mongo.domain.InitMongoCollectionException;
 import com.anwen.mongo.domain.MongoPlusException;
 import com.anwen.mongo.domain.MongoPlusFieldException;
 import com.anwen.mongo.logging.Log;
 import com.anwen.mongo.logging.LogFactory;
-import com.anwen.mongo.model.SlaveDataSource;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -290,33 +287,6 @@ public class ClassTypeUtil {
             entityClass = entityClass.getSuperclass();
         }
         return entityClass;
-    }
-
-    public static Map<String, String> getDataSourceNameAndDatabase(Class<?> clazz, List<SlaveDataSource> slaveDataSourceList){
-        String dataSourceName = "master";
-        String database = "";
-        if (clazz.isAnnotationPresent(CollectionName.class)) {
-            CollectionName annotation = clazz.getAnnotation(CollectionName.class);
-            String dataSource = annotation.dataSource();
-            database = annotation.database();
-            if (StringUtils.isNotBlank(dataSource) && CollUtil.isNotEmpty(slaveDataSourceList)) {
-                Optional<SlaveDataSource> matchingSlave = slaveDataSourceList.stream()
-                        .filter(slave -> Objects.equals(dataSource, slave.getSlaveName()))
-                        .findFirst();
-                if (matchingSlave.isPresent()) {
-                    SlaveDataSource slave = matchingSlave.get();
-                    dataSourceName = slave.getSlaveName();
-                } else {
-                    throw new InitMongoCollectionException("No matching slave data source configured");
-                }
-            }
-        }
-        String finalDataSourceName = dataSourceName;
-        String finalDatabase = database;
-        return new HashMap<String,String>(){{
-            put("dataSourceName", finalDataSourceName);
-            put("database", finalDatabase);
-        }};
     }
 
     /**

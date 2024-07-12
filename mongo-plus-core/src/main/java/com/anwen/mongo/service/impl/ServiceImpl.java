@@ -3,7 +3,6 @@ package com.anwen.mongo.service.impl;
 import com.anwen.mongo.aggregate.Aggregate;
 import com.anwen.mongo.aggregate.LambdaAggregateChainWrapper;
 import com.anwen.mongo.annotation.ID;
-import com.anwen.mongo.annotation.collection.CollectionName;
 import com.anwen.mongo.cache.global.DataSourceNameCache;
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.query.LambdaQueryChainWrapper;
@@ -12,6 +11,7 @@ import com.anwen.mongo.conditions.query.QueryWrapper;
 import com.anwen.mongo.conditions.update.LambdaUpdateChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.constant.SqlOperationConstant;
+import com.anwen.mongo.handlers.collection.AnnotationOperate;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.mapping.TypeInformation;
 import com.anwen.mongo.mapping.TypeReference;
@@ -81,9 +81,9 @@ public class ServiceImpl<T> implements IService<T> {
     @Override
     public MongoCollection<Document> getCollection() {
         String database = DataSourceNameCache.getDatabase();
-        CollectionName collectionName = clazz.getAnnotation(CollectionName.class);
-        if (collectionName != null && StringUtils.isNotBlank(collectionName.database())){
-            database = collectionName.database();
+        String annotationDatabase = AnnotationOperate.getDatabase(clazz);
+        if (StringUtils.isNotBlank(annotationDatabase)){
+            database = annotationDatabase;
         }
         return baseMapper.getMongoPlusClient().getCollection(database,clazz);
     }
@@ -154,8 +154,6 @@ public class ServiceImpl<T> implements IService<T> {
 
     @Override
     public Boolean updateById(T entity) {
-//        MutablePair<BasicDBObject,BasicDBObject> basicDBObjectPair = ConditionUtil.getUpdate(entity,baseMapper.getMongoConverter());
-//        return baseMapper.update(basicDBObjectPair.getLeft(),basicDBObjectPair.getRight(),ClassTypeUtil.getClass(entity)) >= 1;
         QueryWrapper wrapper = new QueryWrapper<>();
         wrapper.eq(SqlOperationConstant._ID, TypeInformation.of(entity).getAnnotationField(ID.class,"@ID is not found").getValue());
         return update(entity,wrapper);

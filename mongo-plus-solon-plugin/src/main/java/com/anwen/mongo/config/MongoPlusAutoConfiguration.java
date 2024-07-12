@@ -4,6 +4,7 @@ import com.anwen.mongo.cache.global.*;
 import com.anwen.mongo.domain.MongoPlusConvertException;
 import com.anwen.mongo.handlers.DocumentHandler;
 import com.anwen.mongo.handlers.MetaObjectHandler;
+import com.anwen.mongo.handlers.collection.AnnotationOperate;
 import com.anwen.mongo.incrementer.IdentifierGenerator;
 import com.anwen.mongo.incrementer.id.IdWorker;
 import com.anwen.mongo.interceptor.Interceptor;
@@ -80,6 +81,8 @@ public class MongoPlusAutoConfiguration {
         setMapping(context);
         //拿到自定义id生成
         setIdGenerator(context);
+        //初始化集合名称转换器
+        collectionNameConvert();
     }
 
     /**
@@ -226,6 +229,15 @@ public class MongoPlusAutoConfiguration {
         try {
             IdWorker.setIdentifierGenerator(context.getBean(IdentifierGenerator.class));
         } catch (Exception ignored){}
+    }
+
+    /**
+     * 注册集合名转换器
+     * @author anwen
+     * @date 2024/5/27 下午11:20
+     */
+    public void collectionNameConvert(){
+        AnnotationOperate.setCollectionNameConvertEnum(mongoDBCollectionProperty.getMappingStrategy());
     }
 
 }

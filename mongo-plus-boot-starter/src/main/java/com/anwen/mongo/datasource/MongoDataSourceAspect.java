@@ -11,15 +11,15 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.context.expression.MethodBasedEvaluationContext;
-import org.springframework.core.DefaultParameterNameDiscoverer;
-import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
 import java.lang.reflect.Method;
+
+import static com.anwen.mongo.annotation.SeplAnnotationHandler.EXPRESSION_PARSER;
+import static com.anwen.mongo.annotation.SeplAnnotationHandler.PARAMETER_NAME_DISCOVERER;
+
 
 /**
  * 多数据源切面
@@ -29,10 +29,6 @@ import java.lang.reflect.Method;
 @Aspect
 @Order(0)
 public class MongoDataSourceAspect {
-
-    private static final ParameterNameDiscoverer PARAMETER_NAME_DISCOVERER = new DefaultParameterNameDiscoverer();
-
-    private static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
 
     @Around("@within(com.anwen.mongo.annotation.datasource.MongoDs) || @annotation(com.anwen.mongo.annotation.datasource.MongoDs)")
     public Object manageDataSource(ProceedingJoinPoint joinPoint) throws Throwable {

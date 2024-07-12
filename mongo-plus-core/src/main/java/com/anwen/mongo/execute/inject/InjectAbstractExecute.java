@@ -11,7 +11,6 @@ import com.anwen.mongo.convert.Converter;
 import com.anwen.mongo.domain.MongoPlusFieldException;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.execute.Execute;
-import com.anwen.mongo.handlers.TypeHandler;
 import com.anwen.mongo.logging.Log;
 import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.mapping.MongoConverter;
@@ -29,7 +28,6 @@ import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import java.io.Serializable;
-import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
