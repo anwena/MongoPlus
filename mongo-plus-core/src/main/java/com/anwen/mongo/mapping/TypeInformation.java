@@ -1,25 +1,24 @@
 package com.anwen.mongo.mapping;
 
+import com.anwen.mongo.toolkit.ClassTypeUtil;
+
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 import java.util.List;
 
 public interface TypeInformation {
 
     static TypeInformation of(Class<?> clazz){
-        try {
-            return of(clazz.getDeclaredConstructor().newInstance());
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        }
+        return of(ClassTypeUtil.getInstanceByClass(clazz));
     }
 
     static TypeInformation of(Object instance){
-        return new SimpleTypeInformation<>(instance);
+        return SimpleTypeInformation.of(instance);
     }
 
     <T> T getInstance();
+
+    void setInstance(Object instance);
 
     List<FieldInformation> getFields();
 

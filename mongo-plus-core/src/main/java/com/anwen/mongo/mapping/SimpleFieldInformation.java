@@ -45,6 +45,8 @@ public class SimpleFieldInformation<T> implements FieldInformation {
 
     private Type genericType;
 
+    private String camelCaseName;
+
     @Override
     public Field getField() {
         return field;
@@ -106,7 +108,10 @@ public class SimpleFieldInformation<T> implements FieldInformation {
 
     @Override
     public String getCamelCaseName() {
-        return PropertyCache.camelToUnderline || PropertyCache.mapUnderscoreToCamelCase ? StringUtils.camelToUnderline(getName()) : getName();
+        if (this.camelCaseName == null) {
+            this.camelCaseName = PropertyCache.camelToUnderline || PropertyCache.mapUnderscoreToCamelCase ? StringUtils.camelToUnderline(getName()) : getName();
+        }
+        return this.camelCaseName;
     }
 
     @Override

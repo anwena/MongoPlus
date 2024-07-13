@@ -32,6 +32,8 @@ public class ClassTypeUtil {
 
     private static final Map<Class<?>,Set<Class<?>>> cacheClass = new ConcurrentHashMap<>();
 
+    private static final Map<Class<?>,Object> instanceCache = new HashMap<>();
+
     private ClassTypeUtil() {
     }
 
@@ -312,13 +314,17 @@ public class ClassTypeUtil {
         throw new IllegalArgumentException("Type not supported: " + type);
     }
 
-    public static <T> T getInstanceByClass(Class<T> clazz){
-        try {
-            return clazz.getDeclaredConstructor().newInstance();
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            log.error("Failed to create " + clazz.getName() +", message: {}", e.getMessage(), e);
-            throw new MongoPlusException("Failed to create " + clazz.getName());
+    @SuppressWarnings("unchecked")
+    public static <T> Object getInstanceByClass(Class<T> clazz){
+        if (!instanceCache.containsKey(clazz)){
+            try {
+                instanceCache.put(clazz,clazz.getDeclaredConstructor().newInstance());
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                log.error("Failed to create " + clazz.getName() +", message: {}", e.getMessage(), e);
+                throw new MongoPlusException("Failed to create " + clazz.getName());
+            }
         }
+        return (T) instanceCache.get(clazz);
     }
 
 }

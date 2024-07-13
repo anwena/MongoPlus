@@ -458,8 +458,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children not(CompareCondition compareCondition) {
-        compareList.add(compareCondition);
-        return typedThis;
+        return getBaseCondition(compareCondition);
     }
 
     @Override
@@ -468,13 +467,53 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
     }
 
     @Override
+    public Children not(boolean condition, QueryChainWrapper<?, ?> queryChainWrapper) {
+        return condition ? not(queryChainWrapper) : typedThis;
+    }
+
+    @Override
+    public Children not(QueryChainWrapper<?, ?> queryChainWrapper) {
+        return getBaseCondition(queryChainWrapper.getCompareList().get(0));
+    }
+
+    @Override
+    public Children not(SFunction<QueryChainWrapper<T, ?>, QueryChainWrapper<T, ?>> function) {
+        return getBaseCondition(function.apply(new QueryWrapper<>()).getCompareList().get(0));
+    }
+
+    @Override
+    public Children not(boolean condition, SFunction<QueryChainWrapper<T, ?>, QueryChainWrapper<T, ?>> function) {
+        return condition ? not(function) : typedThis;
+    }
+
+    @Override
     public Children expr(boolean condition, CompareCondition compareCondition) {
         return condition ? expr(compareCondition) : typedThis;
     }
+
+    @Override
+    public Children expr(boolean condition, QueryChainWrapper<?, ?> queryChainWrapper) {
+        return condition ? expr(queryChainWrapper) : typedThis;
+    }
+
+    @Override
+    public Children expr(QueryChainWrapper<?, ?> queryChainWrapper) {
+        return getBaseCondition(queryChainWrapper.getCompareList().get(0));
+    }
+
+    @Override
+    public Children expr(SFunction<QueryChainWrapper<T, ?>, QueryChainWrapper<T, ?>> function) {
+        return getBaseCondition(function.apply(new QueryWrapper<>()).getCompareList().get(0));
+    }
+
+    @Override
+    public Children expr(boolean condition, SFunction<QueryChainWrapper<T, ?>, QueryChainWrapper<T, ?>> function) {
+        return condition ? expr(function) : typedThis;
+    }
+
     @Override
     public Children expr(CompareCondition compareCondition) {
-        compareList.add(compareCondition);
-        return typedThis;
+        return getBaseCondition(compareCondition);
     }
 
     @Override
@@ -524,7 +563,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children elemMatch(SFunction<T,Object> column, QueryChainWrapper<?,?> queryChainWrapper) {
-        return getBaseCondition(column,queryChainWrapper);
+        return getBaseCondition(column,queryChainWrapper.getCompareList());
     }
 
     @Override
@@ -737,7 +776,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
         return typedThis;
     }
 
-    public Children getBaseCondition(String value){
+    public Children getBaseCondition(Object value){
         this.compareList.add(new CompareCondition(Thread.currentThread().getStackTrace()[2].getMethodName(),value,Object.class,null));
         return typedThis;
     }

@@ -47,12 +47,12 @@ public interface Update<T , Children> extends Serializable {
 
     Children push(String column, List<?> value);
 
-    Children inc(boolean condition,SFunction<T,Object> column,Integer value);
+    Children inc(boolean condition,SFunction<T,Object> column,Number value);
 
-    Children inc(SFunction<T,Object> column,Integer value);
+    Children inc(SFunction<T,Object> column,Number value);
 
-    Children inc(boolean condition,String column,Integer value);
+    Children inc(boolean condition,String column,Number value);
 
-    Children inc(String column,Integer value);
+    Children inc(String column,Number value);
 
 }

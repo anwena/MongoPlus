@@ -1,5 +1,6 @@
 package com.anwen.mongo.mapping;
 
+import com.anwen.mongo.cache.global.TypeInformationCache;
 import com.anwen.mongo.domain.MongoPlusFieldException;
 import com.anwen.mongo.toolkit.ArrayUtils;
 import com.anwen.mongo.toolkit.CollUtil;
@@ -22,7 +23,7 @@ public class SimpleTypeInformation<T> implements TypeInformation {
      * @author JiaChaoYang
      * @date 2024/4/16 下午9:58
     */
-    private final T instance;
+    private T instance;
 
     /**
      * 实例的Class
@@ -51,18 +52,18 @@ public class SimpleTypeInformation<T> implements TypeInformation {
     */
     private final Map<Class<? extends Annotation>, List<FieldInformation>> annotationFieldMap = new HashMap<>();
 
-    protected SimpleTypeInformation(T instance) {
+    private SimpleTypeInformation(T instance,Class<?> clazz) {
         this.instance = instance;
-        this.clazz = getInstanceClass();
+        this.clazz = clazz;
     }
 
     protected SimpleTypeInformation(T instance,Type[] types) {
         this.instance = instance;
-        this.clazz = getInstanceClass();
+        this.clazz = getInstanceClass(instance);
         this.types = types;
     }
 
-    private Class<?> getInstanceClass(){
+    private static Class<?> getInstanceClass(Object instance){
         Class<?> instanceClass = instance.getClass();
         if (instanceClass.isAnonymousClass()){
             instanceClass = instanceClass.getSuperclass();
@@ -104,7 +105,21 @@ public class SimpleTypeInformation<T> implements TypeInformation {
     }
 
     public static <T> TypeInformation of(T instance){
-        return new SimpleTypeInformation<>(instance);
+        Class<?> instanceClass = getInstanceClass(instance);
+        TypeInformation typeInformation = TypeInformationCache.typeInformationMap.get(instanceClass);
+        if (typeInformation != null){
+            typeInformation.setInstance(instance);
+        } else {
+            typeInformation = new SimpleTypeInformation<>(instance,instanceClass);
+            TypeInformationCache.typeInformationMap.put(instanceClass,typeInformation);
+        }
+        return typeInformation;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void setInstance(Object instance) {
+        this.instance = (T) instance;
     }
 
     @Override

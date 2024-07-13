@@ -17,8 +17,8 @@ import org.springframework.expression.spel.support.StandardEvaluationContext;
 
 import java.lang.reflect.Method;
 
-import static com.anwen.mongo.annotation.SeplAnnotationHandler.EXPRESSION_PARSER;
-import static com.anwen.mongo.annotation.SeplAnnotationHandler.PARAMETER_NAME_DISCOVERER;
+import static com.anwen.mongo.annotation.SpelAnnotationHandler.EXPRESSION_PARSER;
+import static com.anwen.mongo.annotation.SpelAnnotationHandler.PARAMETER_NAME_DISCOVERER;
 
 
 /**

@@ -32,6 +32,7 @@ import com.anwen.mongo.model.LogicDeleteResult;
 import com.anwen.mongo.model.LogicProperty;
 import com.anwen.mongo.replacer.Replacer;
 import com.anwen.mongo.strategy.conversion.ConversionStrategy;
+import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.anwen.mongo.toolkit.UrlJoint;
 import com.mongodb.ConnectionString;
@@ -40,7 +41,6 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
@@ -151,12 +151,7 @@ public class Configuration {
                 ParameterizedType parameterizedType = (ParameterizedType) anInterface;
                 if (parameterizedType.getRawType().equals(ConversionStrategy.class)) {
                     Class<?> clazz = (Class<?>) parameterizedType.getActualTypeArguments()[0];
-                    try {
-                        ConversionCache.putConversionStrategy(clazz, clazzConversion.getDeclaredConstructor().newInstance());
-                    } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                             NoSuchMethodException e) {
-                        throw new RuntimeException(e);
-                    }
+                    ConversionCache.putConversionStrategy(clazz, (ConversionStrategy<?>)ClassTypeUtil.getInstanceByClass(clazzConversion));
                     break;
                 }
             }
@@ -234,12 +229,7 @@ public class Configuration {
     @SafeVarargs
     public final Configuration listener(Class<? extends Listener>... listeners) {
         for (Class<? extends Listener> listener : listeners) {
-            try {
-                ListenerCache.listeners.add(listener.getDeclaredConstructor().newInstance());
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                     NoSuchMethodException e) {
-                throw new RuntimeException(e);
-            }
+            ListenerCache.listeners.add((Listener) ClassTypeUtil.getInstanceByClass(listener));
         }
         return this;
     }
@@ -255,12 +245,7 @@ public class Configuration {
     @SafeVarargs
     public final Configuration interceptor(Class<? extends Interceptor>... interceptors) {
         for (Class<? extends Interceptor> interceptor : interceptors) {
-            try {
-                InterceptorCache.interceptors.add(interceptor.getDeclaredConstructor().newInstance());
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                     NoSuchMethodException e) {
-                throw new RuntimeException(e);
-            }
+            InterceptorCache.interceptors.add((Interceptor) ClassTypeUtil.getInstanceByClass(interceptor));
         }
         InterceptorCache.sorted();
         return this;
@@ -287,12 +272,7 @@ public class Configuration {
     @SafeVarargs
     public final Configuration replacer(Class<? extends Replacer>... replacers) {
         for (Class<? extends Replacer> replacer : replacers) {
-            try {
-                ExecutorReplacerCache.replacers.add(replacer.getDeclaredConstructor().newInstance());
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                     NoSuchMethodException e) {
-                throw new RuntimeException(e);
-            }
+            ExecutorReplacerCache.replacers.add((Replacer) ClassTypeUtil.getInstanceByClass(replacer));
         }
         ExecutorReplacerCache.sorted();
         return this;

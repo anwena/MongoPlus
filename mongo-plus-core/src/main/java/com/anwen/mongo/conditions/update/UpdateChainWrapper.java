@@ -137,22 +137,22 @@ public class UpdateChainWrapper<T,Children extends UpdateChainWrapper<T,Children
     }
 
     @Override
-    public Children inc(boolean condition, SFunction<T, Object> column, Integer value) {
+    public Children inc(boolean condition, SFunction<T, Object> column, Number value) {
         return condition ? inc(column,value) : typedThis;
     }
 
     @Override
-    public Children inc(SFunction<T, Object> column, Integer value) {
+    public Children inc(SFunction<T, Object> column, Number value) {
         return getBaseUpdateCompare(column,value);
     }
 
     @Override
-    public Children inc(boolean condition, String column, Integer value) {
+    public Children inc(boolean condition, String column, Number value) {
         return condition ? inc(column,value) : typedThis;
     }
 
     @Override
-    public Children inc(String column, Integer value) {
+    public Children inc(String column, Number value) {
         return getBaseUpdateCompare(column,value);
     }
 

@@ -5,9 +5,8 @@ import com.anwen.mongo.domain.MongoPlusConvertException;
 import com.anwen.mongo.handlers.DesensitizationHandler;
 import com.anwen.mongo.handlers.ReadHandler;
 import com.anwen.mongo.mapping.FieldInformation;
+import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.anwen.mongo.toolkit.DesensitizedUtil;
-
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * 脱敏处理器
@@ -28,13 +27,7 @@ public class DesensitizationHandlerApply implements ReadHandler {
         if (fieldInformation.isAnnotation(Desensitization.class)){
             Class<?> desensitizationClass = desensitization.desensitizationHandler();
             if (desensitizationClass != Void.class && DesensitizationHandler.class.isAssignableFrom(desensitizationClass)){
-                DesensitizationHandler desensitizationHandler;
-                try {
-                    desensitizationHandler = (DesensitizationHandler) desensitization.desensitizationHandler().getDeclaredConstructor().newInstance();
-                } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                         NoSuchMethodException e) {
-                    throw new MongoPlusConvertException("Failed to create a desensitizationHandler instance");
-                }
+                DesensitizationHandler desensitizationHandler = (DesensitizationHandler) ClassTypeUtil.getInstanceByClass(desensitizationClass);
                 source = desensitizationHandler.desensitized(fieldInformation.getField(),
                         source, desensitization.startInclude(), desensitization.endExclude(), desensitization.type());
             } else {

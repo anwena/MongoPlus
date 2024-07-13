@@ -117,7 +117,7 @@ public class CompareCondition {
         this.originalField = originalField;
     }
 
-    public CompareCondition(String condition, String value,Class<?> originalClass, Field originalField){
+    public CompareCondition(String condition, Object value,Class<?> originalClass, Field originalField){
         this.condition = condition;
         this.value = value;
         this.originalClass = originalClass;

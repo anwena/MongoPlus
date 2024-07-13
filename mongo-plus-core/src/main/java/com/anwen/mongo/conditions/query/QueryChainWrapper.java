@@ -80,6 +80,16 @@ public abstract class QueryChainWrapper<T,Children extends QueryChainWrapper<T,C
     }
 
     @Override
+    public Children order(SFunction<T, Object> column, Integer order) {
+        return getBaseOrder(order, column);
+    }
+
+    @Override
+    public Children order(String column, Integer order) {
+        return getBaseOrder(order, column);
+    }
+
+    @Override
     public Children orderByAsc(SFunction<T, Object> column) {
         return getBaseOrder(OrderEnum.ASC.getValue(), column);
     }

@@ -784,8 +784,15 @@ public interface Compare<T,Children> extends Serializable {
 
     Children not(CompareCondition compareCondition);
 
-
     Children not(boolean condition,CompareCondition compareCondition);
+
+    Children not(boolean condition,QueryChainWrapper<?,?> queryChainWrapper);
+
+    Children not(QueryChainWrapper<?,?> queryChainWrapper);
+
+    Children not(SFunction<QueryChainWrapper<T,?>,QueryChainWrapper<T,?>> function);
+
+    Children not(boolean condition,SFunction<QueryChainWrapper<T,?>,QueryChainWrapper<T,?>> function);
 
     /**
      * 进行计算的表达式
@@ -800,6 +807,34 @@ public interface Compare<T,Children> extends Serializable {
      * @date 2023/7/19 23:04
      */
     Children expr(boolean condition,CompareCondition compareCondition);
+
+    /**
+     * 进行计算的表达式
+     * @author anwen
+     * @date 2024/7/13 下午5:11
+     */
+    Children expr(boolean condition,QueryChainWrapper<?,?> queryChainWrapper);
+
+    /**
+     * 进行计算的表达式
+     * @author anwen
+     * @date 2024/7/13 下午5:11
+     */
+    Children expr(QueryChainWrapper<?,?> queryChainWrapper);
+
+    /**
+     * 进行计算的表达式
+     * @author anwen
+     * @date 2024/7/13 下午5:11
+     */
+    Children expr(SFunction<QueryChainWrapper<T,?>,QueryChainWrapper<T,?>> function);
+
+    /**
+     * 进行计算的表达式
+     * @author anwen
+     * @date 2024/7/13 下午5:11
+     */
+    Children expr(boolean condition,SFunction<QueryChainWrapper<T,?>,QueryChainWrapper<T,?>> function);
 
     /**
      * 字段值符合余数

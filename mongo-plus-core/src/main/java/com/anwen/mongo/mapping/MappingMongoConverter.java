@@ -5,7 +5,6 @@ import com.anwen.mongo.annotation.comm.FieldEncrypt;
 import com.anwen.mongo.cache.global.ConversionCache;
 import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.cache.global.PropertyCache;
-import com.anwen.mongo.domain.MongoPlusConvertException;
 import com.anwen.mongo.domain.MongoPlusWriteException;
 import com.anwen.mongo.handlers.TypeHandler;
 import com.anwen.mongo.logging.Log;
@@ -14,6 +13,7 @@ import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.strategy.conversion.ConversionStrategy;
 import com.anwen.mongo.strategy.mapping.MappingStrategy;
 import com.anwen.mongo.toolkit.BsonUtil;
+import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.anwen.mongo.toolkit.EncryptorUtil;
 import com.anwen.mongo.toolkit.StringUtils;
 import org.bson.Document;
@@ -21,10 +21,10 @@ import org.bson.conversions.Bson;
 import org.bson.types.Binary;
 import org.bson.types.ObjectId;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 将对象映射为Document
@@ -38,6 +38,10 @@ public class MappingMongoConverter extends AbstractMongoConverter {
     private final SimpleTypeHolder simpleTypeHolder;
 
     private List<Class<?>> ignoreType = new ArrayList<>();
+
+    private final Map<Type, Class<?>> typeClassCache = new ConcurrentHashMap<>();
+
+    private final Map<Type, Type> genericTypeCache = new ConcurrentHashMap<>();
 
     public MappingMongoConverter(MongoPlusClient mongoPlusClient,SimpleTypeHolder simpleTypeHolder) {
         super(mongoPlusClient);
@@ -82,13 +86,8 @@ public class MappingMongoConverter extends AbstractMongoConverter {
                     CollectionField collectionField = fieldInformation.getCollectionField();
                     Object obj = null;
                     if (collectionField != null && TypeHandler.class.isAssignableFrom(collectionField.typeHandler())) {
-                        try {
-                            TypeHandler typeHandler = (TypeHandler) collectionField.typeHandler().getDeclaredConstructor().newInstance();
-                            obj = typeHandler.setParameter(fieldInformation.getName(),fieldInformation.getValue());
-                        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                            log.error("Failed to create TypeHandler, message: {}", e.getMessage(), e);
-                            throw new MongoPlusWriteException("Failed to create TypeHandler, message: " + e.getMessage());
-                        }
+                        TypeHandler typeHandler = (TypeHandler)ClassTypeUtil.getInstanceByClass(collectionField.typeHandler());
+                        obj = typeHandler.setParameter(fieldInformation.getName(),fieldInformation.getValue());
                     }
                     String fieldName = fieldInformation.getName();
                     if (collectionField == null && PropertyCache.camelToUnderline){
@@ -252,11 +251,20 @@ public class MappingMongoConverter extends AbstractMongoConverter {
         return (T) conversionStrategy.convertValue(sourceObj, clazz, this);
     }
 
-    private Type extractGenericType(TypeReference<?> typeReference, int index) {
+    /*private Type extractGenericType(TypeReference<?> typeReference, int index) {
         if (typeReference.getType() instanceof ParameterizedType) {
             return getGenericTypeClass((ParameterizedType) typeReference.getType(), index);
         }
         return Object.class;
+    }*/
+
+    private Type extractGenericType(TypeReference<?> typeReference, int index) {
+        return genericTypeCache.computeIfAbsent(typeReference.getType(), type -> {
+            if (type instanceof ParameterizedType) {
+                return getGenericTypeClass((ParameterizedType) type, index);
+            }
+            return Object.class;
+        });
     }
 
     /**
@@ -317,10 +325,24 @@ public class MappingMongoConverter extends AbstractMongoConverter {
         return map;
     }
 
-    /**
+/*    *//**
      * 获取泛型的原始类
-     */
+     *//*
     private Class<?> getRawClass(Type type) {
+        if (type instanceof Class) {
+            return (Class<?>) type;
+        } else if (type instanceof ParameterizedType) {
+            return (Class<?>) ((ParameterizedType) type).getRawType();
+        } else {
+            throw new RuntimeException("Unknown type: " + type);
+        }
+    }*/
+
+    private Class<?> getRawClass(Type type) {
+        return typeClassCache.computeIfAbsent(type, this::computeRawClass);
+    }
+
+    private Class<?> computeRawClass(Type type) {
         if (type instanceof Class) {
             return (Class<?>) type;
         } else if (type instanceof ParameterizedType) {
@@ -336,14 +358,10 @@ public class MappingMongoConverter extends AbstractMongoConverter {
     @SuppressWarnings("rawtypes")
     private Collection<?> createCollectionInstance(Class<?> collectionClass) {
         Collection collection;
-        try {
-            if (collectionClass.isInterface()){
-                collection = new ArrayList();
-            }else {
-                collection = (Collection) collectionClass.getDeclaredConstructor().newInstance();
-            }
-        } catch (InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-            throw new MongoPlusConvertException("Failed to create Collection instance",e);
+        if (collectionClass.isInterface()){
+            collection = new ArrayList();
+        }else {
+            collection = (Collection) ClassTypeUtil.getInstanceByClass(collectionClass);
         }
         return collection;
     }
@@ -351,14 +369,10 @@ public class MappingMongoConverter extends AbstractMongoConverter {
     @SuppressWarnings("rawtypes")
     public Map createMapInstance(Class<?> mapClass){
         Map map;
-        try {
-            if (mapClass.isInterface()){
-                map = new HashMap();
-            } else {
-                map = (Map) mapClass.getDeclaredConstructor().newInstance();
-            }
-        } catch (InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-            throw new MongoPlusConvertException("Failed to create Map instance",e);
+        if (mapClass.isInterface()){
+            map = new HashMap();
+        } else {
+            map = (Map) ClassTypeUtil.getInstanceByClass(mapClass);
         }
         return map;
     }

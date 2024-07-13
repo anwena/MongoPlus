@@ -9,7 +9,6 @@ import com.anwen.mongo.cache.global.MappingCache;
 import com.anwen.mongo.cache.global.PropertyCache;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.context.MongoTransactionContext;
-import com.anwen.mongo.domain.MongoPlusWriteException;
 import com.anwen.mongo.enums.FieldFill;
 import com.anwen.mongo.enums.IdTypeEnum;
 import com.anwen.mongo.handlers.ReadHandler;
@@ -23,6 +22,7 @@ import com.anwen.mongo.model.AutoFillMetaObject;
 import com.anwen.mongo.strategy.conversion.ConversionStrategy;
 import com.anwen.mongo.strategy.mapping.MappingStrategy;
 import com.anwen.mongo.toolkit.BsonUtil;
+import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.anwen.mongo.toolkit.CollUtil;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
@@ -32,7 +32,6 @@ import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
 import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -202,17 +201,14 @@ public abstract class AbstractMongoConverter implements MongoConverter {
             CollectionField collectionField = fieldInformation.getCollectionField();
             Object resultObj = null;
             if (collectionField != null && TypeHandler.class.isAssignableFrom(collectionField.typeHandler())){
-                try {
-                    TypeHandler typeHandler = (TypeHandler) collectionField.typeHandler().getDeclaredConstructor().newInstance();
-                    resultObj = typeHandler.getResult(obj);
-                } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                    log.error("Failed to create TypeHandler, message: {}", e.getMessage(), e);
-                    throw new MongoPlusWriteException("Failed to create TypeHandler, message: " + e.getMessage());
-                }
+                TypeHandler typeHandler = (TypeHandler) ClassTypeUtil.getInstanceByClass(collectionField.typeHandler());
+                resultObj = typeHandler.getResult(obj);
             }
-            List<ReadHandler> readHandlerList = HandlerCache.readHandlerList.stream().sorted(Comparator.comparingInt(ReadHandler::order)).collect(Collectors.toList());
-            for (ReadHandler readHandler : readHandlerList) {
-                obj = readHandler.read(fieldInformation, obj);
+            if (CollUtil.isNotEmpty(HandlerCache.readHandlerList)) {
+                List<ReadHandler> readHandlerList = HandlerCache.readHandlerList.stream().sorted(Comparator.comparingInt(ReadHandler::order)).collect(Collectors.toList());
+                for (ReadHandler readHandler : readHandlerList) {
+                    obj = readHandler.read(fieldInformation, obj);
+                }
             }
             if (resultObj == null) {
                 resultObj = readInternal(obj, TypeReference.of(fieldInformation.getGenericType()));
