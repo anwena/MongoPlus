@@ -251,13 +251,6 @@ public class MappingMongoConverter extends AbstractMongoConverter {
         return (T) conversionStrategy.convertValue(sourceObj, clazz, this);
     }
 
-    /*private Type extractGenericType(TypeReference<?> typeReference, int index) {
-        if (typeReference.getType() instanceof ParameterizedType) {
-            return getGenericTypeClass((ParameterizedType) typeReference.getType(), index);
-        }
-        return Object.class;
-    }*/
-
     private Type extractGenericType(TypeReference<?> typeReference, int index) {
         return genericTypeCache.computeIfAbsent(typeReference.getType(), type -> {
             if (type instanceof ParameterizedType) {
@@ -324,19 +317,6 @@ public class MappingMongoConverter extends AbstractMongoConverter {
         }
         return map;
     }
-
-/*    *//**
-     * 获取泛型的原始类
-     *//*
-    private Class<?> getRawClass(Type type) {
-        if (type instanceof Class) {
-            return (Class<?>) type;
-        } else if (type instanceof ParameterizedType) {
-            return (Class<?>) ((ParameterizedType) type).getRawType();
-        } else {
-            throw new RuntimeException("Unknown type: " + type);
-        }
-    }*/
 
     private Class<?> getRawClass(Type type) {
         return typeClassCache.computeIfAbsent(type, this::computeRawClass);
