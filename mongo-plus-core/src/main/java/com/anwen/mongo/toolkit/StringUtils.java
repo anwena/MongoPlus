@@ -1,9 +1,11 @@
 package com.anwen.mongo.toolkit;
 
+import com.anwen.mongo.cache.global.PropertyCache;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.domain.MongoPlusConvertException;
 import com.anwen.mongo.logging.Log;
 import com.anwen.mongo.logging.LogFactory;
+import org.bson.types.ObjectId;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -1011,6 +1013,11 @@ public final class StringUtils {
             hexString.append(hex);
         }
         return hexString.toString();
+    }
+
+    public static Object getObjectIdValue(Object value) {
+        String convertValue = String.valueOf(value);
+        return ObjectId.isValid(convertValue) && PropertyCache.autoConvertObjectId ? new ObjectId(convertValue) : value;
     }
 
 }

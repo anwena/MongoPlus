@@ -105,15 +105,7 @@ public class SimpleTypeInformation<T> implements TypeInformation {
     }
 
     public static <T> TypeInformation of(T instance){
-        Class<?> instanceClass = getInstanceClass(instance);
-        TypeInformation typeInformation = TypeInformationCache.typeInformationMap.get(instanceClass);
-        if (typeInformation != null){
-            typeInformation.setInstance(instance);
-        } else {
-            typeInformation = new SimpleTypeInformation<>(instance,instanceClass);
-            TypeInformationCache.typeInformationMap.put(instanceClass,typeInformation);
-        }
-        return typeInformation;
+        return new SimpleTypeInformation<>(instance,getInstanceClass(instance));
     }
 
     @Override

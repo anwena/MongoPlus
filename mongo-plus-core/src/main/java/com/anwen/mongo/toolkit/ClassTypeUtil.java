@@ -314,17 +314,13 @@ public class ClassTypeUtil {
         throw new IllegalArgumentException("Type not supported: " + type);
     }
 
-    @SuppressWarnings("unchecked")
     public static <T> Object getInstanceByClass(Class<T> clazz){
-        if (!instanceCache.containsKey(clazz)){
-            try {
-                instanceCache.put(clazz,clazz.getDeclaredConstructor().newInstance());
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                log.error("Failed to create " + clazz.getName() +", message: {}", e.getMessage(), e);
-                throw new MongoPlusException("Failed to create " + clazz.getName());
-            }
+        try {
+            return clazz.getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            log.error("Failed to create " + clazz.getName() +", message: {}", e.getMessage(), e);
+            throw new MongoPlusException("Failed to create " + clazz.getName());
         }
-        return (T) instanceCache.get(clazz);
     }
 
 }

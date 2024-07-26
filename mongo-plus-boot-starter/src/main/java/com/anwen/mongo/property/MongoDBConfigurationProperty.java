@@ -32,6 +32,12 @@ public class MongoDBConfigurationProperty {
      */
     private Boolean ikun = false;
 
+    /**
+     * 自动转换ObjectId
+     * @date 2024/7/26 下午5:40
+     */
+    private Boolean autoConvertObjectId = true;
+
     public Boolean getIkun() {
         return ikun;
     }
@@ -39,6 +45,15 @@ public class MongoDBConfigurationProperty {
     public void setIkun(Boolean ikun) {
         PropertyCache.ikun = ikun;
         this.ikun = ikun;
+    }
+
+    public Boolean getAutoConvertObjectId() {
+        return autoConvertObjectId;
+    }
+
+    public void setAutoConvertObjectId(Boolean autoConvertObjectId) {
+        this.autoConvertObjectId = autoConvertObjectId;
+        PropertyCache.autoConvertObjectId = autoConvertObjectId;
     }
 
     public String getAutoIdCollectionName() {

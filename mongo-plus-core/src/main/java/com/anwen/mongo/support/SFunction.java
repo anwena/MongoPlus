@@ -2,6 +2,7 @@ package com.anwen.mongo.support;
 
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
+import com.anwen.mongo.cache.global.PropertyCache;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.toolkit.StringUtils;
 
@@ -61,6 +62,9 @@ public interface SFunction<T,R> extends Function<T,R>, Serializable {
     default String getFieldName(SFunction<T, ?> fn, String split, Integer toType) {
         Field field = getField(fn);
         String fieldName = getFieldName(fn);
+        if (PropertyCache.camelToUnderline){
+            fieldName = StringUtils.camelToUnderline(fieldName);
+        }
         // 从field取出字段名
         CollectionField collectionField = field.getAnnotation(CollectionField.class);
         ID id = field.getAnnotation(ID.class);

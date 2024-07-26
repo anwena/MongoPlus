@@ -3,7 +3,6 @@ package com.anwen.mongo.toolkit;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.domain.MongoPlusFieldException;
 import com.mongodb.BasicDBObject;
-import org.bson.types.ObjectId;
 
 import java.util.Map;
 
@@ -17,7 +16,7 @@ public class ExecuteUtil {
             throw new MongoPlusFieldException("_id undefined");
         }
         Object _idValue = entityMap.get(SqlOperationConstant._ID);
-        BasicDBObject filter = new BasicDBObject(SqlOperationConstant._ID, ObjectId.isValid(String.valueOf(_idValue)) ? new ObjectId(String.valueOf(entityMap.get(SqlOperationConstant._ID))) : _idValue);
+        BasicDBObject filter = new BasicDBObject(SqlOperationConstant._ID, StringUtils.getObjectIdValue(_idValue));
         entityMap.remove(SqlOperationConstant._ID);
         return filter;
     }

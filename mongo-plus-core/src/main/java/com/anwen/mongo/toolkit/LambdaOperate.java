@@ -43,27 +43,20 @@ public class LambdaOperate {
     }
 
     public <T> PageResult<T> getLambdaQueryResultPage(FindIterable<Document> documentFindIterable, long totalSize, PageParam pageParams, TypeReference<T> typeReference, MongoConverter mongoConverter) {
-        PageResult<T> pageResult = new PageResult<>();
-        pageResult.setPageNum(pageParams.getPageNum());
-        pageResult.setPageSize(pageParams.getPageSize());
-        pageResult.setContentData(mongoConverter.read(documentFindIterable.skip((pageParams.getPageNum() - 1) * pageParams.getPageSize()).limit(pageParams.getPageSize()), typeReference));
+        List<T> pageContentData = mongoConverter.read(documentFindIterable.skip((pageParams.getPageNum() - 1) * pageParams.getPageSize()).limit(pageParams.getPageSize()), typeReference);
         // 不查询总条数，总条数=当前页的总数
         if (totalSize == -1) {
-            totalSize = pageResult.getContentData().size();
+            totalSize = pageContentData.size();
         }
-        pageResult.setTotalSize(totalSize);
-        pageResult.setTotalPages((totalSize + pageParams.getPageSize() - 1) / pageParams.getPageSize());
-        return pageResult;
+        return new PageResult<>(pageParams.getPageNum(), pageParams.getPageSize(), totalSize, ((totalSize + pageParams.getPageSize() - 1) / pageParams.getPageSize()), pageContentData);
     }
 
     public PageResult<Map<String, Object>> getLambdaQueryResultPage(FindIterable<Map> documentFindIterable,long totalSize, PageParam pageParams) {
-        PageResult<Map<String, Object>> pageResult = new PageResult<>();
-        pageResult.setPageNum(pageParams.getPageNum());
-        pageResult.setPageSize(pageParams.getPageSize());
-        pageResult.setTotalSize(totalSize);
-        pageResult.setTotalPages((totalSize + pageParams.getPageSize() - 1) / pageParams.getPageSize());
-        pageResult.setContentData(Converter.convertDocumentToMap(documentFindIterable.skip((pageParams.getPageNum() - 1) * pageParams.getPageSize()).limit(pageParams.getPageSize())));
-        return pageResult;
+        List<Map<String, Object>> pageContentData = Converter.convertDocumentToMap(documentFindIterable.skip((pageParams.getPageNum() - 1) * pageParams.getPageSize()).limit(pageParams.getPageSize()));
+        if (totalSize == -1) {
+            totalSize = pageContentData.size();
+        }
+        return new PageResult<>(pageParams.getPageNum(), pageParams.getPageSize(), totalSize, ((totalSize + pageParams.getPageSize() - 1) / pageParams.getPageSize()), pageContentData);
     }
 
 }

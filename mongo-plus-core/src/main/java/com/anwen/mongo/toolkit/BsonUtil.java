@@ -2,6 +2,7 @@ package com.anwen.mongo.toolkit;
 
 import com.anwen.mongo.bson.EmptyDocument;
 import com.anwen.mongo.cache.codec.MapCodecCache;
+import com.anwen.mongo.constant.SqlOperationConstant;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.DBRef;
@@ -12,9 +13,11 @@ import org.bson.conversions.Bson;
 import org.bson.types.Binary;
 import org.bson.types.ObjectId;
 
+import java.io.Serializable;
 import java.time.*;
 import java.time.temporal.Temporal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * BsonUtil
@@ -553,5 +556,12 @@ public class BsonUtil {
 
         String documentJson = new Document("toBeEncoded", value).toJson();
         return documentJson.substring(documentJson.indexOf(':') + 1, documentJson.length() - 1).trim();
+    }
+
+    public static Bson getIdsCondition(Collection<? extends Serializable> idList){
+        List<Object> convertedIds = idList.stream()
+                .map(StringUtils::getObjectIdValue)
+                .collect(Collectors.toList());
+        return Filters.in(SqlOperationConstant._ID, convertedIds);
     }
 }

@@ -31,11 +31,9 @@ import com.mongodb.client.model.*;
 import com.mongodb.client.result.InsertManyResult;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.bson.types.ObjectId;
 
 import java.io.Serializable;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 抽象的baseMapper
@@ -329,8 +327,7 @@ public abstract class AbstractBaseMapper implements BaseMapper {
 
     @Override
     public <R> List<R> getByIds(String database, String collectionName, Collection<? extends Serializable> ids, TypeReference<R> typeReference) {
-        BasicDBObject basicDBObject = checkIdType(ids);
-        FindIterable<Document> iterable = factory.getExecute().executeQuery(basicDBObject,null,null, Document.class, mongoPlusClient.getCollection(database, collectionName));
+        FindIterable<Document> iterable = factory.getExecute().executeQuery(BsonUtil.getIdsCondition(ids),null,null, Document.class, mongoPlusClient.getCollection(database, collectionName));
         return mongoConverter.read(iterable, typeReference);
     }
 
@@ -341,7 +338,7 @@ public abstract class AbstractBaseMapper implements BaseMapper {
 
     @Override
     public <R> R getById(String database, String collectionName, Serializable id, TypeReference<R> typeReference) {
-        BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id));
+        BasicDBObject queryBasic = new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.EQ.getCondition(), StringUtils.getObjectIdValue(id)));
         return mongoConverter.read(factory.getExecute().executeQuery(queryBasic,null,null, Document.class, mongoPlusClient.getCollection(database, collectionName)).first(),typeReference);
     }
 
@@ -364,7 +361,7 @@ public abstract class AbstractBaseMapper implements BaseMapper {
 
     @Override
     public <R> List<R> getByColumn(String database, String collectionName, String column, Object value, TypeReference<R> typeReference) {
-        Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(value)) ? new ObjectId(String.valueOf(value)) : value);
+        Bson filter = Filters.eq(column, StringUtils.getObjectIdValue(value));
         return mongoConverter.read(factory.getExecute().executeQuery(filter,null,null, Document.class, mongoPlusClient.getCollection(database, collectionName)),typeReference);
     }
 
@@ -434,13 +431,6 @@ public abstract class AbstractBaseMapper implements BaseMapper {
     @Override
     public void dropIndexes(String database, String collectionName, DropIndexOptions dropIndexOptions) {
         factory.getExecute().doDropIndexes(dropIndexOptions,mongoPlusClient.getCollection(database, collectionName));
-    }
-
-    protected BasicDBObject checkIdType(Collection<? extends Serializable> ids) {
-        List<Serializable> convertedIds = ids.stream()
-                .map(id -> ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id)
-                .collect(Collectors.toList());
-        return new BasicDBObject(SqlOperationConstant._ID, new BasicDBObject(SpecialConditionEnum.IN.getCondition(), convertedIds));
     }
 
 }

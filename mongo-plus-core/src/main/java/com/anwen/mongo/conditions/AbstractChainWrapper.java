@@ -11,10 +11,10 @@ import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.enums.ProjectionEnum;
 import com.anwen.mongo.enums.TypeEnum;
 import com.anwen.mongo.support.SFunction;
+import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.BasicDBObject;
 import org.bson.BsonDocument;
 import org.bson.conversions.Bson;
-import org.bson.types.ObjectId;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -757,12 +757,10 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
         if (Objects.equals(column, SqlOperationConstant._ID)) {
             if (value instanceof List<?>) {
                 value = ((List<?>) value).stream()
-                        .map(val -> ObjectId.isValid(String.valueOf(val)) ? new ObjectId(String.valueOf(val)) : val)
+                        .map(StringUtils::getObjectIdValue)
                         .collect(Collectors.toList());
             } else {
-                if (ObjectId.isValid(String.valueOf(value))) {
-                    value = new ObjectId(String.valueOf(value));
-                }
+                value = StringUtils.getObjectIdValue(value);
             }
         }
         this.compareList.add(new CompareCondition(condition, column, value,clazz,field));

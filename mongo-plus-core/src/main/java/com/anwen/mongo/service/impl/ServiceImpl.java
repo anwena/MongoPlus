@@ -27,7 +27,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.*;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.bson.types.ObjectId;
 
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
@@ -36,7 +35,6 @@ import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * IService接口通用方法实现
@@ -199,7 +197,7 @@ public class ServiceImpl<T> implements IService<T> {
 
     @Override
     public Boolean removeById(Serializable id) {
-        Bson filterId = Filters.eq(SqlOperationConstant._ID, ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id);
+        Bson filterId = Filters.eq(SqlOperationConstant._ID, StringUtils.getObjectIdValue(id));
         return baseMapper.remove(filterId,clazz) >= 1;
     }
 
@@ -210,17 +208,13 @@ public class ServiceImpl<T> implements IService<T> {
 
     @Override
     public Boolean removeByColumn(String column, Object value) {
-        Bson filter = Filters.eq(column, ObjectId.isValid(String.valueOf(value)) ? new ObjectId(String.valueOf(value)) : value);
+        Bson filter = Filters.eq(column, StringUtils.getObjectIdValue(value));
         return baseMapper.remove(filter,clazz) >= 1;
     }
 
     @Override
     public Boolean removeBatchByIds(Collection<? extends Serializable> idList) {
-        List<Serializable> convertedIds = idList.stream()
-                .map(id -> ObjectId.isValid(String.valueOf(id)) ? new ObjectId(String.valueOf(id)) : id)
-                .collect(Collectors.toList());
-        Bson objectIdBson = Filters.in(SqlOperationConstant._ID, convertedIds);
-        return baseMapper.remove(objectIdBson,clazz) >= 1;
+        return baseMapper.remove(BsonUtil.getIdsCondition(idList),clazz) >= 1;
     }
 
     @Override

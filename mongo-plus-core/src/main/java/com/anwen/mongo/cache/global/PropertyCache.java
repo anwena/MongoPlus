@@ -74,4 +74,10 @@ public class PropertyCache {
      */
     public static String key = "";
 
+    /**
+     * 自动转换ObjectId
+     * @date 2024/7/26 下午5:41
+     */
+    public static Boolean autoConvertObjectId = true;
+
 }

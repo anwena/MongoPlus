@@ -1,143 +1,169 @@
 package com.anwen.mongo.model;
 
+import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
 /**
- * @author JiaChaoYang
- * @project mongo-plus
- * @description
- * @date 2023-02-23 10:57
- **/
-public class PageResult<T> {
+ * 分页结果
+ * 新增分页的多项属性，主要参考: <a href="https://github.com/pagehelper/Mybatis-PageHelper/blob/master/src/main/java/com/github/pagehelper/PageInfo.java">PageHelper-PageInfo</a>
+ * @author anwen
+ * @date 2024/7/26 下午5:28
+ */
+public class PageResult<T> implements Serializable {
+
+    private static final long serialVersionUID = 4737078483619467352L;
+
     /**
      * 当前页
-     * @author JiaChaoYang
      * @date 2023/2/23 10:58
      */
     private long pageNum;
 
     /**
      * 每页显示行数
-     * @author JiaChaoYang
      * @date 2023/2/23 10:58
     */
     private long pageSize;
 
     /**
      * 总行数
-     * @author JiaChaoYang
      * @date 2023/2/23 10:58
     */
     private long totalSize;
 
     /**
      * 页码总数
-     * @author JiaChaoYang
      * @date 2023/2/23 10:58
     */
     private long totalPages;
 
     /**
      * 数据模型
-     * @author JiaChaoYang
      * @date 2023/2/23 10:59
     */
     private List<T> contentData;
 
+    /**
+     * 是否为第一页
+     */
+    private boolean isFirstPage = false;
+
+    /**
+     * 是否为最后一页
+     */
+    private boolean isLastPage = false;
+
+    /**
+     * 是否有前一页
+     */
+    private boolean hasPreviousPage = false;
+
+    /**
+     * 是否有下一页
+     * @date 2024/7/26 下午5:03
+     */
+    private boolean hasNextPage = false;
+
     public long getPageNum() {
-        return this.pageNum;
-    }
-
-    public long getPageSize() {
-        return this.pageSize;
-    }
-
-    public long getTotalSize() {
-        return this.totalSize;
-    }
-
-    public long getTotalPages() {
-        return this.totalPages;
-    }
-
-    public List<T> getContentData() {
-        return this.contentData;
+        return pageNum;
     }
 
     public void setPageNum(long pageNum) {
         this.pageNum = pageNum;
     }
 
+    public long getPageSize() {
+        return pageSize;
+    }
+
     public void setPageSize(long pageSize) {
         this.pageSize = pageSize;
+    }
+
+    public long getTotalSize() {
+        return totalSize;
     }
 
     public void setTotalSize(long totalSize) {
         this.totalSize = totalSize;
     }
 
+    public long getTotalPages() {
+        return totalPages;
+    }
+
     public void setTotalPages(long totalPages) {
         this.totalPages = totalPages;
+    }
+
+    public List<T> getContentData() {
+        return contentData;
     }
 
     public void setContentData(List<T> contentData) {
         this.contentData = contentData;
     }
 
-    public boolean equals(Object o) {
-        if (o == this) {
-            return true;
-        } else if (!(o instanceof PageResult)) {
-            return false;
-        } else {
-            PageResult<?> other = (PageResult)o;
-            if (!other.canEqual(this)) {
-                return false;
-            } else if (this.getPageNum() != other.getPageNum()) {
-                return false;
-            } else if (this.getPageSize() != other.getPageSize()) {
-                return false;
-            } else if (this.getTotalSize() != other.getTotalSize()) {
-                return false;
-            } else if (this.getTotalPages() != other.getTotalPages()) {
-                return false;
-            } else {
-                Object this$contentData = this.getContentData();
-                Object other$contentData = other.getContentData();
-                if (this$contentData == null) {
-                    if (other$contentData != null) {
-                        return false;
-                    }
-                } else if (!this$contentData.equals(other$contentData)) {
-                    return false;
-                }
-
-                return true;
-            }
-        }
+    public boolean isFirstPage() {
+        return isFirstPage;
     }
 
-    protected boolean canEqual(Object other) {
-        return other instanceof PageResult;
+    public void setFirstPage(boolean firstPage) {
+        isFirstPage = firstPage;
     }
 
+    public boolean isLastPage() {
+        return isLastPage;
+    }
+
+    public void setLastPage(boolean lastPage) {
+        isLastPage = lastPage;
+    }
+
+    public boolean isHasPreviousPage() {
+        return hasPreviousPage;
+    }
+
+    public void setHasPreviousPage(boolean hasPreviousPage) {
+        this.hasPreviousPage = hasPreviousPage;
+    }
+
+    public boolean isHasNextPage() {
+        return hasNextPage;
+    }
+
+    public void setHasNextPage(boolean hasNextPage) {
+        this.hasNextPage = hasNextPage;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+
+        if (this == object) return true;
+        if (object == null || getClass() != object.getClass()) return false;
+        PageResult<?> that = (PageResult<?>) object;
+        return pageNum == that.pageNum && pageSize == that.pageSize && totalSize == that.totalSize && totalPages == that.totalPages && isFirstPage == that.isFirstPage && isLastPage == that.isLastPage && hasPreviousPage == that.hasPreviousPage && hasNextPage == that.hasNextPage && Objects.equals(contentData, that.contentData);
+    }
+
+    @Override
     public int hashCode() {
-        int result = 1;
-        long $pageNum = this.getPageNum();
-        result = result * 59 + (int)($pageNum >>> 32 ^ $pageNum);
-        long $pageSize = this.getPageSize();
-        result = result * 59 + (int)($pageSize >>> 32 ^ $pageSize);
-        long $totalSize = this.getTotalSize();
-        result = result * 59 + (int)($totalSize >>> 32 ^ $totalSize);
-        long $totalPages = this.getTotalPages();
-        result = result * 59 + (int)($totalPages >>> 32 ^ $totalPages);
-        Object $contentData = this.getContentData();
-        result = result * 59 + ($contentData == null ? 43 : $contentData.hashCode());
-        return result;
+        return Objects.hash(pageNum, pageSize, totalSize, totalPages, contentData, isFirstPage, isLastPage, hasPreviousPage, hasNextPage);
     }
 
+    @Override
     public String toString() {
-        return "PageResult(pageNum=" + this.getPageNum() + ", pageSize=" + this.getPageSize() + ", totalSize=" + this.getTotalSize() + ", totalPages=" + this.getTotalPages() + ", contentData=" + this.getContentData() + ")";
+        return "PageResult{" +
+                "pageNum=" + pageNum +
+                ", pageSize=" + pageSize +
+                ", totalSize=" + totalSize +
+                ", totalPages=" + totalPages +
+                ", contentData=" + contentData +
+                ", isFirstPage=" + isFirstPage +
+                ", isLastPage=" + isLastPage +
+                ", hasPreviousPage=" + hasPreviousPage +
+                ", hasNextPage=" + hasNextPage +
+                '}';
     }
 
     public PageResult(long pageNum, long pageSize, long totalSize, long totalPages, List<T> contentData) {
@@ -146,6 +172,10 @@ public class PageResult<T> {
         this.totalSize = totalSize;
         this.totalPages = totalPages;
         this.contentData = contentData;
+        this.isFirstPage = pageNum == 1;
+        this.isLastPage = pageNum == totalPages || totalPages == 0;
+        this.hasPreviousPage = pageNum > 1;
+        this.hasNextPage = pageNum < totalPages;
     }
 
     public PageResult() {
