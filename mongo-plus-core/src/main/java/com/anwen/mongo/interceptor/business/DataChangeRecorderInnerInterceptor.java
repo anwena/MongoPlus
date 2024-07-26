@@ -2,13 +2,17 @@ package com.anwen.mongo.interceptor.business;
 
 import com.anwen.mongo.cache.codec.MapCodecCache;
 import com.anwen.mongo.cache.global.DataSourceNameCache;
+import com.anwen.mongo.constant.DataSourceConstant;
 import com.anwen.mongo.domain.MongoPlusException;
 import com.anwen.mongo.enums.ExecuteMethodEnum;
 import com.anwen.mongo.enums.SpecialConditionEnum;
 import com.anwen.mongo.interceptor.Interceptor;
 import com.anwen.mongo.logging.Log;
 import com.anwen.mongo.logging.LogFactory;
+import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.model.MutablePair;
+import com.anwen.mongo.model.OperationResult;
+import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.MongoNamespace;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.InsertOneModel;
@@ -25,7 +29,7 @@ import java.util.List;
 
 /**
  * 数据变动记录拦截器
- *
+ * <p>请不要与自增id同时使用</p>
  * @author anwen
  * @date 2024/6/27 下午5:01
  * @since by mybatis-plus
@@ -47,7 +51,9 @@ public class DataChangeRecorderInnerInterceptor implements Interceptor {
      *
      * @date 2024/6/27 下午5:33
      */
-    private List<String> ignoredColumnList = new ArrayList<>();
+    private List<String> ignoredColumnList = new ArrayList<String>(){{
+        add("DATA_CHANGE_RECORD");
+    }};
 
     /**
      * 批量更新条数上限
@@ -62,6 +68,45 @@ public class DataChangeRecorderInnerInterceptor implements Interceptor {
      * @date 2024/6/27 下午8:14
      */
     private Boolean displayCompleteData = true;
+
+    /**
+     * 是否保存到数据库
+     * @date 2024/7/26 下午8:47
+     */
+    private Boolean enableSaveDatabase = false;
+
+    /**
+     * baseMapper
+     * @date 2024/7/26 下午8:39
+     */
+    private BaseMapper baseMapper;
+
+    /**
+     * 数据源，默认获取上下文中的数据源，推荐手动设置
+     * @date 2024/7/26 下午8:40
+     */
+    private String datasourceName;
+
+    /**
+     * 是否使用默认数据源保存数据，如果设置了datasourceName，该配置会失效
+     * <p>推荐设置，使用主数据源，避免连续切库</p>
+     * @date 2024/7/26 下午8:45
+     */
+    private Boolean isMasterDatasource = false;
+
+    /**
+     * 数据库，默认获取上下文中对应的数据源的库
+     * @date 2024/7/26 下午8:41
+     */
+    private String databaseName;
+
+    /**
+     * 集合名
+     * @date 2024/7/26 下午8:46
+     */
+    private String collectionName = "DATA_CHANGE_RECORD";
+
+    private OperationResult operationResult;
 
     @Override
     public Object[] beforeExecute(ExecuteMethodEnum executeMethodEnum, Object[] source, MongoCollection<Document> collection) {
@@ -88,8 +133,31 @@ public class DataChangeRecorderInnerInterceptor implements Interceptor {
             long costThis = System.currentTimeMillis() - startTs;
             operationResult.setCost(costThis);
             log.info(String.format("%s DataChangeRecord: %s",executeMethodEnum.name(), operationResult));
+            this.operationResult = operationResult;
         }
         return source;
+    }
+
+    @Override
+    public Object afterExecute(ExecuteMethodEnum executeMethodEnum, Object[] source, Object result, MongoCollection<Document> collection) {
+        if (ignoredColumnList.contains(collection.getNamespace().getCollectionName())){
+            return result;
+        }
+        if (enableSaveDatabase){
+            String datasource = DataSourceNameCache.getDataSource();
+            if (StringUtils.isNotBlank(this.datasourceName)){
+                datasource = this.datasourceName;
+            } else if (this.isMasterDatasource){
+                datasource = DataSourceConstant.DEFAULT_DATASOURCE;
+            }
+            DataSourceNameCache.setDataSource(datasource);
+            String databaseName = DataSourceNameCache.getDatabase();
+            if (StringUtils.isNotBlank(this.databaseName)){
+                databaseName = this.databaseName;
+            }
+            baseMapper.save(databaseName,collectionName,operationResult);
+        }
+        return result;
     }
 
     private OperationResult processSave(Object[] source) throws DataUpdateLimitationException {
@@ -176,6 +244,48 @@ public class DataChangeRecorderInnerInterceptor implements Interceptor {
         return operationResult;
     }
 
+    public String getDatasourceName() {
+        return datasourceName;
+    }
+
+    public void setDatasourceName(String datasourceName) {
+        this.datasourceName = datasourceName;
+    }
+
+    public Boolean getIsMasterDatasource() {
+        return isMasterDatasource;
+    }
+
+    public void isMasterDatasource(Boolean masterDatasource) {
+        isMasterDatasource = masterDatasource;
+    }
+
+    public String getDatabaseName() {
+        return databaseName;
+    }
+
+    public void setDatabaseName(String databaseName) {
+        this.databaseName = databaseName;
+    }
+
+    public String getCollectionName() {
+        return collectionName;
+    }
+
+    public void setCollectionName(String collectionName) {
+        this.ignoredColumnList.add(collectionName);
+        this.collectionName = collectionName;
+    }
+
+    public void enableSaveDatabase(BaseMapper baseMapper){
+        this.enableSaveDatabase = true;
+        this.baseMapper = baseMapper;
+    }
+
+    public BaseMapper getBaseMapper() {
+        return baseMapper;
+    }
+
     public Boolean getDisplayCompleteData() {
         return displayCompleteData;
     }
@@ -206,124 +316,6 @@ public class DataChangeRecorderInnerInterceptor implements Interceptor {
 
     public void setBatchUpdateLimit(Integer batchUpdateLimit) {
         this.batchUpdateLimit = batchUpdateLimit;
-    }
-
-    public static class OperationResult {
-        /**
-         * 操作类型
-         *
-         * @date 2024/6/27 下午5:37
-         */
-        private String operation;
-
-        /**
-         * 记录状态
-         *
-         * @date 2024/6/27 下午5:37
-         */
-        private boolean recordStatus;
-
-        /**
-         * 数据源名称
-         *
-         * @date 2024/7/9 下午5:05
-         */
-        private String datasourceName;
-
-        /**
-         * 数据库名
-         *
-         * @date 2024/6/27 下午5:37
-         */
-        private String databaseName;
-
-        /**
-         * 集合名
-         *
-         * @date 2024/6/27 下午5:37
-         */
-        private String collectionName;
-
-        /**
-         * 改动数据
-         *
-         * @date 2024/6/27 下午5:37
-         */
-        private String changedData;
-
-        /**
-         * 插件耗时
-         *
-         * @date 2024/6/27 下午5:38
-         */
-        private long cost;
-
-        public String getOperation() {
-            return operation;
-        }
-
-        public void setOperation(String operation) {
-            this.operation = operation;
-        }
-
-        public boolean isRecordStatus() {
-            return recordStatus;
-        }
-
-        public void setRecordStatus(boolean recordStatus) {
-            this.recordStatus = recordStatus;
-        }
-
-        public String getDatasourceName() {
-            return datasourceName;
-        }
-
-        public void setDatasourceName(String datasourceName) {
-            this.datasourceName = datasourceName;
-        }
-
-        public String getDatabaseName() {
-            return databaseName;
-        }
-
-        public void setDatabaseName(String databaseName) {
-            this.databaseName = databaseName;
-        }
-
-        public String getCollectionName() {
-            return collectionName;
-        }
-
-        public void setCollectionName(String collectionName) {
-            this.collectionName = collectionName;
-        }
-
-        public String getChangedData() {
-            return changedData;
-        }
-
-        public void setChangedData(String changedData) {
-            this.changedData = changedData;
-        }
-
-        public long getCost() {
-            return cost;
-        }
-
-        public void setCost(long cost) {
-            this.cost = cost;
-        }
-        @Override
-        public String toString() {
-            return "{" +
-                    "\"datasourceName\":\"" + datasourceName + "\"," +
-                    "\"databaseName\":\"" + databaseName + "\"," +
-                    "\"collectionName\":\"" + collectionName + "\"," +
-                    "\"operation\":\"" + operation + "\"," +
-                    "\"recordStatus\":\"" + recordStatus + "\"," +
-                    "\"cost(ms)\":" + cost + "," +
-                    "\"changedData\":" + changedData + "}";
-        }
     }
 
     public static class DataUpdateLimitationException extends MongoPlusException {

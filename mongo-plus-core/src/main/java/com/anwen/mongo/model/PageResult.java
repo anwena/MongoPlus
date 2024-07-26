@@ -153,16 +153,16 @@ public class PageResult<T> implements Serializable {
 
     @Override
     public String toString() {
-        return "PageResult{" +
-                "pageNum=" + pageNum +
-                ", pageSize=" + pageSize +
-                ", totalSize=" + totalSize +
-                ", totalPages=" + totalPages +
-                ", contentData=" + contentData +
-                ", isFirstPage=" + isFirstPage +
-                ", isLastPage=" + isLastPage +
-                ", hasPreviousPage=" + hasPreviousPage +
-                ", hasNextPage=" + hasNextPage +
+        return "{" +
+                "\"pageNum\": " + pageNum +","+
+                "\"pageSize\": " + pageSize +","+
+                "\"totalSize\": " + totalSize +","+
+                "\"totalPages\": " + totalPages +","+
+                "\"isFirstPage\": " + isFirstPage +","+
+                "\"isLastPage\": " + isLastPage +","+
+                "\"hasPreviousPage\": " + hasPreviousPage +","+
+                "\"hasNextPage\": " + hasNextPage +","+
+                "\"contentData\": " + contentData +
                 '}';
     }
 
