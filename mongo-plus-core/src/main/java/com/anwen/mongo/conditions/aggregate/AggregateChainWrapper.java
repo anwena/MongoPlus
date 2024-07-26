@@ -1,5 +1,6 @@
 package com.anwen.mongo.conditions.aggregate;
 
+import com.anwen.mongo.cache.codec.MapCodecCache;
 import com.anwen.mongo.conditions.accumulator.Accumulator;
 import com.anwen.mongo.conditions.interfaces.aggregate.Aggregate;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.AddFields;
@@ -19,6 +20,7 @@ import com.anwen.mongo.support.SFunction;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.model.Collation;
 import com.mongodb.client.model.CollationStrength;
+import org.bson.BsonDocument;
 import org.bson.BsonValue;
 import org.bson.conversions.Bson;
 
@@ -55,7 +57,7 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
 
     @Override
     public Children match(Bson bson) {
-        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.MATCH.getType(), new DefaultConcretePipeline(BasicDBObject.parse(bson.toBsonDocument().toJson())),getNextAggregateOrder()));
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.MATCH.getType(), new DefaultConcretePipeline(BasicDBObject.parse(bson.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()).toJson())),getNextAggregateOrder()));
         return typedThis;
     }
 
@@ -201,7 +203,7 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
 
     @Override
     public Children project(Bson bson) {
-        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.PROJECT.getType(), new DefaultConcretePipeline(BasicDBObject.parse(bson.toBsonDocument().toJson())),getNextAggregateOrder()));
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.PROJECT.getType(), new DefaultConcretePipeline(BasicDBObject.parse(bson.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()).toJson())),getNextAggregateOrder()));
         return typedThis;
     }
 
@@ -279,7 +281,7 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
 
     @Override
     public Children sort(Bson bson) {
-        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.SORT.getType(), new DefaultConcretePipeline(BasicDBObject.parse(bson.toBsonDocument().toJson())),getNextAggregateOrder()));
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.SORT.getType(), new DefaultConcretePipeline(BasicDBObject.parse(bson.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()).toJson())),getNextAggregateOrder()));
         return typedThis;
     }
 
@@ -533,7 +535,7 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
 
     @Override
     public Children group(Bson bson) {
-        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new DefaultConcretePipeline(BasicDBObject.parse(bson.toBsonDocument().toJson())),getNextAggregateOrder()));
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.GROUP.getType(), new DefaultConcretePipeline(BasicDBObject.parse(bson.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()).toJson())),getNextAggregateOrder()));
         return typedThis;
     }
 
@@ -572,7 +574,7 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
 
     @Override
     public Children lookup(Bson bson) {
-        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.LOOKUP.getType(), new DefaultConcretePipeline(BasicDBObject.parse(bson.toBsonDocument().toJson())),getNextAggregateOrder()));
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.LOOKUP.getType(), new DefaultConcretePipeline(BasicDBObject.parse(bson.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()).toJson())),getNextAggregateOrder()));
         return typedThis;
     }
 
@@ -620,7 +622,7 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
 
     @Override
     public Children addFields(Bson bson) {
-        baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.ADD_FIELDS.getType(), new DefaultConcretePipeline(BasicDBObject.parse(bson.toBsonDocument().toJson())),getNextAggregateOrder()));
+        baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.ADD_FIELDS.getType(), new DefaultConcretePipeline(BasicDBObject.parse(bson.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()).toJson())),getNextAggregateOrder()));
         return typedThis;
     }
 
@@ -656,7 +658,7 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
 
     @Override
     public Children unwind(Bson bson) {
-        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.UNWIND.getType(), new DefaultConcretePipeline(BasicDBObject.parse(bson.toBsonDocument().toJson())),getNextAggregateOrder()));
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.UNWIND.getType(), new DefaultConcretePipeline(BasicDBObject.parse(bson.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()).toJson())),getNextAggregateOrder()));
         return typedThis;
     }
 
@@ -712,7 +714,7 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
 
     @Override
     public Children replaceRoot(Bson bson) {
-        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.REPLACE_ROOT.getType(), new DefaultConcretePipeline(BasicDBObject.parse(bson.toBsonDocument().toJson())),getNextAggregateOrder()));
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.REPLACE_ROOT.getType(), new DefaultConcretePipeline(BasicDBObject.parse(bson.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()).toJson())),getNextAggregateOrder()));
         return typedThis;
     }
 
@@ -730,7 +732,7 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
 
     @Override
     public Children unionWith(Bson bson) {
-        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.UNWIND.getType(), new DefaultConcretePipeline(BasicDBObject.parse(bson.toBsonDocument().toJson())),getNextAggregateOrder()));
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.UNWIND.getType(), new DefaultConcretePipeline(BasicDBObject.parse(bson.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()).toJson())),getNextAggregateOrder()));
         return typedThis;
     }
 
@@ -754,7 +756,7 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
 
     @Override
     public Children out(Bson bson) {
-        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.OUT.getType(), new DefaultConcretePipeline(BasicDBObject.parse(bson.toBsonDocument().toJson())),getNextAggregateOrder()));
+        this.baseAggregateList.add(new BaseAggregate(AggregateTypeEnum.OUT.getType(), new DefaultConcretePipeline(BasicDBObject.parse(bson.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()).toJson())),getNextAggregateOrder()));
         return typedThis;
     }
 
@@ -766,7 +768,7 @@ public class AggregateChainWrapper<T, Children> implements Aggregate<T, Children
 
     @Override
     public Children custom(Bson bson) {
-        this.basicDBObjectList.add(new AggregateBasicDBObject(BasicDBObject.parse(bson.toBsonDocument().toJson()),getNextAggregateOrder()));
+        this.basicDBObjectList.add(new AggregateBasicDBObject(BasicDBObject.parse(bson.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()).toJson()),getNextAggregateOrder()));
         return typedThis;
     }
 

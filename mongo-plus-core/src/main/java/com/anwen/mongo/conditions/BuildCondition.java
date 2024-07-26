@@ -2,11 +2,13 @@ package com.anwen.mongo.conditions;
 
 import com.anwen.mongo.annotation.comm.FieldEncrypt;
 import com.anwen.mongo.bson.MongoPlusBasicDBObject;
+import com.anwen.mongo.cache.codec.MapCodecCache;
 import com.anwen.mongo.conditions.accumulator.Accumulator;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.AddFields;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.ReplaceRoot;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
+import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.domain.MongoPlusException;
 import com.anwen.mongo.enums.QueryOperatorEnum;
@@ -18,14 +20,12 @@ import com.anwen.mongo.toolkit.EncryptorUtil;
 import com.anwen.mongo.toolkit.Filters;
 import com.anwen.mongo.toolkit.StringUtils;
 import com.mongodb.BasicDBObject;
+import org.bson.BsonDocument;
 import org.bson.BsonType;
 import org.bson.conversions.Bson;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.anwen.mongo.enums.QueryOperatorEnum.isQueryOperator;
@@ -106,17 +106,23 @@ public class BuildCondition {
                 break;
             case AND:
                 List<Bson> andBsonList = new ArrayList<>();
-                ((List<CompareCondition>) compareCondition.getValue()).forEach(andCompareCondition -> andBsonList.add(buildQueryCondition(andCompareCondition)));
+                QueryChainWrapper<?, ?> andWrapper = (QueryChainWrapper<?, ?>) compareCondition.getValue();
+                andWrapper.getCompareList().forEach(andCompareCondition -> andBsonList.add(buildQueryCondition(andCompareCondition)));
+                andBsonList.addAll(andWrapper.getBasicDBObjectList());
                 mongoPlusBasicDBObject.put(Filters.and(andBsonList));
                 break;
             case OR:
                 List<Bson> orBsonList = new ArrayList<>();
-                ((List<CompareCondition>) compareCondition.getValue()).forEach(andCompareCondition -> orBsonList.add(buildQueryCondition(andCompareCondition)));
+                QueryChainWrapper<?, ?> orWrapper = (QueryChainWrapper<?, ?>) compareCondition.getValue();
+                orWrapper.getCompareList().forEach(orCompareCondition -> orBsonList.add(buildQueryCondition(orCompareCondition)));
+                orBsonList.addAll(orWrapper.getBasicDBObjectList());
                 mongoPlusBasicDBObject.put(Filters.or(orBsonList));
                 break;
             case NOR:
                 List<Bson> norBsonList = new ArrayList<>();
-                ((List<CompareCondition>) compareCondition.getValue()).forEach(andCompareCondition -> norBsonList.add(buildQueryCondition(andCompareCondition)));
+                QueryChainWrapper<?, ?> norWrapper = (QueryChainWrapper<?, ?>) compareCondition.getValue();
+                norWrapper.getCompareList().forEach(norCompareCondition -> norBsonList.add(buildQueryCondition(norCompareCondition)));
+                norBsonList.addAll(norWrapper.getBasicDBObjectList());
                 mongoPlusBasicDBObject.put(Filters.nor(norBsonList));
                 break;
             case TYPE:
@@ -134,10 +140,16 @@ public class BuildCondition {
                 mongoPlusBasicDBObject.put(Filters.exists(compareCondition.getColumn(), (Boolean) compareCondition.getValue()));
                 break;
             case NOT:
-                mongoPlusBasicDBObject.put(Filters.not(buildQueryCondition((CompareCondition) compareCondition.getValue())));
-                break;
             case EXPR:
-                mongoPlusBasicDBObject.put(Filters.expr(buildQueryCondition((CompareCondition) compareCondition.getValue())));
+                QueryChainWrapper<?, ?> exprWrapper = (QueryChainWrapper<?, ?>) compareCondition.getValue();
+                BasicDBObject exprBasicDBObject = buildQueryCondition(exprWrapper.getCompareList());
+                List<BasicDBObject> exprBasicDBObjectList = exprWrapper.getBasicDBObjectList();
+                exprBasicDBObjectList.forEach(basicDBObject -> exprBasicDBObject.putAll(basicDBObject.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry())));
+                Optional<String> exprOptional = exprBasicDBObject.keySet().stream().findFirst();
+                if (exprOptional.isPresent()){
+                    String exprKey = exprOptional.get();
+                    mongoPlusBasicDBObject.put(Filters.expr(new BasicDBObject(exprKey, exprBasicDBObject.get(exprKey))));
+                }
                 break;
             case MOD:
                 List<Long> modList = (List<Long>) compareCondition.getValue();
@@ -147,7 +159,13 @@ public class BuildCondition {
                 mongoPlusBasicDBObject.put(Filters.mod(compareCondition.getColumn(), modList.get(0),modList.get(1)));
                 break;
             case ELEM_MATCH:
-                mongoPlusBasicDBObject.put(Filters.elemMatch(compareCondition.getColumn(),buildQueryCondition((List<CompareCondition>) compareCondition.getValue())));
+                QueryChainWrapper<?, ?> elemMatchWrapper = (QueryChainWrapper<?, ?>) compareCondition.getValue();
+                BasicDBObject elemMatchBasicDBObject = buildQueryCondition(elemMatchWrapper.getCompareList());
+                Bson elemMatchBson = Filters.elemMatch(compareCondition.getColumn(), elemMatchBasicDBObject);
+                if (CollUtil.isNotEmpty(elemMatchWrapper.getBasicDBObjectList())){
+                    elemMatchWrapper.getBasicDBObjectList().forEach(bson -> elemMatchBson.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()).putAll(bson.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry())));
+                }
+                mongoPlusBasicDBObject.put(elemMatchBson);
                 break;
             case ALL:
                 mongoPlusBasicDBObject.put(Filters.all(compareCondition.getColumn(), (Collection<?>)compareCondition.getValue()));
@@ -271,9 +289,7 @@ public class BuildCondition {
     */
     public static BasicDBObject buildAddFields(List<AddFields> addFieldsList){
         return new BasicDBObject(){{
-           addFieldsList.forEach(addFields -> {
-               put(addFields.getResultMappingField(),addFields.getField());
-           });
+           addFieldsList.forEach(addFields -> put(addFields.getResultMappingField(),addFields.getField()));
         }};
     }
 

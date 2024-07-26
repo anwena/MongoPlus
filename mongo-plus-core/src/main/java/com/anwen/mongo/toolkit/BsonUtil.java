@@ -1,6 +1,7 @@
 package com.anwen.mongo.toolkit;
 
 import com.anwen.mongo.bson.EmptyDocument;
+import com.anwen.mongo.cache.codec.MapCodecCache;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.DBRef;
@@ -131,9 +132,18 @@ public class BsonUtil {
             return bson;
         }
         if (!(bson instanceof BSONObject)){
-            bson = new BasicDBObject(bson.toBsonDocument());
+            bson = new BasicDBObject(bson.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()));
         }
         ((BSONObject) bson).put(key, value);
+        return bson;
+    }
+
+    public static Bson addToMapByKey(String targetKey , Bson bson, String key, Object value) {
+        BsonDocument bsonDocument = bson.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()).get(targetKey).asDocument();
+        if (bsonDocument == null){
+            return bson;
+        }
+        bson = addToMap(bsonDocument, key, value);
         return bson;
     }
 
@@ -143,19 +153,13 @@ public class BsonUtil {
     public static void addAllToMap(Bson target, Map<String, ?> source) {
 
         if (target instanceof Document) {
-
             ((Document) target).putAll(source);
             return;
         }
-
-        if (target instanceof BSONObject) {
-
-            ((BSONObject) target).putAll(source);
-            return;
+        if (!(target instanceof BSONObject)){
+            target = new BasicDBObject(target.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()));
         }
-
-        throw new IllegalArgumentException(
-                String.format("Cannot add all to %s; Given Bson must be a Document or BSONObject.", target.getClass()));
+        ((BSONObject) target).putAll(source);
     }
 
     /**

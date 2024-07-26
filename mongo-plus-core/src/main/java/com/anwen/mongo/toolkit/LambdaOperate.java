@@ -1,5 +1,6 @@
 package com.anwen.mongo.toolkit;
 
+import com.anwen.mongo.cache.codec.MapCodecCache;
 import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
@@ -12,6 +13,7 @@ import com.anwen.mongo.model.PageParam;
 import com.anwen.mongo.model.PageResult;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
+import org.bson.BsonDocument;
 import org.bson.Document;
 
 import java.util.List;
@@ -34,14 +36,10 @@ public class LambdaOperate {
         BasicDBObject basicDBObject = BuildCondition.buildQueryCondition(compareConditionList);
         if (CollUtil.isNotEmpty(basicDBObjectList)){
             basicDBObjectList.forEach(basic -> {
-                basicDBObject.putAll(basic.toMap());
+                basicDBObject.putAll(basic.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()));
             });
         }
         return new BaseLambdaQueryResult(basicDBObject,BuildCondition.buildProjection(projectionList),sortCond);
-    }
-
-    public <T> PageResult<T> getLambdaQueryResultPage(FindIterable<Document> documentFindIterable, long totalSize, PageParam pageParams, Class<T> clazz, MongoConverter mongoConverter) {
-        return getLambdaQueryResultPage(documentFindIterable,totalSize,pageParams,new TypeReference<T>(clazz) {},mongoConverter);
     }
 
     public <T> PageResult<T> getLambdaQueryResultPage(FindIterable<Document> documentFindIterable, long totalSize, PageParam pageParams, TypeReference<T> typeReference, MongoConverter mongoConverter) {

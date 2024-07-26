@@ -80,6 +80,23 @@ public class AutoFillMetaObject {
         }
     }
 
+    public <T,R> void forceFillValue(SFunction<T,R> column,Object value){
+
+    }
+
+    /**
+     * 设置自动填充内容
+     * @param column 列名
+     * @param value 值
+     * @author anwen
+     * @date 2024/5/1 下午10:14
+     */
+    public void fillValue(String column,Object value){
+        if (metaObjectExist(column)) {
+            autoFillDocument.put(column, value);
+        }
+    }
+
     /**
      * 指定的自动填充字段是否存在
      * @param column 列名
@@ -92,6 +109,17 @@ public class AutoFillMetaObject {
     }
 
     /**
+     * 指定的自动填充字段是否存在
+     * @param column 列名
+     * @return {@link boolean}
+     * @author anwen
+     * @date 2024/5/1 下午10:15
+     */
+    public boolean metaObjectExist(String column){
+        return document.containsKey(column);
+    }
+
+    /**
      * 获取自动填充字段现有得值
      * @param column 列名
      * @return {@link Object}
@@ -99,6 +127,17 @@ public class AutoFillMetaObject {
      * @date 2024/5/1 下午10:15
      */
     public <T,R> Object getMetaObjectValue(SFunction<T,R> column){
+        return autoFillDocument.get(column);
+    }
+
+    /**
+     * 获取自动填充字段现有得值
+     * @param column 列名
+     * @return {@link Object}
+     * @author anwen
+     * @date 2024/5/1 下午10:15
+     */
+    public Object getMetaObjectValue(String column){
         return autoFillDocument.get(column);
     }
 

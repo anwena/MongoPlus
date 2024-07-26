@@ -124,10 +124,10 @@ public abstract class AbstractMongoConverter implements MongoConverter {
         if (HandlerCache.metaObjectHandler != null && !updateFillAutoFillMetaObject.isEmpty()){
             HandlerCache.metaObjectHandler.updateFill(updateFillAutoFillMetaObject);
         }
-        //添加自动填充字段
-        updateFillAutoFillMetaObject.getAllFillFieldAndClear(document);
         //映射到Document
         write(sourceObj,document);
+        //添加自动填充字段
+        updateFillAutoFillMetaObject.getAllFillFieldAndClear(document);
         //经过一下Document处理器
         if (HandlerCache.documentHandler != null){
             HandlerCache.documentHandler.updateInvoke(Collections.singletonList(document));

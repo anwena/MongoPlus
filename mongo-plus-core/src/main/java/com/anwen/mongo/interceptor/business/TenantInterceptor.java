@@ -1,6 +1,7 @@
 package com.anwen.mongo.interceptor.business;
 
 import com.anwen.mongo.aggregate.AggregateWrapper;
+import com.anwen.mongo.cache.codec.MapCodecCache;
 import com.anwen.mongo.cache.global.DataSourceNameCache;
 import com.anwen.mongo.cache.global.TenantCache;
 import com.anwen.mongo.conditions.query.QueryWrapper;
@@ -20,6 +21,7 @@ import com.mongodb.client.model.CountOptions;
 import com.mongodb.client.model.InsertOneModel;
 import com.mongodb.client.model.UpdateManyModel;
 import com.mongodb.client.model.WriteModel;
+import org.bson.BSONObject;
 import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -67,7 +69,7 @@ public class TenantInterceptor implements Interceptor {
         if (!checkTenant(collection)){
             if (filter == null){
                 filter = Filters.eq(tenantHandler.getTenantIdColumn(),tenantHandler.getTenantId());
-            } else if (!filter.toBsonDocument().containsKey(tenantHandler.getTenantIdColumn())){
+            } else if (!filter.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()).containsKey(tenantHandler.getTenantIdColumn())){
                 filter = BsonUtil.addToMap(filter,tenantHandler.getTenantIdColumn(),tenantHandler.getTenantId());
             }
         }
@@ -79,7 +81,7 @@ public class TenantInterceptor implements Interceptor {
         if (!checkTenant(collection)){
             if (queryBasic == null){
                 queryBasic = Filters.eq(tenantHandler.getTenantIdColumn(),tenantHandler.getTenantId());
-            } else if (!queryBasic.toBsonDocument().containsKey(tenantHandler.getTenantIdColumn())) {
+            } else if (!queryBasic.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()).containsKey(tenantHandler.getTenantIdColumn())) {
                 queryBasic = BsonUtil.addToMap(queryBasic, tenantHandler.getTenantIdColumn(), tenantHandler.getTenantId());
             }
         }
@@ -93,7 +95,7 @@ public class TenantInterceptor implements Interceptor {
                 Bson queryBasic = mutablePair.getLeft();
                 if (queryBasic == null) {
                     queryBasic = Filters.eq(tenantHandler.getTenantIdColumn(), tenantHandler.getTenantId());
-                } else if (!queryBasic.toBsonDocument().containsKey(tenantHandler.getTenantIdColumn())) {
+                } else if (!queryBasic.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()).containsKey(tenantHandler.getTenantIdColumn())) {
                     queryBasic = BsonUtil.addToMap(queryBasic, tenantHandler.getTenantIdColumn(), tenantHandler.getTenantId());
                 }
                 mutablePair.setLeft(queryBasic);
@@ -107,7 +109,7 @@ public class TenantInterceptor implements Interceptor {
         if (!checkTenant(collection)){
             if (queryBasic == null){
                 queryBasic = Filters.eq(tenantHandler.getTenantIdColumn(),tenantHandler.getTenantId());
-            } else if (!queryBasic.toBsonDocument().containsKey(tenantHandler.getTenantIdColumn())) {
+            } else if (!queryBasic.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()).containsKey(tenantHandler.getTenantIdColumn())) {
                 queryBasic = BsonUtil.addToMap(queryBasic, tenantHandler.getTenantIdColumn(), tenantHandler.getTenantId());
             }
         }
@@ -122,15 +124,15 @@ public class TenantInterceptor implements Interceptor {
                 aggregateConditionList.forEach(aggregateBasicDBObject -> {
                     if (aggregateBasicDBObject.containsKey(AggregateEnum.MATCH.getValue())) {
                         Bson bson = (Bson) aggregateBasicDBObject.get(AggregateEnum.MATCH.getValue());
-                        if (!bson.toBsonDocument().containsKey(tenantHandler.getTenantIdColumn())) {
+                        if (!bson.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()).containsKey(tenantHandler.getTenantIdColumn())) {
                             BsonUtil.addToMap(bson, tenantHandler.getTenantIdColumn(), tenantHandler.getTenantId());
                         }
                     } else {
-                        aggregateConditionList.add(new AggregateBasicDBObject(BasicDBObject.parse(matchBson.toBsonDocument().toJson()), 0));
+                        aggregateConditionList.add(new AggregateBasicDBObject(BasicDBObject.parse(matchBson.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()).toJson()), 0));
                     }
                 });
             } else {
-                aggregateConditionList.add(new AggregateBasicDBObject(BasicDBObject.parse(matchBson.toBsonDocument().toJson()), 0));
+                aggregateConditionList.add(new AggregateBasicDBObject(BasicDBObject.parse(matchBson.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()).toJson()), 0));
             }
         }
         return aggregateConditionList;
@@ -139,20 +141,31 @@ public class TenantInterceptor implements Interceptor {
     @Override
     public List<Bson> executeAggregates(List<Bson> aggregateConditionList, MongoCollection<Document> collection) {
         if (!checkTenant(collection)) {
-            Bson matchBson = new AggregateWrapper().match(new QueryWrapper<>().eq(tenantHandler.getTenantIdColumn(), tenantHandler.getTenantId())).getAggregateConditionList().get(0);
-            if (CollUtil.isNotEmpty(aggregateConditionList)) {
-                for (Bson bson : aggregateConditionList) {
-                    BsonDocument bsonDocument = bson.toBsonDocument();
+            Bson matchBson = new AggregateWrapper()
+                    .match(new QueryWrapper<>().eq(tenantHandler.getTenantIdColumn(), tenantHandler.getTenantId()))
+                    .getAggregateConditionList()
+                    .get(0);
+
+            boolean hasMatch = aggregateConditionList.stream()
+                    .anyMatch(bson -> bson.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry())
+                            .containsKey(AggregateEnum.MATCH.getValue()));
+
+            if (hasMatch) {
+                for (int i = 0; i < aggregateConditionList.size(); i++) {
+                    Bson bson = aggregateConditionList.get(i);
+                    BsonDocument bsonDocument = bson.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry());
+
                     if (bsonDocument.containsKey(AggregateEnum.MATCH.getValue())) {
-                        if (!bsonDocument.get(AggregateEnum.MATCH.getValue()).asDocument().containsKey(tenantHandler.getTenantIdColumn())) {
-                            BsonUtil.addToMap(bson, tenantHandler.getTenantIdColumn(), tenantHandler.getTenantId());
+                        BsonDocument matchBsonDocument = bsonDocument.get(AggregateEnum.MATCH.getValue()).asDocument();
+
+                        if (!matchBsonDocument.containsKey(tenantHandler.getTenantIdColumn())) {
+                            matchBsonDocument.put(tenantHandler.getTenantIdColumn(), tenantHandler.getTenantId());
+                            aggregateConditionList.set(i, bsonDocument);
                         }
-                    } else {
-                        aggregateConditionList.add(0, matchBson);
                     }
                 }
             } else {
-                aggregateConditionList.add(matchBson);
+                aggregateConditionList.add(0, matchBson);
             }
         }
         return aggregateConditionList;
@@ -162,8 +175,8 @@ public class TenantInterceptor implements Interceptor {
     public MutablePair<BasicDBObject, CountOptions> executeCount(BasicDBObject queryBasic, CountOptions countOptions, MongoCollection<Document> collection) {
         if (!checkTenant(collection)){
             if (queryBasic == null){
-                queryBasic = new BasicDBObject(Filters.eq(tenantHandler.getTenantIdColumn(),tenantHandler.getTenantId()).toBsonDocument());
-            } else if (!queryBasic.toBsonDocument().containsKey(tenantHandler.getTenantIdColumn())) {
+                queryBasic = new BasicDBObject(Filters.eq(tenantHandler.getTenantIdColumn(),tenantHandler.getTenantId()).toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()));
+            } else if (!queryBasic.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()).containsKey(tenantHandler.getTenantIdColumn())) {
                 BsonUtil.addToMap(queryBasic, tenantHandler.getTenantIdColumn(), tenantHandler.getTenantId());
             }
         }

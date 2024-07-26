@@ -1,5 +1,6 @@
 package com.anwen.mongo.logic;
 
+import com.anwen.mongo.cache.codec.MapCodecCache;
 import com.anwen.mongo.cache.global.CollectionLogicDeleteCache;
 import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
@@ -83,7 +84,7 @@ public interface LogicDeleteHandler {
             bdb.put(result.getColumn(), new BsonString(result.getLogicNotDeleteValue()));
             return bdb;
         } else {
-            BsonDocument bsonDocument = query.toBsonDocument();
+            BsonDocument bsonDocument = query.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry());
             bsonDocument.append(result.getColumn(), new BsonString(result.getLogicNotDeleteValue()));
             return bsonDocument;
         }

@@ -289,7 +289,7 @@ public class MappingMongoConverter extends AbstractMongoConverter {
             // 获取集合的泛型类型
             Type collectionType = getGenericTypeClass((ParameterizedType) type, 0);
             Collection<?> collectionInstance = createCollectionInstance(metaClass);
-            convertCollection(collectionType, fieldValue, collectionInstance);
+            valueList.forEach(value -> convertCollection(collectionType, value, collectionInstance));
             collection.add(collectionInstance);
         } else if (Map.class.isAssignableFrom(metaClass)){
             valueList.forEach(value -> collection.add(convertMap(getGenericTypeClass((ParameterizedType) type, 1),value,createMapInstance(metaClass))));

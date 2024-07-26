@@ -1,5 +1,6 @@
 package com.anwen.mongo.conditions;
 
+import com.anwen.mongo.cache.codec.MapCodecCache;
 import com.anwen.mongo.conditions.interfaces.Compare;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
@@ -11,6 +12,7 @@ import com.anwen.mongo.enums.ProjectionEnum;
 import com.anwen.mongo.enums.TypeEnum;
 import com.anwen.mongo.support.SFunction;
 import com.mongodb.BasicDBObject;
+import org.bson.BsonDocument;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 
@@ -353,7 +355,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children and(QueryChainWrapper<?,?> queryChainWrapper) {
-        return getBaseCondition(queryChainWrapper.getCompareList());
+        return getBaseCondition(queryChainWrapper);
     }
 
     @Override
@@ -373,7 +375,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children or(QueryChainWrapper<?,?> queryChainWrapper) {
-        return getBaseCondition(queryChainWrapper.getCompareList());
+        return getBaseCondition(queryChainWrapper);
     }
 
     @Override
@@ -393,7 +395,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children nor(QueryChainWrapper<?,?> queryChainWrapper) {
-        return getBaseCondition(queryChainWrapper.getCompareList());
+        return getBaseCondition(queryChainWrapper);
     }
 
     @Override
@@ -458,7 +460,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children not(CompareCondition compareCondition) {
-        return getBaseCondition(compareCondition);
+        return getBaseCondition(Collections.singletonList(BuildCondition.buildQueryCondition(compareCondition)));
     }
 
     @Override
@@ -473,12 +475,12 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children not(QueryChainWrapper<?, ?> queryChainWrapper) {
-        return getBaseCondition(queryChainWrapper.getCompareList().get(0));
+        return getBaseCondition(queryChainWrapper);
     }
 
     @Override
     public Children not(SFunction<QueryChainWrapper<T, ?>, QueryChainWrapper<T, ?>> function) {
-        return getBaseCondition(function.apply(new QueryWrapper<>()).getCompareList().get(0));
+        return not(function.apply(new QueryWrapper<>()));
     }
 
     @Override
@@ -498,12 +500,12 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children expr(QueryChainWrapper<?, ?> queryChainWrapper) {
-        return getBaseCondition(queryChainWrapper.getCompareList().get(0));
+        return getBaseCondition(queryChainWrapper);
     }
 
     @Override
     public Children expr(SFunction<QueryChainWrapper<T, ?>, QueryChainWrapper<T, ?>> function) {
-        return getBaseCondition(function.apply(new QueryWrapper<>()).getCompareList().get(0));
+        return expr(function.apply(new QueryWrapper<>()));
     }
 
     @Override
@@ -513,7 +515,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children expr(CompareCondition compareCondition) {
-        return getBaseCondition(compareCondition);
+        return getBaseCondition(Collections.singletonList(BuildCondition.buildQueryCondition(compareCondition)));
     }
 
     @Override
@@ -563,7 +565,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children elemMatch(SFunction<T,Object> column, QueryChainWrapper<?,?> queryChainWrapper) {
-        return getBaseCondition(column,queryChainWrapper.getCompareList());
+        return getBaseCondition(column,queryChainWrapper);
     }
 
     @Override
@@ -573,7 +575,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children elemMatch(String column, QueryChainWrapper<?,?> queryChainWrapper) {
-        return getBaseCondition(column,queryChainWrapper.getCompareList());
+        return getBaseCondition(column,queryChainWrapper);
     }
 
     @Override
@@ -722,7 +724,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
 
     @Override
     public Children custom(Bson bson) {
-        this.basicDBObjectList.add(BasicDBObject.parse(bson.toBsonDocument().toJson()));
+        this.basicDBObjectList.add(BasicDBObject.parse(bson.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()).toJson()));
         return typedThis;
     }
 
@@ -735,7 +737,7 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
     public Children getBaseConditionBetween(String column,Object gte,Object lte,boolean convertGtOrLt){
         if (!convertGtOrLt){
             gte(column,gte);
-            lte(column,gte);
+            lte(column,lte);
         } else {
             gt(column,gte);
             lt(column,lte);
@@ -771,8 +773,8 @@ public abstract class AbstractChainWrapper<T, Children extends AbstractChainWrap
         return getBaseCondition(Thread.currentThread().getStackTrace()[2].getMethodName(),column.getFieldNameLine(),value,column.getImplClass(),column.getField());
     }
 
-    public Children getBaseCondition(List<CompareCondition> compareConditionList){
-        this.compareList.add(new CompareCondition(Thread.currentThread().getStackTrace()[2].getMethodName(),compareConditionList));
+    public Children getBaseCondition(QueryChainWrapper<?,?> queryChainWrapper){
+        this.compareList.add(CompareCondition.builder().condition(Thread.currentThread().getStackTrace()[2].getMethodName()).value(queryChainWrapper).build());
         return typedThis;
     }
 

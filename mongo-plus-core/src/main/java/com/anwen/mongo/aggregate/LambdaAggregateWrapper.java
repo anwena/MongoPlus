@@ -1,6 +1,8 @@
 package com.anwen.mongo.aggregate;
 
 import com.anwen.mongo.aggregate.pipeline.UnwindOption;
+import com.anwen.mongo.cache.codec.MapCodecCache;
+import com.anwen.mongo.conditions.BuildCondition;
 import com.anwen.mongo.conditions.interfaces.aggregate.pipeline.Projection;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
 import com.anwen.mongo.constant.AggregationOperators;
@@ -10,8 +12,6 @@ import com.anwen.mongo.enums.AggregateOptionsEnum;
 import com.anwen.mongo.enums.OrderEnum;
 import com.anwen.mongo.enums.ProjectionEnum;
 import com.anwen.mongo.handlers.collection.AnnotationOperate;
-import com.anwen.mongo.handlers.condition.AbstractConditionHandler;
-import com.anwen.mongo.handlers.condition.BuildCondition;
 import com.anwen.mongo.model.aggregate.Field;
 import com.anwen.mongo.support.SFunction;
 import com.mongodb.BasicDBObject;
@@ -43,11 +43,6 @@ public class LambdaAggregateWrapper<Children> implements Aggregate<Children>,Agg
      */
     private final BasicDBObject aggregateOptions = new BasicDBObject();
 
-    private final AbstractConditionHandler conditionHandler;
-
-    public AbstractConditionHandler getConditionHandler() {
-        return conditionHandler;
-    }
 
     @Override
     public List<Bson> getAggregateConditionList() {
@@ -57,14 +52,6 @@ public class LambdaAggregateWrapper<Children> implements Aggregate<Children>,Agg
     @Override
     public BasicDBObject getAggregateOptions() {
         return aggregateOptions;
-    }
-
-    public LambdaAggregateWrapper(AbstractConditionHandler conditionHandler) {
-        this.conditionHandler = conditionHandler;
-    }
-
-    public LambdaAggregateWrapper() {
-        this.conditionHandler = new BuildCondition();
     }
 
     /**
@@ -244,7 +231,9 @@ public class LambdaAggregateWrapper<Children> implements Aggregate<Children>,Agg
 
     @Override
     public Children match(QueryChainWrapper<?, ?> queryChainWrapper) {
-        return custom(Aggregates.match(conditionHandler.queryCondition(queryChainWrapper.getCompareList())));
+        BasicDBObject basicDBObject = BuildCondition.buildQueryCondition(queryChainWrapper.getCompareList());
+        queryChainWrapper.getBasicDBObjectList().forEach(bson -> basicDBObject.putAll(bson.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry())));
+        return custom(Aggregates.match(basicDBObject));
     }
 
     @Override
@@ -883,7 +872,7 @@ public class LambdaAggregateWrapper<Children> implements Aggregate<Children>,Agg
     }
 
     private Children buildProject(List<Projection> projectionList){
-        return project(Aggregates.project(conditionHandler.projectionCondition(projectionList)));
+        return project(Aggregates.project(BuildCondition.buildProjection(projectionList)));
     }
 
     private Bson orderBy(final String fieldName, final Integer value){

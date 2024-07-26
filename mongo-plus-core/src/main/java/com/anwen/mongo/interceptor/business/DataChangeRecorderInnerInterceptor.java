@@ -1,5 +1,6 @@
 package com.anwen.mongo.interceptor.business;
 
+import com.anwen.mongo.cache.codec.MapCodecCache;
 import com.anwen.mongo.cache.global.DataSourceNameCache;
 import com.anwen.mongo.domain.MongoPlusException;
 import com.anwen.mongo.enums.ExecuteMethodEnum;
@@ -113,8 +114,8 @@ public class DataChangeRecorderInnerInterceptor implements Interceptor {
         operationResult.setOperation(ExecuteMethodEnum.UPDATE.name());
         List<String> dataList = new ArrayList<>();
         documentList.forEach(mutablePair -> {
-            String left = mutablePair.getRight().toBsonDocument().toString();
-            String right = mutablePair.getRight().toBsonDocument().toString();
+            String left = mutablePair.getRight().toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()).toString();
+            String right = mutablePair.getRight().toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()).toString();
             dataList.add("(left="+left+",right="+right+")");
         });
         operationResult.setChangedData(displayCompleteData ? dataList.toString() : String.valueOf(documentList.size()));
@@ -124,7 +125,7 @@ public class DataChangeRecorderInnerInterceptor implements Interceptor {
     private OperationResult processRemove(Object[] source) throws DataUpdateLimitationException {
         OperationResult operationResult = new OperationResult();
         Bson bson = (Bson) source[0];
-        BsonDocument bsonDocument = bson.toBsonDocument();
+        BsonDocument bsonDocument = bson.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry());
         bsonDocument.forEach((k, v) -> {
             if (v.isDocument()) {
                 BsonDocument document = v.asDocument();
@@ -163,7 +164,7 @@ public class DataChangeRecorderInnerInterceptor implements Interceptor {
                     UpdateManyModel<Document> updateManyModel = (UpdateManyModel<Document>) writeModel;
                     String updateManyModelString = "UpdateManyModel{"
                             + "filter=" + updateManyModel.getFilter()
-                            + ", update=" + (updateManyModel.getUpdate() != null ? updateManyModel.getUpdate().toBsonDocument().toString() : updateManyModel.getUpdatePipeline())
+                            + ", update=" + (updateManyModel.getUpdate() != null ? updateManyModel.getUpdate().toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry()).toString() : updateManyModel.getUpdatePipeline())
                             + ", options=" + updateManyModel.getUpdatePipeline()
                             + '}';
                     dataList.add(updateManyModelString);

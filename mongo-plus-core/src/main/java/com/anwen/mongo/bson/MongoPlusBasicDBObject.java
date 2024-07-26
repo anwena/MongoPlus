@@ -1,5 +1,6 @@
 package com.anwen.mongo.bson;
 
+import com.anwen.mongo.cache.codec.MapCodecCache;
 import com.anwen.mongo.support.SFunction;
 import com.mongodb.BasicDBObject;
 import org.bson.BsonDocument;
@@ -37,7 +38,7 @@ public class MongoPlusBasicDBObject extends BasicDBObject {
     }
 
     public void put(Bson bson){
-        BsonDocument bsonDocument = bson.toBsonDocument();
+        BsonDocument bsonDocument = bson.toBsonDocument(BsonDocument.class, MapCodecCache.getDefaultCodecRegistry());
         bsonDocument.forEach((k,v) -> {
             if (super.containsKey(k)){
                 ((BsonDocument) get(k)).putAll(v.asDocument());
