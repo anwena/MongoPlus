@@ -26,7 +26,10 @@ import com.anwen.mongo.manager.MongoPlusClient;
 import com.anwen.mongo.mapper.BaseMapper;
 import com.anwen.mongo.mapper.DefaultBaseMapperImpl;
 import com.anwen.mongo.mapper.MongoPlusMapMapper;
-import com.anwen.mongo.mapping.*;
+import com.anwen.mongo.mapping.FieldInformation;
+import com.anwen.mongo.mapping.MappingMongoConverter;
+import com.anwen.mongo.mapping.MongoConverter;
+import com.anwen.mongo.mapping.TypeInformation;
 import com.anwen.mongo.model.BaseProperty;
 import com.anwen.mongo.model.LogicDeleteResult;
 import com.anwen.mongo.model.LogicProperty;
@@ -345,7 +348,7 @@ public class Configuration {
      * @date 2024/3/19 18:39
      */
     public BaseMapper getBaseMapper() {
-        return new DefaultBaseMapperImpl(getMongoPlusClient(), new MappingMongoConverter(getMongoPlusClient(), new SimpleTypeHolder()));
+        return new DefaultBaseMapperImpl(getMongoPlusClient(), new MappingMongoConverter(getMongoPlusClient()));
     }
 
     public BaseMapper getBaseMapper(MongoConverter mongoConverter) {
@@ -353,7 +356,7 @@ public class Configuration {
     }
 
     public MongoPlusMapMapper getMongoPlusMapMapper() {
-        return new MongoPlusMapMapper(getMongoPlusClient(), new MappingMongoConverter(getMongoPlusClient(), new SimpleTypeHolder()));
+        return new MongoPlusMapMapper(getMongoPlusClient(), new MappingMongoConverter(getMongoPlusClient()));
     }
 
     public MongoPlusMapMapper getMongoPlusMapMapper(MongoConverter mongoConverter) {

@@ -3,6 +3,7 @@ package com.anwen.mongo.transactional;
 import com.anwen.mongo.annotation.transactional.MongoTransactional;
 import com.anwen.mongo.manager.MongoTransactionalManager;
 import com.anwen.mongo.toolkit.ArrayUtils;
+import com.anwen.mongo.toolkit.ClassTypeUtil;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -53,7 +54,7 @@ public class MongoTransactionalAspect {
             return false;
         }
         for (Class<? extends Throwable> eType : noRollBackList) {
-            if (eType.isAssignableFrom(eClass)) {
+            if (ClassTypeUtil.isTargetClass(eType,eClass)) {
                 MongoTransactionalManager.commitTransaction();
                 return true;
             }
@@ -69,7 +70,7 @@ public class MongoTransactionalAspect {
             return false;
         }
         for (Class<? extends Throwable> eType : rollBackList) {
-            if (eType.isAssignableFrom(eClass)) {
+            if (ClassTypeUtil.isTargetClass(eType,eClass)) {
                 MongoTransactionalManager.rollbackTransaction();
                 return true;
             }

@@ -1,6 +1,7 @@
 package com.anwen.mongo.toolkit;
 
 import com.anwen.mongo.cache.global.DataSourceNameCache;
+import com.anwen.mongo.cache.global.PropertyCache;
 import com.anwen.mongo.listener.BaseListener;
 import com.anwen.mongo.model.BaseProperty;
 import com.mongodb.ConnectionString;
@@ -78,7 +79,10 @@ public class MongoUtil {
         if (sslSettings != null){
             builder.applyToSslSettings(ssl -> ssl.applySettings(sslSettings));
         }
-        builder.applyConnectionString(new ConnectionString(new UrlJoint(baseProperty).jointMongoUrl())).commandListenerList(Collections.singletonList(new BaseListener()));
+        builder.applyConnectionString(new ConnectionString(new UrlJoint(baseProperty).jointMongoUrl()));
+        if (PropertyCache.log){
+            builder.commandListenerList(Collections.singletonList(new BaseListener()));
+        }
         return MongoClients.create(builder.build());
     }
 

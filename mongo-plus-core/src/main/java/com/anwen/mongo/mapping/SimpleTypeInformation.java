@@ -1,8 +1,9 @@
 package com.anwen.mongo.mapping;
 
-import com.anwen.mongo.cache.global.TypeInformationCache;
+import com.anwen.mongo.cache.global.SimpleCache;
 import com.anwen.mongo.domain.MongoPlusFieldException;
 import com.anwen.mongo.toolkit.ArrayUtils;
+import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.anwen.mongo.toolkit.CollUtil;
 
 import java.lang.annotation.Annotation;
@@ -43,8 +44,6 @@ public class SimpleTypeInformation<T> implements TypeInformation {
     */
     private final List<FieldInformation> fieldList = new ArrayList<>();
 
-    private final SimpleTypeHolder simpleTypeHolder = new SimpleTypeHolder();
-
     /**
      * 实例的某个注解的Field
      * @author JiaChaoYang
@@ -65,7 +64,7 @@ public class SimpleTypeInformation<T> implements TypeInformation {
 
     private static Class<?> getInstanceClass(Object instance){
         Class<?> instanceClass = instance.getClass();
-        if (instanceClass.isAnonymousClass()){
+        if (ClassTypeUtil.isAnonymousClass(instanceClass)){
             instanceClass = instanceClass.getSuperclass();
         }
         return instanceClass;
@@ -78,17 +77,17 @@ public class SimpleTypeInformation<T> implements TypeInformation {
 
     @Override
     public Boolean isMap() {
-        return Map.class.isAssignableFrom(clazz);
+        return ClassTypeUtil.isTargetClass(Map.class,clazz);
     }
 
     @Override
     public Boolean isCollection() {
-        return Collection.class.isAssignableFrom(clazz);
+        return ClassTypeUtil.isTargetClass(Collection.class,clazz);
     }
 
     @Override
     public Boolean isSimpleType() {
-        return simpleTypeHolder.isSimpleType(clazz);
+        return SimpleCache.getSimpleTypeHolder().isSimpleType(clazz);
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.anwen.mongo.mapping;
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.domain.MongoPlusFieldException;
+import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoIterable;
 import org.bson.Document;
@@ -209,7 +210,7 @@ public interface MongoConverter extends MongoWriter,EntityRead {
 
     @SuppressWarnings("unchecked")
     default  <T> T convertDocument(Document document, Class<T> clazz) {
-        if (clazz.isAssignableFrom(Map.class)) {
+        if (ClassTypeUtil.isTargetClass(Map.class,clazz)) {
             return (T) convertKeysToCamelCase(document);
         } else {
             return read(document, clazz);
@@ -222,7 +223,7 @@ public interface MongoConverter extends MongoWriter,EntityRead {
             return;
         }
         // Map类型不需要再做下边的操作 因为它们只针对实体类
-        if (Map.class.isAssignableFrom(sourceObj.getClass())){
+        if (ClassTypeUtil.isTargetClass(Map.class,sourceObj.getClass())){
             Map map = (Map) sourceObj;
             if (!map.containsKey(SqlOperationConstant._ID)){
                 map.put(SqlOperationConstant._ID, document.get(SqlOperationConstant._ID));

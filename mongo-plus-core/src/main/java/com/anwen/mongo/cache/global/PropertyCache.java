@@ -80,4 +80,10 @@ public class PropertyCache {
      */
     public static Boolean autoConvertObjectId = true;
 
+    /**
+     * 是否打印日志
+     * @date 2024/7/28 下午5:59
+     */
+    public static Boolean log = false;
+
 }

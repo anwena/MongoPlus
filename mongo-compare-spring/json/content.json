@@ -1,0 +1,233 @@
+{
+    "index": "t_spider_gat_log_20230622",
+    "type": "_doc",
+    "version": 1,
+    "score": null,
+    "source": {
+        "msg": "success",
+        "code": 0,
+        "responseTime": "2023-06-22T08:12:06.791Z",
+        "channel": "",
+        "responseJSON": {
+            "code": 0,
+            "createTime": "",
+            "itineraries": [
+                {
+                    "prices": [
+                        {
+                            "bookingCode": "T",
+                            "currency": "NOK",
+                            "fareFamilyType": "LowFare",
+                            "paxType": "ADT",
+                            "price": 2110,
+                            "seatCount": 9,
+                            "tax": 482
+                        },
+                        {
+                            "bookingCode": "T",
+                            "currency": "NOK",
+                            "fareFamilyType": "LowFare+",
+                            "paxType": "ADT",
+                            "price": 2560,
+                            "seatCount": 9,
+                            "tax": 482
+                        },
+                        {
+                            "bookingCode": "A",
+                            "currency": "NOK",
+                            "fareFamilyType": "Flex",
+                            "paxType": "ADT",
+                            "price": 5160,
+                            "seatCount": 9,
+                            "tax": 482
+                        }
+                    ],
+                    "segments": [
+                        {
+                            "airline": "DY",
+                            "arrAirport": "BGO",
+                            "arrTerminal": "",
+                            "arrTime": "202310011245",
+                            "codeShare": false,
+                            "direction": 1,
+                            "dptAirport": "LGW",
+                            "dptTerminal": "",
+                            "dptTime": "202310010950",
+                            "duration": 115,
+                            "equipment": "73H",
+                            "flightNo": "DY1317",
+                            "go": true,
+                            "operatingAirline": "",
+                            "operatingFlightNo": "",
+                            "returnMsg": false,
+                            "stopCities": ""
+                        },
+                        {
+                            "airline": "DY",
+                            "arrAirport": "BGY",
+                            "arrTerminal": "",
+                            "arrTime": "202310012035",
+                            "codeShare": false,
+                            "direction": 1,
+                            "dptAirport": "BGO",
+                            "dptTerminal": "",
+                            "dptTime": "202310011805",
+                            "duration": 150,
+                            "equipment": "73H",
+                            "flightNo": "DY1848",
+                            "go": true,
+                            "operatingAirline": "",
+                            "operatingFlightNo": "",
+                            "returnMsg": false,
+                            "stopCities": ""
+                        }
+                    ]
+                }
+            ],
+            "msg": "success"
+        },
+        "source": "SER",
+        "reqId": "GAT_SER_f6ebd7b8771647f393fcdc4e0fd77ced",
+        "vendorCode": "ADY",
+        "requestJSON": {
+            "application": "API",
+            "channel": "",
+            "condition": {
+                "adtCount": 2,
+                "arrAirports": [
+                    "BGY",
+                    "LIN",
+                    "MXP",
+                    "PMF"
+                ],
+                "arrCity": "MIL",
+                "chdCount": 0,
+                "dptAirports": [
+                    "LCY",
+                    "LGW",
+                    "LHR",
+                    "LTN",
+                    "SEN",
+                    "STN"
+                ],
+                "dptCity": "LON",
+                "dptDate": "2023-10-01",
+                "infCount": 0,
+                "rtnDate": "",
+                "singleTrip": true,
+                "tripType": 1
+            },
+            "realTime": false,
+            "region": "SG",
+            "requestId": "GAT_SER_f6ebd7b8771647f393fcdc4e0fd77ced",
+            "requestTime": "2023-6-22 16:12:6",
+            "scriptDirectory": "ady",
+            "source": "SER",
+            "useProxy": true,
+            "vendorCode": "ADY"
+        },
+        "requestTime": "2023-06-22T08:12:06.160Z",
+        "proxy": null,
+        "requestTimeEnd": null,
+        "application": "API",
+        "subOrderNumber": null,
+        "action": "GAT",
+        "requestTimeStart": null,
+        "airline": null,
+        "region": "SG",
+        "status": "COMPLETE"
+    },
+    "fields": {
+        "requestTime": [
+            "2023-06-22T08:12:06.160Z"
+        ],
+        "responseTime": [
+            "2023-06-22T08:12:06.791Z"
+        ]
+    },
+    "highlight": {
+        "responseJSON": [
+            {
+                "code": 0,
+                "createTime": "",
+                "itineraries": [
+                    {
+                        "prices": [
+                            {
+                                "bookingCode": "T",
+                                "currency": "NOK",
+                                "fareFamilyType": "LowFare",
+                                "paxType": "ADT",
+                                "@kibana-highlighted-field@price@/kibana-highlighted-field@": 2110,
+                                "seatCount": 9,
+                                "tax": 482
+                            },
+                            {
+                                "bookingCode": "T",
+                                "currency": "NOK",
+                                "fareFamilyType": "LowFare+",
+                                "paxType": "ADT",
+                                "@kibana-highlighted-field@price@/kibana-highlighted-field@": 2560,
+                                "seatCount": 9,
+                                "tax": 482
+                            },
+                            {
+                                "bookingCode": "A",
+                                "currency": "NOK",
+                                "fareFamilyType": "Flex",
+                                "paxType": "ADT",
+                                "@kibana-highlighted-field@price@/kibana-highlighted-field@": 5160,
+                                "seatCount": 9,
+                                "tax": 482
+                            }
+                        ],
+                        "segments": [
+                            {
+                                "airline": "DY",
+                                "arrAirport": "BGO",
+                                "arrTerminal": "",
+                                "arrTime": "202310011245",
+                                "codeShare": false,
+                                "direction": 1,
+                                "dptAirport": "LGW",
+                                "dptTerminal": "",
+                                "dptTime": "202310010950",
+                                "duration": 115,
+                                "equipment": "73H",
+                                "flightNo": "DY1317",
+                                "go": true,
+                                "operatingAirline": "",
+                                "operatingFlightNo": "",
+                                "returnMsg": false,
+                                "stopCities": ""
+                            },
+                            {
+                                "airline": "DY",
+                                "arrAirport": "BGY",
+                                "arrTerminal": "",
+                                "arrTime": "202310012035",
+                                "codeShare": false,
+                                "direction": 1,
+                                "dptAirport": "BGO",
+                                "dptTerminal": "",
+                                "dptTime": "202310011805",
+                                "duration": 150,
+                                "equipment": "73H",
+                                "flightNo": "DY1848",
+                                "go": true,
+                                "operatingAirline": "",
+                                "operatingFlightNo": "",
+                                "returnMsg": false,
+                                "stopCities": ""
+                            }
+                        ]
+                    }
+                ],
+                "msg": "success"
+            }
+        ]
+    },
+    "sort": [
+        "1687421526160"
+    ]
+}

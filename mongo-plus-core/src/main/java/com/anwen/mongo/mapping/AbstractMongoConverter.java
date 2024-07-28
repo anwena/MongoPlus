@@ -50,6 +50,8 @@ public abstract class AbstractMongoConverter implements MongoConverter {
         this.mongoPlusClient = mongoPlusClient;
     }
 
+    public final Map<Class<?>,Boolean> classEnumTypeMap = new HashMap<>();
+
     //定义添加自动填充字段
     private final AutoFillMetaObject insertFillAutoFillMetaObject = new AutoFillMetaObject();
     private final AutoFillMetaObject updateFillAutoFillMetaObject = new AutoFillMetaObject();
@@ -57,7 +59,7 @@ public abstract class AbstractMongoConverter implements MongoConverter {
     @Override
     public void writeBySave(Object sourceObj, Document document) {
         // Map类型不需要再做下边的操作 因为它们只针对实体类
-        if (Map.class.isAssignableFrom(sourceObj.getClass())){
+        if (ClassTypeUtil.isTargetClass(Map.class,sourceObj.getClass())){
             write((Map<?,?>) sourceObj,document);
             return;
         }
@@ -104,7 +106,7 @@ public abstract class AbstractMongoConverter implements MongoConverter {
     @Override
     public void writeByUpdate(Object sourceObj, Document document) {
         // Map类型不需要再做下边的操作 因为它们只针对实体类
-        if (Map.class.isAssignableFrom(sourceObj.getClass())){
+        if (ClassTypeUtil.isTargetClass(Map.class,sourceObj.getClass())){
             write((Map<?,?>) sourceObj,document);
             return;
         }
@@ -161,7 +163,7 @@ public abstract class AbstractMongoConverter implements MongoConverter {
         }
         //如果为空，则创建一个
         bson = bson != null ? bson : new Document();
-        if (Map.class.isAssignableFrom(sourceObj.getClass())){
+        if (ClassTypeUtil.isTargetClass(Map.class,sourceObj.getClass())){
             write((Map<?,?>) sourceObj,bson);
         } else {
             write(sourceObj, bson, TypeInformation.of(sourceObj));
@@ -175,11 +177,11 @@ public abstract class AbstractMongoConverter implements MongoConverter {
         if (document == null) {
             return null;
         }
-        if (clazz.isAssignableFrom(Document.class)) {
+        if (ClassTypeUtil.isTargetClass(Document.class,clazz)) {
             return (T) document;
-        } else if (clazz.isAssignableFrom(Map.class)) {
+        } else if (ClassTypeUtil.isTargetClass(Map.class,clazz)) {
             return (T) readInternal(document, new TypeReference<Map<String, Object>>() {});
-        } else if (clazz.isAssignableFrom(Collection.class)){
+        } else if (ClassTypeUtil.isTargetClass(Collection.class,clazz)){
             return (T) readInternal(document, new TypeReference<Collection<Object>>() {});
         }
         // 拿到class封装类
@@ -200,7 +202,7 @@ public abstract class AbstractMongoConverter implements MongoConverter {
             }
             CollectionField collectionField = fieldInformation.getCollectionField();
             Object resultObj = null;
-            if (collectionField != null && TypeHandler.class.isAssignableFrom(collectionField.typeHandler())){
+            if (collectionField != null && ClassTypeUtil.isTargetClass(TypeHandler.class,collectionField.typeHandler())){
                 TypeHandler typeHandler = (TypeHandler) ClassTypeUtil.getInstanceByClass(collectionField.typeHandler());
                 resultObj = typeHandler.getResult(obj);
             }
@@ -314,7 +316,7 @@ public abstract class AbstractMongoConverter implements MongoConverter {
             return BsonUtil.asCollection(value);
         }
 
-        return Enum.class.isAssignableFrom(value.getClass()) ? ((Enum<?>) value).name() : value;
+        return ClassTypeUtil.isTargetClass(Enum.class, value.getClass()) ? ((Enum<?>) value).name() : value;
     }
 
     /**
@@ -339,9 +341,21 @@ public abstract class AbstractMongoConverter implements MongoConverter {
     }
 
     protected ConversionStrategy<?> getConversionStrategy(Class<?> target){
-        if (Enum.class.isAssignableFrom(target)){
+        /*if (classEnumTypeMap.containsKey(target)) {
+            target = classEnumTypeMap.get(target) ? Enum.class : target;
+        } else if (ClassTypeUtil.isTargetClass(Enum.class,target)) {
+            classEnumTypeMap.put(target, true);
             target = Enum.class;
         }
+        return ConversionCache.getConversionStrategy(target);*/
+        // 使用 computeIfAbsent 来减少重复计算
+        Boolean isEnumType = classEnumTypeMap.computeIfAbsent(target, key -> ClassTypeUtil.isTargetClass(Enum.class, key));
+
+        if (isEnumType) {
+            target = Enum.class;
+        }
+
+        // 获取并返回转换策略
         return ConversionCache.getConversionStrategy(target);
     }
 

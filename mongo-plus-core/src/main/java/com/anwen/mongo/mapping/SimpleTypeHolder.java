@@ -1,19 +1,20 @@
 package com.anwen.mongo.mapping;
 
 import com.anwen.mongo.toolkit.Assert;
+import com.anwen.mongo.toolkit.ClassTypeUtil;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 简单容器，用于容纳一组被视为简单类型的类型
- * @author JiaChaoYang
- * @since Spring
- **/
+ */
 public class SimpleTypeHolder {
 
     private static final Set<Class<?>> DEFAULTS;
+
     static {
         Set<Class<?>> defaults = new HashSet<>();
         defaults.add(boolean.class);
@@ -50,9 +51,7 @@ public class SimpleTypeHolder {
         DEFAULTS = Collections.unmodifiableSet(defaults);
     }
 
-    public static final SimpleTypeHolder DEFAULT = new SimpleTypeHolder();
-
-    private volatile Map<Class<?>, Boolean> simpleTypes;
+    private final Map<Class<?>, Boolean> simpleTypes;
 
     /**
      * 创建一个包含默认类型的新｛@link SimpleTypeHolder｝。
@@ -68,13 +67,13 @@ public class SimpleTypeHolder {
      * 可以通过为{@code registerDefaults}传递{@literal false}来停用。
      *
      * @param customSimpleTypes 自定义简单类型
-     * @param registerDefaults 是否注册默认类型为简单类型
+     * @param registerDefaults  是否注册默认类型为简单类型
      */
     public SimpleTypeHolder(Set<? extends Class<?>> customSimpleTypes, boolean registerDefaults) {
 
         Assert.notNull(customSimpleTypes, "CustomSimpleTypes must not be null");
 
-        this.simpleTypes = new WeakHashMap<>(customSimpleTypes.size() + DEFAULTS.size());
+        this.simpleTypes = new ConcurrentHashMap<>(customSimpleTypes.size() + DEFAULTS.size());
 
         register(customSimpleTypes);
 
@@ -87,14 +86,14 @@ public class SimpleTypeHolder {
      * 复制构造函数以创建一个新的{@link SimpleTypeHolder}，它承载给定的其他自定义简单类型。
      *
      * @param customSimpleTypes 不得为{@literal null}
-     * @param source 不得为{@literal null}
+     * @param source            不得为{@literal null}
      */
     public SimpleTypeHolder(Set<? extends Class<?>> customSimpleTypes, SimpleTypeHolder source) {
 
         Assert.notNull(customSimpleTypes, "CustomSimpleTypes must not be null");
         Assert.notNull(source, "SourceTypeHolder must not be null");
 
-        this.simpleTypes = new WeakHashMap<>(customSimpleTypes.size() + source.simpleTypes.size());
+        this.simpleTypes = new ConcurrentHashMap<>(customSimpleTypes.size() + source.simpleTypes.size());
 
         register(customSimpleTypes);
         registerCachePositives(source.simpleTypes);
@@ -122,10 +121,9 @@ public class SimpleTypeHolder {
 
         Assert.notNull(type, "Type must not be null");
 
-        Map<Class<?>, Boolean> localSimpleTypes = this.simpleTypes;
-        Boolean isSimpleType = localSimpleTypes.get(type);
+        Boolean isSimpleType = this.simpleTypes.get(type);
 
-        if (Object.class.equals(type) || Enum.class.isAssignableFrom(type)) {
+        if (Object.class.equals(type) || ClassTypeUtil.isTargetClass(Enum.class,type)) {
             return true;
         }
 
@@ -135,21 +133,21 @@ public class SimpleTypeHolder {
 
         String typeName = type.getName();
 
-        if (typeName.startsWith("java.lang") || type.getName().startsWith("java.time") || typeName.equals("kotlin.Unit")) {
+        if (typeName.startsWith("java.lang") || typeName.startsWith("java.time") || typeName.equals("kotlin.Unit")) {
             return true;
         }
 
-        for (Class<?> simpleType : localSimpleTypes.keySet()) {
+/*        for (Class<?> simpleType : this.simpleTypes.keySet()) {
 
-            if (simpleType.isAssignableFrom(type)) {
+            if (ClassTypeUtil.isTargetClass(simpleType,type)) {
 
-                isSimpleType = localSimpleTypes.get(simpleType);
-                this.simpleTypes = put(localSimpleTypes, type, isSimpleType);
+                isSimpleType = this.simpleTypes.get(simpleType);
+                this.simpleTypes.put(type, isSimpleType);
                 return isSimpleType;
             }
-        }
+        }*/
 
-        this.simpleTypes = put(localSimpleTypes, type, false);
+        this.simpleTypes.put(type, false);
 
         return false;
     }
@@ -157,13 +155,4 @@ public class SimpleTypeHolder {
     private void register(Collection<? extends Class<?>> types) {
         types.forEach(customSimpleType -> this.simpleTypes.put(customSimpleType, true));
     }
-
-    private static Map<Class<?>, Boolean> put(Map<Class<?>, Boolean> simpleTypes, Class<?> type, boolean isSimpleType) {
-
-        Map<Class<?>, Boolean> copy = new WeakHashMap<>(simpleTypes);
-        copy.put(type, isSimpleType);
-
-        return copy;
-    }
-
 }

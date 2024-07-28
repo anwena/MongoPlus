@@ -6,6 +6,7 @@ import com.anwen.mongo.logging.Log;
 import com.anwen.mongo.logging.LogFactory;
 import com.anwen.mongo.manager.MongoTransactionalManager;
 import com.anwen.mongo.toolkit.ArrayUtils;
+import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.mongodb.client.MongoClient;
 import org.noear.solon.core.aspect.Interceptor;
 import org.noear.solon.core.aspect.Invocation;
@@ -62,7 +63,7 @@ public class MongoTransactionalAspect implements Interceptor {
             return false;
         }
         for (Class<? extends Throwable> eType : noRollBackList) {
-            if (eType.isAssignableFrom(eClass)) {
+            if (ClassTypeUtil.isTargetClass(eType,eClass)) {
                 MongoTransactionalManager.commitTransaction();
                 return true;
             }
@@ -78,7 +79,7 @@ public class MongoTransactionalAspect implements Interceptor {
             return false;
         }
         for (Class<? extends Throwable> eType : rollBackList) {
-            if (eType.isAssignableFrom(eClass)) {
+            if (ClassTypeUtil.isTargetClass(eType,eClass)) {
                 MongoTransactionalManager.rollbackTransaction();
                 return true;
             }

@@ -26,7 +26,7 @@ public class DesensitizationHandlerApply implements ReadHandler {
         Desensitization desensitization = (Desensitization) fieldInformation.getAnnotation(Desensitization.class);
         if (fieldInformation.isAnnotation(Desensitization.class)){
             Class<?> desensitizationClass = desensitization.desensitizationHandler();
-            if (desensitizationClass != Void.class && DesensitizationHandler.class.isAssignableFrom(desensitizationClass)){
+            if (desensitizationClass != Void.class && ClassTypeUtil.isTargetClass(DesensitizationHandler.class,desensitizationClass)){
                 DesensitizationHandler desensitizationHandler = (DesensitizationHandler) ClassTypeUtil.getInstanceByClass(desensitizationClass);
                 source = desensitizationHandler.desensitized(fieldInformation.getField(),
                         source, desensitization.startInclude(), desensitization.endExclude(), desensitization.type());

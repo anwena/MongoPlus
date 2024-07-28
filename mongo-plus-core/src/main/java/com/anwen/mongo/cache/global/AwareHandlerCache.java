@@ -1,6 +1,7 @@
 package com.anwen.mongo.cache.global;
 
 import com.anwen.mongo.aware.Aware;
+import com.anwen.mongo.toolkit.ClassTypeUtil;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -51,7 +52,7 @@ public class AwareHandlerCache<T extends Aware> {
 
         Class<?>[] interfaces = aware.getClass().getInterfaces();
         for (Class<?> anInterface : interfaces) {
-            if (Aware.class.isAssignableFrom(anInterface)) {
+            if (ClassTypeUtil.isTargetClass(Aware.class,anInterface)) {
                 List<T> handlers;
                 Object o = getInstance().handlerMap.get(anInterface);
                 if (Objects.nonNull(o)) {

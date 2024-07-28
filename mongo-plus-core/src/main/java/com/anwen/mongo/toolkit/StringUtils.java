@@ -841,7 +841,7 @@ public final class StringUtils {
      * @return true 为是 CharSequence 类型
      */
     public static boolean isCharSequence(Class<?> clazz) {
-        return clazz != null && CharSequence.class.isAssignableFrom(clazz);
+        return clazz != null && ClassTypeUtil.isTargetClass(CharSequence.class,clazz);
     }
 
     /**

@@ -38,7 +38,7 @@ public class CustomClassUtil {
             return false;
         }
         // 判断该类是否为集合类型。
-        if (Iterable.class.isAssignableFrom(clazz) || Map.class.isAssignableFrom(clazz)) {
+        if (ClassTypeUtil.isTargetClass(Iterable.class,clazz) || ClassTypeUtil.isTargetClass(Map.class,clazz)) {
             return false;
         }
         // 判断该类是否为抽象类。

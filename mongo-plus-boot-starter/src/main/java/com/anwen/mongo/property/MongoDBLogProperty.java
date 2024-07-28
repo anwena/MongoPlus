@@ -69,6 +69,7 @@ public class MongoDBLogProperty {
     }
 
     public void setLog(final Boolean log) {
+        PropertyCache.log = log;
         this.log = log;
     }
 

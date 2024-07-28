@@ -479,7 +479,7 @@ public class Assert {
      */
     public static void isAssignable(Class<?> superType,  Class<?> subType, String message) {
         notNull(superType, "Supertype to check against must not be null");
-        if (subType == null || !superType.isAssignableFrom(subType)) {
+        if (subType == null || !ClassTypeUtil.isTargetClass(superType,subType)) {
             assignableCheckFailed(superType, subType, message);
         }
     }
@@ -498,7 +498,7 @@ public class Assert {
      */
     public static void isAssignable(Class<?> superType,  Class<?> subType, Supplier<String> messageSupplier) {
         notNull(superType, "Supertype to check against must not be null");
-        if (subType == null || !superType.isAssignableFrom(subType)) {
+        if (subType == null || !ClassTypeUtil.isTargetClass(superType,subType)) {
             assignableCheckFailed(superType, subType, nullSafeGet(messageSupplier));
         }
     }

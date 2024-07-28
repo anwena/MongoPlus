@@ -5,6 +5,7 @@ import com.anwen.mongo.annotation.comm.FieldEncrypt;
 import com.anwen.mongo.cache.global.ConversionCache;
 import com.anwen.mongo.cache.global.HandlerCache;
 import com.anwen.mongo.cache.global.PropertyCache;
+import com.anwen.mongo.cache.global.SimpleCache;
 import com.anwen.mongo.domain.MongoPlusWriteException;
 import com.anwen.mongo.handlers.TypeHandler;
 import com.anwen.mongo.logging.Log;
@@ -43,16 +44,16 @@ public class MappingMongoConverter extends AbstractMongoConverter {
 
     private final Map<Type, Type> genericTypeCache = new ConcurrentHashMap<>();
 
-    public MappingMongoConverter(MongoPlusClient mongoPlusClient,SimpleTypeHolder simpleTypeHolder) {
+    public MappingMongoConverter(MongoPlusClient mongoPlusClient) {
         super(mongoPlusClient);
-        this.simpleTypeHolder = simpleTypeHolder;
+        this.simpleTypeHolder = SimpleCache.getSimpleTypeHolder();
         ignoreType.add(ObjectId.class);
         ignoreType.add(Binary.class);
     }
 
-    public MappingMongoConverter(MongoPlusClient mongoPlusClient, SimpleTypeHolder simpleTypeHolder,List<Class<?>> ignoreType){
+    public MappingMongoConverter(MongoPlusClient mongoPlusClient,List<Class<?>> ignoreType){
         super(mongoPlusClient);
-        this.simpleTypeHolder = simpleTypeHolder;
+        this.simpleTypeHolder = SimpleCache.getSimpleTypeHolder();
         this.ignoreType = ignoreType;
     }
 
@@ -85,7 +86,7 @@ public class MappingMongoConverter extends AbstractMongoConverter {
                 .forEach(fieldInformation -> {
                     CollectionField collectionField = fieldInformation.getCollectionField();
                     Object obj = null;
-                    if (collectionField != null && TypeHandler.class.isAssignableFrom(collectionField.typeHandler())) {
+                    if (collectionField != null && ClassTypeUtil.isTargetClass(TypeHandler.class,collectionField.typeHandler())) {
                         TypeHandler typeHandler = (TypeHandler)ClassTypeUtil.getInstanceByClass(collectionField.typeHandler());
                         obj = typeHandler.setParameter(fieldInformation.getName(),fieldInformation.getValue());
                     }
@@ -147,9 +148,9 @@ public class MappingMongoConverter extends AbstractMongoConverter {
             }
         } else if (sourceObj == null || simpleTypeHolder.isSimpleType(sourceObj.getClass())) {
             resultObj = getPotentiallyConvertedSimpleWrite(sourceObj);
-        } else if (Collection.class.isAssignableFrom(sourceObj.getClass()) || sourceObj.getClass().isArray()) {
+        } else if (ClassTypeUtil.isTargetClass(Collection.class,sourceObj.getClass()) || sourceObj.getClass().isArray()) {
             resultObj = writeCollectionInternal(BsonUtil.asCollection(sourceObj), new ArrayList<>());
-        } else if (Map.class.isAssignableFrom(sourceObj.getClass())) {
+        } else if (ClassTypeUtil.isTargetClass(Map.class,sourceObj.getClass())) {
             resultObj = writeMapInternal((Map<?, ?>) sourceObj,new Document());
         } else {
             resultObj = writeInternal(sourceObj,new Document());
@@ -213,9 +214,9 @@ public class MappingMongoConverter extends AbstractMongoConverter {
         ConversionStrategy<?> conversionStrategy = getConversionStrategy(clazz);
 
         try {
-            if (Collection.class.isAssignableFrom(clazz)) {
+            if (ClassTypeUtil.isTargetClass(Collection.class,clazz)) {
                 return handleCollectionType(sourceObj, typeReference, clazz, conversionStrategy);
-            } else if (Map.class.isAssignableFrom(clazz)) {
+            } else if (ClassTypeUtil.isTargetClass(Map.class,clazz)) {
                 return handleMapType(sourceObj, typeReference, clazz, conversionStrategy);
             } else {
                 return handleDefaultType(sourceObj, clazz, conversionStrategy);
@@ -261,6 +262,15 @@ public class MappingMongoConverter extends AbstractMongoConverter {
     }
 
     /**
+     * 获取type的泛型
+     * @author anwen
+     * @date 2024/5/6 下午9:19
+     */
+    public static Type getGenericTypeClass(ParameterizedType parameterizedType,int size){
+        return parameterizedType.getActualTypeArguments()[size];
+    }
+
+    /**
      * 集合单独处理
      * @author anwen
      * @date 2024/5/6 下午1:14
@@ -284,14 +294,14 @@ public class MappingMongoConverter extends AbstractMongoConverter {
         if (simpleTypeHolder.isSimpleType(metaClass)) {
             // 如果泛型类型是简单类型，则直接添加到集合中
             valueList.forEach(value -> collection.add(convertValue(value, metaClass)));
-        } else if (Collection.class.isAssignableFrom(metaClass)) {
+        } else if (ClassTypeUtil.isTargetClass(Collection.class,metaClass)) {
             // 如果泛型类型是集合类型，则递归处理
             // 获取集合的泛型类型
             Type collectionType = getGenericTypeClass((ParameterizedType) type, 0);
             Collection<?> collectionInstance = createCollectionInstance(metaClass);
             valueList.forEach(value -> convertCollection(collectionType, value, collectionInstance));
             collection.add(collectionInstance);
-        } else if (Map.class.isAssignableFrom(metaClass)){
+        } else if (ClassTypeUtil.isTargetClass(Map.class,metaClass)){
             valueList.forEach(value -> collection.add(convertMap(getGenericTypeClass((ParameterizedType) type, 1),value,createMapInstance(metaClass))));
         } else {
             valueList.forEach(value -> collection.add(readInternal((Document) value, metaClass)));
@@ -308,9 +318,9 @@ public class MappingMongoConverter extends AbstractMongoConverter {
         Class<?> rawClass = getRawClass(type);
         if (simpleTypeHolder.isSimpleType(rawClass)){
             document.forEach((k,v)-> map.put(k,convertValue(v,rawClass)));
-        } else if (Collection.class.isAssignableFrom(rawClass)){
+        } else if (ClassTypeUtil.isTargetClass(Collection.class,rawClass)){
             document.forEach((k,v) -> map.put(k,convertCollection(getGenericTypeClass((ParameterizedType) type, 0),v,createCollectionInstance(rawClass))));
-        } else if (Map.class.isAssignableFrom(rawClass)){
+        } else if (ClassTypeUtil.isTargetClass(Map.class,rawClass)){
             document.forEach((k,v) -> map.put(k,convertMap(getGenericTypeClass((ParameterizedType) type, 1),v,createMapInstance(rawClass))));
         } else {
             document.forEach((k,v) -> map.put(k,readInternal((Document) v, rawClass)));
@@ -355,15 +365,6 @@ public class MappingMongoConverter extends AbstractMongoConverter {
             map = (Map) ClassTypeUtil.getInstanceByClass(mapClass);
         }
         return map;
-    }
-
-    /**
-     * 获取type的泛型
-     * @author anwen
-     * @date 2024/5/6 下午9:19
-     */
-    public static Type getGenericTypeClass(ParameterizedType parameterizedType,int size){
-        return parameterizedType.getActualTypeArguments()[size];
     }
 
 }

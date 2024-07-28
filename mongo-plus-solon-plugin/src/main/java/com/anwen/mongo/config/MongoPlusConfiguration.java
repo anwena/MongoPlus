@@ -2,6 +2,7 @@ package com.anwen.mongo.config;
 
 import com.anwen.mongo.cache.global.DataSourceNameCache;
 import com.anwen.mongo.cache.global.MongoPlusClientCache;
+import com.anwen.mongo.cache.global.SimpleCache;
 import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.constant.DataSourceConstant;
 import com.anwen.mongo.factory.MongoClientFactory;
@@ -51,6 +52,9 @@ public class MongoPlusConfiguration {
 
     @Inject(value = "${mongo-plus.configuration}",required = false)
     private MongoDBConfigurationProperty mongoDBConfigurationProperty;
+
+    @Inject("${mongo-plus}")
+    private MongoDBLogProperty mongoDBLogProperty;
 
     /**
      * 将MongoClient注册为Bean
@@ -135,13 +139,15 @@ public class MongoPlusConfiguration {
     @Bean
     @Condition(onMissingBean = SimpleTypeHolder.class)
     public SimpleTypeHolder simpleTypeHolder() {
-        return new SimpleTypeHolder();
+        SimpleTypeHolder simpleTypeHolder = new SimpleTypeHolder();
+        SimpleCache.setSimpleTypeHolder(simpleTypeHolder);
+        return simpleTypeHolder;
     }
 
     @Bean
     @Condition(onMissingBean = MongoConverter.class)
-    public MongoConverter mongoConverter(MongoPlusClient mongoPlusClient,SimpleTypeHolder simpleTypeHolder) {
-        return new MappingMongoConverter(mongoPlusClient,simpleTypeHolder);
+    public MongoConverter mongoConverter(MongoPlusClient mongoPlusClient) {
+        return new MappingMongoConverter(mongoPlusClient);
     }
 
     @Bean("mongoTransactionalAspect")
@@ -153,7 +159,6 @@ public class MongoPlusConfiguration {
 
     @Bean
     public MongoPlusAutoConfiguration mongoPlusAutoConfiguration(@Inject BaseMapper baseMapper,
-                                                                 @Inject("${mongo-plus}") MongoDBLogProperty mongoDBLogProperty,
                                                                  @Inject(value = "${mongo-plus.configuration.logic}",required = false) MongoLogicDelProperty mongoLogicDelProperty){
         return new MongoPlusAutoConfiguration(baseMapper,mongoDBLogProperty,mongoDBCollectionProperty,mongoLogicDelProperty);
     }

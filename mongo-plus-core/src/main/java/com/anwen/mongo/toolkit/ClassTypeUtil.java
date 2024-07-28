@@ -34,6 +34,16 @@ public class ClassTypeUtil {
 
     private static final Map<Class<?>,Object> instanceCache = new HashMap<>();
 
+    private static final Map<Class<?>, ConcurrentHashMap<Class<?>, Boolean>> isTargetClassMap = new ConcurrentHashMap<>();
+
+    private static final Map<Class<?> , Boolean> isAnonymousClassMap = new ConcurrentHashMap<>();
+
+    static {
+        isTargetClassMap.put(Map.class, new ConcurrentHashMap<>());
+        isTargetClassMap.put(Collection.class, new ConcurrentHashMap<>());
+        isTargetClassMap.put(Enum.class, new ConcurrentHashMap<>());
+    }
+
     private ClassTypeUtil() {
     }
 
@@ -82,7 +92,7 @@ public class ClassTypeUtil {
         if (fieldType.isArray()) {
             // 如果字段类型为数组，获取数组元素类型并添加到列表中
             return fieldType.getComponentType();
-        } else if (Collection.class.isAssignableFrom(fieldType)) {
+        } else if (ClassTypeUtil.isTargetClass(Collection.class,fieldType)) {
             // 如果字段类型为集合，则获取集合元素的类型并添加到列表中
             Type genericType = field.getGenericType();
             if (genericType instanceof ParameterizedType) {
@@ -175,13 +185,13 @@ public class ClassTypeUtil {
                 continue;
             }
             try {
-                if (Map.class.isAssignableFrom(fieldType)){
+                if (ClassTypeUtil.isTargetClass(Map.class,fieldType)){
                     set.addAll(getMapClass((Map<?, ?>) field.get(entity)));
                 }
                 if (CustomClassUtil.isCustomObject(fieldType)){
                     set.addAll(getAllClass(field.get(entity)));
                 }
-                if (List.class.isAssignableFrom(fieldType)){
+                if (ClassTypeUtil.isTargetClass(List.class,fieldType)){
                     Class<?> listGenericType = ClassTypeUtil.getListGenericType(field);
                     if (Map.class.equals(listGenericType) || CustomClassUtil.isCustomObject(listGenericType)){
                         if (Map.class.equals(listGenericType)){
@@ -321,6 +331,18 @@ public class ClassTypeUtil {
             log.error("Failed to create " + clazz.getName() +", message: {}", e.getMessage(), e);
             throw new MongoPlusException("Failed to create " + clazz.getName());
         }
+    }
+
+    public static Boolean isTargetClass(Class<?> targetClazz, Class<?> sourceClazz) {
+        // 获取或初始化目标类的缓存映射
+        ConcurrentHashMap<Class<?>, Boolean> classBooleanMap = isTargetClassMap.computeIfAbsent(targetClazz, k -> new ConcurrentHashMap<>());
+
+        // 获取或计算源类是否是目标类的子类
+        return classBooleanMap.computeIfAbsent(sourceClazz, targetClazz::isAssignableFrom);
+    }
+
+    public static Boolean isAnonymousClass(Class<?> clazz){
+        return isAnonymousClassMap.computeIfAbsent(clazz, k -> clazz.isAnonymousClass());
     }
 
 }

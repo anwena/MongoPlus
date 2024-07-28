@@ -4,6 +4,7 @@ import com.anwen.mongo.aggregate.Aggregate;
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
+import com.anwen.mongo.conditions.query.QueryWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.mapping.MongoConverter;
 import com.anwen.mongo.mapping.TypeReference;
@@ -142,6 +143,17 @@ public interface BaseMapper extends Mapper {
     /**
      * 查询所有
      * @param clazz 操作的class
+     * @return {@link List <T>}
+     * @author anwen
+     * @date 2024/5/4 下午1:24
+     */
+    default <T> List<T> list(Class<T> clazz){
+        return list(clazz, clazz);
+    }
+
+    /**
+     * 查询所有
+     * @param clazz 操作的class
      * @param typeReference 返回的class
      * @return {@link List <T>}
      * @author anwen
@@ -158,6 +170,18 @@ public interface BaseMapper extends Mapper {
      * @date 2024/5/4 下午1:24
      */
     <T,R> List<R> list(QueryChainWrapper<T,?> queryChainWrapper, Class<T> clazz, Class<R> rClazz);
+
+    /**
+     * 根据条件查询
+     * @param queryChainWrapper 条件
+     * @param clazz class
+     * @return {@link List<T>}
+     * @author anwen
+     * @date 2024/5/4 下午1:24
+     */
+    default <T> List<T> list(QueryChainWrapper<T,?> queryChainWrapper, Class<T> clazz){
+        return list(queryChainWrapper, clazz, clazz);
+    }
 
     /**
      * 根据条件查询
@@ -187,6 +211,18 @@ public interface BaseMapper extends Mapper {
      * @author anwen
      * @date 2024/5/4 下午1:24
      */
+    default <T> List<T> aggregateList(AggregateChainWrapper<T, ?> queryChainWrapper, Class<T> clazz){
+        return aggregateList(queryChainWrapper, clazz, clazz);
+    }
+
+    /**
+     * 管道查询
+     * @param queryChainWrapper 管道构建
+     * @param clazz class
+     * @return {@link List<T>}
+     * @author anwen
+     * @date 2024/5/4 下午1:24
+     */
     <T,R> List<R> aggregateList(AggregateChainWrapper<T, ?> queryChainWrapper, Class<T> clazz, TypeReference<R> typeReference);
 
     /**
@@ -198,6 +234,18 @@ public interface BaseMapper extends Mapper {
      * @date 2024/5/4 下午1:24
      */
     <T,R> List<R> aggregateList(Aggregate<?> aggregate, Class<T> clazz, Class<R> rClazz);
+
+    /**
+     * 管道查询
+     * @param aggregate 管道构建
+     * @param clazz class
+     * @return {@link List<T>}
+     * @author anwen
+     * @date 2024/5/4 下午1:24
+     */
+    default <T> List<T> aggregateList(Aggregate<?> aggregate, Class<T> clazz){
+        return aggregateList(aggregate, clazz, clazz);
+    }
 
     /**
      * 管道查询
@@ -227,7 +275,43 @@ public interface BaseMapper extends Mapper {
      * @author anwen
      * @date 2024/5/4 下午1:24
      */
+    default <T> T one(QueryChainWrapper<T,?> queryChainWrapper,Class<T> clazz){
+        return one(queryChainWrapper, clazz, clazz);
+    }
+
+    /**
+     * 根据条件查询单个
+     * @param queryChainWrapper 条件
+     * @param clazz class
+     * @return {@link T}
+     * @author anwen
+     * @date 2024/5/4 下午1:24
+     */
     <T,R> R one(QueryChainWrapper<T,?> queryChainWrapper,Class<T> clazz,TypeReference<R> typeReference);
+
+    /**
+     * 分页查询
+     * @param pageNum 当前页
+     * @param pageSize 每页显示行数
+     * @param clazz class
+     * @return {@link PageResult <T>}
+     * @author anwen
+     * @date 2024/5/4 下午1:25
+     */
+    <T,R> PageResult<R> page(Integer pageNum, Integer pageSize, Class<T> clazz,Class<R> rClazz);
+
+    /**
+     * 分页查询
+     * @param pageNum 当前页
+     * @param pageSize 每页显示行数
+     * @param clazz class
+     * @return {@link PageResult <T>}
+     * @author anwen
+     * @date 2024/5/4 下午1:25
+     */
+    default <T> PageResult<T> page(Integer pageNum, Integer pageSize, Class<T> clazz){
+        return page(pageNum, pageSize, clazz, clazz);
+    }
 
     /**
      * 分页查询，如果queryWrapper有条件，查询会慢，因为需要重新进行count查询
@@ -255,6 +339,32 @@ public interface BaseMapper extends Mapper {
 
     /**
      * 分页查询，返回List，不进行count查询，比page查询效率高
+     * @param pageNum 当前页
+     * @param pageSize 每页显示行数
+     * @param clazz class
+     * @return {@link List<T>}
+     * @author anwen
+     * @date 2024/5/4 下午1:26
+     */
+    default <T,R> List<R> pageList(Integer pageNum, Integer pageSize, Class<T> clazz,Class<R> rClazz){
+        return pageList(new QueryWrapper<>(),pageNum, pageSize, clazz, rClazz);
+    }
+
+    /**
+     * 分页查询，返回List，不进行count查询，比page查询效率高
+     * @param pageNum 当前页
+     * @param pageSize 每页显示行数
+     * @param clazz class
+     * @return {@link List<T>}
+     * @author anwen
+     * @date 2024/5/4 下午1:26
+     */
+    default <T> List<T> pageList(Integer pageNum, Integer pageSize, Class<T> clazz){
+        return pageList(pageNum, pageSize, clazz, clazz);
+    }
+
+    /**
+     * 分页查询，返回List，不进行count查询，比page查询效率高
      * @param queryChainWrapper 条件
      * @param pageNum 当前页
      * @param pageSize 每页显示行数
@@ -276,6 +386,34 @@ public interface BaseMapper extends Mapper {
      * @date 2024/5/4 下午1:26
      */
     <T,R> List<R> pageList(QueryChainWrapper<T,?> queryChainWrapper, Integer pageNum, Integer pageSize, Class<T> clazz,TypeReference<R> typeReference);
+
+    /**
+     * 分页查询，查询最近n页的数据
+     * @param pageNum 当前页
+     * @param pageSize 每页显示行数
+     * @param recentPageNum 查询最近N页的数据
+     * @param clazz class
+     * @return {@link PageResult<T>}
+     * @author anwen
+     * @date 2024/5/4 下午1:30
+     */
+    default <T,R> PageResult<R> page(Integer pageNum, Integer pageSize, Integer recentPageNum, Class<T> clazz,Class<R> rClazz){
+        return page(new QueryWrapper<>(),pageNum, pageSize, recentPageNum, clazz, rClazz);
+    }
+
+    /**
+     * 分页查询，查询最近n页的数据
+     * @param pageNum 当前页
+     * @param pageSize 每页显示行数
+     * @param recentPageNum 查询最近N页的数据
+     * @param clazz class
+     * @return {@link PageResult<T>}
+     * @author anwen
+     * @date 2024/5/4 下午1:30
+     */
+    default <T> PageResult<T> page(Integer pageNum, Integer pageSize, Integer recentPageNum, Class<T> clazz){
+        return page(pageNum, pageSize, recentPageNum, clazz, clazz);
+    }
 
     /**
      * 分页查询，查询最近n页的数据
@@ -321,6 +459,18 @@ public interface BaseMapper extends Mapper {
      * @author anwen
      * @date 2024/5/4 下午1:31
      */
+    default <T> List<T> getByIds(Collection<? extends Serializable> ids, Class<T> clazz){
+        return getByIds(ids, clazz, clazz);
+    }
+
+    /**
+     * 根据多个id查询
+     * @param ids ids
+     * @param clazz class
+     * @return {@link java.util.List<T>}
+     * @author anwen
+     * @date 2024/5/4 下午1:31
+     */
     <T,R> List<R> getByIds(Collection<? extends Serializable> ids, Class<T> clazz,TypeReference<R> typeReference);
 
     /**
@@ -329,6 +479,15 @@ public interface BaseMapper extends Mapper {
      * @date 2024/5/4 下午1:31
      */
     <T,R> R getById(Serializable id,Class<T> clazz,Class<R> rClazz);
+
+    /**
+     * 根据id查询单个
+     * @author anwen
+     * @date 2024/5/4 下午1:31
+     */
+    default <T> T getById(Serializable id,Class<T> clazz){
+        return getById(id, clazz, clazz);
+    }
 
     /**
      * 根据id查询单个
@@ -355,6 +514,18 @@ public interface BaseMapper extends Mapper {
      * @author anwen
      * @date 2024/5/4 下午1:34
      */
+    default <T> List<T> queryCommand(String command,Class<T> clazz){
+        return queryCommand(command, clazz, clazz);
+    }
+
+    /**
+     * 根据传入命令进行查询
+     * @param command 命令，请传入mongo命令的find中完整的json
+     * @param clazz class
+     * @return {@link java.util.List<T>}
+     * @author anwen
+     * @date 2024/5/4 下午1:34
+     */
     <T,R> List<R> queryCommand(String command,Class<T> clazz,TypeReference<R> typeReference);
 
     /**
@@ -363,6 +534,15 @@ public interface BaseMapper extends Mapper {
      * @date 2024/5/4 下午1:34
      */
     <T,R> List<R> getByColumn(String column,Object value,Class<T> clazz,Class<R> rClazz);
+
+    /**
+     * 根据某列进行查询
+     * @author anwen
+     * @date 2024/5/4 下午1:34
+     */
+    default <T> List<T> getByColumn(String column,Object value,Class<T> clazz){
+        return getByColumn(column, value, clazz, clazz);
+    }
 
     /**
      * 根据某列进行查询

@@ -30,7 +30,6 @@ import com.anwen.mongo.strategy.conversion.ConversionStrategy;
 import com.anwen.mongo.strategy.mapping.MappingStrategy;
 import com.anwen.mongo.toolkit.CollUtil;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 
 import java.lang.reflect.ParameterizedType;
@@ -46,7 +45,6 @@ import java.util.stream.Collectors;
  *
  * @author JiaChaoYang
  **/
-@EnableConfigurationProperties(MongoDBLogProperty.class)
 public class MongoPlusAutoConfiguration implements InitializingBean {
 
     private final ApplicationContext applicationContext;

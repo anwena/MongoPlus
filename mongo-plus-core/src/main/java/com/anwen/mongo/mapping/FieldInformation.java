@@ -61,6 +61,4 @@ public interface FieldInformation {
 
     Type getGenericType();
 
-    void setGenericType(Type type);
-
 }

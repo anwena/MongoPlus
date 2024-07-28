@@ -2,6 +2,7 @@ package com.anwen.mongo.config;
 
 import com.anwen.mongo.cache.global.DataSourceNameCache;
 import com.anwen.mongo.cache.global.MongoPlusClientCache;
+import com.anwen.mongo.cache.global.SimpleCache;
 import com.anwen.mongo.conn.CollectionManager;
 import com.anwen.mongo.constant.DataSourceConstant;
 import com.anwen.mongo.datasource.MongoDataSourceAspect;
@@ -18,6 +19,7 @@ import com.anwen.mongo.mapping.SimpleTypeHolder;
 import com.anwen.mongo.property.MongoDBCollectionProperty;
 import com.anwen.mongo.property.MongoDBConfigurationProperty;
 import com.anwen.mongo.property.MongoDBConnectProperty;
+import com.anwen.mongo.property.MongoDBLogProperty;
 import com.anwen.mongo.tenant.TenantAspect;
 import com.anwen.mongo.toolkit.CollUtil;
 import com.anwen.mongo.transactional.MongoTransactionalAspect;
@@ -37,16 +39,19 @@ import static com.anwen.mongo.toolkit.MongoUtil.getMongo;
  * 连接配置
  * @since 2023-02-09 14:27
  **/
-@EnableConfigurationProperties(value = {MongoDBConnectProperty.class, MongoDBCollectionProperty.class, MongoDBConfigurationProperty.class})
+@EnableConfigurationProperties(value = {MongoDBConnectProperty.class, MongoDBCollectionProperty.class, MongoDBConfigurationProperty.class, MongoDBLogProperty.class})
 public class MongoPlusConfiguration {
 
     private final MongoDBConnectProperty mongoDBConnectProperty;
 
     private final MongoDBConfigurationProperty mongoDBConfigurationProperty;
+    protected final MongoDBLogProperty mongoDBLogProperty;
 
-    public MongoPlusConfiguration(MongoDBConnectProperty mongodbConnectProperty, MongoDBConfigurationProperty mongodbConfigurationProperty) {
+
+    public MongoPlusConfiguration(MongoDBConnectProperty mongodbConnectProperty, MongoDBConfigurationProperty mongodbConfigurationProperty, MongoDBLogProperty mongoDBLogProperty) {
         this.mongoDBConnectProperty = mongodbConnectProperty;
         this.mongoDBConfigurationProperty = mongodbConfigurationProperty;
+        this.mongoDBLogProperty = mongoDBLogProperty;
     }
 
     /**
@@ -143,21 +148,22 @@ public class MongoPlusConfiguration {
     @Bean
     @ConditionalOnMissingBean(SimpleTypeHolder.class)
     public SimpleTypeHolder simpleTypeHolder(){
-        return new SimpleTypeHolder();
+        SimpleTypeHolder simpleTypeHolder = new SimpleTypeHolder();
+        SimpleCache.setSimpleTypeHolder(simpleTypeHolder);
+        return simpleTypeHolder;
     }
 
     /**
      * 注册mongo转换器
      * @param mongoPlusClient MongoPlusClient
-     * @param simpleTypeHolder 简单类型
      * @return {@link com.anwen.mongo.mapping.MongoConverter}
      * @author anwen
      * @date 2024/5/27 下午11:17
      */
     @Bean
     @ConditionalOnMissingBean(MongoConverter.class)
-    public MongoConverter mongoConverter(MongoPlusClient mongoPlusClient,SimpleTypeHolder simpleTypeHolder){
-        return new MappingMongoConverter(mongoPlusClient,simpleTypeHolder);
+    public MongoConverter mongoConverter(MongoPlusClient mongoPlusClient){
+        return new MappingMongoConverter(mongoPlusClient);
     }
 
     /**

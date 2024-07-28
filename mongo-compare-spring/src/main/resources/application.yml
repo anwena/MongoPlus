@@ -1,0 +1,16 @@
+server:
+  port: 9527
+
+mongo-plus:
+  data:
+    mongodb:
+      database: mongo-compare
+      host: 127.0.0.1
+      port: 27017
+
+spring:
+  data:
+    mongodb:
+      host: 127.0.0.1
+      port: 27017
+      database: spring-data-compare

@@ -2,10 +2,13 @@ package com.anwen.mongo.mapping;
 
 import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.annotation.collection.CollectionField;
+import com.anwen.mongo.cache.global.FieldCache;
 import com.anwen.mongo.cache.global.PropertyCache;
+import com.anwen.mongo.cache.global.SimpleCache;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.domain.MongoPlusFieldException;
 import com.anwen.mongo.toolkit.ArrayUtils;
+import com.anwen.mongo.toolkit.ClassTypeUtil;
 import com.anwen.mongo.toolkit.StringUtils;
 
 import java.lang.annotation.Annotation;
@@ -21,7 +24,6 @@ import java.util.Map;
  **/
 public class SimpleFieldInformation<T> implements FieldInformation {
 
-    private final SimpleTypeHolder simpleTypeHolder = new SimpleTypeHolder();
 
     private Object value;
 
@@ -43,8 +45,6 @@ public class SimpleFieldInformation<T> implements FieldInformation {
 
     private Type[] types;
 
-    private Type genericType;
-
     private String camelCaseName;
 
     @Override
@@ -60,7 +60,7 @@ public class SimpleFieldInformation<T> implements FieldInformation {
     public Type[] getType() {
         if (ArrayUtils.isEmpty(types)) {
             try {
-                types = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();
+                types = ((ParameterizedType) getGenericType()).getActualTypeArguments();
             }catch (Exception ignored){
             }
         }
@@ -121,13 +121,13 @@ public class SimpleFieldInformation<T> implements FieldInformation {
 
     @Override
     public boolean isMap(){
-        return Map.class.isAssignableFrom(typeClass);
+        return ClassTypeUtil.isTargetClass(Map.class,typeClass);
     }
 
     @Override
     public Class<?> mapValueType(){
         if (isMap() && this.mapValueType == null) {
-            Type[] typeArguments = ((ParameterizedType) field.getGenericType()).getActualTypeArguments();
+            Type[] typeArguments = ((ParameterizedType) getGenericType()).getActualTypeArguments();
             this.mapValueType = (Class<?>) typeArguments[1];
         }
         return this.mapValueType;
@@ -136,7 +136,7 @@ public class SimpleFieldInformation<T> implements FieldInformation {
     @Override
     public Class<?> collectionValueType() {
         if (isCollection() && this.collectionValueType == null){
-            Type genericType = field.getGenericType();
+            Type genericType = getGenericType();
             if (genericType instanceof ParameterizedType) {
                 ParameterizedType parameterizedType = (ParameterizedType) genericType;
                 Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
@@ -152,12 +152,12 @@ public class SimpleFieldInformation<T> implements FieldInformation {
     public boolean isCollection(){
         return typeClass.isArray() //
                 || Iterable.class.equals(typeClass) //
-                || Collection.class.isAssignableFrom(typeClass);
+                || ClassTypeUtil.isTargetClass(Collection.class,typeClass);
     }
 
     @Override
     public boolean isSimpleType(){
-        return simpleTypeHolder.isSimpleType(typeClass);
+        return SimpleCache.getSimpleTypeHolder().isSimpleType(typeClass);
     }
 
     @Override
@@ -222,13 +222,13 @@ public class SimpleFieldInformation<T> implements FieldInformation {
 
     @Override
     public CollectionField getCollectionField() {
-        if (this.collectionField == null){
+        if (FieldCache.getCollectionField(field) == null){
             CollectionField collectionField = field.getAnnotation(CollectionField.class);
             if (collectionField != null) {
-                this.collectionField = collectionField;
+                FieldCache.setCollectionFieldMapCache(field,collectionField);
             }
         }
-        return this.collectionField;
+        return FieldCache.getCollectionField(field);
     }
 
     @Override
@@ -243,14 +243,10 @@ public class SimpleFieldInformation<T> implements FieldInformation {
 
     @Override
     public Type getGenericType() {
-        if (genericType == null) {
-            genericType = field.getGenericType();
+        if (FieldCache.getGenericType(field) == null){
+            FieldCache.setGenericTypeMapCache(field,field.getGenericType());
         }
-        return genericType;
-    }
-
-    public void setGenericType(Type genericType) {
-        this.genericType = genericType;
+        return FieldCache.getGenericType(field);
     }
 
 }

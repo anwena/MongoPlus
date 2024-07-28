@@ -6,6 +6,7 @@ import com.anwen.mongo.aware.impl.NamespaceAware;
 import com.anwen.mongo.conditions.aggregate.AggregateChainWrapper;
 import com.anwen.mongo.conditions.interfaces.condition.CompareCondition;
 import com.anwen.mongo.conditions.query.QueryChainWrapper;
+import com.anwen.mongo.conditions.query.QueryWrapper;
 import com.anwen.mongo.conditions.update.UpdateChainWrapper;
 import com.anwen.mongo.execute.ExecutorFactory;
 import com.anwen.mongo.manager.MongoPlusClient;
@@ -141,6 +142,11 @@ public class DefaultBaseMapperImpl extends AbstractBaseMapper {
     public <T, R> R one(QueryChainWrapper<T, ?> queryChainWrapper, Class<T> clazz, TypeReference<R> typeReference) {
         MutablePair<String, String> namespace = getNamespace(clazz);
         return one(namespace.left, namespace.right, queryChainWrapper, typeReference);
+    }
+
+    @Override
+    public <T, R> PageResult<R> page(Integer pageNum, Integer pageSize, Class<T> clazz, Class<R> rClazz) {
+        return page(new QueryWrapper<>(),pageNum,pageSize,clazz,rClazz);
     }
 
     @Override
