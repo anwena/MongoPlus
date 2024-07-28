@@ -424,7 +424,7 @@ public class Configuration {
             FieldInformation annotationField = typeInformation.getAnnotationField(CollectionLogic.class);
             // 优先使用每个对象自定义规则
             if (Objects.nonNull(annotationField)) {
-                CollectionLogic annotation = (CollectionLogic) annotationField.getAnnotation(CollectionLogic.class);
+                CollectionLogic annotation = annotationField.getAnnotation(CollectionLogic.class);
                 if (annotation.close()) {
                     continue;
                 }

@@ -20,9 +20,9 @@ public class FieldEncryptApply implements ReadHandler {
 
     @Override
     public Object read(FieldInformation fieldInformation, Object source) {
-        FieldEncrypt fieldEncrypt = (FieldEncrypt) fieldInformation.getAnnotation(FieldEncrypt.class);
+        FieldEncrypt fieldEncrypt = fieldInformation.getAnnotation(FieldEncrypt.class);
         if (fieldEncrypt != null && fieldEncrypt.findDecrypt()){
-            source = EncryptorUtil.decrypt((FieldEncrypt) fieldInformation.getAnnotation(FieldEncrypt.class),source);
+            source = EncryptorUtil.decrypt(fieldInformation.getAnnotation(FieldEncrypt.class),source);
         }
         return source;
     }

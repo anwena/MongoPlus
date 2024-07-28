@@ -171,6 +171,11 @@ public class SimpleTypeInformation<T> implements TypeInformation {
         return getAnnotationField(annotationClass,nullMessage).getValue();
     }
 
+    @Override
+    public Object getAnnotationFieldValue(Class<? extends Annotation> annotationClass){
+        return getAnnotationField(annotationClass).getValue();
+    }
+
     private void getSupperFields(Class<?> clazz){
         if (clazz != null && !clazz.equals(Object.class)){
             Arrays.asList(clazz.getDeclaredFields()).forEach(field -> {

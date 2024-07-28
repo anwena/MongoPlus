@@ -2,12 +2,16 @@ package com.anwen.mongo.config;
 
 import com.anwen.mongo.cache.global.*;
 import com.anwen.mongo.domain.MongoPlusConvertException;
+import com.anwen.mongo.handlers.CollectionNameHandler;
 import com.anwen.mongo.handlers.DocumentHandler;
 import com.anwen.mongo.handlers.MetaObjectHandler;
+import com.anwen.mongo.handlers.TenantHandler;
 import com.anwen.mongo.handlers.collection.AnnotationOperate;
 import com.anwen.mongo.incrementer.IdentifierGenerator;
 import com.anwen.mongo.incrementer.id.IdWorker;
 import com.anwen.mongo.interceptor.Interceptor;
+import com.anwen.mongo.interceptor.business.DynamicCollectionNameInterceptor;
+import com.anwen.mongo.interceptor.business.TenantInterceptor;
 import com.anwen.mongo.listener.Listener;
 import com.anwen.mongo.listener.business.BlockAttackInnerListener;
 import com.anwen.mongo.listener.business.LogListener;
@@ -229,6 +233,36 @@ public class MongoPlusAutoConfiguration {
         try {
             IdWorker.setIdentifierGenerator(context.getBean(IdentifierGenerator.class));
         } catch (Exception ignored){}
+    }
+
+    /**
+     * 多租户拦截器
+     * @author anwen
+     * @date 2024/6/27 下午12:44
+     */
+    private void setTenantHandler(AppContext context) {
+        TenantHandler tenantHandler = null;
+        try {
+            tenantHandler = context.getBean(TenantHandler.class);
+        } catch (Exception ignored){}
+        if (tenantHandler != null) {
+            InterceptorCache.interceptors.add(new TenantInterceptor(tenantHandler));
+        }
+    }
+
+    /**
+     * 动态集合名拦截器
+     * @author anwen
+     * @date 2024/6/27 下午3:47
+     */
+    private void setDynamicCollectionHandler(AppContext context){
+        CollectionNameHandler collectionNameHandler = null;
+        try {
+            collectionNameHandler = context.getBean(CollectionNameHandler.class);
+        } catch (Exception ignored){}
+        if (collectionNameHandler != null) {
+            InterceptorCache.interceptors.add(new DynamicCollectionNameInterceptor(collectionNameHandler, baseMapper.getMongoPlusClient()));
+        }
     }
 
     /**

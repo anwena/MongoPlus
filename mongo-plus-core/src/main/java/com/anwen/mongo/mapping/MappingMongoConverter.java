@@ -95,7 +95,7 @@ public class MappingMongoConverter extends AbstractMongoConverter {
                         fieldName = StringUtils.camelToUnderline(fieldName);
                     }
                     if (fieldInformation.isAnnotation(FieldEncrypt.class)){
-                        obj = EncryptorUtil.encrypt((FieldEncrypt) fieldInformation.getAnnotation(FieldEncrypt.class),fieldInformation.getValue());
+                        obj = EncryptorUtil.encrypt(fieldInformation.getAnnotation(FieldEncrypt.class),fieldInformation.getValue());
                     }
                     if (ignoreType.contains(fieldInformation.getTypeClass())){
                         obj = fieldInformation.getValue();

@@ -1,6 +1,7 @@
 package com.anwen.mongo.model;
 
 import com.anwen.mongo.bson.MongoPlusDocument;
+import com.anwen.mongo.mapping.TypeInformation;
 import com.anwen.mongo.support.SFunction;
 import org.bson.Document;
 
@@ -22,6 +23,12 @@ public class AutoFillMetaObject {
      * @date 2024/6/4 下午9:43
      */
     private final MongoPlusDocument autoFillDocument;
+
+    /**
+     * 原始对象信息
+     * @date 2024/7/29 上午12:14
+     */
+    private TypeInformation targetObject;
 
     public AutoFillMetaObject() {
         this.document = new MongoPlusDocument();
@@ -48,13 +55,24 @@ public class AutoFillMetaObject {
         return autoFillDocument;
     }
 
+    /**
+     * 获取需要自动填充的字段
+     * @author anwen
+     * @date 2024/7/29 上午12:17
+     */
     public MongoPlusDocument getDocument() {
         return document;
     }
 
+    /**
+     * 获取所有自动填充过的字段，并清空
+     * @author anwen
+     * @date 2024/7/29 上午12:17
+     */
     public void getAllFillFieldAndClear(Document document){
         document.putAll(autoFillDocument);
-        autoFillDocument.clear();
+        this.autoFillDocument.clear();
+        this.targetObject = null;
     }
 
     /**
@@ -68,7 +86,7 @@ public class AutoFillMetaObject {
     }
 
     /**
-     * 设置自动填充内容
+     * 设置自动填充内容，如果字段不存在，则不填充
      * @param column 列名
      * @param value 值
      * @author anwen
@@ -80,8 +98,15 @@ public class AutoFillMetaObject {
         }
     }
 
+    /**
+     * 设置自动填充内容，强制填充
+     * @param column 列明
+     * @param value 值
+     * @author anwen
+     * @date 2024/7/29 上午12:19
+     */
     public <T,R> void forceFillValue(SFunction<T,R> column,Object value){
-
+        autoFillDocument.put(column, value);
     }
 
     /**
@@ -95,6 +120,17 @@ public class AutoFillMetaObject {
         if (metaObjectExist(column)) {
             autoFillDocument.put(column, value);
         }
+    }
+
+    /**
+     * 设置自动填充内容，强制填充
+     * @param column 列明
+     * @param value 值
+     * @author anwen
+     * @date 2024/7/29 上午12:19
+     */
+    public void forceFillValue(String column,Object value){
+        autoFillDocument.put(column, value);
     }
 
     /**
@@ -141,4 +177,22 @@ public class AutoFillMetaObject {
         return autoFillDocument.get(column);
     }
 
+    /**
+     * 获取原始对象信息
+     * @author anwen
+     * @date 2024/7/29 上午12:14
+     */
+    public TypeInformation getTargetObject() {
+        return targetObject;
+    }
+
+    /**
+     * 设置原始对象信息
+     * @param targetObject 对象
+     * @author anwen
+     * @date 2024/7/29 上午12:14
+     */
+    public void setTargetObject(TypeInformation targetObject) {
+        this.targetObject = targetObject;
+    }
 }

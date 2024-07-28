@@ -232,7 +232,7 @@ public class SimpleFieldInformation<T> implements FieldInformation {
     }
 
     @Override
-    public Annotation getAnnotation(Class<? extends Annotation> annotationClass){
+    public <T extends Annotation> T getAnnotation(Class<T> annotationClass){
         return getField().getAnnotation(annotationClass);
     }
 

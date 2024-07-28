@@ -91,6 +91,7 @@ public abstract class AbstractMongoConverter implements MongoConverter {
         }
         //如果存在元对象处理器，且插入或更新字段不为空，则获取自动填充字段
         if (HandlerCache.metaObjectHandler != null && !insertFillAutoFillMetaObject.isEmpty()){
+            insertFillAutoFillMetaObject.setTargetObject(typeInformation);
             HandlerCache.metaObjectHandler.insertFill(insertFillAutoFillMetaObject);
         }
         //映射到Document
@@ -124,6 +125,7 @@ public abstract class AbstractMongoConverter implements MongoConverter {
         }
         //如果存在元对象处理器，且插入或更新字段不为空，则获取自动填充字段
         if (HandlerCache.metaObjectHandler != null && !updateFillAutoFillMetaObject.isEmpty()){
+            updateFillAutoFillMetaObject.setTargetObject(typeInformation);
             HandlerCache.metaObjectHandler.updateFill(updateFillAutoFillMetaObject);
         }
         //映射到Document

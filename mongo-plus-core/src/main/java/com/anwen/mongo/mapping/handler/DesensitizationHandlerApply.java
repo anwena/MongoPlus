@@ -23,7 +23,7 @@ public class DesensitizationHandlerApply implements ReadHandler {
 
     @Override
     public Object read(FieldInformation fieldInformation, Object source) {
-        Desensitization desensitization = (Desensitization) fieldInformation.getAnnotation(Desensitization.class);
+        Desensitization desensitization = fieldInformation.getAnnotation(Desensitization.class);
         if (fieldInformation.isAnnotation(Desensitization.class)){
             Class<?> desensitizationClass = desensitization.desensitizationHandler();
             if (desensitizationClass != Void.class && ClassTypeUtil.isTargetClass(DesensitizationHandler.class,desensitizationClass)){
