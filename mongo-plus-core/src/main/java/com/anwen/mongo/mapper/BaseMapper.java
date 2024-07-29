@@ -179,8 +179,9 @@ public interface BaseMapper extends Mapper {
      * @author anwen
      * @date 2024/5/4 下午1:24
      */
-    default <T> List<T> list(QueryChainWrapper<T,?> queryChainWrapper, Class<T> clazz){
-        return list(queryChainWrapper, clazz, clazz);
+    @SuppressWarnings("unchecked")
+    default <T,R> List<R> list(QueryChainWrapper<T,?> queryChainWrapper, Class<R> clazz){
+        return list(queryChainWrapper, (Class<T>) clazz, clazz);
     }
 
     /**
@@ -211,8 +212,9 @@ public interface BaseMapper extends Mapper {
      * @author anwen
      * @date 2024/5/4 下午1:24
      */
-    default <T> List<T> aggregateList(AggregateChainWrapper<T, ?> queryChainWrapper, Class<T> clazz){
-        return aggregateList(queryChainWrapper, clazz, clazz);
+    @SuppressWarnings("unchecked")
+    default <T,R> List<R> aggregateList(AggregateChainWrapper<T, ?> queryChainWrapper, Class<R> clazz){
+        return aggregateList(queryChainWrapper, (Class<T>)clazz, clazz);
     }
 
     /**
@@ -275,8 +277,9 @@ public interface BaseMapper extends Mapper {
      * @author anwen
      * @date 2024/5/4 下午1:24
      */
-    default <T> T one(QueryChainWrapper<T,?> queryChainWrapper,Class<T> clazz){
-        return one(queryChainWrapper, clazz, clazz);
+    @SuppressWarnings("unchecked")
+    default <T,R> R one(QueryChainWrapper<T,?> queryChainWrapper,Class<R> clazz){
+        return one(queryChainWrapper,(Class<T>) clazz, clazz);
     }
 
     /**

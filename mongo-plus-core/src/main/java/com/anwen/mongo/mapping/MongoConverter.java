@@ -4,6 +4,7 @@ import com.anwen.mongo.annotation.ID;
 import com.anwen.mongo.constant.SqlOperationConstant;
 import com.anwen.mongo.domain.MongoPlusFieldException;
 import com.anwen.mongo.toolkit.ClassTypeUtil;
+import com.anwen.mongo.toolkit.CollUtil;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoIterable;
 import org.bson.Document;
@@ -151,15 +152,9 @@ public interface MongoConverter extends MongoWriter,EntityRead {
      * @date 2024/5/28 下午8:37
      */
     default <T> List<T> read(MongoIterable<Document> findIterable, Class<T> clazz) {
-        List<T> resultList = new ArrayList<>();
-        try (MongoCursor<Document> mongoCursor = findIterable.iterator()) {
-            while (mongoCursor.hasNext()) {
-                Document document = mongoCursor.next();
-                T convertedDocument = convertDocument(document, clazz);
-                resultList.add(convertedDocument);
-            }
-        }
-        return resultList;
+        return new ArrayList<T>(){{
+            findIterable.forEach(document -> add(convertDocument(document,clazz)));
+        }};
     }
 
     /**
@@ -168,15 +163,9 @@ public interface MongoConverter extends MongoWriter,EntityRead {
      * @date 2024/5/28 下午8:37
      */
     default <T> List<T> read(MongoIterable<Document> findIterable, TypeReference<T> typeReference){
-        List<T> resultList = new ArrayList<>();
-        try (MongoCursor<Document> mongoCursor = findIterable.iterator()) {
-            while (mongoCursor.hasNext()) {
-                Document document = mongoCursor.next();
-                T convertedDocument = read(document, typeReference);
-                resultList.add(convertedDocument);
-            }
-        }
-        return resultList;
+        return new ArrayList<T>(){{
+            findIterable.forEach(document -> add(read(document, typeReference)));
+        }};
     }
 
     /**
@@ -186,10 +175,9 @@ public interface MongoConverter extends MongoWriter,EntityRead {
      */
     @SuppressWarnings("unchecked")
     default <T> T readDocument(MongoIterable<Document> findIterable,Class<?> clazz){
-        try (MongoCursor<Document> mongoCursor = findIterable.iterator()) {
-            if (mongoCursor.hasNext()){
-                return (T) convertDocument(mongoCursor.next(), clazz);
-            }
+        Document document = findIterable.first();
+        if (document != null){
+            return (T) convertDocument(document, clazz);
         }
         return null;
     }
@@ -200,10 +188,9 @@ public interface MongoConverter extends MongoWriter,EntityRead {
      * @date 2024/5/28 下午8:37
      */
     default <T> T readDocument(MongoIterable<Document> findIterable,TypeReference<T> typeReference){
-        try (MongoCursor<Document> mongoCursor = findIterable.iterator()) {
-            if (mongoCursor.hasNext()){
-                return read(mongoCursor.next(), typeReference);
-            }
+        Document document = findIterable.first();
+        if (document != null){
+            return read(document, typeReference);
         }
         return null;
     }

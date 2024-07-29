@@ -22,8 +22,11 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
+ * MongoPlus-MongoTemplate查询效率对比测试类
  * @author anwen
  */
 @SpringBootTest
@@ -106,28 +109,23 @@ public class MongoCompareTest {
         return end;
     }
 
-    @SneakyThrows
     public void mongoPlusInit() {
-        baseMapper.remove(BsonUtil.EMPTY_DOCUMENT,Compare.class);
-        byte[] bytes = Files.readAllBytes(Paths.get(System.getProperty("user.dir")+"/json/content.json"));
-        Compare compare = JSON.parseObject(bytes, Compare.class);
-        List<Compare> compareList = new ArrayList<>();
-        for (int i = 0; i < 10000; i++) {
-            compareList.add(compare);
-        }
-        baseMapper.saveBatch(compareList);
+        baseMapper.remove(BsonUtil.EMPTY_DOCUMENT, Compare.class);
+        baseMapper.saveBatch(getCompareData());
+    }
+
+    public void mongoDataInit() {
+        mongoTemplate.remove(new Query(),"compare");
+        mongoTemplate.insertAll(getCompareData());
     }
 
     @SneakyThrows
-    public void mongoDataInit() {
-        mongoTemplate.remove(new Query(),"compare");
-        byte[] bytes = Files.readAllBytes(Paths.get(System.getProperty("user.dir")+"/json/content.json"));
+    private List<Compare> getCompareData(){
+        byte[] bytes = Files.readAllBytes(Paths.get(System.getProperty("user.dir") + "/json/content.json"));
         Compare compare = JSON.parseObject(bytes, Compare.class);
-        List<Compare> compareList = new ArrayList<>();
-        for (int i = 0; i < 10000; i++) {
-            compareList.add(compare);
-        }
-        mongoTemplate.insertAll(compareList);
+        return Stream.generate(() -> compare)
+                .limit(10000)
+                .collect(Collectors.toList());
     }
 
 }

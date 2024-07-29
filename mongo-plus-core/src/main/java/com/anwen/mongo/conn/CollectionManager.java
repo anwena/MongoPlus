@@ -59,7 +59,7 @@ public class CollectionManager {
         } else {
             mongoCollection = this.collectionMap.get(collectionName);
         }
-        return mongoCollection.withCodecRegistry(RegisterCodecUtil.getCodecCacheAndDefault());
+        return mongoCollection/*.withCodecRegistry(RegisterCodecUtil.getCodecCacheAndDefault())*/;
     }
 
 }
